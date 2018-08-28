@@ -28,23 +28,23 @@ namespace eosio {
         void issue(account_name to,
                    asset quantity,
                    vector<string> uris,
-		   string name,
+		string name,
                    string memo);
 
-   void transfer(account_name from,
+		void transfer(account_name from,
                       account_name to,
                       id_type id,
                       string memo);
 
-	void setrampayer(account_name payer, id_type id);
+		void setrampayer(account_name payer, id_type id);
 
-	void cleartokens();
+		void cleartokens();
 	
-	void clearsymbol(asset value);
+		void clearsymbol(asset value);
 
-	void clearbalance(account_name owner, asset value);
-
-	// @abi table accounts i64
+		void clearbalance(account_name owner, asset value);
+	
+		// @abi table accounts i64
         struct account {
             asset balance;
 
@@ -66,9 +66,9 @@ namespace eosio {
             uri_type uri;        // RFC 3986
             account_name owner;  // token owner
             asset value;         // token value (1 SYS)
-	        string name;	 // token name
-
-
+	        string name;	 	 // token name, can be given on mint
+			string ownerPubKey;   // FIO public key assigned to the token 
+			
             id_type primary_key() const { return id; }
             account_name get_owner() const { return owner; }
             string get_uri() const { return uri; }
@@ -89,6 +89,7 @@ namespace eosio {
                   string unique_name = name + "#" + std::to_string(id);
                   return unique_name;
             }
+			
         }; // token structure
 
     	using account_index = eosio::multi_index<N(accounts), account>;
@@ -100,17 +101,18 @@ namespace eosio {
 	                    indexed_by< N( byowner ), const_mem_fun< token, account_name, &token::get_owner> >,
 			    indexed_by< N( bysymbol ), const_mem_fun< token, uint64_t, &token::get_symbol> >,
 		            indexed_by< N( byname ), const_mem_fun< token, uint64_t, &token::get_name> > >;
+					
+	private:
+		friend eosiosystem::system_contract;
 
-        private:
-    	friend eosiosystem::system_contract;
+		token_index tokens;
 
-    	token_index tokens;
+		void mint(account_name owner, account_name ram_payer, asset value, string uri, string name);
 
-        void mint(account_name owner, account_name ram_payer, asset value, string uri, string name);
-
-        void sub_balance(account_name owner, asset value);
-        void add_balance(account_name owner, asset value, account_name ram_payer);
-        void sub_supply(asset quantity);
-        void add_supply(asset quantity);
+		void sub_balance(account_name owner, asset value);
+		void add_balance(account_name owner, asset value, account_name ram_payer);
+		void sub_supply(asset quantity);
+		void add_supply(asset quantity);
     };
 } /// namespace eosio
+
