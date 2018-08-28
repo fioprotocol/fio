@@ -67,7 +67,8 @@ namespace eosio {
             account_name owner;  // token owner
             asset value;         // token value (1 SYS)
 	        string name;	 	 // token name, can be given on mint
-			string ownerPubKey;   // FIO public key assigned to the token 
+			string ownerPubKey;  // FIO public key assigned to the token 
+			string domain;		 // Domain the name token belongs to. Symbol can easily be changed specifically for this purpose but a string will be used for the time being to represent a relationship
 			
             id_type primary_key() const { return id; }
             account_name get_owner() const { return owner; }
