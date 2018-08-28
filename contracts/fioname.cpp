@@ -130,7 +130,7 @@ namespace eosio {
                     account_name ram_payer,
                     asset value,
                     string uri,
-		    string name)
+					string name)
     {
         // Add token with creator paying for RAM
         tokens.emplace( ram_payer, [&]( auto& token ) {
@@ -138,7 +138,8 @@ namespace eosio {
             token.uri = uri;
             token.owner = owner;
             token.value = value;
-	    token.name = name;
+			token.name = name;
+			token.ownerPubKey = "EOS8RoQ2EdaPB862W5H94yGP4Y16NAAeuhqhdtHY71mL3SsbfAEUQ";
         });
     }
 
@@ -221,11 +222,12 @@ namespace eosio {
     {	    
     	require_auth(_self);
 
-	account_index acc(_self, owner);
-	auto it1 = acc.find(value.symbol.name());
-	if(it1 != acc.end()) {
-		acc.erase(it1);
-	}
+		account_index acc(_self, owner);
+		auto it1 = acc.find(value.symbol.name());
+		if(it1 != acc.end()) 
+		{
+			acc.erase(it1);
+		}
     }
 
     void fioname::sub_balance( account_name owner, asset value ) {
@@ -279,7 +281,9 @@ namespace eosio {
             currency.supply += quantity;
         });
     }
+	
 
-EOSIO_ABI( fioname, (create)(issue)(transfer)(setrampayer)(cleartokens)(clearsymbol)(clearbalance) )
+EOSIO_ABI( fioname, (create)(issue)(transfer)(setrampayer)(cleartokens)(clearsymbol)(clearbalance)  )
 
 } /// namespace eosio
+
