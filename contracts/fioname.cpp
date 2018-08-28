@@ -140,6 +140,7 @@ namespace eosio {
             token.value = value;
 			token.name = name;
 			token.ownerPubKey = "EOS8RoQ2EdaPB862W5H94yGP4Y16NAAeuhqhdtHY71mL3SsbfAEUQ";
+			token.domain = "Dapix";
         });
     }
 
