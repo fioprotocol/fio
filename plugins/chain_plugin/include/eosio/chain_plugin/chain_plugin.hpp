@@ -250,6 +250,19 @@ public:
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
 
+   struct fio_name_lookup_params {
+       string fio_name;  // FIO complete account name e.g. john.fio
+       string chain;     // chain name e.g. BTC, ETH, EOS etc.
+   };
+
+   struct fio_name_lookup_result {
+       bool is_registered = false;
+       bool is_domain = false;
+       string account_name ="";
+   };
+
+   fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
+
    struct get_currency_balance_params {
       name             code;
       name             account;
@@ -623,6 +636,9 @@ FC_REFLECT( eosio::chain_apis::read_write::push_transaction_results, (transactio
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(encode_type) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
+
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(account_name) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));

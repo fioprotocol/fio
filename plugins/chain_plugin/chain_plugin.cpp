@@ -1042,6 +1042,86 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
    EOS_ASSERT( false, chain::contract_table_query_exception, "Table ${table} is not specified in the ABI", ("table",table_name) );
 }
 
+    enum  class chain_type {
+        BTC=0, ETH=1, EOS=2, NONE=3
+    };
+    const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
+
+    // Convert of chain to chain type
+    inline chain_type str_to_chain_type(const string &chain) {
+
+       for (int i = 0; i < chain_str.size(); i++) {
+          if (chain == chain_str[i]) {
+             return static_cast<chain_type>(i);
+          }
+       }
+       return chain_type::NONE;
+    }
+
+
+read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
+
+   // assert if empty fio name
+   EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
+
+   // chain support check
+   string my_chain=p.chain;
+   transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+   chain_type c_type= str_to_chain_type(my_chain);
+   EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
+
+   // Split the fio name and domain portions
+   string fio_domain = "";
+   string fio_user_name = "";
+   int pos = p.fio_name.find('.');
+   if (pos == string::npos) {
+      fio_domain = p.fio_name;
+   } else {
+      fio_user_name = p.fio_name.substr(0, pos);
+      fio_domain = p.fio_name.substr(pos + 1, string::npos);
+   }
+
+   const string fio_code_name="exchange1111";
+   const name code = ::eosio::string_to_name(fio_code_name.c_str());
+   const abi_def abi = eosio::chain_apis::get_abi( db, code );
+
+   const string fio_scope="exchange1111";
+   // the default lookup table is "accounts"
+   string fio_lookup_table="accounts";
+   const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
+
+   // if fio_name is "domain" query "domains" table
+   if (fio_user_name.empty()) {
+      fio_lookup_table="domains";
+   }
+   get_table_rows_params table_row_params = get_table_rows_params{.json=true, .code=code, .scope=fio_scope, .table=fio_lookup_table,
+           .lower_bound=boost::lexical_cast<string>(name_hash),
+           .upper_bound=boost::lexical_cast<string>(name_hash + 1),
+           .encode_type="dec"};
+
+   get_table_rows_result table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+
+   fio_name_lookup_result result;
+   // If no matchs return empty result
+   if (table_rows_result.rows.empty()) {
+      return result;
+   }
+
+    result.is_registered = true;
+   // If found match and fio_name was a domain, indicate "domain found" in result
+   if (fio_user_name.empty()) {
+      result.is_domain=true;
+      return result;
+   }
+
+   // validate keys vector size is expected size.
+   EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["keys"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+
+   // Pick out chain specific key and populate result
+   result.account_name = table_rows_result.rows[0]["keys"][static_cast<int>(c_type)].as_string();
+   return result;
+}
+
 read_only::get_table_rows_result read_only::get_table_rows( const read_only::get_table_rows_params& p )const {
    const abi_def abi = eosio::chain_apis::get_abi( db, p.code );
 
