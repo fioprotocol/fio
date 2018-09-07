@@ -1,3 +1,17 @@
+/** FioName Token header file
+ *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
+ *  @author Adam Androulidakis
+ *  @file fio.name.hpp
+ *  @copyright Dapix
+ *
+ *  Changes:
+ *  Adam Androulidakis 9-6-2018
+ *  Ciju John 9-5-2018
+ *  Adam Androulidakis  8-31-2018
+ *  Ciju John  8-30-2018
+ *  Adam Androulidakis  8-29-2019
+ */
+ 
 
 #pragma once
 
@@ -9,26 +23,36 @@
 using namespace eosio;
 using std::string;
 
-namespace dapix {
+namespace fioio {
 
-    // @abi table accounts i64
-    struct account {
+    // @abi table fionames i64
+    struct fioname {
 
-        string name;
-        uint64_t namehash;
-        string domain;
-        uint64_t domainhash;
-        // chain specific keys
-        vector<string> keys;
-//        std::map<string, string> accounts;
-
+        string name = nullptr;
+        uint64_t namehash = 0;
+        string domain = nullptr;
+        uint64_t domainhash = 0;
+		
+		// For debug, not intended for production
+		string pubAddress = nullptr;
+		uint64_t pubAddressHash = 0;
+		/////////////////////////////////////////
+		
+		
+        // Chain specific keys
+        vector<string> addresses;
+		// std::map<string, string> fionames;
+		
+	// primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
         uint64_t by_domain() const { return domainhash; }
-        EOSLIB_SERIALIZE(account, (name)(namehash)(domain)(domainhash)(keys))
+		uint64_t by_pubAddress() const { return pubAddressHash; }
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(addresses)(pubAddress)(pubAddressHash))
     };
 
-    typedef multi_index<N(accounts), account,
-     indexed_by<N(bydomain), const_mem_fun<account, uint64_t, &account::by_domain> > > accounts_table;
+	//Where fioname tokens are stored
+    typedef multi_index<N(fionames), fioname,
+     indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
 
     // @abi table domains i64
     struct domain {
@@ -38,11 +62,13 @@ namespace dapix {
         uint64_t primary_key() const { return domainhash; }
         EOSLIB_SERIALIZE(domain, (name)(domainhash))
     };
+	
     typedef multi_index<N(domains), domain> domains_table;
 
     struct config {
         name tokencontr; // owner of the token contract
         EOSLIB_SERIALIZE(config, (tokencontr))
     };
+	
     typedef singleton<N(configs), config> configs;
 }

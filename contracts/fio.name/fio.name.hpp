@@ -16,6 +16,9 @@
 #include <eosiolib/eosio.hpp>
 #include <string>
 #include <eosiolib/singleton.hpp>
+
+//asset header is current unused, this will need to be
+//commented out for FioName to inherit token properties
 //#include <eosiolib/asset.hpp>
 
 
@@ -47,6 +50,7 @@ namespace fio {
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(pubKey)(pubKeyHash) )
     };
 
+	// Where fioname tokens are stored
     typedef multi_index<N(fionames), fioname,
      indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
 

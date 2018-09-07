@@ -2,7 +2,7 @@
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
  *  @author Adam Androulidakis
  *  @file fio.name.hpp
- *  @copyright defined in eos/LICENSE.txt
+ *  @copyright Dapix
  *
  *  Changes:
  *  
@@ -83,6 +83,7 @@ namespace fio {
                 eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
 				
                 // check if domain permission is valid.
+				
 				// does callee account have perms??
 				
 				
