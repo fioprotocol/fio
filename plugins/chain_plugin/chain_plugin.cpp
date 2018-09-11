@@ -1042,21 +1042,29 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
    EOS_ASSERT( false, chain::contract_table_query_exception, "Table ${table} is not specified in the ABI", ("table",table_name) );
 }
 
-    enum  class chain_type {
+
+
+/***** FIO API BEGIN *****/
+/*************************/
+
+
+// Used by fio_name_lookup
+enum  class chain_type {
         BTC=0, ETH=1, EOS=2, NONE=3
     };
-    const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
+	
+const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
 
-    // Convert of chain to chain type
-    inline chain_type str_to_chain_type(const string &chain) {
+// Convert of chain to chain type
+inline chain_type str_to_chain_type(const string &chain) {
 
-       for (int i = 0; i < chain_str.size(); i++) {
-          if (chain == chain_str[i]) {
-             return static_cast<chain_type>(i);
-          }
-       }
-       return chain_type::NONE;
-    }
+   for (int i = 0; i < chain_str.size(); i++) {
+	  if (chain == chain_str[i]) {
+		 return static_cast<chain_type>(i);
+	  }
+   }
+   return chain_type::NONE;
+}
 
 
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
@@ -1073,6 +1081,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    // Split the fio name and domain portions
    string fio_domain = "";
    string fio_user_name = "";
+
    int pos = p.fio_name.find('.');
    if (pos == string::npos) {
       fio_domain = p.fio_name;
@@ -1087,7 +1096,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    const string fio_scope="exchange1111";
    // the default lookup table is "accounts"
-   string fio_lookup_table="accounts";
+   string fio_lookup_table="fionames";
    const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
 
    // if fio_name is "domain" query "domains" table
@@ -1101,13 +1110,17 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    get_table_rows_result table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
+	
    fio_name_lookup_result result;
+	
    // If no matchs return empty result
    if (table_rows_result.rows.empty()) {
       return result;
    }
 
+   // 
     result.is_registered = true;
+	
    // If found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
       result.is_domain=true;
@@ -1115,13 +1128,20 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
    // validate keys vector size is expected size.
-   EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["keys"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+   EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
 
    // Pick out chain specific key and populate result
-   result.account_name = table_rows_result.rows[0]["keys"][static_cast<int>(c_type)].as_string();
+   result.account_name = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
    return result;
-}
+} // fioname_lookup
 
+
+/*****************End of FIO API******************************/
+/*************************************************************/
+	
+	
+	
+	
 read_only::get_table_rows_result read_only::get_table_rows( const read_only::get_table_rows_params& p )const {
    const abi_def abi = eosio::chain_apis::get_abi( db, p.code );
 
@@ -1179,7 +1199,7 @@ read_only::get_table_rows_result read_only::get_table_rows( const read_only::get
       }
       EOS_ASSERT(false, chain::contract_table_query_exception,  "Unsupported secondary index type: ${t}", ("t", p.key_type));
    }
-}
+} //get_table_rows
 
 vector<asset> read_only::get_currency_balance( const read_only::get_currency_balance_params& p )const {
 
@@ -1205,7 +1225,7 @@ vector<asset> read_only::get_currency_balance( const read_only::get_currency_bal
    });
 
    return results;
-}
+} //get_currency_balance
 
 fc::variant read_only::get_currency_stats( const read_only::get_currency_stats_params& p )const {
    fc::mutable_variant_object results;
@@ -1230,7 +1250,7 @@ fc::variant read_only::get_currency_stats( const read_only::get_currency_stats_p
    });
 
    return results;
-}
+} //get_currency_stats
 
 // TODO: move this and similar functions to a header. Copied from wasm_interface.cpp.
 // TODO: fix strict aliasing violation
