@@ -47,7 +47,7 @@ namespace fioio {
         uint64_t primary_key() const { return namehash; }
         uint64_t by_domain() const { return domainhash; }
 		uint64_t by_pubAddress() const { return pubAddressHash; }
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(addresses)(pubAddress)(pubAddressHash))
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(pubAddress)(pubAddressHash)(addresses))
     };
 
 	//Where fioname tokens are stored
