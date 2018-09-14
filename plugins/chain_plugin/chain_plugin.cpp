@@ -1050,10 +1050,10 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
 // Used by fio_name_lookup
 enum  class chain_type {
-        BTC=0, ETH=1, EOS=2, NONE=3
+        FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, NONE=5
     };
 	
-const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
+const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR"};
 
 // Convert of chain to chain type
 inline chain_type str_to_chain_type(const string &chain) {
@@ -1119,11 +1119,11 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
    // 
-    result.is_registered = true;
+    result.is_registered = "true";
 	
    // If found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
-      result.is_domain=true;
+      result.is_domain="true";
       return result;
    }
 
@@ -1131,7 +1131,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
 
    // Pick out chain specific key and populate result
-   result.account_name = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   result.address = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
    return result;
 } // fioname_lookup
 

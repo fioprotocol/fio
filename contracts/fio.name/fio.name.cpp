@@ -27,9 +27,9 @@ namespace fioio{
 
         // Currently supported chains
         enum  class chain_type {
-            BTC=0, ETH=1, EOS=2, NONE=3
+               FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, NONE=5
         };
-        const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
+        const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR"};
 
     public:
         FioNameLookup(account_name self)
