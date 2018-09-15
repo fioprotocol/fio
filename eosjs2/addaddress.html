@@ -23,6 +23,11 @@
   if (address === "") {
     throw new Error("Null or empty address.")
   }
+	
+//remove trailing whitespaces from address
+address = address.replace(/^[ ]+|[ ]+$/g,'')
+	
+	
 	//Get private key from parameters
   var key = url.searchParams.get("key"); // private key of user exchange1111
   if (key === "") {
