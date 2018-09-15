@@ -39,11 +39,16 @@ namespace fioio{
         // @abi action
         void registername(const string &name) {
             require_auth(owner);
-
+			string newname = name;
+			
+			// make fioname lowercase before hashing
+			transform(newname.begin(), newname.end(), newname.begin(), ::tolower);	
+			
+			
             string domain = nullptr;
             string fioname = domain;
 			
-            int pos = name.find('.');
+            int pos = newname.find('.');
             if (pos == string::npos) {
                 domain = name;
             } else {
@@ -52,12 +57,7 @@ namespace fioio{
             }
 			
 			
-		    // make fioname lowercase before hasing
-			transform(fioname.begin(), fioname.end(), fioname.begin(), ::tolower);
-			
-			
-			
-			
+	
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
             uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
@@ -83,7 +83,7 @@ namespace fioio{
 				// check if domain permission is valid.
                 
 				// check if fioname is available
-				uint64_t nameHash = ::eosio::string_to_name(name.c_str());
+				uint64_t nameHash = ::eosio::string_to_name(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
                 eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
@@ -101,7 +101,7 @@ namespace fioio{
 				
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a){
-                    a.name=name;
+                    a.name=newname;
                     a.namehash=nameHash;
                     a.domain=domain;
                     a.domainhash=domainHash;
@@ -141,8 +141,9 @@ namespace fioio{
             eosio_assert(!fio_user_name.empty(), "FIO user name cannot be empty.");
             eosio_assert(!chain.empty(), "Chain cannot be empty.");
             eosio_assert(!address.empty(), "Chain address cannot be empty.");
+			// Verify the address does not have a whitespace
+			eosio_assert(address.find(" "), "Chain cannot contain whitespace");
 			
-			// Verify the address is a correct format
 			// DO SOMETHING
 			
             // validate chain is supported. This is a case insensitive check.
@@ -171,12 +172,12 @@ namespace fioio{
 		void removedomain() {	
 		}
 		
-		void removeaddress() {
+		void rmvaddress() {
 		}
 		
 		
     }; // class FioNameLookup
 	
 
-    EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(removeaddress) )
+    EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress) )
 }

@@ -1073,11 +1073,12 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 	
    // assert if fio_name has all alphabet characters 
-	EOS_ASSERT( !(boost::algorithm::is_alpha(p.fio_name)), chain::contract_table_query_exception,"Invalid fio_name format");
+	//EOS_ASSERT( !(boost::algorithm::is_alpha(p.fio_name)), chain::contract_table_query_exception,"Invalid fio_name format");
 	
 	
   //make fio.name lowercase before searching
-   transform(p.fio_name.begin(), fio_name.end(), fio_name.begin(), ::tolower);
+	string fioname = p.fio_name;
+   transform(fioname.begin(), fioname.end(), fioname.begin(), ::tolower);
    
 	
    // chain support check
@@ -1089,15 +1090,13 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    // Split the fio name and domain portions
    string fio_domain = "";
    string fio_user_name = "";
-
-  
 	
-   int pos = p.fio_name.find('.');
+   int pos = fioname.find('.');
    if (pos == string::npos) {
-      fio_domain = p.fio_name;
+      fio_domain = fioname;
    } else {
-      fio_user_name = p.fio_name.substr(0, pos);
-      fio_domain = p.fio_name.substr(pos + 1, string::npos);
+      fio_user_name = fioname.substr(0, pos);
+      fio_domain = fioname.substr(pos + 1, string::npos);
    }
 
    const string fio_code_name="exchange1111";
@@ -1107,7 +1106,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    const string fio_scope="exchange1111";
    // the default lookup table is "accounts"
    string fio_lookup_table="fionames";
-   const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
+   const uint64_t name_hash = ::eosio::string_to_name(fioname.c_str());
 
    // if fio_name is "domain" query "domains" table
    if (fio_user_name.empty()) {
