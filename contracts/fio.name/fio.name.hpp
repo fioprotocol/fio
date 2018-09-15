@@ -33,21 +33,16 @@ namespace fioio {
         string domain = nullptr;
         uint64_t domainhash = 0;
 		
-		// For debug, not intended for production
-		string pubAddress = nullptr;
-		uint64_t pubAddressHash = 0;
-		/////////////////////////////////////////
-		
 		
         // Chain specific keys
         vector<string> addresses;
 		// std::map<string, string> fionames;
 		
-	// primary_key is required to store structure in multi_index table
+		// primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
         uint64_t by_domain() const { return domainhash; }
-		uint64_t by_pubAddress() const { return pubAddressHash; }
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(pubAddress)(pubAddressHash)(addresses))
+		
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(addresses))
     };
 
 	//Where fioname tokens are stored

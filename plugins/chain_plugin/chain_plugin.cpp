@@ -1069,9 +1069,17 @@ inline chain_type str_to_chain_type(const string &chain) {
 
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
 
-   // assert if empty fio name
+   // assert if empty fio_name
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
-
+	
+   // assert if fio_name has all alphabet characters 
+	EOS_ASSERT( !(boost::algorithm::is_alpha(p.fio_name)), chain::contract_table_query_exception,"Invalid fio_name format");
+	
+	
+  //make fio.name lowercase before searching
+   transform(p.fio_name.begin(), fio_name.end(), fio_name.begin(), ::tolower);
+   
+	
    // chain support check
    string my_chain=p.chain;
    transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
@@ -1082,6 +1090,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    string fio_domain = "";
    string fio_user_name = "";
 
+  
+	
    int pos = p.fio_name.find('.');
    if (pos == string::npos) {
       fio_domain = p.fio_name;

@@ -50,7 +50,14 @@ namespace fioio{
                 fioname = name.substr(0, pos);
                 domain = name.substr(pos + 1, string::npos);
             }
-
+			
+			
+		    // make fioname lowercase before hasing
+			transform(fioname.begin(), fioname.end(), fioname.begin(), ::tolower);
+			
+			
+			
+			
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
             uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
@@ -98,9 +105,6 @@ namespace fioio{
                     a.namehash=nameHash;
                     a.domain=domain;
                     a.domainhash=domainHash;
-					a.pubAddress = pubAddress;
-					a.pubAddressHash = pubAddressHash;
-					
                     a.addresses = vector<string>(chain_str.size(), "");
                 });
             } // else
@@ -137,7 +141,10 @@ namespace fioio{
             eosio_assert(!fio_user_name.empty(), "FIO user name cannot be empty.");
             eosio_assert(!chain.empty(), "Chain cannot be empty.");
             eosio_assert(!address.empty(), "Chain address cannot be empty.");
-
+			
+			// Verify the address is a correct format
+			// DO SOMETHING
+			
             // validate chain is supported. This is a case insensitive check.
             string my_chain=chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
@@ -154,8 +161,22 @@ namespace fioio{
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<int>(c_type)] = address;
             });
-        }
+        
+		}
+		
+		
+		void removename() {
+		}
+		
+		void removedomain() {	
+		}
+		
+		void removeaddress() {
+		}
+		
+		
     }; // class FioNameLookup
+	
 
-    EOSIO_ABI( FioNameLookup, (registername)(addaddress) )
+    EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(removeaddress) )
 }
