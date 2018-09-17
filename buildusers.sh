@@ -79,3 +79,11 @@ cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_
 cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncosfan.brd","chain":"FIO","address":"melpieaucbdz"}' --permission exchange1111@active
 cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"shawn.brd","chain":"FIO","address":"tslrdzpzjgwo"}' --permission exchange1111@active
 
+
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"dragonmaster.brd","chain":"XMR","address":"43Qt49V8BM9jEt9QEMZZbRYwzfrFH2kBT5ENy4pAGKurTMqHD16nxJLhGe83LeqU9yTjg1D9mLzFP7f12JZ1qAgwFxd4AXR"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"adam.brd","chain":"XMR","address":"43Qt49V8BM9jEt9QEMZZbRYwzfrFH2kBT5ENy4pAGKurTMqHD16nxJLhGe83LeqU9yTjg1D9mLzFP7f12JZ1qAgwFxd4AXR"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"pawel.brd","chain":"XMR","address":"46hHKZmpeHmWUziu3UgNBCjRPCZbGPTJSXGGxeynokNUMegctEr9GQxi9uwrAABywDiWLckzJfA7mjDci3MxAUAMQWzkqBQ"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"eddie.brd","chain":"XMR","address":"4B38YC3tC7EV88DAfpP9WQ6j6BqrSAEntfLLuaMSqkdNbESnnoryDfseHCM1DzQHZfa6zBQ4ADuwkYnbLS4g92qoUYfpp5Z"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncofan.brd","chain":"XMR","address":"43Pf6AzfYoCjAFxP4QisApUxCdXABWK7a6fU7Uz9oMsDE664JtpCZAcjcLAtVSeWbngH3RCWgwHyURxwuFMawhTS27K8LhS"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncosfan.brd","chain":"XMR","address":"43Pf6AzfYoCjAFxP4QisApUxCdXABWK7a6fU7Uz9oMsDE664JtpCZAcjcLAtVSeWbngH3RCWgwHyURxwuFMawhTS27K8LhS"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"shawn.brd","chain":"XMR","address":"49h9xbj74WEXpxcASLSh3GiqGCUNNHBuKhkPDMYmv2dQE41DRg69EL3HNq5yYvgv1k7wnDtu6rHLSMABz1CqSC8a5njwmz4"}' --permission exchange1111@active
