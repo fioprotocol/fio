@@ -61,3 +61,21 @@ cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_
 cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncosfan.brd","chain":"BCH","address":"1MD3wa72KAHLfEKM7qnuJZbrVRHLMFZ3a2"}' --permission exchange1111@active
 cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"shawn.brd","chain":"BCH","address":"1FJ31nGkJBe23GQVQJrkm5FMAzxTikdZrV"}' --permission exchange1111@active
 
+
+
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"dragonmaster.brd","chain":"EOS","address":"paksrfdrmbti"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"adam.brd","chain":"EOS","address":"paksrfdrmbti"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"pawel.brd","chain":"EOS","address":"vdjhzvgxscuz"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"eddie.brd","chain":"EOS","address":"mwnhektvfogl"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncofan.brd","chain":"EOS","address":"melpieaucbdz"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncosfan.brd","chain":"EOS","address":"melpieaucbdz"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"shawn.brd","chain":"EOS","address":"tslrdzpzjgwo"}' --permission exchange1111@active
+
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"dragonmaster.brd","chain":"FIO","address":"paksrfdrmbti"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"adam.brd","chain":"FIO","address":"paksrfdrmbti"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"pawel.brd","chain":"FIO","address":"vdjhzvgxscuz"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"eddie.brd","chain":"FIO","address":"mwnhektvfogl"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncofan.brd","chain":"FIO","address":"melpieaucbdz"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"broncosfan.brd","chain":"FIO","address":"melpieaucbdz"}' --permission exchange1111@active
+cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress '{"fio_user_name":"shawn.brd","chain":"FIO","address":"tslrdzpzjgwo"}' --permission exchange1111@active
+
