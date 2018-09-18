@@ -5,6 +5,7 @@
  *  @copyright Dapix
  *
  *  Changes:
+ *  Adam Androulidakis 9-18-2018
  *  Adam Androulidakis 9-6-2018
  *  Ciju John 9-5-2018
  *  Adam Androulidakis  8-31-2018
@@ -20,10 +21,12 @@
 #include <eosiolib/singleton.hpp>
 //#include <map>
 
-using namespace eosio;
+
 using std::string;
 
 namespace fioio {
+    
+        using namespace eosio;
 
     // @abi table fionames i64
     struct fioname {

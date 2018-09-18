@@ -5,6 +5,7 @@
  *  @copyright Dapix
  *
  *  Changes:
+ *  Adam Androulidakis 9-18-2018
  *  Adam Androulidakis 9-6-2018
  *  Ciju John 9-5-2018
  *  Adam Androulidakis  8-31-2018
@@ -48,7 +49,7 @@ namespace fioio{
             string domain = nullptr;
             string fioname = domain;
 			
-            int pos = newname.find('.');
+            size_t pos = newname.find('.');
             if (pos == string::npos) {
                 domain = name;
             } else {
@@ -88,10 +89,7 @@ namespace fioio{
                 auto fioname_iter = fionames.find(nameHash);
                 eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
                 
-				// For testing, single public address string
-				string pubAddress =  "FIO:EOS78vWPM6dHgoaYXxU3jVtVCb6fRQjy3otLNuZ2WmkAGEmCkfQwL\nBTC:16ZYw7zXbCRAgkA2oPEij5wR9UKaSG5dbb\nBCH:16ZYw7zXbCRAgkA2oPEij5wR9UKaSG5dbb\n"; //temporary device - value is not yet passed to method
-				uint64_t pubAddressHash = ::eosio::string_to_name(pubAddress.c_str()); 
-				
+
 				
 				// check if callee has requisite dapix funds.
 				// DO SOMETHING
@@ -111,15 +109,15 @@ namespace fioio{
         }
 
         /***
-         * Convert chain name to chain type. Returns chain_type::NONE if no match.
+         * Convert chain name to chain type. 
          *
          * @param chain The chain name e.g. "BTC"
-         * @return
+         * @return chain_type::NONE if no match.
          */
         inline chain_type str_to_chain_type(const string &chain) {
 
             print("size: ", chain_str.size(), "\n");
-            for (int i = 0; i < chain_str.size(); i++) {
+            for (size_t i = 0; i < chain_str.size(); i++) {
                 print("chain: ", chain, ", chain_str: ", chain_str[i], "\n");
                 if (chain == chain_str[i]) {
                     print("Found supported chain.", "\n");
@@ -160,7 +158,7 @@ namespace fioio{
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[static_cast<int>(c_type)] = address;
+                a.addresses[static_cast<size_t>(c_type)] = address;
             });
         
 		}
