@@ -256,9 +256,9 @@ public:
    };
 
    struct fio_name_lookup_result {
-       bool is_registered = false;
-       bool is_domain = false;
-       string account_name ="";
+       string is_registered = "false";
+       string is_domain = "false";
+       string address ="";
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
@@ -638,7 +638,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(sc
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
-FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(account_name) );
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
