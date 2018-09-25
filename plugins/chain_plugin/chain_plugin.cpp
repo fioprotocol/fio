@@ -1142,9 +1142,60 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    // Pick out chain specific key and populate result
    result.address = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
    return result;
+	
 } // fioname_lookup
 
+	
+read_only::fio_transfer_result read_only::fio_transfer( const read_only::fio_transfer_params& p )const {
+	
+	string key = p.key;
+	string sender = p.sender;
+	string receiver = p.receiver;
+	string quantity = p.quantity;
+	
+	fio_transfer_result result;
+	
+	return result;
+	
+}
+	
+read_only::fio_add_address_result read_only::fio_add_address( const read_only::fio_add_address_params& p )const { 
 
+	string key = p.key;
+	string chain = p.chain;
+	string address = p.address;
+	
+	system("cleos -u http://172.31.9.173:8889 wallet unlock --password \"PW5HtY2mVLhpL3ohFmQoqj7mwFTNc9shVeP91x3gXKthKmLbubaL5\"");
+	system ("cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress \'{\"fio_user_name\":\"fire.brd\",\"chain\":\"BTC\",\"address\":\"BTCADDRESS0x000000000000 \"}\' --permission exchange1111@active\");");
+	
+	fio_add_address_result result;
+	return result;
+	
+}
+	
+read_only::fio_new_user_result read_only::fio_new_user( const read_only::fio_new_user_params& p )const { 
+	
+	string key = p.key;
+	
+	fio_new_user_result result;
+	return result;
+}
+	
+read_only::fio_register_result read_only::fio_register( const read_only::fio_register_params& p )const { 
+	
+	string fio_name = p.fio_name;
+	string key = p.key;
+
+	system("cleos -u http://172.31.9.173:8889 wallet unlock --password \"PW5HtY2mVLhpL3ohFmQoqj7mwFTNc9shVeP91x3gXKthKmLbubaL5\"");
+	system("cleos -u http://172.31.9.173:8889 push action -j exchange1111 registername \'{\"name\":\"fire.brd\"}\' --permission exchange1111@active");
+		
+	
+	fio_register_result result;
+	return result;
+}
+
+	
+	
 /*****************End of FIO API******************************/
 /*************************************************************/
 	

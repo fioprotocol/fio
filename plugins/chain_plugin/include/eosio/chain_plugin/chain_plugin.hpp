@@ -250,6 +250,8 @@ public:
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
 
+	/*** FIO API ****/
+	
    struct fio_name_lookup_params {
        string fio_name;  // FIO complete account name e.g. john.fio
        string chain;     // chain name e.g. BTC, ETH, EOS etc.
@@ -260,9 +262,72 @@ public:
        string is_domain = "false";
        string address ="";
    };
+	
+   struct fio_register_params {
+       string fio_name;  // FIO complete account name e.g. john.fio
+	   string key; //Private key of contract owner. Do not use in production
+   };
 
+   struct fio_register_result {
+       string successful = "false";
+   };
+	
+   struct fio_transfer_params {
+	   
+       string sender;
+	   string receiver; 
+       string quantity; 
+	   string key; // Private key of sender. Temporary, do not use in production
+   };
+
+   struct fio_transfer_result {
+	   
+       string successful = "false";
+   };
+	
+	
+   struct fio_add_address_params {
+   
+	   string fio_name;
+	   string address;
+	   string chain;
+	   string key; //Private key of contract owner. Do not use in production
+	   
+   };
+	
+	struct fio_add_address_result {
+	
+		string successful = "false";
+	};
+	
+	struct fio_new_user_params {
+	
+		string key; 
+		
+	};
+	
+	struct fio_new_user_result {
+	
+		string successful = "false";
+		string address;
+		string publickey;
+		string privatekey;
+	
+	};
+	
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
 
+   fio_register_result fio_register(const fio_register_params& params) const;
+	
+   fio_transfer_result fio_transfer(const fio_transfer_params& params) const;
+	
+   fio_add_address_result fio_add_address(const fio_add_address_params& params) const;
+	
+   fio_new_user_result fio_new_user(const fio_new_user_params& params) const;
+	
+	
+		/*** FIO API END ****/
+	
    struct get_currency_balance_params {
       name             code;
       name             account;
@@ -637,8 +702,26 @@ FC_REFLECT( eosio::chain_apis::read_write::push_transaction_results, (transactio
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(encode_type) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
+
+/** FIO NAME API **/
+
+
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address) );
+
+FC_REFLECT( eosio::chain_apis::read_only::fio_transfer_params, (sender)(receiver)(quantity)(key) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_transfer_result, (successful) );
+
+FC_REFLECT( eosio::chain_apis::read_only::fio_register_params, (fio_name)(key) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_register_result, (successful) );
+
+FC_REFLECT( eosio::chain_apis::read_only::fio_add_address_params, (fio_name)(address)(chain)(key) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_add_address_result, (successful) );
+
+FC_REFLECT( eosio::chain_apis::read_only::fio_new_user_params, (key) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_new_user_result, (successful)(address)(publickey)(privatekey) );
+
+/** END FIO API **/
 
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
