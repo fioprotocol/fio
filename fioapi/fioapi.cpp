@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
       ptree pt;
       read_json(request->content, pt);
 
-      auto fio_name = pt.get<string>("fio_name") ;
+      auto fio_user_name = pt.get<string>("fio_user_name") ;
 	  auto address = pt.get<string>("address") ;
 	  auto chain = pt.get<string>("chain") ;
 		
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 	  
 	  //Issue the action
 	  stringstream fioaction2;
-	  fioaction2<<"cleos -u "<<dapixaddress<<" push action -j exchange1111 addaddress \'{\"fio_name\":\""<<fio_name<<"\",\"address\":\""<<address<<"\",\"chain\":\""<<chain<<"\"}\' --permission exchange1111@active";
+	  fioaction2<<"cleos -u "<<dapixaddress<<" push action -j exchange1111 addaddress \'{\"fio_user_name\":\""<<fio_user_name<<"\",\"address\":\""<<address<<"\",\"chain\":\""<<chain<<"\"}\' --permission exchange1111@active";
 	  if(!system(fioaction2.str().c_str()))
 	  {
 			cout<<fioaction2.str().c_str();
