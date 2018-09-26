@@ -16,7 +16,7 @@
 #ifdef HAVE_OPENSSL
 #include "crypto.hpp"
 #endif
-	
+
 const  std::string dapixaddress = "http://localhost:8889";
 const  std::string walletpassword = "PW5HtY2mVLhpL3ohFmQoqj7mwFTNc9shVeP91x3gXKthKmLbubaL5"; //wallet password, has private key for exchange1111
 
@@ -29,9 +29,7 @@ using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
 
 int main(int argc, char *argv[]) {
 	
-	
 
-	
   // HTTP-server at port 8080 using 1 thread
   // Unless you do more heavy non-threaded processing in the resources,
   // 1 thread is usually faster than several threads
@@ -45,7 +43,7 @@ int main(int argc, char *argv[]) {
       ptree pt;
       read_json(request->content, pt);
 
-      auto fio_user_name = pt.get<string>("fio_user_name") ;
+      auto name = pt.get<string>("name") ;
 		
 
 	  //Unlock the wallet
@@ -55,16 +53,16 @@ int main(int argc, char *argv[]) {
 	  
 	  //Issue the action
 	  stringstream fioaction2;
-	  fioaction2<<"cleos -u "<<dapixaddress<<" push action -j exchange1111 registername \'{\"fio_user_name\":\""<<fio_user_name<<"\"}\' --permission exchange1111@active";
+	  fioaction2<<"cleos -u "<<dapixaddress<<" push action -j exchange1111 registername \'{\"name\":\""<<name<<"\"}\' --permission exchange1111@active";
 	  if(!system(fioaction2.str().c_str()))
 	  {
 			cout<<fioaction2.str().c_str();
-		  	success = "command executed successfully";
+		  	success = "\ncommand executed successfully";
 	  }
 
 		 
 	 //console output, std stream
-	 cout<<"registername was executed by remote request." << endl;
+	 cout<<"\nregistername was executed by remote request." << endl;
 		
 
       *response << "HTTP/1.1 200 OK\r\n"
@@ -79,18 +77,18 @@ int main(int argc, char *argv[]) {
 	  
   };
 
-/*
-
   server.resource["^/fio/addaddress$"]["POST"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
-    try {
+    
+	 string success = "command failure"; 
+	 try {
       ptree pt;
       read_json(request->content, pt);
 
-      auto fio_user_name = pt.get<string>("fio_user_name");
-	  auto chain = pt.get<string>("chain");
-      auto address = pt.get<string>("address");
+      auto fio_name = pt.get<string>("fio_name") ;
+	  auto address = pt.get<string>("address") ;
+	  auto chain = pt.get<string>("chain") ;
 		
-		
+
 	  //Unlock the wallet
 	  stringstream fioaction1;
 	  fioaction1<<"cleos -u "<<dapixaddress<<" wallet unlock --password \""<<walletpassword<<"\"";
@@ -98,31 +96,30 @@ int main(int argc, char *argv[]) {
 	  
 	  //Issue the action
 	  stringstream fioaction2;
-	  fioaction1<<"cleos -u "<<dapixaddress<<" push action -j exchange1111 registername \'{\"fio_user_name\":\""<<fio_user_name<<
+	  fioaction2<<"cleos -u "<<dapixaddress<<" push action -j exchange1111 addaddress \'{\"fio_name\":\""<<fio_name<<"\",\"address\":\""<<address<<"\",\"chain\":\""<<chain<<"\"}\' --permission exchange1111@active";
+	  if(!system(fioaction2.str().c_str()))
+	  {
+			cout<<fioaction2.str().c_str();
+		  	success = "\ncommand executed successfully";
+	  }
 
-	  system("cleos -u http://localhost:8889 push action -j exchange1111 registername \'{\"name\":\"fire.brd\"}\' --permission exchange1111@active");
-
+		 
+	 //console output, std stream
+	 cout<<"\naddaddress was executed by remote request." << endl;
 		
-	  stringstream responsestream;
-	  responsestream<<"address: "<<address<<" chain: "<<chain<<" fio_Name: "<<fio_name;
 
       *response << "HTTP/1.1 200 OK\r\n"
-                << "Content-Length: " << responsestream.str().size() << "\r\n\r\n"
-                << responsestream.str().c_str();
+                << "Content-Length: " << success.length() << "\r\n\r\n"
+                << success;
     }
-	  
     catch(const exception &e) {
       *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n"
                 << e.what();
     }
+
 	  
-	
-	  
-	  
-	  //console output, std stream
-	 cout<<"addaddress was executed by remote request." << endl;
-	  
-  }; */
+  };
+
 	
 	
 	
