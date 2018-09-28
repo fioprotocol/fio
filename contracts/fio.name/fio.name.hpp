@@ -26,7 +26,7 @@ using std::string;
 
 namespace fioio {
 
-        using namespace eosio;
+    using namespace eosio;
 
     // @abi table fionames i64
     struct fioname {
@@ -39,37 +39,19 @@ namespace fioio {
 
         // Chain specific keys
         vector<string> addresses;
-		// std::map<string, string> fionames;
+        // std::map<string, string> fionames;
 
-		// primary_key is required to store structure in multi_index table
+        // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
+
         uint64_t by_domain() const { return domainhash; }
 
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(addresses))
     };
 
-    // structure for storing funds request
-    struct fundsrequest {
-        uint32_t requestid; // user supplied request id, mainly for user to track requests
-        uint64_t obtid; // FIO Other Blockchain Transaction (OBT) Transaction ID
-        name from; // request originator
-        name to; // requestee
-        string chain;
-        eosio::asset quantity; // requested fund quantity
-        string memo; // user generated memo
-        time  request_time; // request received timestamp
-        time  approval_time; // request approved time stamp
-
-        uint64_t primary_key() const { return obtid; }
-        uint64_t by_requestid() const { return requestid; }
-        EOSLIB_SERIALIZE(fundsrequest, (requestid)(obtid)(from)(to)(chain)(quantity)(memo)(request_time)(approval_time))
-    };
-    typedef multi_index<N(fundrequests), fundsrequest,
-            indexed_by<N(byrequestid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestid> > > requests_table;
-
     //Where fioname tokens are stored
     typedef multi_index<N(fionames), fioname,
-     indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
+            indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
 
     // @abi table domains i64
     struct domain {
@@ -77,6 +59,7 @@ namespace fioio {
         uint64_t domainhash;
 
         uint64_t primary_key() const { return domainhash; }
+
         EOSLIB_SERIALIZE(domain, (name)(domainhash))
     };
 
@@ -84,8 +67,10 @@ namespace fioio {
 
     struct config {
         name tokencontr; // owner of the token contract
+
         EOSLIB_SERIALIZE(config, (tokencontr))
     };
 
     typedef singleton<N(configs), config> configs;
+
 }

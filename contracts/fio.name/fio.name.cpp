@@ -27,8 +27,6 @@ namespace fioio{
         domains_table domains;
         fionames_table fionames;
 		account_name owner;
-        requests_table pending_requests;
-        requests_table approved_requests;
 
         // Currently supported chains
         enum  class chain_type {
@@ -38,11 +36,8 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-                : contract(self), config(self, self), domains(self, self), fionames(self, self),
-                  pending_requests(self, self), approved_requests(self, self)
+                : contract(self), config(self, self), domains(self, self), fionames(self, self)
         {owner=self;}
-
-
 
         // @abi action
         void registername(const string &name) {
@@ -186,93 +181,6 @@ namespace fioio{
 
 		void rmvaddress() {
 		}
-
-        /***
-         * User initaites a funds request.
-         */
-        // @abi action
-        void request_funds(uint32_t requestid, const name& from, const name& to, const string &chain, const asset& quantity, const string &memo) {
-            require_auth(from); // we need requesters authorization
-            is_account(to); // ensure requestee exists
-
-            // validate chain is supported. This is a case insensitive check.
-            string my_chain = chain;
-            transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-            print("Validating chain support: ", my_chain, "\n");
-            assert_valid_chain(my_chain);
-
-            // Validate requestid is unique for this user
-            auto idx = pending_requests.get_index<N(byrequestid)>();
-            auto matchingItem = idx.lower_bound(requestid);
-
-            // Advance to the first entry matching the specified requestid and from
-            while (matchingItem != idx.end() && matchingItem->requestid == requestid &&
-                   matchingItem->from != from) {
-                matchingItem++;
-            }
-
-            // assert identical request from same user doesn't exist
-            assert(matchingItem == idx.end() ||
-                   !(matchingItem->requestid == requestid && matchingItem->from == from));
-
-            // Add fioname entry in fionames table
-            pending_requests.emplace(_self, [&](struct fundsrequest &fr) {
-                fr.requestid = requestid;
-                fr.obtid = 0; // TBD
-                fr.from = from;
-                fr.to = to;
-                fr.chain = chain;
-                fr.quantity = quantity;
-                fr.memo = memo;
-                fr.request_time = now();
-                fr.request_time = UINT_MAX;
-            });
-        }
-
-        /***
-         * Cancel pending funds request
-         */
-        // @abi action
-        void cancel_funds_request(uint16_t requestid, const name& from) {
-            require_auth(from); // we need requesters authorization
-
-            // validate a pending request exists for this requester with this requestid
-            auto idx = pending_requests.get_index<N(byrequestid)>();
-            auto matchingItem = idx.lower_bound(requestid);
-
-            // Advance to the first entry matching the specified vID
-            while (matchingItem != idx.end() && matchingItem->requestid == requestid &&
-                   matchingItem->from != from) {
-                matchingItem++;
-            }
-
-            // assert on match found
-            assert(matchingItem != idx.end() && matchingItem->requestid == requestid &&
-                                 matchingItem->from == from);
-
-            // if match found drop request
-            idx.erase(matchingItem);
-        }
-
-        /***
-         * approve pending funds request
-         */
-        // @abi action
-        void approve_request(uint64_t obtid, const name& requestee) {
-            require_auth(requestee); // we need requesters authorization
-            // validate request obtid exists and is for this requestee
-            auto idx = pending_requests.find(obtid);
-            assert(idx != pending_requests.end());
-            assert(idx->to == requestee);
-
-            // approve request by moving it to approved requests table
-            fundsrequest request = *idx;
-            pending_requests.erase(idx);
-            request.approval_time = now();
-            approved_requests.emplace(_self, [&](struct fundsrequest &fr){
-                fr = request;
-            });
-        }
 
     }; // class FioNameLookup
 
