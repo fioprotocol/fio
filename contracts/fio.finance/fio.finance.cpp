@@ -18,7 +18,7 @@ namespace fioio{
     class FioFinance : public contract {
 		private:
         configs config;
-        account_name owner;
+        statecontainer contract_state;
         pending_requests_table pending_requests;
         approved_requests_table approved_requests;
 
@@ -30,8 +30,8 @@ namespace fioio{
 
     public:
         FioFinance(account_name self)
-                : contract(self), config(self, self), pending_requests(self, self), approved_requests(self, self)
-        {owner=self;}
+                : contract(self), config(self, self), contract_state(self,self), pending_requests(self, self), approved_requests(self, self)
+        { }
 
         /***
          * Convert chain name to chain type.
@@ -65,6 +65,7 @@ namespace fioio{
          */
         // @abi action
         void requestfunds(uint32_t requestid, const name& from, const name& to, const string &chain, const asset& quantity, const string &memo) {
+            print("Validating authority ", from);
             require_auth(from); // we need requesters authorization
             is_account(to); // ensure requestee exists
 
@@ -89,11 +90,15 @@ namespace fioio{
             assert(matchingItem == idx.end() ||
                    !(matchingItem->requestid == requestid && matchingItem->from == from));
 
+            // get the current odt from contract state
+            auto currentState = contract_state.get_or_default(contr_state());
+            currentState.current_obt++; // increment the odt
+
             print("Adding pending request id:: ", requestid);
             // Add fioname entry in fionames table
             pending_requests.emplace(_self, [&](struct fundsrequest &fr) {
                 fr.requestid = requestid;
-                fr.obtid = 0; // TBD
+                fr.obtid = currentState.current_obt;
                 fr.from = from;
                 fr.to = to;
                 fr.chain = chain;
@@ -102,15 +107,20 @@ namespace fioio{
                 fr.request_time = now();
                 fr.aproval_time = UINT_MAX;
             });
+
+            // Persist contract state
+            contract_state.set(currentState, _self);
         }
 
         /***
          * Cancel pending funds request
          */
         // @abi action
-        void cancelrqst(uint16_t requestid, const name& from) {
+        void cancelrqst(uint32_t requestid, const name& from) {
+            print("Validating authority ", from);
             require_auth(from); // we need requesters authorization
 
+            print("Validating pending request exists: ", requestid);
             // validate a pending request exists for this requester with this requestid
             auto idx = pending_requests.get_index<N(byrequestid)>();
             auto matchingItem = idx.lower_bound(requestid);
@@ -126,7 +136,7 @@ namespace fioio{
                                  matchingItem->from == from);
 
             // if match found drop request
-            print("Deleteing pending request id:: ", matchingItem->requestid);
+            print("Canceling pending request: ", matchingItem->requestid);
             idx.erase(matchingItem);
         }
 
@@ -135,13 +145,17 @@ namespace fioio{
          */
         // @abi action
         void approverqst(uint64_t obtid, const name& requestee) {
+            print("Validating authority ", requestee);
             require_auth(requestee); // we need requesters authorization
+
+            print("Validating pending request exists: ", obtid);
             // validate request obtid exists and is for this requestee
             auto idx = pending_requests.find(obtid);
             assert(idx != pending_requests.end());
             assert(idx->to == requestee);
 
             // approve request by moving it to approved requests table
+            print("Approving pending request: ", idx->obtid);
             fundsrequest request = *idx;
             pending_requests.erase(idx);
             request.aproval_time = now();

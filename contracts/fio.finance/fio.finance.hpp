@@ -52,12 +52,12 @@ namespace fioio {
 
         EOSLIB_SERIALIZE(config, (tokencontr))
     };
-
     typedef singleton<N(configs), config> configs;
 
-    struct common {
+    struct contr_state {
         uint64_t current_obt = 0; // obt generator
 
-        EOSLIB_SERIALIZE(common, (current_obt))
+        EOSLIB_SERIALIZE(contr_state, (current_obt))
     };
+    typedef singleton<N(state), contr_state> statecontainer;
 }
