@@ -16,21 +16,21 @@ namespace fioio{
 
 
     class FioFinance : public contract {
-		private:
+    private:
         configs config;
         statecontainer contract_state;
         pending_requests_table pending_requests;
-        approved_requests_table approved_requests;
+        finalized_requests_table finalized_requests;
 
         // Currently supported chains
         enum  class chain_type {
-               FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+            FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
         };
         const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
     public:
         FioFinance(account_name self)
-                : contract(self), config(self, self), contract_state(self,self), pending_requests(self, self), approved_requests(self, self)
+                : contract(self), config(self, self), contract_state(self,self), pending_requests(self, self), finalized_requests(self, self)
         { }
 
         /***
@@ -61,13 +61,13 @@ namespace fioio{
         }
 
         /***
-         * User initaites a funds request.
+         * Requestor initiates funds request.
          */
         // @abi action
-        void requestfunds(uint32_t requestid, const name& from, const name& to, const string &chain, const asset& quantity, const string &memo) {
-            print("Validating authority ", from);
-            require_auth(from); // we need requesters authorization
-            is_account(to); // ensure requestee exists
+        void requestfunds(uint32_t requestid, const name& requestor, const name& requestee, const string &chain, const asset& quantity, const string &memo) {
+            print("Validating authority ", requestor, "\n");
+            require_auth(requestor); // we need requesters authorization
+            is_account(requestee); // ensure requestee exists
 
             // validate chain is supported. This is a case insensitive check.
             string my_chain = chain;
@@ -76,36 +76,37 @@ namespace fioio{
             assert_valid_chain(my_chain);
 
             // Validate requestid is unique for this user
-            print("Validating requestid uniqueness");
+            print("Validating requestid uniqueness", "\n");
             auto idx = pending_requests.get_index<N(byrequestid)>();
             auto matchingItem = idx.lower_bound(requestid);
 
             // Advance to the first entry matching the specified requestid and from
             while (matchingItem != idx.end() && matchingItem->requestid == requestid &&
-                   matchingItem->from != from) {
+                   matchingItem->requestor != requestor) {
                 matchingItem++;
             }
 
             // assert identical request from same user doesn't exist
             assert(matchingItem == idx.end() ||
-                   !(matchingItem->requestid == requestid && matchingItem->from == from));
+                   !(matchingItem->requestid == requestid && matchingItem->requestor == requestor));
 
             // get the current odt from contract state
             auto currentState = contract_state.get_or_default(contr_state());
             currentState.current_obt++; // increment the odt
 
-            print("Adding pending request id:: ", requestid);
+            print("Adding pending request id:: ", requestid, "\n");
             // Add fioname entry in fionames table
             pending_requests.emplace(_self, [&](struct fundsrequest &fr) {
                 fr.requestid = requestid;
                 fr.obtid = currentState.current_obt;
-                fr.from = from;
-                fr.to = to;
+                fr.requestor = requestor;
+                fr.requestee = requestee;
                 fr.chain = chain;
                 fr.quantity = quantity;
                 fr.memo = memo;
                 fr.request_time = now();
-                fr.aproval_time = UINT_MAX;
+                fr.final_time = UINT_MAX;
+                fr.state = REQUEST_PENDING;
             });
 
             // Persist contract state
@@ -113,59 +114,89 @@ namespace fioio{
         }
 
         /***
-         * Cancel pending funds request
+         * Requestor cancel pending funds request
          */
         // @abi action
-        void cancelrqst(uint32_t requestid, const name& from) {
-            print("Validating authority ", from);
-            require_auth(from); // we need requesters authorization
+        void cancelrqst(uint32_t requestid, const name& requestor) {
+            print("Validating authority ", requestor, "\n");
+            require_auth(requestor); // we need requesters authorization
 
-            print("Validating pending request exists: ", requestid);
+            print("Validating pending request exists: ", requestid, "\n");
             // validate a pending request exists for this requester with this requestid
             auto idx = pending_requests.get_index<N(byrequestid)>();
             auto matchingItem = idx.lower_bound(requestid);
 
             // Advance to the first entry matching the specified vID
             while (matchingItem != idx.end() && matchingItem->requestid == requestid &&
-                   matchingItem->from != from) {
+                   matchingItem->requestor != requestor) {
                 matchingItem++;
             }
 
             // assert on match found
             assert(matchingItem != idx.end() && matchingItem->requestid == requestid &&
-                                 matchingItem->from == from);
+                   matchingItem->requestor == requestor);
 
             // if match found drop request
-            print("Canceling pending request: ", matchingItem->requestid);
+            print("Canceling pending request: ", matchingItem->requestid, "\n");
             idx.erase(matchingItem);
         }
 
         /***
-         * approve pending funds request
+         * Requestee approve pending funds request
          */
         // @abi action
         void approverqst(uint64_t obtid, const name& requestee) {
-            print("Validating authority ", requestee);
+            print("Validating authority ", requestee, "\n");
             require_auth(requestee); // we need requesters authorization
 
-            print("Validating pending request exists: ", obtid);
+            print("Validating pending request exists: ", obtid, "\n");
             // validate request obtid exists and is for this requestee
             auto idx = pending_requests.find(obtid);
             assert(idx != pending_requests.end());
-            assert(idx->to == requestee);
+            assert(idx->requestee == requestee);
 
             // approve request by moving it to approved requests table
-            print("Approving pending request: ", idx->obtid);
+            print("Approving pending request: ", idx->obtid, "\n");
             fundsrequest request = *idx;
             pending_requests.erase(idx);
-            request.aproval_time = now();
-            approved_requests.emplace(_self, [&](struct fundsrequest &fr){
+            request.final_time = now();
+            request.state = REQUEST_APPROVED;
+            request.final_detail = "approved";
+            finalized_requests.emplace(_self, [&](struct fundsrequest &fr){
                 fr = request;
             });
         }
 
+        /***
+         * Requestee reject pending funds request
+         */
+        // @abi action
+        void rejectrqst(uint64_t obtid, const name& requestee, const string& reject_detail) {
+            print("Validating authority ", requestee, "\n");
+            require_auth(requestee); // we need requesters authorization
+
+            print("Validating pending request exists: ", obtid, "\n");
+            // validate request obtid exists and is for this requestee
+            auto idx = pending_requests.find(obtid);
+            assert(idx != pending_requests.end());
+            assert(idx->requestee == requestee);
+
+            // approve request by moving it to approved requests table
+            print("Rejecting pending request: ", idx->obtid, "\n");
+            fundsrequest request = *idx;
+            pending_requests.erase(idx);
+            request.final_time = now();
+            request.state = REQUEST_APPROVED;
+            request.final_detail = reject_detail;
+            finalized_requests.emplace(_self, [&](struct fundsrequest &fr){
+                fr = request;
+            });
+
+        }
+
+
     }; // class FioFinance
 
 
-    EOSIO_ABI( FioFinance, (requestfunds)(cancelrqst)(approverqst) )
+    EOSIO_ABI( FioFinance, (requestfunds)(cancelrqst)(approverqst)(rejectrqst) )
 }

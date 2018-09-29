@@ -22,30 +22,45 @@ namespace fioio {
 
     using namespace eosio;
 
+    const static uint8_t REQUEST_APPROVED = 0;
+    const static uint8_t REQUEST_PENDING = 1;
+    const static uint8_t REQUEST_REJECTED = 2;
+
     // structure for storing funds request
-    // @abi table fundsrequest i64
+    // @abi table pendreqsts i64
+    // @abi table finalreqsts i64
     struct fundsrequest {
         uint32_t requestid; // user supplied request id, mainly for user to track requests
         uint64_t obtid; // FIO Other Blockchain Transaction (OBT) Transaction ID
-        name from; // request originator
-        name to; // requestee
+        name requestor; // request originator
+        name requestee; // requestee
         string chain;
         eosio::asset quantity; // requested fund quantity
-        string memo; // user generated memo
+        string memo; // user generated memo, can be encrypted
+
         time request_time; // request received timestamp
-        time aproval_time; // request approved time stamp
+        time final_time; // request approved time stamp
+        uint64_t state = REQUEST_PENDING; // tracks request state
+        string final_detail; // free form finalization details
 
         uint64_t primary_key() const { return obtid; }
-
         uint64_t by_requestid() const { return requestid; }
+        uint64_t by_requestee() const { return requestee; }
 
-        EOSLIB_SERIALIZE(fundsrequest, (requestid)(obtid)(from)(to)(chain)(quantity)(memo)(request_time)(aproval_time))
+        EOSLIB_SERIALIZE(fundsrequest, (requestid)(obtid)(requestor)(requestee)(chain)(quantity)(memo)(request_time)(final_time)(state)(final_detail))
     };
 
-    typedef multi_index<N(pendrequests), fundsrequest,
-            indexed_by<N(
-                    byrequestid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestid> > > pending_requests_table;
-    typedef multi_index<N(aprvrequests), fundsrequest> approved_requests_table;
+    // requests in this table will have state = REQUEST_PENDING
+    typedef multi_index<N(pendreqsts), fundsrequest,
+            indexed_by<N(byrequestid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestid> >,
+            indexed_by<N(byrequestee), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestee> >
+                    > pending_requests_table;
+
+    // requests in this table will have state REQUEST_REJECTED or REQUEST_APPROVED
+    typedef multi_index<N(finalreqsts), fundsrequest,
+            indexed_by<N(byrequestid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestid> >,
+            indexed_by<N(byrequestee), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestee> >
+                    > finalized_requests_table;
 
     struct config {
         name tokencontr; // owner of the token contract
