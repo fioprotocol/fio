@@ -56,6 +56,37 @@ class Fio {
         this.api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
     }
 
+    // Transfer entity quantity e.g. "4.010 SYS" from account to "to" account with a memo.
+    // Returns tuple [status, eos response]
+    async transfer(from, to, quantity, memo) {
+        Helper.checkTypes( arguments, ['string', 'string', 'string', 'string'] );
+
+        const result = await this.api.transact({
+            actions: [{
+                account: 'eosio.token',
+                name: 'transfer',
+                authorization: [{
+                    actor: from,
+                    permission: 'active',
+                }],
+                data: {
+                    from: from,
+                    to: to,
+                    quantity: quantity,
+                    memo: memo,
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
     // Generates a random private-public key pair.
     // Returns an promise array. arr[0] is private key, arr[1] is public key
     async generateKeys () {
