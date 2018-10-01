@@ -1,4 +1,4 @@
-const eosjs2 = require('../dapix_core/eosjs2');
+const eosjs2 = require('../eosjs2');
 const minimist = require('minimist');
 const fetch = require('node-fetch');                            // node only; not needed in browsers
 const { TextDecoder, TextEncoder } = require('text-encoding');  // node, IE11 and IE Edge Browsers
