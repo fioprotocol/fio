@@ -1050,10 +1050,10 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
 // Used by fio_name_lookup
 enum  class chain_type {
-            FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+        BTC=0, ETH=1, EOS=2, NONE=3
     };
 	
-const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
+const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
 
 // Convert of chain to chain type
 inline chain_type str_to_chain_type(const string &chain) {
@@ -1069,18 +1069,9 @@ inline chain_type str_to_chain_type(const string &chain) {
 
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
 
-   // assert if empty fio_name
+   // assert if empty fio name
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
-	
-   // assert if fio_name has all alphabet characters 
-	//EOS_ASSERT( !(boost::algorithm::is_alpha(p.fio_name)), chain::contract_table_query_exception,"Invalid fio_name format");
-	
-	
-  //make fio.name lowercase before searching
-	string fioname = p.fio_name;
-   transform(fioname.begin(), fioname.end(), fioname.begin(), ::tolower);
-   
-	
+
    // chain support check
    string my_chain=p.chain;
    transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
@@ -1090,13 +1081,13 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    // Split the fio name and domain portions
    string fio_domain = "";
    string fio_user_name = "";
-	
-   int pos = fioname.find('.');
+
+   int pos = p.fio_name.find('.');
    if (pos == string::npos) {
-      fio_domain = fioname;
+      fio_domain = p.fio_name;
    } else {
-      fio_user_name = fioname.substr(0, pos);
-      fio_domain = fioname.substr(pos + 1, string::npos);
+      fio_user_name = p.fio_name.substr(0, pos);
+      fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
 
    const string fio_code_name="exchange1111";
@@ -1106,7 +1097,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    const string fio_scope="exchange1111";
    // the default lookup table is "accounts"
    string fio_lookup_table="fionames";
-   const uint64_t name_hash = ::eosio::string_to_name(fioname.c_str());
+   const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
 
    // if fio_name is "domain" query "domains" table
    if (fio_user_name.empty()) {
@@ -1128,11 +1119,11 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
    // 
-    result.is_registered = "true";
+    result.is_registered = true;
 	
    // If found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
-      result.is_domain="true";
+      result.is_domain=true;
       return result;
    }
 
@@ -1140,62 +1131,11 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
 
    // Pick out chain specific key and populate result
-   result.address = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   result.account_name = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
    return result;
-	
 } // fioname_lookup
 
-	
-read_only::fio_transfer_result read_only::fio_transfer( const read_only::fio_transfer_params& p )const {
-	
-	string key = p.key;
-	string sender = p.sender;
-	string receiver = p.receiver;
-	string quantity = p.quantity;
-	
-	fio_transfer_result result;
-	
-	return result;
-	
-}
-	
-read_only::fio_add_address_result read_only::fio_add_address( const read_only::fio_add_address_params& p )const { 
 
-	string key = p.key;
-	string chain = p.chain;
-	string address = p.address;
-	
-	system("cleos -u http://172.31.9.173:8889 wallet unlock --password \"PW5HtY2mVLhpL3ohFmQoqj7mwFTNc9shVeP91x3gXKthKmLbubaL5\"");
-	system ("cleos -u http://172.31.9.173:8889 push action -j exchange1111 addaddress \'{\"fio_user_name\":\"fire.brd\",\"chain\":\"BTC\",\"address\":\"BTCADDRESS0x000000000000 \"}\' --permission exchange1111@active\");");
-	
-	fio_add_address_result result;
-	return result;
-	
-}
-	
-read_only::fio_new_user_result read_only::fio_new_user( const read_only::fio_new_user_params& p )const { 
-	
-	string key = p.key;
-	
-	fio_new_user_result result;
-	return result;
-}
-	
-read_only::fio_register_result read_only::fio_register( const read_only::fio_register_params& p )const { 
-	
-	string fio_name = p.fio_name;
-	string key = p.key;
-
-	system("cleos -u http://172.31.9.173:8889 wallet unlock --password \"PW5HtY2mVLhpL3ohFmQoqj7mwFTNc9shVeP91x3gXKthKmLbubaL5\"");
-	system("cleos -u http://172.31.9.173:8889 push action -j exchange1111 registername \'{\"name\":\"fire.brd\"}\' --permission exchange1111@active");
-		
-	
-	fio_register_result result;
-	return result;
-}
-
-	
-	
 /*****************End of FIO API******************************/
 /*************************************************************/
 	
