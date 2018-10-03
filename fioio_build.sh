@@ -278,19 +278,19 @@
 
 
                                                            
-printf "\n\n${bldred}\tFFFFFFFFFFFFFFFFFFFFFIIIIIIIIII     OOOOOOOOO     IIIIIIIIII     OOOOOOOOO\n"
-printf "\tF:::::::::::::::::::FI::::::::I   OO:::::::::OO   I::::::::I   OO:::::::::OO\n"   
-printf "\tFF::::::FFFFFFFF::::FII::::::IIO:::::::OOO:::::::OII::::::IIO:::::::OOO:::::::O\n"
-printf "\t  F:::::F      FFFFFF  I::::I  O::::::O   O::::::O  I::::I  O::::::O   O::::::O\n"
-printf "\t  F:::::F              I::::I  O:::::O     O:::::O  I::::I  O:::::O     O:::::O\n"
-printf "\t  F::::::FFFFFFFFF     I::::I  O:::::O     O:::::O  I::::I  O:::::O     O:::::O\n"
-printf "\t  F::::::::::::::F     I::::I  O:::::O     O:::::O  I::::I  O:::::O     O:::::O\n"
-printf "\t  F::::::FFFFFFFFF     I::::I  O:::::O     O:::::O  I::::I  O:::::O     O:::::O\n"
-printf "\t  F:::::F              I::::I  O:::::O     O:::::O  I::::I  O:::::O     O:::::O\n"
-printf "\t  F:::::F              I::::I  O::::::O   O::::::O  I::::I  O::::::O   O::::::O\n"
-printf "\tFF:::::::FF          II::::::IIO:::::::OOO:::::::OII::::::IIO:::::::OOO:::::::O\n"
-printf "\tF::::::::FF          I::::::::I   OO:::::::::OO   I::::::::I   OO:::::::::OO   \n"
-printf "\tFFFFFFFFFFF          IIIIIIIIII     OOOOOOOOO     IIIIIIIIII     OOOOOOOOO     \n${txtrst}"
+printf "\n\n${bldred}\tFFFFFFFFFFFFFFFFFFFFIIIIIIIII     OOOOOOOO     IIIIIIIII     OOOOOOO\n"
+printf "\tF::::::::::::::::::FI:::::::I   OO::::::::OO   I:::::::I   OO:::::::OO\n"   
+printf "\tFF:::::FFFFFFFF::::FII:::::IIO::::::OOO::::::OII:::::IIO::::::OOO:::::O\n"
+printf "\t  F::::F      FFFFFF  I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
+printf "\t  F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+printf "\t  F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+printf "\t  F:::::::::::::F     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+printf "\t  F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+printf "\t  F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+printf "\t  F::::F              I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
+printf "\tFF::::::FF          II:::::IIO::::::OOO::::::OII:::::IIO::::::OOO::::::O\n"
+printf "\tF:::::::FF          I:::::::I   OO::::::::OO   I:::::::I   OO:::::::OO\n"
+printf "\tFFFFFFFFFF          IIIIIIIII     OOOOOOOO     IIIIIIIII     OOOOOOOO \n${txtrst}"
 
    printf "\\n\\tFIOIO has been successfully built. %02d:%02d:%02d\\n\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
    printf "\\tTo verify your installation run the following commands:\\n"
