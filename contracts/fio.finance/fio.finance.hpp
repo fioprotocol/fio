@@ -30,7 +30,8 @@ namespace fioio {
         REQ=            1,  // funds request
         REQ_CANCEL=     2,  // cancel funds request
         REQ_RPRT=       3,  // request fulfilment report
-        RCPT_VRFY=      4   // recipient verification
+        RCPT_VRFY=      4,  // recipient verification
+        REQ_REJECT=     5   // reject request
     };
 
     // Transaction status types.
@@ -40,7 +41,8 @@ namespace fioio {
         RPRT=           0,  // report
         REQ=            1,  // funds request
         REQ_CANCEL=     2,  // cancel funds request
-        RCPT_VRFY=      3   // recipient verification
+        RCPT_VRFY=      3,   // recipient verification
+        REQ_REJECT=      4
     };
 
     // Supported chains
@@ -82,17 +84,20 @@ namespace fioio {
     // Chain of objects representing audit trail of a FIO transaction chain
     // @abi table trxlogs i64
     struct trxlog {
+        uint64_t key;       // unique index
         uint64_t fioappid;  // key to trxmetadata table
         uint16_t type;      // log message of type ${trx_type}
         uint16_t status;    // status message of type ${trx_sts}
         time time;          // transaction received (by blockchain) time
         string data;        // data binding specific to transaction type. Defined in ${FioFinance::trx_type_dta}
 
-        uint64_t primary_key() const    { return fioappid; }
-        EOSLIB_SERIALIZE(trxlog, (fioappid)(type)(status)(time)(data))
+        uint64_t primary_key() const    { return key; }
+        uint64_t by_fioappid() const    { return fioappid; }
+        EOSLIB_SERIALIZE(trxlog, (key)(fioappid)(type)(status)(time)(data))
     };
     // transactions log table
-    typedef multi_index<N(trxlogs), trxlog > transaction_logs_table;
+    typedef multi_index<N(trxlogs), trxlog,
+            indexed_by<N(byfioappid), const_mem_fun<trxlog, uint64_t, &trxlog::by_fioappid> > > transaction_logs_table;
 
     // Structure for FIO funds request
     // This is a temporary structure for holding pending requests. Once request is reported it will be erased
