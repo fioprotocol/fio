@@ -25,12 +25,12 @@ namespace fioio{
         pending_requests_table pending_requests;
 
         // data format of transactions, tail numeral indicates number of operands
-        string trx_type_dta_NO_REQ_RPRT=  R"({"obtid":"%s"})";              // ${trx_type::NO_REQ_RPRT}: obtid
-        string trx_type_dta_REQ=          R"({"reqid":"%d","memo":"%s"})";  // ${trx_type::REQ}: requestid, memo
-        string trx_type_dta_REQ_CANCEL=   R"("memo":"%s"})";                // ${trx_type::REQ_CANCEL}
-        string trx_type_dta_REQ_RPRT=     R"({"obtid":"%s","memo":"%s"})";  // ${trx_type::REQ_RPRT}: obtid, memo
-        string trx_type_dta_RCPT_VRFY=    R"("memo":"%s"})";                // ${trx_type::RCPT_VRFY}
-        string trx_type_dta_REQ_REJECT=   R"("memo":"%s"})";                // ${trx_type::REQ_REJECT}
+        string trx_type_dta_NO_REQ_RPRT=  R"({"obtid":"%s"})";                  // ${trx_type::NO_REQ_RPRT}: obtid
+        string trx_type_dta_REQ=          R"({"reqid":"%lld","memo":"%s"})";    // ${trx_type::REQ}: requestid, memo
+        string trx_type_dta_REQ_CANCEL=   R"("memo":"%s"})";                    // ${trx_type::REQ_CANCEL}
+        string trx_type_dta_REQ_RPRT=     R"({"obtid":"%s","memo":"%s"})";      // ${trx_type::REQ_RPRT}: obtid, memo
+        string trx_type_dta_RCPT_VRFY=    R"("memo":"%s"})";                    // ${trx_type::RCPT_VRFY}
+        string trx_type_dta_REQ_REJECT=   R"("memo":"%s"})";                    // ${trx_type::REQ_REJECT}
 
         // User printable supported chains strings.
         const std::vector<std::string> chain_str {
@@ -46,8 +46,8 @@ namespace fioio{
 
     public:
         explicit FioFinance(account_name self)
-                : contract(self), config(self, self), contract_state(self,self), transaction_contexts(self, self), transaction_logs(self,self),
-                pending_requests(self, self)
+                : contract(self), config(self, self), contract_state(self,self), transaction_contexts(self, self),
+                transaction_logs(self,self), pending_requests(self, self)
         { }
 
         /***
@@ -77,7 +77,7 @@ namespace fioio{
             assert(str_to_chain_type(chain) != chain_type::NONE);
         }
 
-        // generic function to construct Fio log data string. Currently it doesn't handle string parameters correctly in webassembly.
+        // generic function to construct Fio log data string.
         inline static std::string trxlogformat(const std::string format, ...)
         {
             va_list args;
@@ -90,33 +90,6 @@ namespace fioio{
             va_end (args);
             return &vec[0];
         }
-
-//        // DISABLED: Brittle function to construct Fio log data string.
-//        inline static std::string trxlogstrformat (trx_type type, const std::string& arg1, const std::string& arg2) {
-//            assert(false); // Currently disabled as EOS string formating seems to be broken
-//            std::stringstream strstream;
-//            switch (type) {
-//                case trx_type::NO_REQ_RPRT:
-//                    strstream << R"({"obtid":")" << arg1 << R"("})";
-//                    break;
-//                case trx_type::REQ:
-//                    strstream << R"({"reqid":")" << arg1 << R"(","memo":")" << arg2 << R"("})";
-//                    break;
-//                case trx_type::REQ_CANCEL:
-//                    strstream << R"("memo":")" << arg1 << R"("})";
-//                    break;
-//                case trx_type::REQ_RPRT:
-//                    strstream << R"({"obtid":")" << arg1 << R"(","memo":")" << arg2 << R"("})";
-//                    break;
-//                case trx_type::RCPT_VRFY:
-//                    strstream << R"("memo":")" << arg1 << R"("})";
-//                    break;
-//                case trx_type::REQ_REJECT:
-//                    strstream << R"("memo":")" << arg1 << R"("})";
-//                    break;
-//            }
-//            return strstream.str();
-//        }
 
         /***
          * Requestor initiates funds request.
@@ -148,9 +121,13 @@ namespace fioio{
             assert(matchingItem == pending_requests.end() ||
                    !(matchingItem->requestid == requestid && matchingItem->originator == requestor));
 
-            print("Validate quantity is double.");
-            // TBD: Below API is not linking. Research and fix
-//            std::stod(quantity);
+//            print("Validate quantity is double.");
+//            // TBD: Below API is not linking. Research and fix
+////            std::stod(quantity);
+//            double myquant;
+//            std::stringstream iss (quantity);
+//            iss >> myquant;
+//            print("Converted quantity: ", myquant);
 
             // get the current odt from contract state
             auto currentState = contract_state.get_or_default(contr_state());
@@ -176,13 +153,7 @@ namespace fioio{
                 log.time = now();
 
                 print("Log requestid: ", requestid, ", memo: ", memo);
-//                std::ostringstream os;
-//                os << requestid;
-//                string reqidstr = os.str();
-//                print("Stringified requestid: ", reqidstr);
-                print("Log stringified memo: ", memo.c_str());
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ, requestid, memo.c_str());
-//                string data = FioFinance::format(trx_type::REQ, reqidstr, memo);
                 log.data=data;
             });
 
@@ -230,7 +201,6 @@ namespace fioio{
                 log.time = now();
 
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ_CANCEL, memo.c_str());
-//                string data = FioFinance::format(trx_type::REQ_CANCEL, memo, nullptr);
                 log.data=data;
             });
 
@@ -239,7 +209,6 @@ namespace fioio{
             pending_requests.erase(matchingItem);
         }
 
-//        string trx_type_dta_REQ_RPRT=     R"({"obtid":"%s","memo":"%s"})";    // ${trx_type::REQ_RPRT}: obtid, memo
         /***
          * Requestee reports(approve) pending funds request
          */
@@ -264,7 +233,6 @@ namespace fioio{
                 log.time = now();
 
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ_RPRT, obtid.c_str(), memo.c_str());
-//                string data = FioFinance::format(trx_type::REQ_RPRT, obtid, memo);
                 log.data=data;
             });
 
@@ -297,7 +265,6 @@ namespace fioio{
                 log.time = now();
 
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ_REJECT, memo.c_str());
-//                string data = FioFinance::format(trx_type::REQ_REJECT, memo, nullptr);
                 log.data=data;
             });
 
@@ -310,6 +277,5 @@ namespace fioio{
     }; // class FioFinance
 
 
-//    EOSIO_ABI( FioFinance, (requestfunds)(cancelrqst)(approverqst) )
     EOSIO_ABI( FioFinance, (requestfunds)(cancelrqst)(reportrqst)(rejectrqst) )
 }
