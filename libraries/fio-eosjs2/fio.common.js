@@ -1,23 +1,31 @@
+/** Common file implementation for Fio Javascript SDK
+ *  Description: FioFinance common file
+ *  @author Ciju John
+ *  @file fio.common.js
+ *  @copyright Dapix
+ *
+ *  Changes: 10-8-2018 Adam Androulidakis
+ */
+
+
 // General Configuration parameters
 class Config {
 }
 Config.MaxAccountCreationAttempts=3;
-Config.EosUrl='http://127.0.0.1:8888';
-Config.DefaultPrivateKey = "5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"; // fioname11111
+Config.EosUrl='http://localhost:8888';
+Config.DefaultPrivateKey = "5HvaoRV9QrbbxhLh6zZHqTzesFEG5vusVJGbUazFi5xQvKMMt6U"; // fioname11111
 Config.NewAccountBuyRamQuantity="100.0000 FIO";
 Config.NewAccountStakeNetQuantity="100.0000 FIO";
 Config.NewAccountStakeCpuQuantity="100.0000 FIO";
 Config.NewAccountTransfer=false;
+Config.TestAccount="fioname11111";
 Config.LogLevel=3; // Log levels 0 - 5 with increasing verbosity.
 
 // Helper static functions
 class Helper {
     static typeOf( obj ) {
 				
-		// convert to string and make lower case
-        var processed =  ({}).toString.call( obj ).match(/\s(\w+)/)[1].toLowerCase();
-		//Remove whitespaces and return
-		return processed.replace(/^[ ]+|[ ]+$/g,'');
+		return  ({}).toString.call( obj ).match(/\s(\w+)/)[1].toLowerCase();
 		
     }
 
@@ -39,7 +47,6 @@ class Helper {
         for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
         return result;
     }
-	
 	
 	
    	// Get account details

@@ -1,3 +1,13 @@
+/** FioName test file implementation for Fio Javascript SDK
+ *  Description: For testing account creation, fioname registration and adding addresses  
+ *  @author Ciju John
+ *  @file fioname-test.js
+ *  @copyright Dapix
+ *
+ *  Changes: 10-8-2018 Adam Androulidakis
+ */
+
+
 const minimist = require('minimist');
 const fioname=require('./fioname.js');
 const fiocommon=require('./fio.common.js');
