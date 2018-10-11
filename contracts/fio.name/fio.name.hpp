@@ -60,8 +60,23 @@ namespace fioio {
         uint64_t primary_key() const { return domainhash; }
         EOSLIB_SERIALIZE(domain, (name)(domainhash))
     };
-	
     typedef multi_index<N(domains), domain> domains_table;
+
+    // Structures/table for mapping chain key to FIO name
+    // @abi table keynames i64
+    struct key_name {
+        uint64_t id;
+        string key = nullptr;       // user key on a chain
+        uint64_t keyhash = 0;       // chainkey hash
+        uint64_t chaintype;         // maps to ${FioNameLookup::chain_type}
+        string name = nullptr;      // FIO name
+        string domain = nullptr;    // FIO domain name
+
+        uint64_t primary_key() const { return id; }
+        uint64_t by_key() const { return keyhash; }
+    };
+    typedef multi_index<N(keynames), key_name,
+            indexed_by<N(bydomain), const_mem_fun<key_name, uint64_t, &key_name::by_key> > > keynames_table;
 
     struct config {
         name tokencontr; // owner of the token contract

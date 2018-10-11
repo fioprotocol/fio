@@ -34,6 +34,29 @@
         }
       ]
     },{
+    "name": "keyname",
+    "base": "",
+    "fields": [{
+        "name": "id",
+        "type": "uint64"
+    },{
+        "name": "key",
+        "type": "string"
+    },{
+        "name": "keyhash",
+        "type": "uint64"
+    },{
+        "name": "chaintype",
+        "type": "uint64"
+    },{
+        "name": "name",
+        "type": "string"
+    },{
+        "name": "domain",
+        "type": "string"
+    }
+    ]
+    },{
       "name": "registername",
       "base": "",
       "fields": [{
@@ -111,6 +134,16 @@
         "string"
       ],
       "type": "domain"
+    },{
+    "name": "keynames",
+    "index_type": "i64",
+    "key_names": [
+        "id"
+    ],
+    "key_types": [
+        "string"
+    ],
+    "type": "keyname"
     }
   ],
   "ricardian_clauses": [],

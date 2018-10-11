@@ -24,6 +24,7 @@ namespace fioio{
         domains_table domains;
         fionames_table fionames;
 		account_name owner;
+        keynames_table keynames;
 		
 
         // Currently supported chains
@@ -34,8 +35,10 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), config(self, self), domains(self, self), fionames(self, self) {owner=self;}
-
+        : contract(self), config(self, self), domains(self, self), fionames(self, self),
+          keynames(self, self) {
+            owner=self;
+        }
     
         // @abi action
         void registername(const string &name) {
@@ -160,7 +163,16 @@ namespace fioio{
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>(c_type)] = address;
             });
-        
+
+            // insert key into key-name table for reverse lookup
+            keynames.emplace(_self, [&](struct key_name &k){
+                k.id = keynames.available_primary_key();                // use next available primary key
+                k.key = address;                                        // persist key
+                k.keyhash = ::eosio::string_to_name(address.c_str());   // persist key hash
+                k.chaintype = static_cast<uint64_t>(c_type);            // specific chain type
+                k.name = fioname_iter->name;                            // FIO name
+                k.domain = fioname_iter->domain;                        // FIO domain
+            });
 		}
 		
 		

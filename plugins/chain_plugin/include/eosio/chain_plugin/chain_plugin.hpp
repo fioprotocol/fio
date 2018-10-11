@@ -263,6 +263,16 @@ public:
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
 
+    struct fio_key_lookup_params {
+        string key;     // chain key e.g. for Ethereum: 0xC2D7CF95645D33006175B78989035C7c9061d3F9
+        string chain;   // chain name e.g. BTC, ETH, EOS etc.
+    };
+    struct fio_key_lookup_result {
+        string name = nullptr;
+        string domain = nullptr;
+    };
+   fio_key_lookup_result fio_key_lookup( const fio_key_lookup_params& params) const;
+
    struct get_currency_balance_params {
       name             code;
       name             account;

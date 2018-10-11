@@ -1135,6 +1135,52 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    return result;
 } // fioname_lookup
 
+read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio_key_lookup_params& p )const {
+   // assert if empty chain key
+   EOS_ASSERT( !p.key.empty(), chain::contract_table_query_exception,"Empty key string");
+
+   EOS_ASSERT( !p.chain.empty(), chain::contract_table_query_exception,"Empty chain string");
+
+   // chain support check
+   string my_chain=p.chain;
+   transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+   chain_type c_type= str_to_chain_type(my_chain);
+   EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
+
+   const string fio_code_name="fioname11111";
+   const name code = ::eosio::string_to_name(fio_code_name.c_str());
+   const abi_def abi = eosio::chain_apis::get_abi( db, code );
+
+   const string fio_scope="fioname11111";
+   // the default lookup table is "accounts"
+   string fio_key_lookup_table="keynames";
+   const uint64_t key_hash = ::eosio::string_to_name(p.key.c_str());
+
+   get_table_rows_params table_row_params = get_table_rows_params{.json=true, .code=code, .scope=fio_scope, .table=fio_key_lookup_table,
+           .lower_bound=boost::lexical_cast<string>(key_hash),
+           .upper_bound=boost::lexical_cast<string>(key_hash + 1),
+           .index_position="2",
+           .encode_type="dec"};
+
+   get_table_rows_result table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+   EOS_ASSERT(!table_rows_result.rows.empty(),chain::contract_table_query_exception,"No matches found.");
+
+   size_t pos=0;
+   for (; pos < table_rows_result.rows.size(); pos++) {
+      if (table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type)) {
+         break;
+      }
+   }
+   EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type),chain::contract_table_query_exception,"key not found.");
+
+   fio_key_lookup_result result;
+
+   // Pick out chain specific key and populate result
+   result.name = table_rows_result.rows[0]["name"].as_string();
+   result.domain = table_rows_result.rows[0]["domain"].as_string();
+   return result;
+} // fio_key_lookup
+
 
 /*****************End of FIO API******************************/
 /*************************************************************/
