@@ -181,15 +181,25 @@
       ],
       "type": "trxlog"
     },{
-      "name": "pendreqsts",
+      "name": "pendrqsts",
       "index_type": "i64",
       "key_names": [
-        "requestid"
+        "fioappid"
       ],
       "key_types": [
         "uint64"
       ],
       "type": "fundsrequest"
+    }{
+    "name": "prsrqsts",
+    "index_type": "i64",
+    "key_names": [
+        "fioappid"
+    ],
+    "key_types": [
+        "uint64"
+    ],
+    "type": "fundsrequest"
     }
   ],
   "ricardian_clauses": [],

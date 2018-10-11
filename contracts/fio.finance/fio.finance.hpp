@@ -85,7 +85,7 @@ namespace fioio {
     // @abi table trxlogs i64
     struct trxlog {
         uint64_t key;       // unique index
-        uint64_t fioappid;  // key to trxmetadata table
+        uint64_t fioappid;  // key to trxcontext table
         uint16_t type;      // log message of type ${trx_type}
         uint16_t status;    // status message of type ${trx_sts}
         time time;          // transaction received (by blockchain) time
@@ -101,25 +101,33 @@ namespace fioio {
 
     // Structure for FIO funds request
     // This is a temporary structure for holding pending requests. Once request is reported it will be erased
-    // @abi table pendreqsts i64
+    // @abi table pendrqsts i64
+    // @abi table prsrqsts i64
     struct fundsrequest {
         uint64_t    requestid;  // user supplied request id, mainly for user to track requests
-        uint64_t    fioappid;   // key to trxmetadata table
+        uint64_t    fioappid;   // key to trxcontext table
         name        originator; // funds originator
         name        receiver;   // funds receiver
 
-        uint64_t primary_key() const    { return requestid; }
-        uint64_t by_fioappid() const    { return fioappid; }
+        uint64_t primary_key() const    { return fioappid; }
+        uint64_t by_requestid() const    { return requestid; }
         uint64_t by_originator() const  { return originator; }
         uint64_t by_receiver() const    { return receiver; }
         EOSLIB_SERIALIZE(fundsrequest, (requestid)(fioappid)(originator)(receiver))
     };
     // funds requests table
-    typedef multi_index<N(pendreqsts), fundsrequest,
-            indexed_by<N(byfioappid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_fioappid> >,
+    typedef multi_index<N(pendrqsts), fundsrequest,
+            indexed_by<N(byrequestid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestid> >,
             indexed_by<N(byoriginator), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_originator> >,
             indexed_by<N(byreceiver), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_receiver> >
     > pending_requests_table;
+
+    // processed funds requests table
+    typedef multi_index<N(prsrqsts), fundsrequest,
+            indexed_by<N(byrequestid), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_requestid> >,
+            indexed_by<N(byoriginator), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_originator> >,
+            indexed_by<N(byreceiver), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_receiver> >
+    > processed_requests_table;
 
 
     struct config {
