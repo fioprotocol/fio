@@ -268,9 +268,14 @@ public:
         string chain;   // chain name e.g. BTC, ETH, EOS etc.
     };
     struct fio_key_lookup_result {
-        string name = nullptr;
-        string domain = nullptr;
+        string name = "";   // FIO name
     };
+
+    /**
+     * Lookup FIO name based upon blockchain key(address|account)
+     * @param params
+     * @return
+     */
    fio_key_lookup_result fio_key_lookup( const fio_key_lookup_params& params) const;
 
    struct get_currency_balance_params {
@@ -649,6 +654,8 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(account_name) );
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));

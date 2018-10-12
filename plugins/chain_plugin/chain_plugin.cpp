@@ -1050,10 +1050,9 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
 // Used by fio_name_lookup
 enum  class chain_type {
-        BTC=0, ETH=1, EOS=2, NONE=3
-    };
-	
-const std::vector<std::string> chain_str {"BTC", "ETH", "EOS"};
+    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+};
+const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
 // Convert of chain to chain type
 inline chain_type str_to_chain_type(const string &chain) {
@@ -1090,11 +1089,11 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
 
-   const string fio_code_name="exchange1111";
+   const string fio_code_name="fioname11111";
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope="exchange1111";
+   const string fio_scope="fioname11111";
    // the default lookup table is "accounts"
    string fio_lookup_table="fionames";
    const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
@@ -1147,37 +1146,47 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    chain_type c_type= str_to_chain_type(my_chain);
    EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
-   const string fio_code_name="fioname11111";
+   const string fio_code_name="fioname11111";   // code
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope="fioname11111";
-   // the default lookup table is "accounts"
-   string fio_key_lookup_table="keynames";
-   const uint64_t key_hash = ::eosio::string_to_name(p.key.c_str());
+   const string fio_scope="fioname11111";    // scope
+   string fio_key_lookup_table="keynames";   // table name
+   const uint64_t key_hash = ::eosio::string_to_name(p.key.c_str()); // hash of block key
 
-   get_table_rows_params table_row_params = get_table_rows_params{.json=true, .code=code, .scope=fio_scope, .table=fio_key_lookup_table,
+   ulog( "Lookup using key hash: '${key_hash}'", ("key_hash", key_hash) );
+   get_table_rows_params table_row_params = get_table_rows_params{
+           .json=true,
+           .code=code,
+           .scope=fio_scope,
+           .table=fio_key_lookup_table,
            .lower_bound=boost::lexical_cast<string>(key_hash),
            .upper_bound=boost::lexical_cast<string>(key_hash + 1),
-           .index_position="2",
-           .encode_type="dec"};
-
-   get_table_rows_result table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+           .key_type="i64",
+           .index_position="2"};
+   // Do secondary key lookup
+   get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi, [](uint64_t v)->uint64_t {
+       return v;
+   });
+   ulog( "Lookup row count: '${size}'", ("size", table_rows_result.rows.size()) );
    EOS_ASSERT(!table_rows_result.rows.empty(),chain::contract_table_query_exception,"No matches found.");
 
+   // iterate through results for key and chain match
    size_t pos=0;
    for (; pos < table_rows_result.rows.size(); pos++) {
+       uint64_t a = table_rows_result.rows[pos]["chaintype"].as_int64();
+       uint64_t  b = static_cast<int64_t >(c_type);
       if (table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type)) {
          break;
       }
    }
-   EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type),chain::contract_table_query_exception,"key not found.");
+
+   EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type), chain::contract_table_query_exception,"key not found.");
+
+   ilog( "Lookup matched row: '${pos}'.", ("pos", pos) );
 
    fio_key_lookup_result result;
-
-   // Pick out chain specific key and populate result
-   result.name = table_rows_result.rows[0]["name"].as_string();
-   result.domain = table_rows_result.rows[0]["domain"].as_string();
+   result.name = table_rows_result.rows[pos]["name"].as_string();
    return result;
 } // fio_key_lookup
 

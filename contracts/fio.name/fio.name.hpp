@@ -70,13 +70,13 @@ namespace fioio {
         uint64_t keyhash = 0;       // chainkey hash
         uint64_t chaintype;         // maps to ${FioNameLookup::chain_type}
         string name = nullptr;      // FIO name
-        string domain = nullptr;    // FIO domain name
 
         uint64_t primary_key() const { return id; }
         uint64_t by_key() const { return keyhash; }
+        EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name))
     };
     typedef multi_index<N(keynames), key_name,
-            indexed_by<N(bydomain), const_mem_fun<key_name, uint64_t, &key_name::by_key> > > keynames_table;
+            indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_key> > > keynames_table;
 
     struct config {
         name tokencontr; // owner of the token contract

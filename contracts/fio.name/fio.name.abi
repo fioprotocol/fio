@@ -51,9 +51,6 @@
     },{
         "name": "name",
         "type": "string"
-    },{
-        "name": "domain",
-        "type": "string"
     }
     ]
     },{
