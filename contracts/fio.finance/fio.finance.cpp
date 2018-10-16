@@ -26,12 +26,12 @@ namespace fioio{
         processed_requests_table processed_requests;
 
         // data format of transactions, tail numeral indicates number of operands
-        string trx_type_dta_NO_REQ_RPRT=  R"({"obtid":"%s"})";                  // ${trx_type::NO_REQ_RPRT}: obtid
-        string trx_type_dta_REQ=          R"({"reqid":"%lld","memo":"%s"})";    // ${trx_type::REQ}: requestid, memo
-        string trx_type_dta_REQ_CANCEL=   R"({"memo":"%s"})";                   // ${trx_type::REQ_CANCEL}
-        string trx_type_dta_REQ_RPRT=     R"({"obtid":"%s","memo":"%s"})";      // ${trx_type::REQ_RPRT}: obtid, memo
-        string trx_type_dta_RCPT_VRFY=    R"({"memo":"%s"})";                   // ${trx_type::RCPT_VRFY}
-        string trx_type_dta_REQ_REJECT=   R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
+        const string trx_type_dta_NO_REQ_RPRT=  R"({"obtid":"%s"})";                  // ${trx_type::NO_REQ_RPRT}: obtid
+        const string trx_type_dta_REQ=          R"({"reqid":"%lld","memo":"%s"})";    // ${trx_type::REQ}: requestid, memo
+        const string trx_type_dta_REQ_CANCEL=   R"({"memo":"%s"})";                   // ${trx_type::REQ_CANCEL}
+        const string trx_type_dta_REQ_RPRT=     R"({"obtid":"%s","memo":"%s"})";      // ${trx_type::REQ_RPRT}: obtid, memo
+        const string trx_type_dta_RCPT_VRFY=    R"({"memo":"%s"})";                   // ${trx_type::RCPT_VRFY}
+        const string trx_type_dta_REQ_REJECT=   R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
 
         // User printable supported chains strings.
         const std::vector<std::string> chain_str {
@@ -123,13 +123,10 @@ namespace fioio{
             assert(matchingItem == idx.end() ||
                    !(matchingItem->requestid == requestid && matchingItem->originator == requestor));
 
-//            print("Validate quantity is double.");
-//            // TBD: Below API is not linking. Research and fix
-////            std::stod(quantity);
-//            double myquant;
-//            std::stringstream iss (quantity);
-//            iss >> myquant;
-//            print("Converted quantity: ", myquant);
+            // TBD: Below API (std::stod) is a known EOS issue. The contract fails to load.
+            // https://github.com/EOSIO/eos/issues/5009
+            // print("Validate quantity is double.");
+            // std::stod(quantity);
 
             // get the current FIO app id from contract state
             auto currentState = contract_state.get_or_default(contr_state());
