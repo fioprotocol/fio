@@ -305,4 +305,42 @@ class Fio {
         }
     }
 
+    /***
+     * FIO name lookup by chain address
+     * @param key       User key (blockchain specific account name)
+     * @param chain     Three character blockchain acronym e.g. BTC, ETC, EOS etc.
+     * @returns {Promise<*[]>}  Promise if successfully will return resolved name embedded in JSON string. JSON format: `{"name":"adam.dapix"}`
+     */
+    async lookupNameByAddress(key, chain) {
+        Helper.checkTypes( arguments, ['string','string'] );
+
+        const Url=Config.EosUrl + '/v1/chain/fio_key_lookup';
+        const Data=`{"key": "${key}","chain":"${chain}"}`;
+        if (Config.LogLevel > 3) {
+            console.log(`url: ${Url}`);
+            console.log(`data: ${Data}`);
+        }
+
+        //optional parameters
+        const otherParams={
+            headers:{"content-type":"application/json; charset=UTF-8"},
+            body:Data,
+            method:"POST"
+        };
+
+        let result = await fetch(Url, otherParams)
+            .then(res => {
+                if (!res.ok){
+                    throw new FioError(res.json(),'Network response was not ok.');
+                }
+                return res.json()
+            })
+            .catch(rej => {
+                console.log(`fetch rejection handler.`)
+                throw rej;
+            });
+
+        return [true, result];
+    }
+
 }
