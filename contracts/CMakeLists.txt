@@ -36,6 +36,8 @@ add_subdirectory(tic_tac_toe)
 add_subdirectory(payloadless)
 add_subdirectory(integration_test)
 add_subdirectory(fio.name)
+add_subdirectory(fio.common)
+add_subdirectory(fio.fee)
 
 file(GLOB SKELETONS RELATIVE ${CMAKE_SOURCE_DIR}/contracts "skeleton/*")
 

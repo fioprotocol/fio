@@ -39,7 +39,10 @@
       "fields": [{
           "name": "name",
           "type": "string"
-        }
+        }, {
+          "name": "requestor",
+          "type": "account_name"
+      }
       ]
     },{
       "name": "addaddress",
