@@ -1130,7 +1130,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
 
    // Pick out chain specific key and populate result
-   result.account_name = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   result.address = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
    return result;
 } // fioname_lookup
 
