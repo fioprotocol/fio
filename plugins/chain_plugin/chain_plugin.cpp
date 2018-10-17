@@ -1118,7 +1118,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
    // 
-    result.is_registered = true;
+    result.is_registered = "true";
 	
    // If found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
