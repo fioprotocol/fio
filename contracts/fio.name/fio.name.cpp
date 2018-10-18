@@ -164,15 +164,30 @@ namespace fioio{
                 a.addresses[static_cast<size_t>(c_type)] = address;
             });
 
-            // insert key into key-name table for reverse lookup
-            keynames.emplace(_self, [&](struct key_name &k){
-                k.id = keynames.available_primary_key();                // use next available primary key
-                k.key = address;                                        // persist key
-                k.keyhash = ::eosio::string_to_name(address.c_str());   // persist key hash
-                k.chaintype = static_cast<uint64_t>(c_type);            // specific chain type
-                k.name = fioname_iter->name;                            // FIO name
-            });
-		}
+            // insert/update key into key-name table for reverse lookup
+            auto idx = keynames.get_index<N(bykey)>();
+            auto keyhash = ::eosio::string_to_name(address.c_str());
+            auto matchingItem = idx.lower_bound(keyhash);
+
+            // Advance to the first entry matching the specified address and chain
+            while (matchingItem != idx.end() && matchingItem->keyhash == keyhash  && matchingItem->chaintype != static_cast<uint64_t>(c_type)) {
+                matchingItem++;
+            }
+            if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
+                keynames.emplace(_self, [&](struct key_name &k) {
+                    k.id = keynames.available_primary_key();        // use next available primary key
+                    k.key = address;                                // persist key
+                    k.keyhash = keyhash;                            // persist key hash
+                    k.chaintype = static_cast<uint64_t>(c_type);    // specific chain type
+                    k.name = fioname_iter->name;                    // FIO name
+                });
+            } else {
+                eosio_assert(matchingItem != idx.end(), "Should not happen, matched to end.");
+                idx.modify(matchingItem, _self, [&](struct key_name &k) {
+                    k.name = fioname_iter->name;    // FIO name
+                });
+            }
+        }
 		
 		
 		void removename() {

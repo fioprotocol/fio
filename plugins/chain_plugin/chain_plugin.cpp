@@ -1089,11 +1089,11 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
 
-   const string fio_code_name="exchange1111";
+   const string fio_code_name=fio_name_code;
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope="exchange1111";
+   const string fio_scope=fio_name_scope;
    // the default lookup table is "accounts"
    string fio_lookup_table="fionames";
    const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
@@ -1146,11 +1146,11 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    chain_type c_type= str_to_chain_type(my_chain);
    EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
-   const string fio_code_name="exchange1111";   // code
+   const string fio_code_name=fio_name_code;   // code
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope="exchange1111";    // scope
+   const string fio_scope=fio_name_scope;    // scope
    string fio_key_lookup_table="keynames";   // table name
    const uint64_t key_hash = ::eosio::string_to_name(p.key.c_str()); // hash of block key
 
