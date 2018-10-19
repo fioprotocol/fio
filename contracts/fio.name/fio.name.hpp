@@ -35,6 +35,8 @@ namespace fioio {
         uint64_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
+		//this is the expiration for this fio name, this is a number of seconds since 1970
+		uint32_t expiration;
 		
 		
         // Chain specific keys
@@ -56,6 +58,8 @@ namespace fioio {
     struct domain {
         string name;
         uint64_t domainhash;
+		//this is the expiration for this fio domain, this is a number of seconds since 1970
+		uint32_t expiration;
 
         uint64_t primary_key() const { return domainhash; }
         EOSLIB_SERIALIZE(domain, (name)(domainhash))

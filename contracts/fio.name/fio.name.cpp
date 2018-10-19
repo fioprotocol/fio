@@ -39,7 +39,8 @@ namespace fioio{
           keynames(self, self) {
             owner=self;
         }
-    
+		
+		
         // @abi action
         void registername(const string &name) {
             require_auth(owner);
@@ -71,11 +72,15 @@ namespace fioio{
                 auto domains_iter = domains.find(domainHash);
                 eosio_assert(domains_iter == domains.end(), "Domain is already registered.");
                 // check if callee has requisite dapix funds.
+				
+				//get the expiration.
+				uint32_t expiration_time = get_now_plus_one_year();
 
                 // Issue, create and transfer nft domain token
                 domains.emplace(_self, [&](struct domain &d) {
                     d.name=domain;
                     d.domainhash=domainHash;
+					d.expiration=expiration_time;
                 });
                 // Add domain entry in domain table
             } else { // fioname register
@@ -93,6 +98,7 @@ namespace fioio{
                 eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
                 
 
+				uint32_t expiration = get_now_plus_one_year();
 				
 				// check if callee has requisite dapix funds.
 				// DO SOMETHING
@@ -106,6 +112,7 @@ namespace fioio{
                     a.namehash=nameHash;
                     a.domain=domain;
                     a.domainhash=domainHash;
+					a.expiration=expiration;
                     a.addresses = vector<string>(chain_str.size(), "");
                 });
             } // else
@@ -129,7 +136,23 @@ namespace fioio{
             }
             return chain_type::NONE;
         }
+		
+		/***
+		 * This method will return now plus one year.
+		 * the result is the present block time seconds incremented by secondss per year.
+		 */
+		inline uint32_t get_now_plus_one_year() {
+			//set the expiration for this domain.
+		    //get the blockchain now time, time in seconds since 1970
+			//add number of seconds in a year to this to get the expiration.
+			uint32_t present_time = now();
+		    uint32_t incremented_time = present_time + 31561920;
+			return incremented_time;
+		}
 
+    
+		
+		
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
