@@ -19,15 +19,15 @@ namespace fioio{
 
     // error codes
     static const uint64_t
-            ErrorDomainAlreadyRegistered =   100,
-            ErrorDomainNotRegistered =       101,
-            ErrorFioNameAlreadyRegistered =  102,
-            ErrorFioNameEmpty =              103,
-            ErrorChainEmpty =                104,
-            ErrorChainAddressEmpty =         105,
-            ErrorChainContainsWhiteSpace =   106,
-            ErrorChainNotSupported =         107,
-            ErrorFioNameNotRegistered =      108;
+            ErrorDomainAlreadyRegistered =   100,   // Domain is already registered.
+            ErrorDomainNotRegistered =       101,   // Domain not yet registered.
+            ErrorFioNameAlreadyRegistered =  102,   // Fioname is already registered.
+            ErrorFioNameEmpty =              103,   // FIO user name is empty.
+            ErrorChainEmpty =                104,   // Chain name is empty.
+            ErrorChainAddressEmpty =         105,   // Chain address is empty.
+            ErrorChainContainsWhiteSpace =   106,   // Chain address contains whitespace.
+            ErrorChainNotSupported =         107,   // Chain isn't supported.
+            ErrorFioNameNotRegistered =      108;   // Fioname not yet registered.
 
     class FioNameLookup : public contract { 
 		private:
@@ -152,7 +152,7 @@ namespace fioio{
             eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
             eosio_assert_message_code(!address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
 			// Verify the address does not have a whitespace
-            eosio_assert_message_code(address.find(" "), "Chain cannot contain whitespace..", ErrorChainContainsWhiteSpace);
+            eosio_assert_message_code(address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
 			
 			// DO SOMETHING
 			
