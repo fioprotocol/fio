@@ -26,15 +26,7 @@ namespace fioio {
         FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
     }; // enum  class chain_type
 
-//    static const string Chain_fio_str = "FIO";
-//    static const string Chain_eos_str = "EOS";
-//    static const string Chain_btc_str = "BTC";
-//    static const string Chain_eth_str = "ETH";
-//    static const string Chain_xmr_str = "XMR";
-//    static const string Chain_brd_str = "BRD";
-//    static const string Chain_bch_str = "BCH";
-
-//    // Three letter acronyms for individual blockchains. The entries are matched to ${chain_type} positions.
+    // Three letter acronyms for individual blockchains. The entries are matched to ${chain_type} positions.
     static const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
     struct trxfee {
@@ -44,24 +36,24 @@ namespace fioio {
         time        expiration = now(); // current election expiration
 
         // wallet names associated fees
-        asset  domregiter = asset(0, S(4, FIO));    // Fee paid upon the original domain registration/renewal by the user registering. Allows the owner to retain ownership
+        asset  domregiter = asset(140000, S(4, FIO));   // Fee paid upon the original domain registration/renewal by the user registering. Allows the owner to retain ownership
         // of the wallet domain for a period of 1 year or until transfer
-        asset  nameregister = asset(0, S(4, FIO));  // Fee paid upon the original name registration/renewal by the user registering. Allows the owner to retain ownership
+        asset  nameregister = asset(10000, S(4, FIO));  // Fee paid upon the original name registration/renewal by the user registering. Allows the owner to retain ownership
         // of the wallet name for a period of 1 year or until the expiration date of wallet domain. Re-sets the counter for Fee-free Transaction.
-        asset  domtransfer = asset(0, S(4, FIO));   // Fee paid upon wallet domain transfer of ownership by the transferring user.
-        asset  nametransfer = asset(0, S(4, FIO));  // Fee paid upon wallet name transfer of ownership by the transferring user.
-        asset  namelookup = asset(0, S(4, FIO));    // Fee paid for looking up a public address for a given wallet name and coin.
-        asset  upaddress = asset(0, S(4, FIO));     // Fees paid when wallet name to public address mapping is updated.
+        asset  domtransfer = asset(140000, S(4, FIO));  // Fee paid upon wallet domain transfer of ownership by the transferring user.
+        asset  nametransfer = asset(1000, S(4, FIO));   // Fee paid upon wallet name transfer of ownership by the transferring user.
+        asset  namelookup = asset(1000, S(4, FIO));     // Fee paid for looking up a public address for a given wallet name and coin.
+        asset  upaddress = asset(1000, S(4, FIO));      // Fees paid when wallet name to public address mapping is updated.
 
         // taken associated fees
-        asset  transfer = asset(0, S(4, FIO));  // Fee paid when FIO token is transferred.
+        asset  transfer = asset(1000, S(4, FIO));   // Fee paid when FIO token is transferred.
 
         // meta-data associated fees
-        asset metadata = asset(0, S(4, FIO));    // Fee paind when recording information about the transaction (i.e. status or Request)
+        asset metadata = asset(1000, S(4, FIO));    // Fee paind when recording information about the transaction (i.e. status or Request)
 
         EOSLIB_SERIALIZE(trxfee, (id)(expiration) (domregiter)(nameregister)(domtransfer)(nametransfer)(namelookup)(upaddress)(transfer)(metadata))
     }; // struct trxfee
-    typedef singleton<N(trxfees), trxfee> trxfees_singleton;
-    static const account_name FeeContract = eosio::string_to_name(FEE_CONTRACT);
+    typedef singleton<N(trxfees), trxfee> trxfees_singleton;    // singleton folding the fee structure
+    static const account_name FeeContract = eosio::string_to_name(FEE_CONTRACT);    // account hosting the fee contract
 
 } // namespace fioio

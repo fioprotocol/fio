@@ -39,12 +39,13 @@ namespace fioio{
         : contract(self), config(self, self), domains(self, self), fionames(self, self), trxfees(FeeContract,FeeContract)
         {}
 
-    
-        // @abi action
-        void registername(const string &name, const account_name requestor) {
+
+        [[eosio::action]]
+        void registername(const string &name, const account_name &requestor) {
             require_auth(_self);
             require_auth(requestor); // check for requestor authority; required for fee transfer
-			string newname = name;
+
+            string newname = name;
 			
 			// make fioname lowercase before hashing
 			transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
@@ -117,6 +118,7 @@ namespace fioio{
 
             // collect fees
             // check for funds is implicitly done as part of the funds transfer.
+            print("Collecting registration fees: ", registerFee);
             action(permission_level{requestor, N(active)},
                    TokenContract, N(transfer),
                    make_tuple(requestor, _self, registerFee,
@@ -150,7 +152,7 @@ namespace fioio{
          * @param chain The chain name e.g. "btc"
          * @param address The chain specific user address
          */
-        // @abi action
+        [[eosio::action]]
         void addaddress(const string &fio_user_name, const string &chain, const string &address) {
             eosio_assert(!fio_user_name.empty(), "FIO user name cannot be empty.");
             eosio_assert(!chain.empty(), "Chain cannot be empty.");

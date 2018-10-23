@@ -41,7 +41,7 @@
           "type": "string"
         }, {
           "name": "requestor",
-          "type": "account_name"
+          "type": "name"
       }
       ]
     },{

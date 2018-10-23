@@ -8,10 +8,10 @@ class Config {
 }
 Config.MaxAccountCreationAttempts=3;
 Config.EosUrl='http://127.0.0.1:8888';
-Config.DefaultPrivateKey = "5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"; // fioname11111
-Config.NewAccountBuyRamQuantity="100.0000 SYS";
-Config.NewAccountStakeNetQuantity="100.0000 SYS";
-Config.NewAccountStakeCpuQuantity="100.0000 SYS";
+Config.DefaultPrivateKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // fio.system
+Config.NewAccountBuyRamQuantity="100.0000 FIO";
+Config.NewAccountStakeNetQuantity="100.0000 FIO";
+Config.NewAccountStakeCpuQuantity="100.0000 FIO";
 Config.NewAccountTransfer=false;
 Config.LogLevel=3; // Log levels 0 - 5 with increasing verbosity.
 
@@ -227,6 +227,112 @@ class Fio {
         return [true, result];
     }
 
+    /***
+     * Grants FIO system code account {$fio.system@eosio.code} permission to run as new account.
+     * @param accountName       New account name
+     * @param activePrivateKey  New account private key
+     * @param activePublicKey   New account public key
+     * @param systemAccount     FIO system account e.g. ${fio.system}
+     * @returns {Promise<*[]>}  promise result is an array with boolean status and updateauth JSON response
+     */
+    async grantCodeTransferPermission(accountName, activePrivateKey, activePublicKey, systemAccount) {
+        Helper.checkTypes(arguments, ['string', 'string', 'string', 'string']);
+
+        if (Config.LogLevel > 3) {
+            console.log(`Active public key : ${activePublicKey}`);
+        }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
+        const signatureProvider = new eosjs2.SignatureProvider([activePrivateKey]);
+        let api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
+
+        const result = await api.transact({
+            actions: [{
+                account: 'eosio',
+                name: 'updateauth',
+                authorization: [{
+                    actor: accountName,
+                    permission: 'active',
+                }],
+                data: {
+                    account: accountName,
+                    permission: 'active',
+                    parent: 'owner',
+                    auth: {
+                        threshold: 1,
+                        keys: [{
+                            key: activePublicKey,
+                            weight: 1
+                        }],
+                        accounts: [{
+                            permission: {
+                                actor: systemAccount,
+                                permission: 'eosio.code'
+                            },
+                            weight: 1
+                        }],
+                        waits: []
+                    }
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
+    /***
+     * Register a FIO domain or name
+     * @param name              domain or FIO name to be registered
+     * @param requestor         requestor account name
+     * @param activePrivateKey  requestor active private key
+     * @param owner             name registration contract owner
+     * @returns {Promise<*[]>}  promise result is an array with boolean status and registername JSON response
+     */
+    async registerName(name, requestor, activePrivateKey, owner="fio.system") {
+        Helper.checkTypes(arguments, ['string', 'string', 'string']);
+
+        if (Config.LogLevel > 3) {
+            console.log(`Requestor ${requestor} registering name : ${name}`);
+        }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
+        const signatureProvider = new eosjs2.SignatureProvider([Config.DefaultPrivateKey, activePrivateKey]);
+        let api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
+
+        const result = await api.transact({
+            actions: [{
+                account: owner,
+                name: 'registername',
+                authorization: [{
+                    actor: requestor,
+                    permission: 'active',
+                },{
+                    actor: owner,
+                    permission: "active"
+                }],
+                data: {
+                    name: name,
+                    requestor: requestor
+               },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
+
     // Create random username and create new EOS account. Will re-attempt $(Config.MaxAccountCreationAttempts) times.
     // Returns tuple [status, eos response, accountName, accountOwnerKeys, accountActiveKeys]. accountOwnerKeys, accountActiveKeys are further string arrays of format [privateKey, publicKey].
     async createAccount(creator) {
@@ -288,11 +394,16 @@ class Fio {
                     console.log(`getAccount promise rejection handler.`)
                     throw rej;
                 });
-                if (getAccountResult[0]) {
-                    return [true,getAccountResult[1],username[1],[ownerKey[1],ownerKey[2]],[activeKey[1],activeKey[2]]];
+                if (!getAccountResult[0]) {
+                    throw new FioError(getAccountResult);
                 }
 
-                return [false, "No details"]
+                let grantCodeTransferPermission = await this.grantCodeTransferPermission(username[1], activeKey[1], activeKey[2], "fio.system").catch(rej => {
+                    console.log(`grantCodePermission promise rejection handler.`)
+                    throw rej;
+                });
+
+                return [true,getAccountResult[1],username[1],[ownerKey[1],ownerKey[2]],[activeKey[1],activeKey[2]]];
             } catch (err) {
                 if (count >= 3) {
                     if (err instanceof FioError) {
@@ -306,3 +417,84 @@ class Fio {
     }
 
 }
+
+// main function
+(async() => {
+    try {
+
+        fio = new Fio();
+
+        let createAccountResult = await fio.createAccount("fio.system")
+            .catch(rej => {
+                console.log(`createAccount rejection handler.`)
+                throw rej;
+            });
+        if (createAccountResult[0]) {
+            console.log("Account creation successful.");
+            console.log(`Account name: ${createAccountResult[2]}\nOwner key: ${createAccountResult[3][0]}\nOwner key: ${createAccountResult[3][1]}\n` +
+                `Active key: ${createAccountResult[4][0]}\nActive key: ${createAccountResult[4][1]}\n`);
+            // console.log(`Account name: ${result[1]}`);
+
+        } else {
+            console.log("Account creation failed.");
+            console.log(JSON.stringify(createAccountResult[1], null, 2));
+            return -1;
+        }
+
+        // async transfer(from, to, quantity, memo) {
+        let transferResult = await fio.transfer("fio.system", createAccountResult[2], "200.0000 FIO", "initial transfer")
+            .catch(rej => {
+                console.log(`transfer rejection handler.`)
+                throw rej;
+            });
+        if (transferResult[0]) {
+            console.log("transfer successful.");
+        } else {
+            console.log("transfer failed.");
+            return -1;
+        }
+
+        let registerNameResult = await fio.registerName(createAccountResult[2], createAccountResult[2], createAccountResult[4][0])
+            .catch(rej => {
+                console.log(`registerName domain rejection handler.`)
+                throw rej;
+            });
+        if (registerNameResult[0]) {
+            console.log("Domain registration succeeded.");
+        } else {
+            console.log("Domain registration failed.");
+            return -1;
+            // console.log(JSON.stringify(result[1], null, 2));
+        }
+
+        registerNameResult = await fio.registerName("ciju."+createAccountResult[2], createAccountResult[2], createAccountResult[4][0])
+            .catch(rej => {
+                console.log(`registerName name rejection handler.`)
+                throw rej;
+            });
+        if (registerNameResult[0]) {
+            console.log("Name registration succeeded.");
+        } else {
+            console.log("Name registration failed.");
+            return -1;
+            // console.log(JSON.stringify(result[1], null, 2));
+        }
+
+        // fio.lookupNameByAddress("abcdefgh","ETH").then(result => {
+        //     if (result[0]) {
+        //         console.log("Name lookup by address successful.");
+        //         console.log(`Resolved name: ${result[1]["name"]}`);
+        //     } else {
+        //         console.log("Create account transaction failed.");
+        //         console.log(JSON.stringify(result[1], null, 2));
+        //     }
+        // })
+        //     .catch(rej => {
+        //         console.log(`lookupNameByAddress rejection handler.`)
+        //         throw rej;
+        //     });
+
+    } catch (err) {
+        console.log('Caught exception in main: ' + err);
+    }
+})()
