@@ -176,8 +176,6 @@ namespace fioio{
             // Verify the address does not have a whitespace
             eosio_assert(address.find(" "), "Chain cannot contain whitespace");
             
-            // DO SOMETHING
-            
             // validate chain is supported. This is a case insensitive check.
             string my_chain=chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
@@ -190,8 +188,15 @@ namespace fioio{
             auto fioname_iter = fionames.find(nameHash);
             eosio_assert(fioname_iter != fionames.end(), "fioname not registered.");
             
-            //TODO EXPIRATION  this is a change added new code for expiration 10/19/2018
+            
+            // EXPIRATION  this is a change added new code for expiration 10/19/2018
             //may need refactored into common methods
+            //check that the name isnt expired
+            uint32_t name_expiration = fioname_iter->expiration;
+            uint32_t present_time = now();
+            eosio_assert(present_time > name_expiration, "fioname is expired.");
+            
+            
             //get the domain and check that it is not expired.
             string domain = nullptr;
             size_t pos = fio_user_name.find('.');
@@ -206,7 +211,6 @@ namespace fioio{
             eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
             
             uint32_t expiration = domains_iter->expiration;
-            uint32_t present_time = now();
             eosio_assert(present_time > expiration, "Domain is expired.");
             //end EXPIRATION
             
