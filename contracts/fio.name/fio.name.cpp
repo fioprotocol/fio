@@ -46,8 +46,8 @@ namespace fioio{
             require_auth(owner);
 			string newname = name;
 			
-			// make fioname lowercase before hashing
-			transform(newname.begin(), newname.end(), newname.begin(), ::tolower);	
+            // make fioname lowercase before hashing
+            transform(newname.begin(), newname.end(), newname.begin(), ::tolower);	
 			
 			
             string domain = nullptr;
