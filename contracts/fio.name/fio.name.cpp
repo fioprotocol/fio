@@ -190,7 +190,7 @@ namespace fioio{
             auto fioname_iter = fionames.find(nameHash);
             eosio_assert(fioname_iter != fionames.end(), "fioname not registered.");
 			
-			//TODO EXPIRATION added new code for expiration 10/19/2018
+			//TODO EXPIRATION  this is a change added new code for expiration 10/19/2018
 			//may need refactored into common methods
 			//get the domain and check that it is not expired.
 			string domain = nullptr;
