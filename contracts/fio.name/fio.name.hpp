@@ -35,15 +35,15 @@ namespace fioio {
         uint64_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
-                //EXPIRATION this is the expiration for this fio name, this is a number of seconds since 1970
-                uint32_t expiration;
+        //EXPIRATION this is the expiration for this fio name, this is a number of seconds since 1970
+        uint32_t expiration;
                 
                 
         // Chain specific keys
         vector<string> addresses;
-                // std::map<string, string> fionames;
+        // std::map<string, string> fionames;
                 
-                // primary_key is required to store structure in multi_index table
+        // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
         uint64_t by_domain() const { return domainhash; }
                 
@@ -58,8 +58,8 @@ namespace fioio {
     struct domain {
         string name;
         uint64_t domainhash;
-                //EXPIRATION this is the expiration for this fio domain, this is a number of seconds since 1970
-                uint32_t expiration;
+        //EXPIRATION this is the expiration for this fio domain, this is a number of seconds since 1970
+        uint32_t expiration;
 
         uint64_t primary_key() const { return domainhash; }
         EOSLIB_SERIALIZE(domain, (name)(domainhash))
