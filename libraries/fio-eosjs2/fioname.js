@@ -7,11 +7,12 @@ const { TextDecoder, TextEncoder } = require('text-encoding');  // node, IE11 an
 class Config {
 }
 Config.MaxAccountCreationAttempts=3;
-Config.EosUrl='http://127.0.0.1:8888';
-Config.DefaultPrivateKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // fio.system
-Config.NewAccountBuyRamQuantity="100.0000 FIO";
-Config.NewAccountStakeNetQuantity="100.0000 FIO";
-Config.NewAccountStakeCpuQuantity="100.0000 FIO";
+Config.EosUrl =                     'http://127.0.0.1:8888';
+Config.SystemAccount =              "fio.system";
+Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount}
+Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
+Config.NewAccountStakeNetQuantity=  "100.0000 FIO";
+Config.NewAccountStakeCpuQuantity=  "100.0000 FIO";
 Config.NewAccountTransfer=false;
 Config.LogLevel=3; // Log levels 0 - 5 with increasing verbosity.
 
@@ -52,7 +53,7 @@ class FioError extends Error {
 class Fio {
     constructor() {
         const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
-        const signatureProvider = new eosjs2.SignatureProvider([Config.DefaultPrivateKey]);
+        const signatureProvider = new eosjs2.SignatureProvider([Config.SystemAccountKey]);
         this.api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
     }
 
@@ -228,11 +229,11 @@ class Fio {
     }
 
     /***
-     * Grants FIO system code account {$fio.system@eosio.code} permission to run as new account.
+     * Grants FIO system code account ${${Config.SystemAccount}@eosio.code} permission to run as new account.
      * @param accountName       New account name
      * @param activePrivateKey  New account private key
      * @param activePublicKey   New account public key
-     * @param systemAccount     FIO system account e.g. ${fio.system}
+     * @param systemAccount     FIO system account e.g. ${Config.SystemAccount}
      * @returns {Promise<*[]>}  promise result is an array with boolean status and updateauth JSON response
      */
     async grantCodeTransferPermission(accountName, activePrivateKey, activePublicKey, systemAccount) {
@@ -290,11 +291,11 @@ class Fio {
      * Register a FIO domain or name
      * @param name              domain or FIO name to be registered
      * @param requestor         requestor account name
-     * @param activePrivateKey  requestor active private key
+     * @param requestorActivePrivateKey  requestor active private key
      * @param owner             name registration contract owner
      * @returns {Promise<*[]>}  promise result is an array with boolean status and registername JSON response
      */
-    async registerName(name, requestor, activePrivateKey, owner="fio.system") {
+    async registerName(name, requestor, requestorActivePrivateKey, owner=Config.SystemAccount) {
         Helper.checkTypes(arguments, ['string', 'string', 'string']);
 
         if (Config.LogLevel > 3) {
@@ -302,7 +303,8 @@ class Fio {
         }
 
         const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
-        const signatureProvider = new eosjs2.SignatureProvider([Config.DefaultPrivateKey, activePrivateKey]);
+        // include keys for both system and requestor active
+        const signatureProvider = new eosjs2.SignatureProvider([Config.SystemAccountKey, requestorActivePrivateKey]);
         let api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
 
         const result = await api.transact({
@@ -398,7 +400,7 @@ class Fio {
                     throw new FioError(getAccountResult);
                 }
 
-                let grantCodeTransferPermission = await this.grantCodeTransferPermission(username[1], activeKey[1], activeKey[2], "fio.system").catch(rej => {
+                let grantCodeTransferPermission = await this.grantCodeTransferPermission(username[1], activeKey[1], activeKey[2], Config.SystemAccount).catch(rej => {
                     console.log(`grantCodePermission promise rejection handler.`)
                     throw rej;
                 });
@@ -418,13 +420,13 @@ class Fio {
 
 }
 
-// main function
-(async() => {
+// test function
+async function testFunction() {
     try {
 
         fio = new Fio();
 
-        let createAccountResult = await fio.createAccount("fio.system")
+        let createAccountResult = await fio.createAccount(Config.SystemAccount)
             .catch(rej => {
                 console.log(`createAccount rejection handler.`)
                 throw rej;
@@ -442,7 +444,7 @@ class Fio {
         }
 
         // async transfer(from, to, quantity, memo) {
-        let transferResult = await fio.transfer("fio.system", createAccountResult[2], "200.0000 FIO", "initial transfer")
+        let transferResult = await fio.transfer(Config.SystemAccount, createAccountResult[2], "200.0000 FIO", "initial transfer")
             .catch(rej => {
                 console.log(`transfer rejection handler.`)
                 throw rej;
@@ -497,4 +499,9 @@ class Fio {
     } catch (err) {
         console.log('Caught exception in main: ' + err);
     }
-})()
+}
+
+// main
+(async() => {
+    testFunction()
+})();
