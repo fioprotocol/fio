@@ -57,11 +57,10 @@ namespace fioio{
                 domain = name.substr(pos + 1, string::npos);
             }
 			
-			
-	
+
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
-            uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
+            uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 print(", Domain hash: ", domainHash, "\n");
@@ -84,7 +83,7 @@ namespace fioio{
 				// check if domain permission is valid.
                 
 				// check if fioname is available
-				uint64_t nameHash = ::eosio::string_to_name(newname.c_str());
+				uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
                 eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
@@ -152,7 +151,7 @@ namespace fioio{
             eosio_assert(c_type != chain_type::NONE, "Supplied chain isn't supported..");
 
             // validate fio fioname exists
-            uint64_t nameHash = ::eosio::string_to_name(fio_user_name.c_str());
+            uint64_t nameHash = ::eosio::string_to_uint64_t(fio_user_name.c_str());
             auto fioname_iter = fionames.find(nameHash);
             eosio_assert(fioname_iter != fionames.end(), "fioname not registered.");
 
