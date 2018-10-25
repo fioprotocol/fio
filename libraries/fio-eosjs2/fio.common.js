@@ -19,7 +19,9 @@ Config.NewAccountStakeNetQuantity="100.0000 FIO";
 Config.NewAccountStakeCpuQuantity="100.0000 FIO";
 Config.NewAccountTransfer=false;
 Config.TestAccount="fioname11111";
+Config.FioFinanceAccount="fio.finance";
 Config.LogLevel=3; // Log levels 0 - 5 with increasing verbosity.
+Config.FinalizationTime=20;     // time in milliseconds to transaction finalization
 
 // Helper static functions
 class Helper {
@@ -33,7 +35,7 @@ class Helper {
         args = [].slice.call( args );
         for ( var i = 0; i < types.length; ++i ) {
             if ( Helper.typeOf( args[i] ) != types[i] )
-                throw new TypeError( 'param '+ i +' must be of type '+ types[i] );
+                throw new TypeError( 'param '+ i +' must be of type '+ types[i]+ ', found type '+ Helper.typeOf( args[i] ) );
 				
 			if (args[i] === "") {
 				throw new Error('Null or empty parameter' + types[i]);
