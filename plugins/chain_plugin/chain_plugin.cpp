@@ -1098,7 +1098,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    const uint64_t domain_hash = ::eosio::string_to_name(fio_domain.c_str());
   
    //these are the results for the table searches for domain ansd fio name
-   get_table_rows_result domain_result
+   get_table_rows_result domain_result;
    get_table_rows_result fioname_result;
    //this is the table rows result to use after domain/fioname specific processing
    get_table_rows_result name_result;
@@ -1179,6 +1179,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    // Pick out chain specific key and populate result
    result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
 
