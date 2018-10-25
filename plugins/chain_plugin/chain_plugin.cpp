@@ -1068,7 +1068,7 @@ inline chain_type str_to_chain_type(const string &chain) {
 
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
 
-   // assert if empty fio name
+   // assert if empty fio name eded
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 
    // chain support check
