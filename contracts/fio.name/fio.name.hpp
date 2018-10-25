@@ -47,7 +47,7 @@ namespace fioio {
         uint64_t primary_key() const { return namehash; }
         uint64_t by_domain() const { return domainhash; }
                 
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(addresses))
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
     };
 
         //Where fioname tokens are stored
@@ -62,7 +62,7 @@ namespace fioio {
         uint32_t expiration;
 
         uint64_t primary_key() const { return domainhash; }
-        EOSLIB_SERIALIZE(domain, (name)(domainhash))
+        EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration))
     };
     typedef multi_index<N(domains), domain> domains_table;
 

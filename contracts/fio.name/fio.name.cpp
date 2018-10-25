@@ -94,7 +94,7 @@ namespace fioio{
                 //EXPIRATION check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                eosio_assert(present_time > domain_expiration,"Domain has expired.");
+                eosio_assert(present_time <= domain_expiration,"Domain has expired.");
                 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_name(newname.c_str());
@@ -194,7 +194,9 @@ namespace fioio{
             //check that the name isnt expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
-            eosio_assert(present_time > name_expiration, "fioname is expired.");
+            
+            print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
+            eosio_assert(present_time <= name_expiration, "fioname is expired.");
             
             
             //get the domain and check that it is not expired.
@@ -211,7 +213,7 @@ namespace fioio{
             eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
             
             uint32_t expiration = domains_iter->expiration;
-            eosio_assert(present_time > expiration, "Domain is expired.");
+            eosio_assert(present_time <= expiration, "Domain is expired.");
             //end EXPIRATION
             
 
