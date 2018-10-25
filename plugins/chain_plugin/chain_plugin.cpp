@@ -1068,7 +1068,7 @@ inline chain_type str_to_chain_type(const string &chain) {
 
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
 
-   // assert if empty fio name eded
+   // assert if empty fio name
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 
    // chain support check
@@ -1089,6 +1089,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
 
+   //declare variables.
    const string fio_code_name="exchange1111";
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
@@ -1104,6 +1105,9 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    get_table_rows_result name_result;
    //this is the result returned to the user
    fio_name_lookup_result result;
+  
+   //process the domain first, see if it exists aand then check the expiration.
+   //we return an empty result if the domain is expired.
   
    //get the domain, check if the domain is expired.
    get_table_rows_params table_row_params = get_table_rows_params{.json=true, 
@@ -1122,7 +1126,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
   
    uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
-   //TODO this time is the time on the computer, we need to consider getting block time here.
+   //This is not the local computer time, it is in fact the block time.
    uint32_t present_time = (uint32_t)time(0);
   
    //if the domain is expired then return an empty result.
@@ -1147,7 +1151,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
      fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
   
   
-     // If no matchs return empty result
+     // If no matchs, the name does not exist, return empty result
      if (fioname_result.rows.empty()) {
        return result;
      }
@@ -1160,15 +1164,15 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
        return result;
      }
      
-     
+     //set the result to the name results
      name_result = fioname_result;
    }
 
   
-   
+   //if we get this far then the name is registered, so set this in the result
    result.is_registered = "true";
 	
-   // If found match and fio_name was a domain, indicate "domain found" in result
+   // If we found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
       result.is_domain="true";
       return result;

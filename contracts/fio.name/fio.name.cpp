@@ -10,7 +10,8 @@
  *  Ciju John 9-5-2018
  *  Adam Androulidakis  8-31-2018
  *  Ciju John  8-30-2018
- *  Adam Androulidakis  8-29-2019
+ *  Adam Androulidakis  8-29-2018
+ *  Ed Rotthoff 10-26-2018
  */
 
 #include "fio.name.hpp"
@@ -49,7 +50,7 @@ namespace fioio{
             // make fioname lowercase before hashing
             transform(newname.begin(), newname.end(), newname.begin(), ::tolower);  
             
-            
+            //parse the domain from the name.
             string domain = nullptr;
             string fioname = domain;
             
@@ -63,35 +64,35 @@ namespace fioio{
             
             
     
-            print("fioname: ", fioname, ", Domain: ", domain, "\n");
+            
 
             uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
             if (fioname.empty()) { // domain register
                 // check for domain availability
-                print(", Domain hash: ", domainHash, "\n");
                 auto domains_iter = domains.find(domainHash);
                 eosio_assert(domains_iter == domains.end(), "Domain is already registered.");
                 // check if callee has requisite dapix funds.
                 
-                //EXPIRATION get the expiration.
+                //get the expiration for this new domain.
                 uint32_t expiration_time = get_now_plus_one_year();
 
                 // Issue, create and transfer nft domain token
+                // Add domain entry in domain table
                 domains.emplace(_self, [&](struct domain &d) {
                     d.name=domain;
                     d.domainhash=domainHash;
                     d.expiration=expiration_time;
                 });
-                // Add domain entry in domain table
+                
             } else { // fioname register
                 
                 // check if domain exists.
                 auto domains_iter = domains.find(domainHash);
                 eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
                 
-                // check if domain permission is valid.
+                // TODO check if domain permission is valid.
                 
-                //EXPIRATION check if the domain is expired.
+                //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
                 eosio_assert(present_time <= domain_expiration,"Domain has expired.");
@@ -102,7 +103,7 @@ namespace fioio{
                 auto fioname_iter = fionames.find(nameHash);
                 eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
                 
-                //EXPIRATION
+                //set the expiration on this new fioname
                 uint32_t expiration = get_now_plus_one_year();
                 
                 // check if callee has requisite dapix funds.
@@ -144,8 +145,8 @@ namespace fioio{
         
         /***
          * This method will return now plus one year.
-         * the result is the present block time seconds incremented by secondss per year.
-         * EXPIRATION
+         * the result is the present block time, which is number of seconds since 1970
+         * incremented by secondss per year.
          */
         inline uint32_t get_now_plus_one_year() {
             //set the expiration for this domain.
@@ -189,8 +190,6 @@ namespace fioio{
             eosio_assert(fioname_iter != fionames.end(), "fioname not registered.");
             
             
-            // EXPIRATION  this is a change added new code for expiration 10/19/2018
-            //may need refactored into common methods
             //check that the name isnt expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
@@ -199,7 +198,7 @@ namespace fioio{
             eosio_assert(present_time <= name_expiration, "fioname is expired.");
             
             
-            //get the domain and check that it is not expired.
+            //parse the domain and check that the domain is not expired.
             string domain = nullptr;
             size_t pos = fio_user_name.find('.');
             if (pos == string::npos) {
@@ -214,7 +213,6 @@ namespace fioio{
             
             uint32_t expiration = domains_iter->expiration;
             eosio_assert(present_time <= expiration, "Domain is expired.");
-            //end EXPIRATION
             
 
             // insert/update <chain, address> pair

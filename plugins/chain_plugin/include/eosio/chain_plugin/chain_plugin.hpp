@@ -259,6 +259,7 @@ public:
        string is_registered = "false";
        string is_domain = "false";
        string address ="";
+       //the expiration is an epoch date, number of seconds since midnight 1970.
        string expiration="";
    };
 
