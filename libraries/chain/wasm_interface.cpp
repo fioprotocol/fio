@@ -948,7 +948,6 @@ public:
          edump((error_code));
          EOS_THROW( eosio_assert_code_exception,
                     "assertion failure with error code: ${error_code}", ("error_code", error_code) );
-         throw eosio_assert_code_exception(error_code, "hello", "world");
       }
    }
 
