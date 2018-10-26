@@ -256,8 +256,8 @@ public:
    };
 
    struct fio_name_lookup_result {
-       bool is_registered = false;
-       bool is_domain = false;
+       string is_registered = "false";
+       string is_domain = "false";
        string account_name ="";
    };
 
