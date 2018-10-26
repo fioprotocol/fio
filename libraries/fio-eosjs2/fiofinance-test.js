@@ -138,7 +138,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
                 console.log(`getPendingRequestByRequestee() 1 promise rejection handler.`);
                 throw rej;
             });
-        if (result[0] && result[1].rows.length > 0) {
+        if (result[0]) {
             console.log(`getPendingRequestByRequestee() successful.`);
             rowsCount = result[1].rows.length;
         } else {
@@ -233,7 +233,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
                 console.log(`getPendingRequestByRequestee() 1 promise rejection handler.`);
                 throw rej;
             });
-        if (result[0] && result[1].rows.length > 0) {
+        if (result[0]) {
             console.log(`getPendingRequestByRequestee() successful.`);
             rowsCount = result[1].rows.length;
         } else {
