@@ -18,7 +18,7 @@ const fiocommon=require('./fio.common.js');
 class Fio {
     constructor() {
         const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, { fetch });
-        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.DefaultPrivateKey]);
+        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.SystemAccountKey]);
         this.api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
     }
 
@@ -162,6 +162,113 @@ class Fio {
         return [true, result];
     }
 
+    /***
+     * Grants FIO system code account ${${Config.SystemAccount}@eosio.code} permission to run as new account.
+     * @param accountName       New account name
+     * @param activePrivateKey  New account private key
+     * @param activePublicKey   New account public key
+     * @param systemAccount     FIO system account e.g. ${Config.SystemAccount}
+     * @returns {Promise<*[]>}  promise result is an array with boolean status and updateauth JSON response
+     */
+    async grantCodeTransferPermission(accountName, activePrivateKey, activePublicKey, systemAccount) {
+        Helper.checkTypes(arguments, ['string', 'string', 'string', 'string']);
+
+        if (Config.LogLevel > 3) {
+            console.log(`Active public key : ${activePublicKey}`);
+        }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
+        const signatureProvider = new eosjs2.SignatureProvider([activePrivateKey]);
+        let api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
+
+        const result = await api.transact({
+            actions: [{
+                account: 'eosio',
+                name: 'updateauth',
+                authorization: [{
+                    actor: accountName,
+                    permission: 'active',
+                }],
+                data: {
+                    account: accountName,
+                    permission: 'active',
+                    parent: 'owner',
+                    auth: {
+                        threshold: 1,
+                        keys: [{
+                            key: activePublicKey,
+                            weight: 1
+                        }],
+                        accounts: [{
+                            permission: {
+                                actor: systemAccount,
+                                permission: 'eosio.code'
+                            },
+                            weight: 1
+                        }],
+                        waits: []
+                    }
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
+    /***
+     * Register a FIO domain or name
+     * @param name              domain or FIO name to be registered
+     * @param requestor         requestor account name
+     * @param requestorActivePrivateKey  requestor active private key
+     * @param owner             name registration contract owner
+     * @returns {Promise<*[]>}  promise result is an array with boolean status and registername JSON response
+     */
+    async registerName(name, requestor, requestorActivePrivateKey, owner=Config.SystemAccount) {
+        Helper.checkTypes(arguments, ['string', 'string', 'string']);
+
+        if (Config.LogLevel > 3) {
+            console.log(`Requestor ${requestor} registering name : ${name}`);
+        }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
+        // include keys for both system and requestor active
+        const signatureProvider = new eosjs2.SignatureProvider([Config.SystemAccountKey, requestorActivePrivateKey]);
+        let api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
+
+        const result = await api.transact({
+            actions: [{
+                account: owner,
+                name: 'registername',
+                authorization: [{
+                    actor: requestor,
+                    permission: 'active',
+                },{
+                    actor: owner,
+                    permission: "active"
+                }],
+                data: {
+                    name: name,
+                    requestor: requestor
+               },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
+
     // Create random username and create new EOS account. Will re-attempt $(Config.MaxAccountCreationAttempts) times.
     // Returns tuple [status, eos response, accountName, accountOwnerKeys, accountActiveKeys]. accountOwnerKeys, accountActiveKeys are further string arrays of format [privateKey, publicKey].
     async createAccount(creator) {
@@ -223,11 +330,16 @@ class Fio {
                     console.log(`getAccount promise rejection handler.`)
                     throw rej;
                 });
-                if (getAccountResult[0]) {
-                    return [true,getAccountResult[1],username[1],[ownerKey[1],ownerKey[2]],[activeKey[1],activeKey[2]]];
+                if (!getAccountResult[0]) {
+                    throw new FioError(getAccountResult);
                 }
 
-                return [false, "No details"]
+                let grantCodeTransferPermission = await this.grantCodeTransferPermission(username[1], activeKey[1], activeKey[2], Config.SystemAccount).catch(rej => {
+                    console.log(`grantCodePermission promise rejection handler.`)
+                    throw rej;
+                });
+
+                return [true,getAccountResult[1],username[1],[ownerKey[1],ownerKey[2]],[activeKey[1],activeKey[2]]];
             } catch (err) {
                 if (count >= 3) {
                     if (err instanceof fiocommon.FioError) {

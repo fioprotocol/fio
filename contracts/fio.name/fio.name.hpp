@@ -17,9 +17,9 @@
 #pragma once
 
 #include <eosiolib/eosio.hpp>
-#include <string>
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
+#include <string>
 
 
 using std::string;
@@ -86,7 +86,12 @@ namespace fioio {
 
         EOSLIB_SERIALIZE(config, (tokencontr))
     };
-
     typedef singleton<N(configs), config> configs;
 
+    struct account {
+        asset    balance;
+
+        uint64_t primary_key()const { return balance.symbol.name(); }
+    };
+    typedef eosio::multi_index<N(accounts), account> accounts;
 }

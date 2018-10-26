@@ -53,6 +53,61 @@ try {
         console.log(rej);
     });
 
+        let createAccountResult = await fio.createAccount(Config.SystemAccount)
+            .catch(rej => {
+                console.log(`createAccount rejection handler.`)
+                throw rej;
+            });
+        if (createAccountResult[0]) {
+            console.log("Account creation successful.");
+            console.log(`Account name: ${createAccountResult[2]}\nOwner key: ${createAccountResult[3][0]}\nOwner key: ${createAccountResult[3][1]}\n` +
+                `Active key: ${createAccountResult[4][0]}\nActive key: ${createAccountResult[4][1]}\n`);
+            // console.log(`Account name: ${result[1]}`);
+
+        } else {
+            console.log("Account creation failed.");
+            console.log(JSON.stringify(createAccountResult[1], null, 2));
+            return -1;
+        }
+
+        // async transfer(from, to, quantity, memo) {
+        let transferResult = await fio.transfer(Config.SystemAccount, createAccountResult[2], "200.0000 FIO", "initial transfer")
+            .catch(rej => {
+                console.log(`transfer rejection handler.`)
+                throw rej;
+            });
+        if (transferResult[0]) {
+            console.log("transfer successful.");
+        } else {
+            console.log("transfer failed.");
+            return -1;
+        }
+
+        let registerNameResult = await fio.registerName(createAccountResult[2], createAccountResult[2], createAccountResult[4][0])
+            .catch(rej => {
+                console.log(`registerName domain rejection handler.`)
+                throw rej;
+            });
+        if (registerNameResult[0]) {
+            console.log("Domain registration succeeded.");
+        } else {
+            console.log("Domain registration failed.");
+            return -1;
+            // console.log(JSON.stringify(result[1], null, 2));
+        }
+
+        registerNameResult = await fio.registerName("ciju."+createAccountResult[2], createAccountResult[2], createAccountResult[4][0])
+            .catch(rej => {
+                console.log(`registerName name rejection handler.`)
+                throw rej;
+            });
+        if (registerNameResult[0]) {
+            console.log("Name registration succeeded.");
+        } else {
+            console.log("Name registration failed.");
+            return -1;
+            // console.log(JSON.stringify(result[1], null, 2));
+        }
 
     // TBD: We need to figure out how to sign with non-default private keys
     // api.signatureProvider.availableKeys.push("5JA5zQkg1S59swPzY6d29gsfNhNPVCb7XhiGJAakGFa7tEKSMjT");
@@ -92,6 +147,20 @@ try {
     //             });
     //     }
     // });
+
+        // fio.lookupNameByAddress("abcdefgh","ETH").then(result => {
+        //     if (result[0]) {
+        //         console.log("Name lookup by address successful.");
+        //         console.log(`Resolved name: ${result[1]["name"]}`);
+        //     } else {
+        //         console.log("Create account transaction failed.");
+        //         console.log(JSON.stringify(result[1], null, 2));
+        //     }
+        // })
+        //     .catch(rej => {
+        //         console.log(`lookupNameByAddress rejection handler.`)
+        //         throw rej;
+        //     });
 
 } catch (err) {
     console.log('Caught exception in main: ' + err);

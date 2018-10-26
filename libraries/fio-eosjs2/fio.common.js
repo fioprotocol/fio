@@ -12,11 +12,12 @@
 class Config {
 }
 Config.MaxAccountCreationAttempts=3;
-Config.EosUrl='http://localhost:8888';
-Config.DefaultPrivateKey = "5HvaoRV9QrbbxhLh6zZHqTzesFEG5vusVJGbUazFi5xQvKMMt6U"; // fioname11111
-Config.NewAccountBuyRamQuantity="100.0000 FIO";
-Config.NewAccountStakeNetQuantity="100.0000 FIO";
-Config.NewAccountStakeCpuQuantity="100.0000 FIO";
+Config.EosUrl =                     'http://localhost:8888';
+Config.SystemAccount =              "fio.system";
+Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount}
+Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
+Config.NewAccountStakeNetQuantity=  "100.0000 FIO";
+Config.NewAccountStakeCpuQuantity=  "100.0000 FIO";
 Config.NewAccountTransfer=false;
 Config.TestAccount="fioname11111";
 Config.FioFinanceAccount="fio.finance";

@@ -59,7 +59,10 @@
       "fields": [{
           "name": "name",
           "type": "string"
-        }
+        }, {
+          "name": "requestor",
+          "type": "name"
+      }
       ]
     },{
       "name": "addaddress",
