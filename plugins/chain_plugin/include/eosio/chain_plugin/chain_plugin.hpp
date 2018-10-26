@@ -289,6 +289,8 @@ public:
        string is_registered = "false";
        string is_domain = "false";
        string address ="";
+       //the expiration is an epoch date, number of seconds since midnight 1970.
+       string expiration="";
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
@@ -706,7 +708,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(sc
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
-FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address) );
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name) );
 

@@ -1152,48 +1152,101 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
 
+   //declare variables.
    const string fio_code_name=fio_name_code;
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
    const string fio_scope=fio_name_scope;
-   // the default lookup table is "accounts"
-   string fio_lookup_table="fionames";
    const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
+   const uint64_t domain_hash = ::eosio::string_to_name(fio_domain.c_str());
+  
+   //these are the results for the table searches for domain ansd fio name
+   get_table_rows_result domain_result;
+   get_table_rows_result fioname_result;
+   //this is the table rows result to use after domain/fioname specific processing
+   get_table_rows_result name_result;
+   //this is the result returned to the user
+   fio_name_lookup_result result;
+  
+   //process the domain first, see if it exists aand then check the expiration.
+   //we return an empty result if the domain is expired.
+  
+   //get the domain, check if the domain is expired.
+   get_table_rows_params table_row_params = get_table_rows_params{.json=true, 
+           .code=code, 
+           .scope=fio_scope, 
+           .table="domains",
+           .lower_bound=boost::lexical_cast<string>(domain_hash),
+           .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
+           .encode_type="dec"};
 
-   // if fio_name is "domain" query "domains" table
-   if (fio_user_name.empty()) {
-      fio_lookup_table="domains";
+   domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+  
+   // If no matchs, then domain not found, return empty result
+   if (domain_result.rows.empty()) {
+      return result;
    }
-   get_table_rows_params table_row_params = get_table_rows_params{.json=true, .code=code, .scope=fio_scope, .table=fio_lookup_table,
+  
+   uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
+   //This is not the local computer time, it is in fact the block time.
+   uint32_t present_time = (uint32_t)time(0);
+  
+   //if the domain is expired then return an empty result.
+   if (present_time > domain_expiration)
+   {
+     return result;
+   }
+   
+   //set name result to be the domain results.
+   name_result = domain_result;
+  
+   if (!fio_user_name.empty()){
+    //query the names table and check if the name is expired
+    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true, 
+           .code=code, 
+           .scope=fio_scope, 
+           .table="fionames",
            .lower_bound=boost::lexical_cast<string>(name_hash),
            .upper_bound=boost::lexical_cast<string>(name_hash + 1),
            .encode_type="dec"};
 
-   get_table_rows_result table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+     fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+  
+  
+     // If no matchs, the name does not exist, return empty result
+     if (fioname_result.rows.empty()) {
+       return result;
+     }
+  
+     uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
 
-	
-   fio_name_lookup_result result;
-	
-   // If no matchs return empty result
-   if (table_rows_result.rows.empty()) {
-      return result;
+     //if the name is expired then return an empty result.
+     if (present_time > domain_expiration)
+     {
+       return result;
+     }
+     
+     //set the result to the name results
+     name_result = fioname_result;
    }
 
-   // 
-    result.is_registered = "true";
+  
+   //if we get this far then the name is registered, so set this in the result
+   result.is_registered = "true";
 	
-   // If found match and fio_name was a domain, indicate "domain found" in result
+   // If we found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
       result.is_domain="true";
       return result;
    }
 
    // validate keys vector size is expected size.
-   EOS_ASSERT(chain_str.size() == table_rows_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+   EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
 
    // Pick out chain specific key and populate result
-   result.address = table_rows_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
 
