@@ -20,13 +20,25 @@
 
 namespace fioio{
 
+    // error codes
+    static const uint64_t
+            ErrorDomainAlreadyRegistered =   100,   // Domain is already registered.
+            ErrorDomainNotRegistered =       101,   // Domain not yet registered.
+            ErrorFioNameAlreadyRegistered =  102,   // Fioname is already registered.
+            ErrorFioNameEmpty =              103,   // FIO user name is empty.
+            ErrorChainEmpty =                104,   // Chain name is empty.
+            ErrorChainAddressEmpty =         105,   // Chain address is empty.
+            ErrorChainContainsWhiteSpace =   106,   // Chain address contains whitespace.
+            ErrorChainNotSupported =         107,   // Chain isn't supported.
+            ErrorFioNameNotRegistered =      108;   // Fioname not yet registered.
 
-    class FioNameLookup : public contract {
+    class FioNameLookup : public contract { 
 		private:
         configs config;
         domains_table domains;
         fionames_table fionames;
 		account_name owner;
+        keynames_table keynames;
 
         // Currently supported chains
         enum  class chain_type {
@@ -36,9 +48,11 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-                : contract(self), config(self, self), domains(self, self), fionames(self, self)
-        {owner=self;}
-
+        : contract(self), config(self, self), domains(self, self), fionames(self, self),
+          keynames(self, self) {
+            owner=self;
+        }
+    
         // @abi action
         void registername(const string &name) {
             require_auth(owner);
@@ -58,9 +72,7 @@ namespace fioio{
                 fioname = name.substr(0, pos);
                 domain = name.substr(pos + 1, string::npos);
             }
-
-
-
+	
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
             uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
@@ -68,7 +80,7 @@ namespace fioio{
                 // check for domain availability
                 print(", Domain hash: ", domainHash, "\n");
                 auto domains_iter = domains.find(domainHash);
-                eosio_assert(domains_iter == domains.end(), "Domain is already registered.");
+                eosio_assert_message_code(domains_iter == domains.end(), "Domain is already registered.", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 // Issue, create and transfer nft domain token
@@ -81,15 +93,17 @@ namespace fioio{
 
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
-
+                eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
+                
 				// check if domain permission is valid.
 
 				// check if fioname is available
 				uint64_t nameHash = ::eosio::string_to_name(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
+                eosio_assert_message_code(fioname_iter == fionames.end(), "Fioname is already registered.", ErrorFioNameAlreadyRegistered);
+                
+
 
 
 
@@ -146,12 +160,12 @@ namespace fioio{
          */
         // @abi action
         void addaddress(const string &fio_user_name, const string &chain, const string &address) {
-            eosio_assert(!fio_user_name.empty(), "FIO user name cannot be empty.");
-            eosio_assert(!chain.empty(), "Chain cannot be empty.");
-            eosio_assert(!address.empty(), "Chain address cannot be empty.");
+            eosio_assert_message_code(!fio_user_name.empty(), "FIO user name cannot be empty..", ErrorFioNameEmpty);
+            eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
+            eosio_assert_message_code(!address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
 			// Verify the address does not have a whitespace
-			eosio_assert(address.find(" "), "Chain cannot contain whitespace");
-
+            eosio_assert_message_code(address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
+			
 			// DO SOMETHING
 
             // validate chain is supported. This is a case insensitive check.
@@ -159,20 +173,43 @@ namespace fioio{
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
             print("Validating chain support: ", my_chain, "\n");
             chain_type c_type= str_to_chain_type(my_chain);
-            eosio_assert(c_type != chain_type::NONE, "Supplied chain isn't supported..");
+            eosio_assert_message_code(c_type != chain_type::NONE, "Supplied chain isn't supported..", ErrorChainNotSupported);
 
             // validate fio fioname exists
             uint64_t nameHash = ::eosio::string_to_name(fio_user_name.c_str());
             auto fioname_iter = fionames.find(nameHash);
-            eosio_assert(fioname_iter != fionames.end(), "fioname not registered.");
+            eosio_assert_message_code(fioname_iter != fionames.end(), "fioname not registered..", ErrorFioNameNotRegistered);
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>(c_type)] = address;
             });
 
-		}
+            // insert/update key into key-name table for reverse lookup
+            auto idx = keynames.get_index<N(bykey)>();
+            auto keyhash = ::eosio::string_to_name(address.c_str());
+            auto matchingItem = idx.lower_bound(keyhash);
 
+            // Advance to the first entry matching the specified address and chain
+            while (matchingItem != idx.end() && matchingItem->keyhash == keyhash  && matchingItem->chaintype != static_cast<uint64_t>(c_type)) {
+                matchingItem++;
+            }
+            if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
+                keynames.emplace(_self, [&](struct key_name &k) {
+                    k.id = keynames.available_primary_key();        // use next available primary key
+                    k.key = address;                                // persist key
+                    k.keyhash = keyhash;                            // persist key hash
+                    k.chaintype = static_cast<uint64_t>(c_type);    // specific chain type
+                    k.name = fioname_iter->name;                    // FIO name
+                });
+            } else {
+                idx.modify(matchingItem, _self, [&](struct key_name &k) {
+                    k.name = fioname_iter->name;    // FIO name
+                });
+            }
+        }
+		
+		
 		void removename() {
 		}
 

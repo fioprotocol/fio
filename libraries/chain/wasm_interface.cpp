@@ -948,8 +948,19 @@ public:
          edump((error_code));
          EOS_THROW( eosio_assert_code_exception,
                     "assertion failure with error code: ${error_code}", ("error_code", error_code) );
+         throw eosio_assert_code_exception(error_code, "hello", "world");
       }
    }
+
+    void eosio_assert_message_code( bool condition, null_terminated_ptr msg, uint64_t error_code ) {
+       if( BOOST_UNLIKELY( !condition ) ) {
+          std::string message( msg );
+          edump((message));
+          edump((error_code));
+          throw eosio_assert_code_exception( FC_LOG_MESSAGE( error, "assertion failure with error code: ${error_code}", ("error_code", error_code) ),
+                                             error_code, "message", message);
+       }
+    }
 
    void eosio_exit(int32_t code) {
       context.control.get_wasm_interface().exit();
@@ -1791,6 +1802,7 @@ REGISTER_INTRINSICS(context_free_system_api,
    (eosio_assert,         void(int, int)      )
    (eosio_assert_message, void(int, int, int) )
    (eosio_assert_code,    void(int, int64_t)  )
+   (eosio_assert_message_code, void(int, int, int64_t))
    (eosio_exit,           void(int)           )
 );
 

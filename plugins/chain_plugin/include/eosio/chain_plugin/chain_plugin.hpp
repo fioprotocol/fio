@@ -278,6 +278,8 @@ public:
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
 
+   const string fio_name_code = "fioname11111";    // FIO name contract account
+   const string fio_name_scope = "fioname11111";   // FIO name contract scope
    struct fio_name_lookup_params {
        string fio_name;  // FIO complete account name e.g. john.fio
        string chain;     // chain name e.g. BTC, ETH, EOS etc.
@@ -286,10 +288,25 @@ public:
    struct fio_name_lookup_result {
        string is_registered = "false";
        string is_domain = "false";
-       string account_name ="";
+       string address ="";
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
+
+    struct fio_key_lookup_params {
+        string key;     // chain key e.g. for Ethereum: 0xC2D7CF95645D33006175B78989035C7c9061d3F9
+        string chain;   // chain name e.g. BTC, ETH, EOS etc.
+    };
+    struct fio_key_lookup_result {
+        string name = "";   // FIO name
+    };
+
+    /**
+     * Lookup FIO name based upon blockchain key(address|account)
+     * @param params
+     * @return
+     */
+   fio_key_lookup_result fio_key_lookup( const fio_key_lookup_params& params) const;
 
    struct get_table_by_scope_params {
       name        code; // mandatory
@@ -689,7 +706,9 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(sc
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
-FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(account_name) );
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address) );
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));
