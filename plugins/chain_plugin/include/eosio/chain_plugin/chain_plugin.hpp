@@ -278,8 +278,8 @@ public:
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
 
-   const string fio_name_code = "fioname11111";    // FIO name contract account
-   const string fio_name_scope = "fioname11111";   // FIO name contract scope
+   const string fio_name_code = "fio.system";    // FIO name contract account
+   const string fio_name_scope = "fio.system";   // FIO name contract scope
    struct fio_name_lookup_params {
        string fio_name;  // FIO complete account name e.g. john.fio
        string chain;     // chain name e.g. BTC, ETH, EOS etc.
