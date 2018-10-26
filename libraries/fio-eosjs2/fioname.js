@@ -1,90 +1,25 @@
+/** FioName implementation for Fio Javascript SDK
+ *  Description: Fio class provided for generating user keys, usernames, 
+                 creating accounts, registering fionames, adding addresses
+ *  @author Ciju John
+ *  @file fioname.js
+ *  @copyright Dapix
+ *
+ *  Changes: 10-8-2018 Adam Androulidakis
+ */
+
+
 const eosjs2 = require('../eosjs2');
-const minimist = require('minimist');
 const fetch = require('node-fetch');                            // node only; not needed in browsers
 const { TextDecoder, TextEncoder } = require('text-encoding');  // node, IE11 and IE Edge Browsers
-
-// General Configuration parameters
-class Config {
-}
-Config.MaxAccountCreationAttempts=3;
-Config.EosUrl='http://127.0.0.1:8888';
-Config.DefaultPrivateKey = "5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"; // fioname11111
-Config.NewAccountBuyRamQuantity="100.0000 SYS";
-Config.NewAccountStakeNetQuantity="100.0000 SYS";
-Config.NewAccountStakeCpuQuantity="100.0000 SYS";
-Config.NewAccountTransfer=false;
-Config.LogLevel=3; // Log levels 0 - 5 with increasing verbosity.
-
-// Helper static functions
-class Helper {
-    static typeOf( obj ) {
-        return ({}).toString.call( obj ).match(/\s(\w+)/)[1].toLowerCase();
-    }
-
-    static checkTypes( args, types ) {
-        args = [].slice.call( args );
-        for ( var i = 0; i < types.length; ++i ) {
-            if ( Helper.typeOf( args[i] ) != types[i] ) {
-                throw new TypeError( 'param '+ i +' must be of type '+ types[i] );
-            }
-        }
-    }
-
-    static randomString(length, chars) {
-        var result = '';
-        for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
-        return result;
-    }
-}
-
-// Custom Error with details object. Details is context specific.
-class FioError extends Error {
-    constructor(details, ...params) {
-        // Pass remaining arguments (including vendor specific ones) to parent constructor
-        super(...params);
-
-        // Custom debugging information
-        this.details = details; // this is a promise with error details
-    }
-}
+const fiocommon=require('./fio.common.js');
 
 // FIO methods class
 class Fio {
     constructor() {
-        const rpc = new eosjs2.Rpc.JsonRpc(Config.EosUrl, { fetch });
-        const signatureProvider = new eosjs2.SignatureProvider([Config.DefaultPrivateKey]);
+        const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, { fetch });
+        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.DefaultPrivateKey]);
         this.api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
-    }
-
-    // Transfer entity quantity e.g. "4.010 SYS" from account to "to" account with a memo.
-    // Returns tuple [status, eos response]
-    async transfer(from, to, quantity, memo) {
-        Helper.checkTypes( arguments, ['string', 'string', 'string', 'string'] );
-
-        const result = await this.api.transact({
-            actions: [{
-                account: 'eosio.token',
-                name: 'transfer',
-                authorization: [{
-                    actor: from,
-                    permission: 'active',
-                }],
-                data: {
-                    from: from,
-                    to: to,
-                    quantity: quantity,
-                    memo: memo,
-                },
-            }]
-        }, {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
-            throw rej;
-        });
-        //console.log(JSON.stringify(result, null, 2));
-        return [true, result];
     }
 
     // Generates a random private-public key pair.
@@ -101,7 +36,7 @@ class Fio {
         // Convert to a public key
         let pubkey = PrivateKey.fromString(privateWif).toPublic().toString();
 
-        if (Config.LogLevel > 4) {
+        if (fiocommon.Config.LogLevel > 4) {
             console.log(`Private key: ${privateWif}`);
             console.log(`Public key: ${pubkey}`);
         }
@@ -110,15 +45,15 @@ class Fio {
 
     // Generates a 12 random character EOS user name. No collision guarantees.
     generateUserName() {
-        return [true, Helper.randomString(12, '12345abcdefghijklmnopqrstuvwxyz')];
+        return [true, fiocommon.Helper.randomString(12, '12345abcdefghijklmnopqrstuvwxyz')];
     }
 
     // Will create a give username on the EOS chain.
     // Returns tuple [status, eos response]
     async activateAccount(creator, accountName, ownerPublicKey, ownerPrivateKey, activePublicKey, activePrivateKey, buyRamQuantity, stakeNetQuantity, stakeCpuQuantity, transfer) {
-        Helper.checkTypes( arguments, ['string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'boolean'] );
+        fiocommon.Helper.checkTypes( arguments, ['string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'boolean'] );
 
-        if (Config.LogLevel > 3) {
+        if (fiocommon.Config.LogLevel > 3) {
             console.log(`Owner private key: ${ownerPrivateKey}, Owner public key : ${ownerPublicKey}`);
             console.log(`Active private key: ${activePrivateKey}, Active public key : ${activePublicKey}`);
         }
@@ -200,9 +135,9 @@ class Fio {
     // Get account details
     // Returns tuple [status, eos response]
     async getAccount(accountName) {
-        Helper.checkTypes( arguments, ['string',] );
+        fiocommon.Helper.checkTypes( arguments, ['string',] );
 
-        const Url=Config.EosUrl + '/v1/chain/get_account';
+        const Url=fiocommon.Config.EosUrl + '/v1/chain/get_account';
         const Data=`{"account_name": "${accountName}"}`;
 
         //optional parameters
@@ -215,7 +150,7 @@ class Fio {
         let result = await fetch(Url, otherParams)
             .then(res => {
                 if (!res.ok){
-                    throw new FioError(res.json(),'Network response was not ok.');
+                    throw new fiocommon.FioError(res.json(),'Network response was not ok.');
                 }
                 return res.json()
             })
@@ -230,12 +165,12 @@ class Fio {
     // Create random username and create new EOS account. Will re-attempt $(Config.MaxAccountCreationAttempts) times.
     // Returns tuple [status, eos response, accountName, accountOwnerKeys, accountActiveKeys]. accountOwnerKeys, accountActiveKeys are further string arrays of format [privateKey, publicKey].
     async createAccount(creator) {
-        Helper.checkTypes( arguments, ['string',] );
+        fiocommon.Helper.checkTypes( arguments, ['string',] );
 
-        let maxAttempts=Config.MaxAccountCreationAttempts;
+        let maxAttempts=fiocommon.Config.MaxAccountCreationAttempts;
         let count=1;
         while(true) {
-            if (Config.LogLevel > 2) {
+            if (fiocommon.Config.LogLevel > 2) {
                 console.log(`Account creation Attempt ${count}`);
             }
             try {
@@ -245,7 +180,7 @@ class Fio {
                     throw rej;
                 });
                 if (!ownerKey[0]) {
-                    throw new FioError(ownerkey);
+                    throw new fiocommon.FioError(ownerKey);
                 }
 
                 // Generate active keys
@@ -254,9 +189,9 @@ class Fio {
                     throw rej;
                 });
                 if (!activeKey[0]) {
-                    throw new FioError(activeKey);
+                    throw new fiocommon.FioError(activeKey);
                 }
-                if (Config.LogLevel > 3) {
+                if (fiocommon.Config.LogLevel > 3) {
                     console.log(`Owner private key: ${ownerKey[1]}, Owner public key : ${ownerKey[2]}`);
                     console.log(`Active private key: ${activeKey[1]}, Active public key : ${activeKey[2]}`);
                 }
@@ -264,23 +199,23 @@ class Fio {
                 // Generate user name
                 let username = this.generateUserName();
                 if (!username[0]) {
-                    throw new FioError(username);
+                    throw new fiocommon.FioError(username);
                 }
-                if (Config.LogLevel > 3) {
+                if (fiocommon.Config.LogLevel > 3) {
                     console.log(`User name  : ${username[1]}`);
                 }
 
                 // Activate account on EOS chain
-                let buyRamQuantity=Config.NewAccountBuyRamQuantity;
-                let stakeNetQuantity=Config.NewAccountStakeNetQuantity;
-                let stakeCpuQuantity=Config.NewAccountStakeCpuQuantity;
-                let transfer=Config.NewAccountTransfer;
+                let buyRamQuantity=fiocommon.Config.NewAccountBuyRamQuantity;
+                let stakeNetQuantity=fiocommon.Config.NewAccountStakeNetQuantity;
+                let stakeCpuQuantity=fiocommon.Config.NewAccountStakeCpuQuantity;
+                let transfer=fiocommon.Config.NewAccountTransfer;
                 let activateAccountResult = await this.activateAccount(creator, username[1], ownerKey[2], ownerKey[1], activeKey[2], activeKey[1], buyRamQuantity, stakeNetQuantity, stakeCpuQuantity, transfer).catch(rej => {
                     console.log(`activateAccount promise rejection handler.`)
                     throw rej;
                 });
                 if (!activateAccountResult[0]) {
-                    throw new FioError(activateAccountResult);
+                    throw new fiocommon.FioError(activateAccountResult);
                 }
 
                 // Validate new account exists on EOS chain
@@ -295,7 +230,7 @@ class Fio {
                 return [false, "No details"]
             } catch (err) {
                 if (count >= 3) {
-                    if (err instanceof FioError) {
+                    if (err instanceof fiocommon.FioError) {
                         return err.details;
                     }
                     throw err;
@@ -305,4 +240,80 @@ class Fio {
         }
     }
 
-}
+    // Register a name in the fioname contract
+    // **PLEASE READ** fioname11111 account is currently
+    // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
+    // account name (public address of the wallet user in production use.
+    async registername (fioname) {
+        fiocommon.Helper.checkTypes( arguments, ['string',] );
+        try {
+            const result = await api.transact({
+            actions: [{
+                account:  fiocommon.Config.TestAccount,
+                name: 'registername',
+                authorization: [{
+                    actor:  fiocommon.Config.TestAccount,
+                    permission: 'active',
+                }],
+                data: {
+                    name: fioname,
+                },
+           }]
+          }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+          });
+          pre.textContent += '\n\nregistername transaction pushed!\n\n' + JSON.stringify(result, null, 2);
+        } catch (e) {
+          pre.textContent = '\nCaught exception: ' + e;
+          if (e instanceof eosjs2_jsonrpc.RpcError)
+            pre.textContent += '\n\n' + JSON.stringify(e.json, null, 2);
+          console.log(`registername promise rejection handler triggered.`);
+        }
+        
+    } //registername
+   
+        
+        
+    // Add address to the fioname
+    // **PLEASE READ** fioname11111 account is currently
+    // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
+    // account name (public address of the wallet user in production use.
+    async addaddress(fioname,address,chain) {
+        
+    fiocommon.Helper.checkTypes( arguments, ['string','string','string'] );
+        
+          try {
+          const result = await api.transact({
+            actions: [{
+                account:  fiocommon.Config.TestAccount,
+                name: 'addaddress',
+                authorization: [{
+                    actor:  fiocommon.Config.TestAccount,
+                    permission: 'active',
+                }],
+                data: {
+                    fio_user_name: fioname,
+                    chain: chain,
+                    address: address
+                },
+            }]
+          }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+          });
+          pre.textContent += '\n\naddaddress transaction pushed!\n\n' + JSON.stringify(result, null, 2);
+        } catch (e) {
+          pre.textContent = '\nCaught exception: ' + e;
+          if (e instanceof eosjs2_jsonrpc.RpcError)
+            pre.textContent += '\n\n' + JSON.stringify(e.json, null, 2);
+            console.log(`addaddress promise rejection handler triggered.`);
+        }
+        
+        
+    } //addaddress
+    
+
+} //Fio class
+
+module.exports = {Fio};

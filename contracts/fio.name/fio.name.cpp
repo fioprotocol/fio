@@ -13,18 +13,20 @@
  *  Adam Androulidakis  8-29-2019
  */
 
+#include <eosiolib/asset.hpp>
 #include "fio.name.hpp"
 
+#include <climits>
+
 namespace fioio{
-	
-	 
-    class FioNameLookup : public contract { 
+
+
+    class FioNameLookup : public contract {
 		private:
         configs config;
         domains_table domains;
         fionames_table fionames;
 		account_name owner;
-		
 
         // Currently supported chains
         enum  class chain_type {
@@ -34,21 +36,21 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), config(self, self), domains(self, self), fionames(self, self) {owner=self;}
+                : contract(self), config(self, self), domains(self, self), fionames(self, self)
+        {owner=self;}
 
-    
         // @abi action
         void registername(const string &name) {
             require_auth(owner);
 			string newname = name;
-			
+
 			// make fioname lowercase before hashing
-			transform(newname.begin(), newname.end(), newname.begin(), ::tolower);	
-			
-			
+			transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
+
+
             string domain = nullptr;
             string fioname = domain;
-			
+
             size_t pos = newname.find('.');
             if (pos == string::npos) {
                 domain = name;
@@ -56,9 +58,9 @@ namespace fioio{
                 fioname = name.substr(0, pos);
                 domain = name.substr(pos + 1, string::npos);
             }
-			
-			
-	
+
+
+
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
             uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
@@ -76,27 +78,27 @@ namespace fioio{
                 });
                 // Add domain entry in domain table
             } else { // fioname register
-                
+
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
                 eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
-                
+
 				// check if domain permission is valid.
-                
+
 				// check if fioname is available
 				uint64_t nameHash = ::eosio::string_to_name(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
                 eosio_assert(fioname_iter == fionames.end(), "Fioname is already registered.");
-                
 
-				
+
+
 				// check if callee has requisite dapix funds.
 				// DO SOMETHING
-				
+
                 // Issue, create and transfer fioname token
 				// DO SOMETHING
-				
+
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a){
                     a.name=newname;
@@ -109,7 +111,7 @@ namespace fioio{
         }
 
         /***
-         * Convert chain name to chain type. 
+         * Convert chain name to chain type.
          *
          * @param chain The chain name e.g. "BTC"
          * @return chain_type::NONE if no match.
@@ -128,6 +130,14 @@ namespace fioio{
         }
 
         /***
+         * Validate chain is in the supported chains list.
+         * @param chain The chain to validate, expected to be in lower case.s
+         */
+        inline void assert_valid_chain(const string &chain) {
+            assert(str_to_chain_type(chain) != chain_type::NONE);
+        }
+
+        /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
          * @param fio_user_name The FIO user name e.g. "adam.fio"
@@ -141,9 +151,9 @@ namespace fioio{
             eosio_assert(!address.empty(), "Chain address cannot be empty.");
 			// Verify the address does not have a whitespace
 			eosio_assert(address.find(" "), "Chain cannot contain whitespace");
-			
+
 			// DO SOMETHING
-			
+
             // validate chain is supported. This is a case insensitive check.
             string my_chain=chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
@@ -160,22 +170,20 @@ namespace fioio{
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>(c_type)] = address;
             });
-        
+
 		}
-		
-		
+
 		void removename() {
 		}
-		
-		void removedomain() {	
+
+		void removedomain() {
 		}
-		
+
 		void rmvaddress() {
 		}
-		
-		
+
     }; // class FioNameLookup
-	
+
 
     EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress) )
 }

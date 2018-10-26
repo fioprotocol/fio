@@ -12,21 +12,21 @@
  *  Ciju John  8-30-2018
  *  Adam Androulidakis  8-29-2019
  */
- 
+
 
 #pragma once
 
 #include <eosiolib/eosio.hpp>
 #include <string>
 #include <eosiolib/singleton.hpp>
-//#include <map>
+#include <eosiolib/asset.hpp>
 
 
 using std::string;
 
 namespace fioio {
-    
-        using namespace eosio;
+
+    using namespace eosio;
 
     // @abi table fionames i64
     struct fioname {
@@ -35,22 +35,23 @@ namespace fioio {
         uint64_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
-		
-		
+
+
         // Chain specific keys
         vector<string> addresses;
-		// std::map<string, string> fionames;
-		
-		// primary_key is required to store structure in multi_index table
+        // std::map<string, string> fionames;
+
+        // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
+
         uint64_t by_domain() const { return domainhash; }
-		
+
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(addresses))
     };
 
-	//Where fioname tokens are stored
+    //Where fioname tokens are stored
     typedef multi_index<N(fionames), fioname,
-     indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
+            indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
 
     // @abi table domains i64
     struct domain {
@@ -58,15 +59,18 @@ namespace fioio {
         uint64_t domainhash;
 
         uint64_t primary_key() const { return domainhash; }
+
         EOSLIB_SERIALIZE(domain, (name)(domainhash))
     };
-	
+
     typedef multi_index<N(domains), domain> domains_table;
 
     struct config {
         name tokencontr; // owner of the token contract
+
         EOSLIB_SERIALIZE(config, (tokencontr))
     };
-	
+
     typedef singleton<N(configs), config> configs;
+
 }
