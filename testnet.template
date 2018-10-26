@@ -12,6 +12,8 @@ if [ -z "$biosport" ]; then
     biosport=9776
 fi
 
+CORE_SYMBOL=`sed -r "s/CORE_SYMBOL='(.+)'/\1/" ./tests/core_symbol.py`
+
 wddir=eosio-ignition-wd
 wdaddr=localhost:8899
 wdurl=http://$wdaddr
@@ -34,6 +36,7 @@ mkdir $wddir
 
 step=1
 echo Initializing ignition sequence  at $(date) | tee $logfile
+echo core symbol: $CORE_SYMBOL >> $logfile
 
 echo "http-server-address = $wdaddr" > $wddir/config.ini
 
@@ -56,7 +59,7 @@ wcmd () {
 }
 
 cacmd () {
-    programs/cleos/cleos  --wallet-url $wdurl --url http://$bioshost:$biosport system newaccount --transfer --stake-net "10000000.0000 SYS" --stake-cpu "10000000.0000 SYS"  --buy-ram "10000000.0000 SYS" eosio $* >> $logfile 2>&1
+    programs/cleos/cleos  --wallet-url $wdurl --url http://$bioshost:$biosport system newaccount --transfer --stake-net "10000000.0000 $CORE_SYMBOL" --stake-cpu "10000000.0000 $CORE_SYMBOL"  --buy-ram "10000000.0000 $CORE_SYMBOL" eosio $* >> $logfile 2>&1
     ecmd system regproducer $1 $2
     ecmd system voteproducer prods $1 $1
 }
@@ -99,11 +102,11 @@ ecmd set contract eosio.msig contracts/eosio.msig eosio.msig.wasm eosio.msig.abi
 ecmd set contract eosio.sudo contracts/eosio.sudo eosio.sudo.wasm eosio.sudo.abi
 
 echo ===== Start: $step ============ >> $logfile
-echo executing: cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token create '[ "eosio", "10000000000.0000 SYS" ]' -p eosio.token | tee -a $logfile
-echo executing: cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token issue '[ "eosio", "1000000000.0000 SYS", "memo" ]' -p eosio | tee -a $logfile
+echo executing: cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token create '[ "eosio", "10000000000.0000 '$CORE_SYMBOL'" ]' -p eosio.token | tee -a $logfile
+echo executing: cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token issue '[ "eosio", "1000000000.0000 '$CORE_SYMBOL'", "memo" ]' -p eosio | tee -a $logfile
 echo ----------------------- >> $logfile
-programs/cleos/cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token create '[ "eosio", "10000000000.0000 SYS" ]' -p eosio.token >> $logfile 2>&1
-programs/cleos/cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token issue '[ "eosio", "1000000000.0000 SYS", "memo" ]' -p eosio >> $logfile 2>&1
+programs/cleos/cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token create '[ "eosio", "10000000000.0000 '$CORE_SYMBOL'" ]' -p eosio.token >> $logfile 2>&1
+programs/cleos/cleos --wallet-url $wdurl --url http://$bioshost:$biosport push action eosio.token issue '[ "eosio", "1000000000.0000 '$CORE_SYMBOL'", "memo" ]' -p eosio >> $logfile 2>&1
 echo ==== End: $step ============== >> $logfile
 step=$(($step + 1))
 
