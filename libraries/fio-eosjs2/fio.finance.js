@@ -18,7 +18,7 @@ const fiocommon=require('./fio.common.js');
 class FioFinance {
     constructor() {
         const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, { fetch });
-        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.DefaultPrivateKey]);
+        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.SystemAccountKey]);
         this.api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
     }
 
