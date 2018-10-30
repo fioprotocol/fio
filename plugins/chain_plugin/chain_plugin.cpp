@@ -1158,8 +1158,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
    const string fio_scope=fio_name_scope;
-   const uint64_t name_hash = ::eosio::string_to_name(p.fio_name.c_str());
-   const uint64_t domain_hash = ::eosio::string_to_name(fio_domain.c_str());
+   const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
+   const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
   
    //these are the results for the table searches for domain ansd fio name
    get_table_rows_result domain_result;
@@ -1268,9 +1268,9 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
 
    const string fio_scope=fio_name_scope;    // scope
    string fio_key_lookup_table="keynames";   // table name
-   const uint64_t key_hash = ::eosio::string_to_name(p.key.c_str()); // hash of block key
+   const uint64_t key_hash = ::eosio::string_to_uint64_t(p.key.c_str()); // hash of block key
 
-   ulog( "Lookup using key hash: '${key_hash}'", ("key_hash", key_hash) );
+   dlog( "Lookup using key hash: '${key_hash}'", ("key_hash", key_hash) );
    get_table_rows_params table_row_params = get_table_rows_params{
            .json=true,
            .code=code,
@@ -1284,7 +1284,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi, [](uint64_t v)->uint64_t {
        return v;
    });
-   ulog( "Lookup row count: '${size}'", ("size", table_rows_result.rows.size()) );
+   dlog( "Lookup row count: '${size}'", ("size", table_rows_result.rows.size()) );
    EOS_ASSERT(!table_rows_result.rows.empty(),chain::contract_table_query_exception,"No matches found.");
 
    // iterate through results for key and chain match
@@ -1299,7 +1299,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
 
    EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type), chain::contract_table_query_exception,"key not found.");
 
-   ilog( "Lookup matched row: '${pos}'.", ("pos", pos) );
+   dlog( "Lookup matched row: '${pos}'.", ("pos", pos) );
 
    fio_key_lookup_result result;
    result.name = table_rows_result.rows[pos]["name"].as_string();

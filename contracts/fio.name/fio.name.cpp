@@ -32,7 +32,9 @@ namespace fioio{
             ErrorChainAddressEmpty =         105,   // Chain address is empty.
             ErrorChainContainsWhiteSpace =   106,   // Chain address contains whitespace.
             ErrorChainNotSupported =         107,   // Chain isn't supported.
-            ErrorFioNameNotRegistered =      108;   // Fioname not yet registered.
+            ErrorFioNameNotRegistered =      108,   // Fioname not yet registered.
+            ErrorDomainExpired =          109,   // Fioname not yet registered.
+            ErrorFioNameExpired =            110;   // Fioname not yet registered.
 
     class FioNameLookup : public contract { 
         private:
@@ -226,18 +228,17 @@ namespace fioio{
 
             // validate fio fioname exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fio_user_name.c_str());
+            print("Name: ", fio_user_name, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
             eosio_assert_message_code(fioname_iter != fionames.end(), "fioname not registered..", ErrorFioNameNotRegistered);
-            
             
             //check that the name isnt expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
             
             print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            eosio_assert(present_time <= name_expiration, "fioname is expired.");
-            
-            
+            eosio_assert_message_code(present_time <= name_expiration, "fioname is expired.", ErrorFioNameExpired);
+
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
             size_t pos = fio_user_name.find('.');
@@ -246,13 +247,14 @@ namespace fioio{
             } else {
                 domain = fio_user_name.substr(pos + 1, string::npos);
             }
-            uint64_t domainHash = ::eosio::string_to_name(domain.c_str());
+            uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
+            print("Domain: ", domain, ", domainHash: ", domainHash, "..");
             
             auto domains_iter = domains.find(domainHash);
-            eosio_assert(domains_iter != domains.end(), "Domain not yet registered.");
+            eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
             
             uint32_t expiration = domains_iter->expiration;
-            eosio_assert(present_time <= expiration, "Domain is expired.");
+            eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired);
             
 
             // insert/update <chain, address> pair
@@ -262,7 +264,7 @@ namespace fioio{
 
             // insert/update key into key-name table for reverse lookup
             auto idx = keynames.get_index<N(bykey)>();
-            auto keyhash = ::eosio::string_to_name(address.c_str());
+            auto keyhash = ::eosio::string_to_uint64_t(address.c_str());
             auto matchingItem = idx.lower_bound(keyhash);
 
             // Advance to the first entry matching the specified address and chain
