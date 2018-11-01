@@ -11,7 +11,7 @@ from datetime import datetime
 import shlex
 import collections
 
-hostname="localhost"
+hostname="0.0.0.0"
 log_file=open("launcher.detailed.log", "w")
 
 # pylint: disable=too-few-public-methods
