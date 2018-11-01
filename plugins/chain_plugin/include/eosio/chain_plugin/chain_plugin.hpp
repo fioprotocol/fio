@@ -301,6 +301,7 @@ public:
     };
     struct fio_key_lookup_result {
         string name = "";   // FIO name
+        string expiration="";
     };
 
     /**
@@ -710,7 +711,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
-FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name) );
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));
