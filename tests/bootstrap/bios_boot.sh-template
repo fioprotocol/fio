@@ -124,8 +124,9 @@ echo ==== End: $step ============== >> $logfile
 step=$(($step + 1))
 
 ecmd set contract eosio contracts/eosio.system eosio.system.wasm eosio.system.abi
-ecmd set contract fio.system contracts/fio.name fio.name.wasm fio.name.abi
-ecmd set contract fio.finance contracts/fio.finance fio.finance.wasm fio.finance.abi
+# TBD prod conditional
+#ecmd set contract fio.system contracts/fio.name fio.name.wasm fio.name.abi
+#ecmd set contract fio.finance contracts/fio.finance fio.finance.wasm fio.finance.abi
 
 # Manual deployers, add a series of lines below this block that looks like:
 #    cacmd $PRODNAME[0] $OWNERKEY[0] $ACTIVEKEY[0]
