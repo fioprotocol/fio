@@ -1238,6 +1238,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    // If we found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
       result.is_domain="true";
+      result.expiration = name_result.rows[0]["expiration"].as_string();
       return result;
    }
 
@@ -1303,6 +1304,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
 
    fio_key_lookup_result result;
    result.name = table_rows_result.rows[pos]["name"].as_string();
+   result.expiration = table_rows_result.rows[pos]["expiration"].as_string();
    return result;
 } // fio_key_lookup
 
