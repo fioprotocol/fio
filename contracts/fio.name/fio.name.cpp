@@ -278,6 +278,7 @@ namespace fioio{
                     k.keyhash = keyhash;                            // persist key hash
                     k.chaintype = static_cast<uint64_t>(c_type);    // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
+                    k.expiration=name_expiration;
                 });
             } else {
                 idx.modify(matchingItem, _self, [&](struct key_name &k) {
