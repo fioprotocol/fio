@@ -93,7 +93,7 @@ async function test_mas44(creator) {
     assert(getAccountResult[1].is_registered == "true", "Didn't find domain : " + domain);
     assert(getAccountResult[1].is_domain == "true", "Didn't tag domain properly. Expected: true");
     assert(!getAccountResult[1].address, "Address expected to be empty.");
-    assert(!getAccountResult[1].expiration, "Expiration expected to be empty.");
+    assert(getAccountResult[1].expiration, "Expiration should not be empty.");
 
     // Check for domain "junk", which since it doesn't exist should trigger exception
     let condition = false;
