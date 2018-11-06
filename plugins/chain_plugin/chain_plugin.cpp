@@ -1128,17 +1128,15 @@ inline chain_type str_to_chain_type(const string &chain) {
    return chain_type::NONE;
 }
 
-
+/***
+ * Lookup address by FIO name.
+ * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+ * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+ */
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
 
    // assert if empty fio name
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
-
-   // chain support check
-   string my_chain=p.chain;
-   transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-   chain_type c_type= str_to_chain_type(my_chain);
-   EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
    // Split the fio name and domain portions
    string fio_domain = "";
@@ -1160,7 +1158,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    const string fio_scope=fio_name_scope;
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
-  
+
    //these are the results for the table searches for domain ansd fio name
    get_table_rows_result domain_result;
    get_table_rows_result fioname_result;
@@ -1168,79 +1166,91 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    get_table_rows_result name_result;
    //this is the result returned to the user
    fio_name_lookup_result result;
-  
+
    //process the domain first, see if it exists aand then check the expiration.
    //we return an empty result if the domain is expired.
-  
+
    //get the domain, check if the domain is expired.
-   get_table_rows_params table_row_params = get_table_rows_params{.json=true, 
-           .code=code, 
-           .scope=fio_scope, 
+   get_table_rows_params table_row_params = get_table_rows_params{.json=true,
+           .code=code,
+           .scope=fio_scope,
            .table="domains",
            .lower_bound=boost::lexical_cast<string>(domain_hash),
            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
            .encode_type="dec"};
 
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
-  
+
    // If no matchs, then domain not found, return empty result
    if (domain_result.rows.empty()) {
       return result;
    }
-  
+
    uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
    //This is not the local computer time, it is in fact the block time.
    uint32_t present_time = (uint32_t)time(0);
-  
+
    //if the domain is expired then return an empty result.
    if (present_time > domain_expiration)
    {
      return result;
    }
-   
+
    //set name result to be the domain results.
    name_result = domain_result;
-  
-   if (!fio_user_name.empty()){
-    //query the names table and check if the name is expired
-    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true, 
-           .code=code, 
-           .scope=fio_scope, 
-           .table="fionames",
-           .lower_bound=boost::lexical_cast<string>(name_hash),
-           .upper_bound=boost::lexical_cast<string>(name_hash + 1),
-           .encode_type="dec"};
 
-     fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
-  
-  
-     // If no matchs, the name does not exist, return empty result
-     if (fioname_result.rows.empty()) {
-       return result;
-     }
-  
-     uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
+    if (!fio_user_name.empty()){
+        // validate chain
+        string my_chain=p.chain;
+        transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+        chain_type c_type= str_to_chain_type(my_chain);
+        EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
-     //if the name is expired then return an empty result.
-     if (present_time > domain_expiration)
-     {
-       return result;
-     }
-     
-     //set the result to the name results
-     name_result = fioname_result;
-   }
+        //query the names table and check if the name is expired
+        get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                .code=code,
+                .scope=fio_scope,
+                .table="fionames",
+                .lower_bound=boost::lexical_cast<string>(name_hash),
+                .upper_bound=boost::lexical_cast<string>(name_hash + 1),
+                .encode_type="dec"};
 
-  
+        fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+
+
+        // If no matchs, the name does not exist, return empty result
+        if (fioname_result.rows.empty()) {
+            return result;
+        }
+
+        uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
+
+        //if the name is expired then return an empty result.
+        if (present_time > domain_expiration)
+        {
+            return result;
+        }
+
+        //set the result to the name results
+        name_result = fioname_result;
+    }
+
+
    //if we get this far then the name is registered, so set this in the result
    result.is_registered = "true";
-	
+
    // If we found match and fio_name was a domain, indicate "domain found" in result
    if (fio_user_name.empty()) {
       result.is_domain="true";
       result.expiration = name_result.rows[0]["expiration"].as_string();
       return result;
    }
+
+    // chain support check
+    string my_chain=p.chain;
+    transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+    chain_type c_type= str_to_chain_type(my_chain);
+    EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
    // validate keys vector size is expected size.
    EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");

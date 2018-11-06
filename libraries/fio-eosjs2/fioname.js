@@ -300,6 +300,42 @@ class Fio {
         return [true, result];
     }
 
+    async lookupByName(name, chain=null) {
+        fiocommon.Helper.checkTypes(arguments, ['string']);
+
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Lookup key by name : ${name}, chain: ${chain}`);
+        }
+
+        const Url=fiocommon.Config.EosUrl + '/v1/chain/fio_name_lookup';
+        const Data=`{"fio_name": "${name}","chain":"${chain}"}`;
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`url: ${Url}`);
+            console.log(`data: ${Data}`);
+        }
+
+        //optional parameters
+        const otherParams={
+            headers:{"content-type":"application/json; charset=UTF-8"},
+            body:Data,
+            method:"POST"
+        };
+
+        let result = await fetch(Url, otherParams)
+            .then(res => {
+                if (!res.ok){
+                    throw new FioError(res.json(),'Network response was not ok.');
+                }
+                return res.json()
+            })
+            .catch(rej => {
+                console.log(`fetch rejection handler.`)
+                throw rej;
+            });
+
+        return [true, result];
+    }
+
 
     // Create random username and create new EOS account. Will re-attempt $(Config.MaxAccountCreationAttempts) times.
     // Returns tuple [status, eos response, accountName, accountOwnerKeys, accountActiveKeys]. accountOwnerKeys, accountActiveKeys are further string arrays of format [privateKey, publicKey].
@@ -421,40 +457,6 @@ class Fio {
 
         return [true, result];
     }
-
-    // Register a name in the fioname contract
-    // **PLEASE READ** fioname11111 account is currently
-    // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
-    // account name (public address of the wallet user in production use.
-    async registername (fioname) {
-        fiocommon.Helper.checkTypes( arguments, ['string',] );
-        try {
-            const result = await api.transact({
-                actions: [{
-                    account:  fiocommon.Config.TestAccount,
-                    name: 'registername',
-                    authorization: [{
-                        actor:  fiocommon.Config.TestAccount,
-                        permission: 'active',
-                    }],
-                    data: {
-                        name: fioname,
-                    },
-                }]
-            }, {
-                blocksBehind: 3,
-                expireSeconds: 30,
-            });
-            pre.textContent += '\n\nregistername transaction pushed!\n\n' + JSON.stringify(result, null, 2);
-        } catch (e) {
-            pre.textContent = '\nCaught exception: ' + e;
-            if (e instanceof eosjs2_jsonrpc.RpcError)
-                pre.textContent += '\n\n' + JSON.stringify(e.json, null, 2);
-            console.log(`registername promise rejection handler triggered.`);
-        }
-
-    } //registername
-
 
 
     // Add address to the fioname

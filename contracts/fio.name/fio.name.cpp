@@ -289,12 +289,15 @@ namespace fioio{
 		
 		
 		void removename() {
+            print("Begin removename()");
 		}
 
 		void removedomain() {
+            print("Begin removedomain()");
 		}
 
 		void rmvaddress() {
+            print("Begin rmvaddress()");
 		}
 
     }; // class FioNameLookup

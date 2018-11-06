@@ -32,6 +32,15 @@ Config.FinalizationTime=20;     // time in milliseconds to transaction finalizat
 // Helper static functions
 class Helper {
 
+    /***
+     * Sleep function
+     * @param ms    milliseconds to sleep
+     * @returns {Promise}   void promise
+     */
+    static sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     static async execute(command, debug = true) {
         if (Config.LogLevel > 4) console.log("Enter execute()");
         if (Config.LogLevel > 4) console.log("Start exec " + command);
