@@ -62,7 +62,6 @@ namespace fioio{
 
         [[eosio::action]]
         void registername(const string &name, const account_name &requestor) {
-            require_auth(_self);
             require_auth(requestor); // check for requestor authority; required for fee transfer
 
             string newname = name;
@@ -191,11 +190,6 @@ namespace fioio{
             return incremented_time;
         }
 
-        
-    
-    
-        
-        
         /***
          * Validate chain is in the supported chains list.
          * @param chain The chain to validate, expected to be in lower case.s
