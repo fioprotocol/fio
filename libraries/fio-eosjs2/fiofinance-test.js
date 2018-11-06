@@ -14,14 +14,14 @@ const fiocommon=require('./fio.common.js');
 
 const assert = require('assert');
 
-/***
- * Sleep function
- * @param ms    milliseconds to sleep
- * @returns {Promise}   void promise
- */
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+// /***
+//  * Sleep function
+//  * @param ms    milliseconds to sleep
+//  * @returns {Promise}   void promise
+//  */
+// function sleep(ms) {
+//     return new Promise(resolve => setTimeout(resolve, ms));
+// }
 
 // test function
 async function testFunction(requestid, requestor, requestee, requestorKey, requesteeKey) {
@@ -67,7 +67,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
             console.log("requestfunds() successfull.");
             // console.log(result[1]);
         }
-        await sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+        await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
 
         let pendingRequest;
         result = await fio.getPendingRequestByRequestee(requestee, 100) // expected max 100 pending requests in test setup
@@ -98,7 +98,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
         } else {
             throw new Error("fio.rejectrqst() failed: " + result[1]);
         }
-        await sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+        await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
 
         result = await fio.getPendingRequestByRequestee(requestee, 100) // expected max 100 pending requests in test setup
             .catch(rej => {
@@ -160,7 +160,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
             console.log("requestfunds() successfull.");
             // console.log(result[1]);
         }
-        await sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+        await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
 
         let pendingRequest;
         result = await fio.getPendingRequestByRequestee(requestee, 100) // expected max 100 pending requests in test setup
@@ -193,7 +193,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
         } else {
             throw new Error("fio.reportrqst() failed: " + result[1]);
         }
-        await sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+        await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
 
         result = await fio.getPendingRequestByRequestee(requestee, 100) // expected max 100 pending requests in test setup
             .catch(rej => {
@@ -255,7 +255,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
             console.log("requestfunds() successfull.");
             // console.log(result[1]);
         }
-        await sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+        await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
 
         let pendingRequest;
         result = await fio.getPendingRequestByRequestee(requestee, 100) // expected max 100 pending requests in test setup
@@ -288,7 +288,7 @@ async function testFunction(requestid, requestor, requestee, requestorKey, reque
         } else {
             throw new Error("fio.cancelrqst() failed: " + result[1]);
         }
-        await sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+        await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
 
         result = await fio.getPendingRequestByRequestee(requestee, 100) // expected max 100 pending requests in test setup
             .catch(rej => {

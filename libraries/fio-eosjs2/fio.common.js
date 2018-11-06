@@ -7,12 +7,17 @@
  *  Changes: 10-8-2018 Adam Androulidakis
  */
 
+// var exec = require('child_process').exec;
+
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 // General Configuration parameters
 class Config {
 }
 Config.MaxAccountCreationAttempts=3;
 Config.EosUrl =                     'http://localhost:8888';
+Config.KeosdUrl =                     'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
 Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount}
 Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
@@ -26,10 +31,33 @@ Config.FinalizationTime=20;     // time in milliseconds to transaction finalizat
 
 // Helper static functions
 class Helper {
+
+    /***
+     * Sleep function
+     * @param ms    milliseconds to sleep
+     * @returns {Promise}   void promise
+     */
+    static sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    static async execute(command, debug = true) {
+        if (Config.LogLevel > 4) console.log("Enter execute()");
+        if (Config.LogLevel > 4) console.log("Start exec " + command);
+
+        const { stdout, stderr } = await exec(command);
+        if (Config.LogLevel > 4) console.log("End exec");
+        if (debug) {
+            console.log('stdout: ' + stdout);
+            console.log('stderr: ' + stderr);
+        }
+
+        if (Config.LogLevel > 4) console.log("Exit execute()");
+        return {stdout, stderr}
+    }
+
     static typeOf( obj ) {
-				
 		return  ({}).toString.call( obj ).match(/\s(\w+)/)[1].toLowerCase();
-		
     }
 
     static checkTypes( args, types ) {
@@ -54,10 +82,10 @@ class Helper {
 	
    	// Get account details
     // Returns tuple [status, eos response]
-    async getAccount(accountName) {
-        checkTypes( arguments, ['string',] );
+    static async getAccount(accountName) {
+        Helper.checkTypes( arguments, ['string',] );
 
-        const Url=fiocommon.Config.EosUrl + '/v1/chain/get_account';
+        const Url=Config.EosUrl + '/v1/chain/get_account';
         const Data=`{"account_name": "${accountName}"}`;
 
         //optional parameters
@@ -75,14 +103,27 @@ class Helper {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.error(`fetch rejection handler.`)
                 throw rej;
             });
 
         return [true, result];
     }
-	
-	
+
+    static async setContract(accountName, contractDir, wasmFile, abiFile) {
+        Helper.checkTypes( arguments, ['string', 'string', 'string', 'string'] );
+
+        let command = `programs/cleos/cleos --url ${Config.EosUrl}  --wallet-url ${Config.KeosdUrl} set contract -j ${accountName} ${contractDir} ${wasmFile} ${abiFile}`;
+        if (Config.LogLevel > 2) console.log(`Executing command: ${command}`);
+        let result = await Helper.execute(command, false)
+            .catch(rej => {
+                console.error(`execute() promise rejection handler.`);
+                throw rej;
+            });
+
+        return [true, result];
+    }
+
 }
 
 // Custom Error with details object. Details is context specific.

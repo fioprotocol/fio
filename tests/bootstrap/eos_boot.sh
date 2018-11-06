@@ -12,8 +12,12 @@ if [ "$MY_INTERFACE" == "" ]; then
     MY_INTERFACE=localhost
 fi
 
-PORT=8889
-read -p "Press any key to setup EOS node to listen on host \"$MY_INTERFACE\" port \"$PORT\""
+# TBD prod conditional
+# PORT=8889
+# read -p "Press any key to setup EOS node to listen on host \"$MY_INTERFACE\" port \"$PORT\""
+PORT=8888
+echo Starting up EOS node to listen on host \"$MY_INTERFACE\" port \"$PORT\"
+#read -p "Press any key to setup EOS node to listen on host \"$MY_INTERFACE\" port \"$PORT\""
 
 SCRIPT_PATH=`dirname $0`
 LAUNCHER_SCRIPT=bios_boot.sh

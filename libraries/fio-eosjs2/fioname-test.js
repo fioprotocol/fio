@@ -9,159 +9,228 @@
 
 
 const minimist = require('minimist');
+const assert = require('assert');
+
 const fioname=require('./fioname.js');
 const fiocommon=require('./fio.common.js');
 
-// main function
-try {
+async function startup() {
+    if (fiocommon.Config.LogLevel > 4) console.log("Enter startup().");
+
+    let result = await fiocommon.Helper.execute("tests/launcher.py", false)
+        .catch(rej => {
+            console.error(`Helper.execute() promise rejection handler.`);
+            throw rej;
+        });
+
+    if (fiocommon.Config.LogLevel > 4) console.log("Exit startup()");
+    return [true, result];
+}
+
+async function shutdown() {
+    try {
+        let result = await fiocommon.Helper.execute("/usr/bin/pkill -9 nodeos", false);
+        result = await fiocommon.Helper.execute("/usr/bin/pkill -9 keosd", false);
+        return [true, result];
+    } catch (e) {
+        console.error("Helper.execute() threw exception");
+        throw e;
+    }
+}
+
+async function test_mas44(creator) {
+    fiocommon.Helper.checkTypes( arguments, ['string'] );
+
+    console.log("Start MAS 44 test.");
+    fio = new fioname.Fio();
+
+    console.log("create a new account");
+    let createAccountResult = await fio.createAccount(fiocommon.Config.SystemAccount)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: createAccount()");
+        });
+    assert(createAccountResult[0], "FAIL: createAccount()");
+
+    console.log(`validate account ${createAccountResult[2]} exists`);
+    let getAccountResult = await fio.getAccount(createAccountResult[2]).catch(rej => {
+        console.error(rej.stack);
+        assert(true, "EXCEPTION: getAccount()");
+    });
+    assert(getAccountResult[0], "FAIL getAccount() " + createAccountResult[2]);
+
+    let quantity= "200.0000 FIO";
+    console.log(`Give new account ${createAccountResult[2]} some(${quantity}) funds.`);
+    let transferResult = await fio.transfer(fiocommon.Config.SystemAccount, createAccountResult[2], quantity, "initial transfer")
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(true, "transfer() failed");
+        });
+    assert(transferResult[0], "transfer() failed");
+
+    let domain="amzn";
+    console.log(`create domain "${domain}"`);
+    let registerNameResult = await fio.registerName(domain, createAccountResult[2], createAccountResult[4][0])
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: registerName() " + domain);
+        });
+    assert(registerNameResult[0], "FAIL: registerName() " + domain);
+    await fiocommon.Helper.sleep(fiocommon.Config.FinalizationTime);    // approximate time to finalize transaction
+
+    console.log(`validate domain "${domain}" exists.`);
+    getAccountResult = null;
+    getAccountResult =  await fio.lookupByName(domain)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: lookupByName() "+ domain);
+        });
+    assert(getAccountResult[0], "FAIL lookupByName() " + domain);
+    if (fiocommon.Config.LogLevel > 3) {
+        console.log(JSON.stringify(getAccountResult[1], null, 2));
+        console.log(`is_registered: ${getAccountResult[1].is_registered}`);
+    }
+    assert(getAccountResult[1].is_registered == "true", "Didn't find domain : " + domain);
+    assert(getAccountResult[1].is_domain == "true", "Didn't tag domain properly. Expected: true");
+    assert(!getAccountResult[1].address, "Address expected to be empty.");
+    assert(getAccountResult[1].expiration, "Expiration should not be empty.");
+
+    // Check for domain "junk", which since it doesn't exist should trigger exception
+    let condition = false;
+    let invalidDomain="junk";
+    console.log(`validate invalid domain "${invalidDomain}" doesn't exists.`);
+    getAccountResult = null;
+    getAccountResult = await fio.lookupByName(invalidDomain)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: lookupByName() "+ invalidDomain);
+        })
+    assert(getAccountResult[0], "FAIL lookupByName() " + invalidDomain);
+    if (fiocommon.Config.LogLevel > 3) {
+        console.log(JSON.stringify(getAccountResult[1], null, 2));
+    }
+    assert(getAccountResult[1].is_registered == "false", "Found invalid domain: " + invalidDomain);
+    assert(getAccountResult[1].is_domain == "false", "Didn't tag domain properly. Expected: true");
+    assert(!getAccountResult[1].address, "Address expected to be empty.");
+    assert(!getAccountResult[1].expiration, "Expiration expected to be empty.");
+
+    // // create FIO name dan.amzn
+    // let name="dan."+domain;
+    // registerNameResult = await fio.registerName(name, createAccountResult[2], createAccountResult[4][0])
+    //     .catch(rej => {
+    //         console.error(rej.stack);
+    //         assert(false, "registerName() 2 failed");
+    //     });
+    // assert(registerNameResult[0], "registerName() 2 failed");
+    //
+    // await fio.getAccount(name)
+    //     .catch(rej => {
+    //         assert(false, "Failed to find name "+ name);
+    //     })
+    //
+    // let invalidName="junk."+domain;
+    // condition=false;
+    // await fio.getAccount(invalidName)
+    //     .catch(rej => {
+    //         condition = true;
+    //     })
+    // assert(condition, "Found unregistered name "+ invalidName);
+    //
+    // let address="0x123456789";
+    // let chain="btc";
+    // let addAddressResult = await fio.addaddress(name, address, chain)
+    //
+    // console.log("End MAS 44 test.");
+    // return [true, ""];
+}
+
+
+async function main() {
     let args = minimist(process.argv.slice(2), {
         alias: {
             h: 'help',
-            c: 'creator'
+            c: 'creator',
+            l: 'leaverunning',
+            d: 'debug'
         },
         default: {
             help: false,
-            creator: 'fioname11111'
+            creator: 'fio.system',
+            leaverunning: false,
+            debug: false
         },
     });
 
     if (args.help) {
-        console.log("arguments: [-h|--help] [-c|--creator <creator account name default fioname11111>]");
+        console.log("arguments: [-h|--help] [-c|--creator <creator account name default fio.system>] [-l|--leaverunning] [-d|--debug]");
         return 0;
     }
 
-    fio = new fioname.Fio();
+    console.log(`Owner account ${args.creator}`);
+    console.log(`Leave Running ${args.leaverunning}`);
+    console.log(`Debug ${args.debug}`);
 
-    let creator=args.creator;
-    console.log(`Owner account ${creator}`);
+    if (args.debug) {
+        fiocommon.Config.LogLevel = 5;
+    }
 
-    fio.createAccount(creator).then (result => {
-        if (result[0]) {
-            console.log("Create account transaction successful.");
-            console.log(`New Account name: ${result[2]}`);
-            console.log(`Account owner keys: Private key: ${result[3][0]}, public key: ${result[3][1]}`);
-            console.log(`Account active keys: Private key: ${result[4][0]}, public key: ${result[4][1]}`);
-            if (fiocommon.Config.LogLevel > 3){
-                console.log(JSON.stringify(result[1], null, 2));
-            }
-        } else {
-            console.log("Create account transaction failed.");
-            console.log(JSON.stringify(result[1], null, 2));
-        }
-    }).catch(rej => {
-        console.log(`createAccount promise rejection handler.`);
-        console.log(rej);
-    });
+    if (fiocommon.Config.LogLevel > 4) console.log("Enter main sync");
+    try {
+        if (fiocommon.Config.LogLevel > 4) console.log("Start startup()");
 
-        let createAccountResult = await fio.createAccount(Config.SystemAccount)
+        console.log("Standing up nodeos.");
+        let result = await startup()
             .catch(rej => {
-                console.log(`createAccount rejection handler.`)
+                console.error(`startup() promise rejection handler.`);
                 throw rej;
             });
-        if (createAccountResult[0]) {
-            console.log("Account creation successful.");
-            console.log(`Account name: ${createAccountResult[2]}\nOwner key: ${createAccountResult[3][0]}\nOwner key: ${createAccountResult[3][1]}\n` +
-                `Active key: ${createAccountResult[4][0]}\nActive key: ${createAccountResult[4][1]}\n`);
-            // console.log(`Account name: ${result[1]}`);
-
-        } else {
-            console.log("Account creation failed.");
-            console.log(JSON.stringify(createAccountResult[1], null, 2));
-            return -1;
+        if (!result[0]) {
+            console.error("ERROR: startup() failed.");
+            return [false, result[1]];
         }
+        if (fiocommon.Config.LogLevel > 4) console.log("End startup()");
+        console.log("nodeos successfully configured.");
 
-        // async transfer(from, to, quantity, memo) {
-        let transferResult = await fio.transfer(Config.SystemAccount, createAccountResult[2], "200.0000 FIO", "initial transfer")
+        let contract="fio.name";
+        let contractDir=contract;
+        let wasmFile= contract + ".wasm";
+        let abiFile= contract + ".abi";
+        console.log(`Setting contract: ${contract}`);
+        result = await fiocommon.Helper.setContract(fiocommon.Config.SystemAccount, "contracts/"+contractDir, wasmFile, abiFile)
             .catch(rej => {
-                console.log(`transfer rejection handler.`)
+                console.error(`Helper.setContract() promise rejection handler.`);
                 throw rej;
             });
-        if (transferResult[0]) {
-            console.log("transfer successful.");
-        } else {
-            console.log("transfer failed.");
-            return -1;
+        if (!result[0]) {
+            console.error("ERROR: Helper.setContract() failed.");
+            return [false, result[1]];
         }
+        console.log("Contract fio.name set successfully.");
 
-        let registerNameResult = await fio.registerName(createAccountResult[2], createAccountResult[2], createAccountResult[4][0])
-            .catch(rej => {
-                console.log(`registerName domain rejection handler.`)
+        await test_mas44(args.creator)
+
+        return [true, ""];
+    } finally {
+        if (!args.leaverunning) {
+            if (fiocommon.Config.LogLevel > 4) console.log("start shutdown()");
+            console.log("Shuting down nodeos and keosd.");
+            await shutdown().catch(rej => {
+                if (fiocommon.Config.LogLevel > 4) console.log(`shutdown promise rejection handler: ${rej}`);
                 throw rej;
             });
-        if (registerNameResult[0]) {
-            console.log("Domain registration succeeded.");
-        } else {
-            console.log("Domain registration failed.");
-            return -1;
-            // console.log(JSON.stringify(result[1], null, 2));
+            if (fiocommon.Config.LogLevel > 4) console.log("End shutdown()");
         }
+    }
+    if (fiocommon.Config.LogLevel > 4) console.log("End main sync");
 
-        registerNameResult = await fio.registerName("ciju."+createAccountResult[2], createAccountResult[2], createAccountResult[4][0])
-            .catch(rej => {
-                console.log(`registerName name rejection handler.`)
-                throw rej;
-            });
-        if (registerNameResult[0]) {
-            console.log("Name registration succeeded.");
-        } else {
-            console.log("Name registration failed.");
-            return -1;
-            // console.log(JSON.stringify(result[1], null, 2));
-        }
-
-    // TBD: We need to figure out how to sign with non-default private keys
-    // api.signatureProvider.availableKeys.push("5JA5zQkg1S59swPzY6d29gsfNhNPVCb7XhiGJAakGFa7tEKSMjT");
-    // fio.transfer('exchange1111', 'currency1111', '0.0001 SYS', '').then (result => {
-
-    // fio.transfer(creator, 'currency1111', '0.0001 SYS', '').then (result => {
-    //     if (result[0]) {
-    //         console.log("Transfer transaction successful.");
-    //     } else {
-    //         console.log("Transfer transaction failed.");
-    //     }
-    //     console.log(JSON.stringify(result[1], null, 2));
-    // }).catch(rej => {
-    //         console.log(`transfer promise rejection handler.`)
-    //         console.log(rej);
-    //     });
-
-    // fio.getAccount("exchange1111").then (result => {
-    //     if (result[0]) {
-    //         console.log("Get account transaction successful.");
-    //     } else {
-    //         console.log("Get account transaction failed.");
-    //     }
-    //     console.log(JSON.stringify(result[1], null, 2));
-    // }).catch(rej => {
-    //     console.log(`getAccount promise rejection handler.`);
-    //     console.log(rej);
-    //     if (rej instanceof FioError) {
-    //         rej.details.then(details=> {
-    //             console.log("name: "+ details.constructor.name);
-    //             console.log("typeof: "+ typeof details);
-    //             console.log("Error details: "+ JSON.stringify(details, null, 2));
-    //         })
-    //             .catch(err=>{
-    //                 console.log(`FioError details promise rejection handler.`);
-    //                 throw err;
-    //             });
-    //     }
-    // });
-
-        // fio.lookupNameByAddress("abcdefgh","ETH").then(result => {
-        //     if (result[0]) {
-        //         console.log("Name lookup by address successful.");
-        //         console.log(`Resolved name: ${result[1]["name"]}`);
-        //     } else {
-        //         console.log("Create account transaction failed.");
-        //         console.log(JSON.stringify(result[1], null, 2));
-        //     }
-        // })
-        //     .catch(rej => {
-        //         console.log(`lookupNameByAddress rejection handler.`)
-        //         throw rej;
-        //     });
-
-} catch (err) {
-    console.log('Caught exception in main: ' + err);
+    if (fiocommon.Config.LogLevel > 4) console.log("Exit main.");
 }
+
+main()
+    .then(text => {
+        return 0;
+    })
+    .catch(err => {
+        console.error('Caught exception in main: ' + err, err.stack);
+        // Deal with the fact the chain failed
+    });
