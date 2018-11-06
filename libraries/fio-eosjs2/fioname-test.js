@@ -212,6 +212,7 @@ async function main() {
         return [true, ""];
     } finally {
         if (!args.leaverunning) {
+            fiocommon.Helper.sleep(100);    // allow time for logs to be updated before shutdown
             if (fiocommon.Config.LogLevel > 4) console.log("start shutdown()");
             console.log("Shuting down nodeos and keosd.");
             await shutdown().catch(rej => {

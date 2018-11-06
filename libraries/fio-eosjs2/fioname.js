@@ -269,8 +269,8 @@ class Fio {
         }
 
         const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, { fetch });
-        // include keys for both system and requestor active
-        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.SystemAccountKey, requestorActivePrivateKey]);
+        // include keys for requestor active
+        const signatureProvider = new eosjs2.SignatureProvider([requestorActivePrivateKey]);
         let api = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
 
         const result = await api.transact({
@@ -280,9 +280,6 @@ class Fio {
                 authorization: [{
                     actor: requestor,
                     permission: 'active',
-                },{
-                    actor: owner,
-                    permission: "active"
                 }],
                 data: {
                     name: name,
