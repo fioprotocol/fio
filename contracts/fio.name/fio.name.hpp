@@ -85,13 +85,13 @@ namespace fioio {
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
 
-    struct config {
-        name tokencontr; // owner of the token contract
-
-        EOSLIB_SERIALIZE(config, (tokencontr))
-    };
-        
-    typedef singleton<N(configs), config> configs;
+//    struct config {
+//        name tokencontr; // owner of the token contract
+//
+//        EOSLIB_SERIALIZE(config, (tokencontr))
+//    };
+//
+//    typedef singleton<N(configs), config> configs;
 
     struct account {
         asset    balance;

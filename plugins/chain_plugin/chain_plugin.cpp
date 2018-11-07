@@ -1200,12 +1200,6 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    name_result = domain_result;
 
     if (!fio_user_name.empty()){
-        // validate chain
-        string my_chain=p.chain;
-        transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-        chain_type c_type= str_to_chain_type(my_chain);
-        EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
-
         //query the names table and check if the name is expired
         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                 .code=code,
@@ -1250,13 +1244,14 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
     string my_chain=p.chain;
     transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
     chain_type c_type= str_to_chain_type(my_chain);
-    EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
    // validate keys vector size is expected size.
    EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
 
-   // Pick out chain specific key and populate result
-   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   if (c_type != chain_type::NONE) {
+      // Pick out chain specific key and populate result
+      result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+   }
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup

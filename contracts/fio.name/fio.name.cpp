@@ -38,12 +38,11 @@ namespace fioio{
 
     class FioNameLookup : public contract { 
         private:
-        configs config;
         domains_table domains;
         fionames_table fionames;
-        account_name owner;
         keynames_table keynames;
 		trxfees_singleton trxfees;
+        config appConfig;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
 
@@ -55,9 +54,12 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), config(self, self), domains(self, self), fionames(self, self), keynames(self, self),
+        : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
             trxfees(FeeContract,FeeContract)
-            {}
+        {
+            configs_singleton configsSingleton(FeeContract,FeeContract);
+            appConfig = configsSingleton.get_or_default(config());
+        }
 
 
         [[eosio::action]]
@@ -147,14 +149,19 @@ namespace fioio{
                 registerFee = fees.nameregister;
             } // else
 
-            // collect fees
-            // check for funds is implicitly done as part of the funds transfer.
-            print("Collecting registration fees: ", registerFee);
-            action(permission_level{requestor, N(active)},
-                   TokenContract, N(transfer),
-                   make_tuple(requestor, _self, registerFee,
-                              string("Registration fees. Thank you."))
-            ).send();
+            if (appConfig.pmtson) {
+                // collect fees
+                // check for funds is implicitly done as part of the funds transfer.
+                print("Collecting registration fees: ", registerFee);
+                action(permission_level{requestor, N(active)},
+                       TokenContract, N(transfer),
+                       make_tuple(requestor, _self, registerFee,
+                                  string("Registration fees. Thank you."))
+                ).send();
+            }
+            else {
+                print("Payments currently disabled.");
+            }
         }
 
         /***
@@ -206,7 +213,7 @@ namespace fioio{
          * @param address The chain specific user address
          */
         [[eosio::action]]
-        void addaddress(const string &fio_user_name, const string &chain, const string &address) {
+        void addaddress(const string &fio_user_name, const string &chain, const string &address, const account_name &requestor) {
             eosio_assert_message_code(!fio_user_name.empty(), "FIO user name cannot be empty..", ErrorFioNameEmpty);
             eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
             eosio_assert_message_code(!address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
@@ -249,7 +256,6 @@ namespace fioio{
             
             uint32_t expiration = domains_iter->expiration;
             eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired);
-            
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
@@ -278,6 +284,21 @@ namespace fioio{
                 idx.modify(matchingItem, _self, [&](struct key_name &k) {
                     k.name = fioname_iter->name;    // FIO name
                 });
+            }
+
+            if (appConfig.pmtson) {
+                // collect fees; Check for funds is implicitly done as part of the funds transfer.
+                auto fees = trxfees.get_or_default(trxfee());
+                asset registerFee = fees.upaddress;
+                print("Collecting registration fees: ", registerFee);
+                action(permission_level{requestor, N(active)},
+                       TokenContract, N(transfer),
+                       make_tuple(requestor, _self, registerFee,
+                                  string("Registration fees. Thank you."))
+                ).send();
+            }
+            else {
+                print("Payments currently disabled.");
             }
         }
 		

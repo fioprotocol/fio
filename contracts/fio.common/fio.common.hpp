@@ -56,4 +56,12 @@ namespace fioio {
     typedef singleton<N(trxfees), trxfee> trxfees_singleton;    // singleton folding the fee structure
     static const account_name FeeContract = eosio::string_to_name(FEE_CONTRACT);    // account hosting the fee contract
 
+    struct config {
+        name tokencontr; // owner of the token contract
+        bool pmtson = false; // enable/disable payments
+
+        EOSLIB_SERIALIZE(config, (tokencontr)(pmtson))
+    };
+    typedef singleton<N(configs), config> configs_singleton;
+
 } // namespace fioio

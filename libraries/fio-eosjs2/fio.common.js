@@ -15,19 +15,37 @@ const exec = util.promisify(require('child_process').exec);
 // General Configuration parameters
 class Config {
 }
-Config.MaxAccountCreationAttempts=3;
+Config.MaxAccountCreationAttempts=  3;
 Config.EosUrl =                     'http://localhost:8888';
-Config.KeosdUrl =                     'http://localhost:9899';
+Config.KeosdUrl =                   'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
+Config.TokenAccount =               "eosio.token"
 Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount}
 Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
 Config.NewAccountStakeNetQuantity=  "100.0000 FIO";
 Config.NewAccountStakeCpuQuantity=  "100.0000 FIO";
-Config.NewAccountTransfer=false;
-Config.TestAccount="fioname11111";
-Config.FioFinanceAccount="fio.finance";
-Config.LogLevel=3; // Log levels 0 - 5 with increasing verbosity.
-Config.FinalizationTime=20;     // time in milliseconds to transaction finalization
+Config.NewAccountTransfer=          false;
+// Config.TestAccount=              "fioname11111";
+Config.FioFinanceAccount=           "fio.finance";
+Config.LogLevel=                    3; // Log levels 0 - 5 with increasing verbosity.
+Config.FinalizationTime=            20;     // time in milliseconds to transaction finalization
+Config.pmtson=                      false;
+
+class TrxFee {}
+TrxFee.domregiter = 14.0000;   // Fee paid upon the original domain registration/renewal by the user registering. Allows the owner to retain ownership
+// of the wallet domain for a period of 1 year or until transfer
+TrxFee.nameregister = 1.0000;  // Fee paid upon the original name registration/renewal by the user registering. Allows the owner to retain ownership
+// of the wallet name for a period of 1 year or until the expiration date of wallet domain. Re-sets the counter for Fee-free Transaction.
+TrxFee.domtransfer = 14.0000;  // Fee paid upon wallet domain transfer of ownership by the transferring user.
+TrxFee.nametransfer = .1000;   // Fee paid upon wallet name transfer of ownership by the transferring user.
+TrxFee.namelookup = .1000;     // Fee paid for looking up a public address for a given wallet name and coin.
+TrxFee.upaddress = .1000;      // Fees paid when wallet name to public address mapping is updated.
+
+// taken associated fees
+TrxFee.transfer = .1000;   // Fee paid when FIO token is transferred.
+
+// meta-data associated fees
+TrxFee.metadata = .1000;
 
 // Helper static functions
 class Helper {
@@ -137,4 +155,4 @@ class FioError extends Error {
     }
 }
 
-module.exports = {Config,Helper,FioError};
+module.exports = {Config,TrxFee,Helper,FioError};

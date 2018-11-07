@@ -321,7 +321,43 @@ class Fio {
         let result = await fetch(Url, otherParams)
             .then(res => {
                 if (!res.ok){
-                    throw new FioError(res.json(),'Network response was not ok.');
+                    throw new fiocommon.FioError(res.json(),'Network response was not ok.');
+                }
+                return res.json()
+            })
+            .catch(rej => {
+                console.log(`fetch rejection handler.`)
+                throw rej;
+            });
+
+        return [true, result];
+    }
+
+    async getCurrencyBalance(account, symbol="FIO") {
+        fiocommon.Helper.checkTypes(arguments, ['string']);
+
+        // if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Lookup account ${account}, symbol ${symbol} balance`);
+        // }
+
+        const Url=fiocommon.Config.EosUrl + '/v1/chain/get_currency_balance';
+        const Data=`{"account": "${account}","code":"${fiocommon.Config.TokenAccount}","symbol": "${symbol}"}`;
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`url: ${Url}`);
+            console.log(`data: ${Data}`);
+        }
+
+        //optional parameters
+        const otherParams={
+            headers:{"content-type":"application/json; charset=UTF-8"},
+            body:Data,
+            method:"POST"
+        };
+
+        let result = await fetch(Url, otherParams)
+            .then(res => {
+                if (!res.ok){
+                    throw new fiocommon.FioError(res.json(),'Network response was not ok.');
                 }
                 return res.json()
             })
@@ -396,7 +432,7 @@ class Fio {
                     throw rej;
                 });
                 if (!getAccountResult[0]) {
-                    throw new FioError(getAccountResult);
+                    throw new fiocommon.FioError(getAccountResult);
                 }
 
                 let grantCodeTransferPermission = await this.grantCodeTransferPermission(username[1], activeKey[1], activeKey[2], fiocommon.Config.SystemAccount).catch(rej => {
@@ -443,7 +479,7 @@ class Fio {
         let result = await fetch(Url, otherParams)
             .then(res => {
                 if (!res.ok){
-                    throw new FioError(res.json(),'Network response was not ok.');
+                    throw new fiocommon.FioError(res.json(),'Network response was not ok.');
                 }
                 return res.json()
             })
@@ -460,36 +496,42 @@ class Fio {
     // **PLEASE READ** fioname11111 account is currently
     // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
     // account name (public address of the wallet user in production use.
-    async addaddress(fioname,address,chain) {
+    async addaddress(fioname, address, chain, requestor, requestorActivePrivateKey, owner=fiocommon.Config.SystemAccount) {
+        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string', 'string']);
 
-        fiocommon.Helper.checkTypes( arguments, ['string','string','string'] );
-
-        try {
-            const result = await api.transact({
-                actions: [{
-                    account:  fiocommon.Config.TestAccount,
-                    name: 'addaddress',
-                    authorization: [{
-                        actor:  fiocommon.Config.TestAccount,
-                        permission: 'active',
-                    }],
-                    data: {
-                        fio_user_name: fioname,
-                        chain: chain,
-                        address: address
-                    },
-                }]
-            }, {
-                blocksBehind: 3,
-                expireSeconds: 30,
-            });
-            pre.textContent += '\n\naddaddress transaction pushed!\n\n' + JSON.stringify(result, null, 2);
-        } catch (e) {
-            pre.textContent = '\nCaught exception: ' + e;
-            if (e instanceof eosjs2_jsonrpc.RpcError)
-                pre.textContent += '\n\n' + JSON.stringify(e.json, null, 2);
-            console.log(`addaddress promise rejection handler triggered.`);
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Requestor ${requestor} adding address. FIO name: ${fioname}, address: ${address}, chain: ${chain}`);
         }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, {fetch});
+        // include keys for both system and requestor active
+        const signatureProvider = new eosjs2.SignatureProvider([requestorActivePrivateKey]);
+        let api = new eosjs2.Api({rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder});
+
+        const result = await api.transact({
+            actions: [{
+                account: owner,
+                name: 'addaddress',
+                authorization: [{
+                    actor: requestor,
+                    permission: 'active',
+                }],
+                data: {
+                    fio_user_name: fioname,
+                    chain: chain,
+                    address: address,
+                    requestor: requestor
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
     } //addaddress
 
 
