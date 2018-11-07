@@ -38,10 +38,10 @@ async function shutdown() {
     }
 }
 
-async function test_mas44(creator) {
+async function testFunction(creator) {
     fiocommon.Helper.checkTypes( arguments, ['string'] );
 
-    console.log("Start MAS 44 test.");
+    console.log("*** START tests ***");
     fio = new fioname.Fio();
 
     console.log("create a new account");
@@ -52,25 +52,39 @@ async function test_mas44(creator) {
         });
     assert(createAccountResult[0], "FAIL: createAccount()");
 
-    console.log(`validate account ${createAccountResult[2]} exists`);
-    let getAccountResult = await fio.getAccount(createAccountResult[2]).catch(rej => {
+    let account =                   createAccountResult[2];
+    let accountActivePrivateKey =   createAccountResult[4][0];
+
+    console.log(`validate account ${account} exists`);
+    let getAccountResult = await fio.getAccount(account).catch(rej => {
         console.error(rej.stack);
         assert(true, "EXCEPTION: getAccount()");
     });
-    assert(getAccountResult[0], "FAIL getAccount() " + createAccountResult[2]);
+    assert(getAccountResult[0], "FAIL getAccount() " + account);
 
     let quantity= "200.0000 FIO";
-    console.log(`Give new account ${createAccountResult[2]} some(${quantity}) funds.`);
-    let transferResult = await fio.transfer(fiocommon.Config.SystemAccount, createAccountResult[2], quantity, "initial transfer")
+    console.log(`Give new account ${account} some(${quantity}) funds.`);
+    let transferResult = await fio.transfer(fiocommon.Config.SystemAccount, account, quantity, "initial transfer")
         .catch(rej => {
             console.error(rej.stack);
             assert(true, "transfer() failed");
         });
     assert(transferResult[0], "transfer() failed");
 
+
+    console.log(`Get currency balance prior to register domain for account "${account}".`);
+    let getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: getCurrencyBalance(), account: "+ account);
+        });
+    assert(getAccountResult[0], "FAIL getCurrencyBalance(), account: "+ account);
+    let originalBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
+    if (fiocommon.Config.LogLevel > 3) { console.log(`Original balance: ${originalBalance}`); }
+
     let domain="amzn";
     console.log(`create domain "${domain}"`);
-    let registerNameResult = await fio.registerName(domain, createAccountResult[2], createAccountResult[4][0])
+    let registerNameResult = await fio.registerName(domain, account, accountActivePrivateKey)
         .catch(rej => {
             console.error(rej.stack);
             assert(false, "EXCEPTION: registerName() " + domain);
@@ -95,8 +109,22 @@ async function test_mas44(creator) {
     assert(!getAccountResult[1].address, "Address expected to be empty.");
     assert(getAccountResult[1].expiration, "Expiration should not be empty.");
 
-    // Check for domain "junk", which since it doesn't exist should trigger exception
-    let condition = false;
+    console.log(`Get currency balance after register domain for account "${account}".`)
+    getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: getCurrencyBalance(), account: "+ account);
+        });
+    assert(getAccountResult[0], "FAIL getCurrencyBalance(), account: "+ account);
+    let newBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
+    if (fiocommon.Config.LogLevel > 3) { console.log(`New balance: ${newBalance}`); }
+
+    let actualPayment = originalBalance - newBalance;
+    let expectedPayment = (fiocommon.Config.pmtson ? fiocommon.TrxFee.domregiter : 0.0);
+    console.log(`Register domain payment validation. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
+    assert(Math.abs(actualPayment - expectedPayment) <= 0.01, `Invalid register domain payment. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
+
+    // Check for invalid domain doesn't exist.
     let invalidDomain="junk";
     console.log(`validate invalid domain "${invalidDomain}" doesn't exists.`);
     getAccountResult = null;
@@ -112,38 +140,134 @@ async function test_mas44(creator) {
     assert(getAccountResult[1].is_registered == "false", "Found invalid domain: " + invalidDomain);
     assert(getAccountResult[1].is_domain == "false", "Didn't tag domain properly. Expected: true");
     assert(!getAccountResult[1].address, "Address expected to be empty.");
-    assert(!getAccountResult[1].expiration, "Expiration expected to be empty.");
+    assert(!getAccountResult[1].expiration, "Expiration should be empty.");
 
-    // // create FIO name dan.amzn
-    // let name="dan."+domain;
-    // registerNameResult = await fio.registerName(name, createAccountResult[2], createAccountResult[4][0])
-    //     .catch(rej => {
-    //         console.error(rej.stack);
-    //         assert(false, "registerName() 2 failed");
-    //     });
-    // assert(registerNameResult[0], "registerName() 2 failed");
-    //
-    // await fio.getAccount(name)
-    //     .catch(rej => {
-    //         assert(false, "Failed to find name "+ name);
-    //     })
-    //
-    // let invalidName="junk."+domain;
-    // condition=false;
-    // await fio.getAccount(invalidName)
-    //     .catch(rej => {
-    //         condition = true;
-    //     })
-    // assert(condition, "Found unregistered name "+ invalidName);
-    //
-    // let address="0x123456789";
-    // let chain="btc";
-    // let addAddressResult = await fio.addaddress(name, address, chain)
-    //
-    // console.log("End MAS 44 test.");
+    console.log(`Get currency balance prior to register name for account "${account}".`);
+    getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: getCurrencyBalance(), account: "+ account);
+        });
+    assert(getAccountResult[0], "FAIL getCurrencyBalance(), account: "+ account);
+    originalBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
+    if (fiocommon.Config.LogLevel > 3) { console.log(`Original balance: ${originalBalance}`); }
+
+    // create valid FIO name
+    let name="dan."+domain;
+    registerNameResult = await fio.registerName(name, account, accountActivePrivateKey)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: registerName() " + name);
+        });
+    assert(registerNameResult[0], "FAIL: registerName() " + name);
+
+    console.log(`validate name "${name}" exists.`);
+    getAccountResult = null;
+    getAccountResult =  await fio.lookupByName(name)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: lookupByName() "+ name);
+        });
+    assert(getAccountResult[0], "FAIL lookupByName() " + name);
+    if (fiocommon.Config.LogLevel > 3) {
+        console.log(JSON.stringify(getAccountResult[1], null, 2));
+    }
+    assert(getAccountResult[1].is_registered == "true", "Didn't find name : " + name);
+    assert(getAccountResult[1].is_domain == "false", "Not a domain. Expected: false");
+    assert(!getAccountResult[1].address, "Address expected to be empty.");
+    assert(getAccountResult[1].expiration, "Expiration should not be empty.");
+
+    console.log(`Get currency balance after register name for account "${account}".`)
+    getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: getCurrencyBalance(), account: "+ account);
+        });
+    assert(getAccountResult[0], "FAIL getCurrencyBalance(), account: "+ account);
+    newBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
+    if (fiocommon.Config.LogLevel > 3) { console.log(`New balance: ${newBalance}`); }
+
+    actualPayment = originalBalance - newBalance;
+    expectedPayment = (fiocommon.Config.pmtson ? fiocommon.TrxFee.nameregister : 0.0);
+    console.log(`Register name payment validation. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
+    assert(Math.abs(actualPayment - expectedPayment) <= 0.01, `Invalid register name payment. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
+
+
+    // Check for invalid name doesn't exist
+    let invalidName="junk."+domain;
+    console.log(`validate invalid name "${invalidName}" doesn't exists.`);
+    getAccountResult = null;
+    getAccountResult =  await fio.lookupByName(invalidName)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: lookupByName() "+ invalidName);
+        });
+    assert(getAccountResult[0], "FAIL lookupByName() " + invalidName);
+    if (fiocommon.Config.LogLevel > 3) {
+        console.log(JSON.stringify(getAccountResult[1], null, 2));
+    }
+    assert(getAccountResult[1].is_registered == "false", "Found invalid name: " + name);
+    assert(getAccountResult[1].is_domain == "false", "Not a domain. Expected: false");
+    assert(!getAccountResult[1].address, "Address expected to be empty.");
+    assert(!getAccountResult[1].expiration, "Expiration should be empty.");
+
+    console.log("*** START MAS 54 test ***");
+    console.log(`Get currency balance prior to add address for account "${account}".`);
+    getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: getCurrencyBalance(), account: "+ account);
+        });
+    assert(getAccountResult[0], "FAIL getCurrencyBalance(), account: "+ account);
+    originalBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
+    if (fiocommon.Config.LogLevel > 3) { console.log(`Original balance: ${originalBalance}`); }
+
+    let address="0x123456789";
+    let chain="btc";
+    console.log(`Add address. name: ${name}, address: ${address}, chain: ${chain}`);
+    let addAddressResult = await fio.addaddress(name, address, chain, account, accountActivePrivateKey)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: addaddress(), name: "+ name+ ", address: "+ address+ ", chain: "+ chain);
+        });
+    assert(getAccountResult[0], "FAIL addaddress(), name: "+ name+ ", address: "+ address+ ", chain: "+ chain);
+
+    console.log(`validate address "${address}" is set.`);
+    getAccountResult = null;
+    getAccountResult =  await fio.lookupByName(name, chain)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: lookupByName() "+ name);
+        });
+    assert(getAccountResult[0], "FAIL lookupByName() " + name);
+    if (fiocommon.Config.LogLevel > 3) {
+        console.log(JSON.stringify(getAccountResult[1], null, 2));
+    }
+    assert(getAccountResult[1].is_registered == "true", "Didn't find name : " + name);
+    assert(getAccountResult[1].is_domain == "false", "Not a domain. Expected: false");
+    assert(getAccountResult[1].address == address, "Address expected to be "+ address);
+    assert(getAccountResult[1].expiration, "Expiration should not be empty.");
+
+    console.log(`Get currency balance after add address for account "${account}".`)
+    getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: getCurrencyBalance(), account: "+ account);
+        });
+    assert(getAccountResult[0], "FAIL getCurrencyBalance(), account: "+ account);
+    newBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
+    if (fiocommon.Config.LogLevel > 3) { console.log(`New balance: ${newBalance}`); }
+
+    actualPayment = originalBalance - newBalance;
+    expectedPayment = (fiocommon.Config.pmtson ? fiocommon.TrxFee.upaddress : 0.0);
+    console.log(`Add address payment validation. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
+    assert(Math.abs(actualPayment - expectedPayment) <= 0.01, `Invalid add address payment. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
+
+    console.log("*** END MAS 54 test ***")
+
+    console.log("*** END tests ***")
     // return [true, ""];
 }
-
 
 async function main() {
     let args = minimist(process.argv.slice(2), {
@@ -207,7 +331,11 @@ async function main() {
         }
         console.log("Contract fio.name set successfully.");
 
-        await test_mas44(args.creator)
+        await testFunction(args.creator)
+            .catch(rej => {
+                console.error(`testFunction() promise rejection handler.`);
+                throw rej;
+            });
 
         return [true, ""];
     } finally {

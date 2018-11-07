@@ -18,7 +18,6 @@ namespace fioio{
 
     class FioFinance : public contract {
     private:
-        configs config;
         statecontainer contract_state;
         transaction_contexts_table transaction_contexts;
         transaction_logs_table transaction_logs;
@@ -47,9 +46,9 @@ namespace fioio{
 
     public:
         explicit FioFinance(account_name self)
-                : contract(self), config(self, self), contract_state(self,self), transaction_contexts(self, self),
+                : contract(self), contract_state(self,self), transaction_contexts(self, self),
                 transaction_logs(self,self), pending_requests(self, self), processed_requests(self,self)
-        { }
+        {}
 
         /***
          * Convert chain name to chain type.

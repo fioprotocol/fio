@@ -82,6 +82,9 @@
         },{
           "name": "address",
           "type": "string"
+        },{
+          "name": "requestor",
+          "type": "name"
         }
       ]
     },{

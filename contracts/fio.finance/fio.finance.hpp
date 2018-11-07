@@ -129,14 +129,6 @@ namespace fioio {
             indexed_by<N(byreceiver), const_mem_fun<fundsrequest, uint64_t, &fundsrequest::by_receiver> >
     > processed_requests_table;
 
-
-    struct config {
-        name tokencontr; // owner of the token contract
-
-        EOSLIB_SERIALIZE(config, (tokencontr))
-    };
-    typedef singleton<N(configs), config> configs;
-
     struct contr_state {
         uint64_t current_fioappid = 0; // obt generator
 
