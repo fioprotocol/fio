@@ -57,7 +57,11 @@
         },{
           "name": "name",
           "type": "string"
+        },{
+          "name": "expiration",
+          "type": "uint32"
         }
+
       ]
     },{
       "name": "registername",
