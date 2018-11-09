@@ -17,7 +17,7 @@ const fiocommon=require('./fio.common.js');
 async function startup() {
     if (fiocommon.Config.LogLevel > 4) console.log("Enter startup().");
 
-    let result = await fiocommon.Helper.execute("tests/launcher.py", false)
+    let result = await fiocommon.Helper.execute("tests/startupNodeos.py", false)
         .catch(rej => {
             console.error(`Helper.execute() promise rejection handler.`);
             throw rej;
