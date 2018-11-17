@@ -283,8 +283,7 @@ class Fio {
                 }],
                 data: {
                     name: name,
-                    requestor: requestor
-                },
+               },
             }]
         }, {
             blocksBehind: 3,
@@ -294,6 +293,42 @@ class Fio {
             throw rej;
         });
         //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
+    async availCheck(name) {
+        fiocommon.Helper.checkTypes(arguments, ['string']);
+
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Check name : ${name}`);
+        }
+
+        const Url=fiocommon.Config.EosUrl + '/v1/chain/fio_name_avail_check';
+        const Data=`{"fio_name": "${name}"}`;
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`url: ${Url}`);
+            console.log(`data: ${Data}`);
+        }
+
+        //optional parameters
+        const otherParams={
+            headers:{"content-type":"application/json; charset=UTF-8"},
+            body:Data,
+            method:"POST"
+        };
+
+        let result = await fetch(Url, otherParams)
+            .then(res => {
+                if (!res.ok){
+                    throw new fiocommon.FioError(res.json(),'Network response was not ok.');
+                }
+                return res.json()
+            })
+            .catch(rej => {
+                console.log(`fetch rejection handler.`)
+                throw rej;
+            });
+
         return [true, result];
     }
 

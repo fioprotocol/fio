@@ -295,6 +295,19 @@ public:
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
 
+   //avail_check - FIO Address or Domain availability check
+    struct fio_name_avail_check_params {
+        string fio_name;
+    };
+
+    struct fio_name_avail_check_result {
+        string fio_name = "";
+        string is_registered = "false";
+    };
+
+    fio_name_avail_check_result fio_name_avail_check( const fio_name_avail_check_params& params) const;
+
+    //key lookups
     struct fio_key_lookup_params {
         string key;     // chain key e.g. for Ethereum: 0xC2D7CF95645D33006175B78989035C7c9061d3F9
         string chain;   // chain name e.g. BTC, ETH, EOS etc.
@@ -710,6 +723,10 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );
+
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_avail_check_params, (fio_name) )
+FC_REFLECT( eosio::chain_apis::read_only::fio_name_avail_check_result, (fio_name)(is_registered) );
+
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration) );
 

@@ -16,11 +16,11 @@ const exec = util.promisify(require('child_process').exec);
 class Config {
 }
 Config.MaxAccountCreationAttempts=  3;
-Config.EosUrl =                     'http://localhost:8888';
+Config.EosUrl =                     'http://localhost:8889';
 Config.KeosdUrl =                   'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
 Config.TokenAccount =               "eosio.token"
-Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount}
+Config.SystemAccountKey =           "5KDQzVMaD1iUdYDrA2PNK3qEP7zNbUf8D41ZVKqGzZ117PdM5Ap"; // ${Config.SystemAccount}
 Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
 Config.NewAccountStakeNetQuantity=  "100.0000 FIO";
 Config.NewAccountStakeCpuQuantity=  "100.0000 FIO";
