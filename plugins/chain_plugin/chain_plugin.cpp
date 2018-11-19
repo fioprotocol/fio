@@ -1264,15 +1264,11 @@ read_only::fio_name_avail_check_result read_only::fio_name_avail_check( const re
     EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 
     // Split the fio name and domain portions
-    string fio_domain = "";
     string fio_user_name = "";
 
     int pos = p.fio_name.find('.');
-    if (pos == string::npos) {
-        fio_domain = p.fio_name;
-    } else {
+    if (pos != string::npos) {
         fio_user_name = p.fio_name.substr(0, pos);
-        fio_domain = p.fio_name.substr(pos + 1, string::npos);
     }
 
     //declare variables.
@@ -1282,11 +1278,8 @@ read_only::fio_name_avail_check_result read_only::fio_name_avail_check( const re
 
     const string fio_scope=fio_name_scope;
     const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
-    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
     get_table_rows_result fioname_result;
-    get_table_rows_result domain_result;
-    get_table_rows_result name_result;
     fio_name_avail_check_result result;
 
     if(!fio_user_name.empty()) {
