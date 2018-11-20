@@ -9,7 +9,6 @@ add_subdirectory( chain )
 add_subdirectory( testing )
 add_subdirectory( abi_generator )
 add_subdirectory( eosjs2 )
-add_subdirectory( eosjs )
 add_subdirectory( fiojs )
 
 #turn these off for now
