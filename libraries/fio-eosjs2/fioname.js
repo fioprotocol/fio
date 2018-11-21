@@ -304,7 +304,7 @@ class Fio {
             console.log(`Check name : ${name}`);
         }
 
-        const Url=fiocommon.Config.EosUrl + '/v1/chain/fio_name_avail_check';
+        const Url=fiocommon.Config.EosUrl + '/v1/chain/avail_check';
         const Data=`{"fio_name": "${name}"}`;
         if (fiocommon.Config.LogLevel > 3) {
             console.log(`url: ${Url}`);

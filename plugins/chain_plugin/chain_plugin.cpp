@@ -1258,7 +1258,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
  * @param p
  * @return
  */
-read_only::fio_name_avail_check_result read_only::fio_name_avail_check( const read_only::fio_name_avail_check_params& p ) const {
+read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
     // assert if empty fio name
     EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
@@ -1280,7 +1280,7 @@ read_only::fio_name_avail_check_result read_only::fio_name_avail_check( const re
     const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
 
     get_table_rows_result fioname_result;
-    fio_name_avail_check_result result;
+    avail_check_result result;
 
     if(!fio_user_name.empty()) {
         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,

@@ -60,7 +60,7 @@ async function registertest(name)
 
 async function avail_test(name) {
 
-    const Url=fiocommon.Config.EosUrl + '/v1/chain/fio_name_avail_check';
+    const Url=fiocommon.Config.EosUrl + '/v1/chain/avail_check';
         const Data=`{"fio_name": "${name}"}`;
 
         //optional parameters
