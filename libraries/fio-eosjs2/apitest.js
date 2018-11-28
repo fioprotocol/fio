@@ -8,11 +8,11 @@ const assert = require('assert');
 
 async function main() {
     
-     //   console.log(`Creating the default brd domain, adam.brd address.`)
-    //    const test = registertest("brd");
-     //   const test2 = registertest("adam.brd");
+        console.log(`Creating the default brd domain, adam.brd address.`)
+        const test = registertest("brd");
+        const test2 = registertest("adam.brd");
       //  const test3 = registertest("vulture.brd");
-       console.log(avail_test("vulture.brd"));
+        console.log(avail_test("vulture.brd"));
     
    }
 
