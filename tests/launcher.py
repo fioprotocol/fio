@@ -170,7 +170,7 @@ programs/cleos/cleos --url http://%(hostname)s:8888 --wallet-url http://%(hostna
     if ret != 0:
         return (False, ret)
 
-# TBD prod conditional
+    # TBD prod conditional
     # cmd='programs/cleos/cleos --url http://%s:8889  --wallet-url http://%s:9899 push action -j eosio.token transfer \'{"from":"eosio","to":"fio.system","quantity":"10000000000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % (hostname,hostname)
     cmd='programs/cleos/cleos --url http://%s:8888  --wallet-url http://%s:9899 push action -j eosio.token transfer \'{"from":"eosio","to":"fio.system","quantity":"10000000000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % (hostname,hostname)
 
@@ -187,7 +187,7 @@ programs/cleos/cleos --url http://%(hostname)s:8888 --wallet-url http://%(hostna
 def activateAccounts(accounts):
     """Activate accounts on the chain."""
     for i in range(len(accounts)):
-# TBD prod conditional
+        # TBD prod conditional
         # cmd="programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet import --private-key %(key)s" % {"hostname":hostname, "key":accounts[i].ownerPrivateKey}
         cmd="programs/cleos/cleos --url http://%(hostname)s:8888 --wallet-url http://%(hostname)s:9899 wallet import --private-key %(key)s" % {"hostname":hostname, "key":accounts[i].ownerPrivateKey}
         print(cmd)
@@ -197,7 +197,7 @@ def activateAccounts(accounts):
         if ret != 0:
             return (False, ret)
 
-# TBD prod conditional
+        # TBD prod conditional
         # cmd="programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet import --private-key %(key)s" % {"hostname":hostname, "key":accounts[i].activePrivateKey}
         cmd="programs/cleos/cleos --url http://%(hostname)s:8888 --wallet-url http://%(hostname)s:9899 wallet import --private-key %(key)s" % {"hostname":hostname, "key":accounts[i].activePrivateKey}
         print(cmd)
@@ -207,7 +207,7 @@ def activateAccounts(accounts):
         if ret != 0:
             return (False, ret)
 
-# TBD prod conditional
+        # TBD prod conditional
         # cmd='programs/cleos/cleos --url http://%s:8889  --wallet-url http://%s:9899 system newaccount -j eosio %s %s %s --stake-net "100 FIO" --stake-cpu "100 FIO" --buy-ram "100 FIO"' % (hostname,hostname,accounts[i].name, accounts[i].ownerPublicKey, accounts[i].activePublicKey)
         cmd='programs/cleos/cleos --url http://%s:8888  --wallet-url http://%s:9899 system newaccount -j eosio %s %s %s --stake-net "100 FIO" --stake-cpu "100 FIO" --buy-ram "100 FIO"' % (hostname,hostname,accounts[i].name, accounts[i].ownerPublicKey, accounts[i].activePublicKey)
 
@@ -218,7 +218,7 @@ def activateAccounts(accounts):
         if ret != 0:
             return (False, ret)
 
-# TBD prod conditional
+        # TBD prod conditional
         # cmd='programs/cleos/cleos --url http://%s:8889  --wallet-url http://%s:9899 push action -j eosio.token transfer \'{"from":"eosio","to":"%s","quantity":"10000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % (hostname,hostname,accounts[i].name)
         cmd='programs/cleos/cleos --url http://%s:8888  --wallet-url http://%s:9899 push action -j eosio.token transfer \'{"from":"eosio","to":"%s","quantity":"10000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % (hostname,hostname,accounts[i].name)
 
