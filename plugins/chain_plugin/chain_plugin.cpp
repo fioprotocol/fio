@@ -1316,7 +1316,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
             EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
             return result;
         }
-        else if(boost::algorithm::equals(fio_domain, "-")){
+        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-'){
             result.is_registered = "Invalid fio_name format";
             EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
             return result;
@@ -1355,6 +1355,11 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
             result.is_registered = "Invalid fio_name format";
             EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
             return result;
+         }
+         else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-'){
+             result.is_registered = "Invalid fio_name format";
+             EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+             return result;
          }
       } else {
          result.is_registered = "Invalid fio_name";
