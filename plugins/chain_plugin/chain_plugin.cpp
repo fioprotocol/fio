@@ -1265,15 +1265,21 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 
    // Split the fio name and domain portions
-   string fio_user_name = "";
+   string fio_name = "";
    string fio_domain = "";
 
    int pos = p.fio_name.find('.');
+   bool domainOnly = false;
+
    if (pos == string::npos) {
       fio_domain = p.fio_name;
    } else {
-      fio_user_name = p.fio_name.substr(0, pos);
+      fio_name = p.fio_name.substr(0, pos);
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
+
+      if(fio_name.size() < 1){
+          domainOnly = true;
+      }
    }
 
    //declare variables.
@@ -1303,6 +1309,24 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
+    //Domain validation.
+    if (fio_domain.size() >= 1 && fio_domain.size() <= 50 && !domainOnly){
+        if(fio_domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
+            result.is_registered = "Invalid fio_name format";
+            EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+            return result;
+        }
+        else if(boost::algorithm::equals(fio_domain, "-")){
+            result.is_registered = "Invalid fio_name format";
+            EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+            return result;
+        }
+    } else {
+        result.is_registered = "Invalid fio_name";
+        EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+        return result;
+    }
+
    if (domain_result.rows.empty()) {
       return result;
    }
@@ -1314,7 +1338,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
       return result;
    }
 
-   if(!fio_user_name.empty()) {
+   if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
               .code=code,
               .scope=fio_scope,
@@ -1326,8 +1350,8 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
       //Name validation.
-      if (result.fio_name.size() >= 1 && result.fio_name.size() <= 100){
-         if( result.fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-.") != std::string::npos) {
+      if (fio_name.size() >= 1 && fio_name.size() <= 50){
+         if( fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-.") != std::string::npos) {
             result.is_registered = "Invalid fio_name format";
             EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
             return result;
