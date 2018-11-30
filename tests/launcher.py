@@ -16,7 +16,7 @@ hostname="0.0.0.0"
 CORE_SYMBOL='FIO'
 #CORE_SYMBOL='SYS'
 
-nPort=8888
+nPort=8889
 wPort=8899
 
 log_file=open("launcher.detailed.log", "w")
