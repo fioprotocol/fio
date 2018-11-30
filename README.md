@@ -4,7 +4,7 @@
 
 
     $ export LLVM_DIR=/usr/local/Cellar/llvm@4/4.0.1/lib/cmake/llvm; ./fioio_build.sh
-    sudo ./eosio_install.sh
+    sudo ./fioio_install.sh
 
 
 #### Launcher
