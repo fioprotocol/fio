@@ -117,10 +117,8 @@ fi
 	printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
 	printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
 
-   printf "\\n\\tFIOIO has been successfully installed. %02d:%02d:%02d\\n\\n"
+   printf "\\n\\tFIOIO has been successfully installed.\\n\\n"
    printf "\\tTo verify your installation run the following commands:\\n"
-
-   print_instructions
 
    printf "\\tFor more information:\\n"
    printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"
