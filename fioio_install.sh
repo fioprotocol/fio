@@ -103,18 +103,24 @@ fi
    install_symlinks   
    create_cmake_symlink "eosio-config.cmake"
 
-   printf "\n\n${bldred}\t _______  _______  _______ _________ _______\n"
-   printf '\t(  ____ \(  ___  )(  ____ \\\\__   __/(  ___  )\n'
-   printf "\t| (    \/| (   ) || (    \/   ) (   | (   ) |\n"
-   printf "\t| (__    | |   | || (_____    | |   | |   | |\n"
-   printf "\t|  __)   | |   | |(_____  )   | |   | |   | |\n"
-   printf "\t| (      | |   | |      ) |   | |   | |   | |\n"
-   printf "\t| (____/\| (___) |/\____) |___) (___| (___) |\n"
-   printf "\t(_______/(_______)\_______)\_______/(_______)\n${txtrst}"
+	printf "\n\n${bldred}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
+	printf "  F:::::::::::::::::F I:::::::I   OO::::::::OO  I:::::::I   OO:::::::OO\n"
+	printf "  FF:::::FFFFFFFF:::F II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
+	printf "    F::::F      FFFFF   I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
+	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F:::::::::::::F     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F::::F              I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
+	printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
+	printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
+	printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
+
+   printf "\\n\\tFIOIO has been successfully installed. %02d:%02d:%02d\\n\\n"
+   printf "\\tTo verify your installation run the following commands:\\n"
+
+   print_instructions
 
    printf "\\tFor more information:\\n"
-   printf "\\tEOSIO website: https://eos.io\\n"
-   printf "\\tEOSIO Telegram channel @ https://t.me/EOSProject\\n"
-   printf "\\tEOSIO resources: https://eos.io/resources/\\n"
-   printf "\\tEOSIO Stack Exchange: https://eosio.stackexchange.com\\n"
-   printf "\\tEOSIO wiki: https://github.com/EOSIO/eos/wiki\\n\\n\\n"
+   printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"
