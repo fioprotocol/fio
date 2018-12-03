@@ -230,6 +230,22 @@ public:
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
 
 
+	
+  struct serialize_json_params {
+      
+	  name         action;
+      fc::variant  json;
+   };
+   struct serialize_json_result {
+      vector<char>   serialized_json;
+   };
+
+   serialize_json_result serialize_json( const serialize_json_params& params )const;
+
+
+	
+	
+	
    struct get_required_keys_params {
       fc::variant transaction;
       flat_set<public_key_type> available_keys;
@@ -767,5 +783,7 @@ FC_REFLECT( eosio::chain_apis::read_only::abi_json_to_bin_params, (code)(action)
 FC_REFLECT( eosio::chain_apis::read_only::abi_json_to_bin_result, (binargs) )
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_params, (code)(action)(binargs) )
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_result, (args) )
+FC_REFLECT( eosio::chain_apis::read_only::serialize_json_params, (action)(json) )
+FC_REFLECT( eosio::chain_apis::read_only::serialize_json_result, (serialized_json) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_params, (transaction)(available_keys) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_result, (required_keys) )

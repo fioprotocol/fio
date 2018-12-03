@@ -2072,6 +2072,41 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
    return result;
 }
 
+	
+	
+read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
+   serialize_json_result result;
+ 
+   const name newcode;
+   if (params.action.to_string() == "registername" || params.action.to_string() == "addaddress")
+	   	newcode = "fio.system";
+   else if (params.action.to_string() == "requestfunds")
+	  	newcode = "fio.finance";
+   else
+		newcode = "eosio";
+
+   const auto code_account = db.db().find<account_object,by_name>( newcode );
+   EOS_ASSERT(code_account != nullptr, contract_query_exception, "Contract can't be found ${contract}", ("contract", newcode));
+
+   abi_def abi;
+   if( abi_serializer::to_abi(code_account->abi, abi) ) {
+      abi_serializer abis( abi, abi_serializer_max_time );
+      auto action_type = abis.get_action_type(params.action);
+      EOS_ASSERT(!action_type.empty(), action_validate_exception, "Unknown action ${action} in contract ${contract}", ("action", params.action)("contract", newcode));
+      try {
+         result.serialized_json = abis.variant_to_binary( action_type, params.json, abi_serializer_max_time, shorten_abi_errors );
+      } EOS_RETHROW_EXCEPTIONS(chain::invalid_action_args_exception,
+                                "'${args}' is invalid args for action '${action}' code '${code}'. expected '${proto}'",
+                                ("args", params.json)("action", params.action)("code", newcode)("proto", action_abi_to_variant(abi, action_type)))
+   } else {
+      EOS_ASSERT(false, abi_not_found_exception, "No ABI found for ${contract}", ("contract", newcode));
+   }
+   return result;
+} FC_RETHROW_EXCEPTIONS( warn, "action: ${action}, args: ${args}",
+                         ( "action", params.action )( "args", params.json ))
+
+	
+	
 read_only::get_required_keys_result read_only::get_required_keys( const get_required_keys_params& params )const {
    transaction pretty_input;
    auto resolver = make_resolver(this, abi_serializer_max_time);

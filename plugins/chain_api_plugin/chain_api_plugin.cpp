@@ -104,6 +104,7 @@ void chain_api_plugin::plugin_startup() {
       CHAIN_RO_CALL(get_scheduled_transactions, 200),
       CHAIN_RO_CALL(abi_json_to_bin, 200),
       CHAIN_RO_CALL(abi_bin_to_json, 200),
+	  CHAIN_RO_CALL(serialize_json, 200),
       CHAIN_RO_CALL(get_required_keys, 200),
       CHAIN_RO_CALL(get_transaction_id, 200),
       CHAIN_RW_CALL_ASYNC(push_block, chain_apis::read_write::push_block_results, 202),
