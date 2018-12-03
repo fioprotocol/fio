@@ -25,7 +25,7 @@ cleos wallet import --private-key 5Jr2SxVH6bh6QcJerJrGKvNAp7zfemN98rp4BfzFonkJQm
 cleos wallet import --private-key 5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY
 
 #Start Both Nodes
-if pgrep -x "gedit" > /nodeos
+if ! pgrep -x "nodeos" > /dev/null
 then
     sh scripts/node1_start.sh &
     sh scripts/node2_start.sh &
@@ -53,4 +53,4 @@ cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"
 cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
 cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
 
-echo 'Test Environment Setup Complete'
+echo $'\nTest Environment Setup Complete\n'
