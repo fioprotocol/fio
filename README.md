@@ -11,10 +11,6 @@
   
     cleos wallet create --to-console  
     
-##### Import Wallet Private Key
-
-    cleos wallet import --private-key [privatekey]
-
 ##### Unlock Wallet
 
     cleos wallet unlock
@@ -27,6 +23,7 @@ Open new Terminal
 Run: `./start_test_env.sh`
 
 Default fio.name Folder: `~../fio/build/contracts/fio.name`
+
 #### Test Launcher  
   
     cd build/tests  
@@ -40,8 +37,6 @@ Default fio.name Folder: `~../fio/build/contracts/fio.name`
     nodeos --http-server-address  localhost:8879  --http-validate-host=0 --enable-stale-production --producer-name eosio    --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin 
 ###### Node 2:
     nodeos --producer-name inita --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address  0.0.0.0:8889 --http-validate-host=0 --p2p-listen-endpoint :9877  --p2p-peer-address 0.0.0.0:9876 --config-dir node2 --data-dir node2 --private-key [\"EOS79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"]
-
-    
  
 ##### Chain Data Folder
 Linux: `~/.local/share/eosio/nodeos/data`
@@ -52,11 +47,14 @@ One way to confirm you're looking at the correct wallets directory is to do:
 
 `cleos wallet open -n boguswalletname`
 
-
   
 ---  
   
 ### Useful Commands  
+
+##### Import Wallet Private Key
+
+    cleos wallet import --private-key [privatekey]
   
 ##### Set FIO Name Contract  
   
