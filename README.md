@@ -16,11 +16,11 @@
     cleos wallet unlock
     
 #### Development Environment Setup
-Run: `./start_test_env.sh`  
+Run: `./build_test_env.sh`  
 Both Nodes will start<br>
 
 Open new Terminal
-Run: `./start_test_env.sh`
+Run: `./build_test_env.sh`
 
 Default fio.name Folder: `~../fio/build/contracts/fio.name`
 
