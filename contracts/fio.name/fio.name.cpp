@@ -17,6 +17,7 @@
 #include <eosiolib/asset.hpp>
 #include "fio.name.hpp"
 #include <fio.common/fio.common.hpp>
+#include <fio.common/json.hpp>
 
 #include <climits>
 
@@ -162,6 +163,9 @@ namespace fioio{
             else {
                 print("Payments currently disabled.");
             }
+
+            nlohmann::json json = {{"status","OK"},{"fio_name","purse.alice"},{"transaction_id","309753b6b0aca9ba107c06332c4294ec2d8a270133a17239f07bc62b704ccb87"},{"expiration",15734567}};
+            send_response(json.dump().c_str());
         }
 
         /***
