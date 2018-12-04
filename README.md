@@ -11,10 +11,6 @@
   
     cleos wallet create --to-console  
     
-##### Unlock Wallet
-
-    cleos wallet unlock
-    
 #### Development Environment Setup
 Run: `./build_test_env.sh`  
 Both Nodes will start<br>
@@ -43,14 +39,14 @@ Linux: `~/.local/share/eosio/nodeos/data`
 
 Mac OS: `~/Library/Application Support/eosio/nodeos/data`
 
-One way to confirm you're looking at the correct wallets directory is to do:
-
-`cleos wallet open -n boguswalletname`
-
   
 ---  
   
-### Useful Commands  
+### Useful Commands
+
+##### Unlock Wallet
+
+    cleos wallet unlock  
 
 ##### Import Wallet Private Key
 
@@ -76,14 +72,14 @@ One way to confirm you're looking at the correct wallets directory is to do:
   
     cleos -u http://localhost:8889 push action -j fio.system addaddress '{"fio_user_name":"name.brd","chain":"FIO","address":"FIOADDRESS","requestor":"fioname11111"}' --permission fioname11111@active  
   
-##### Get Registered FIO Name  
+##### Get Registered FIO Names  
   
     cleos -u http://localhost:8889 get table fio.system fio.system fionames  
   
-##### Get Registered FIO Domain  
+##### Get Registered FIO Domains  
   
     cleos -u http://localhost:8889 get table fio.system fio.system fiodomains  
   
 ##### Test API Endpoints  
   
-    curl --request POST  http://localhost:8888/v1/chain/avail_check --data '{"fio_name":"ese.brd"}'
+    curl --request POST  http://localhost:8889/v1/chain/avail_check --data '{"fio_name":"ese.brd"}'

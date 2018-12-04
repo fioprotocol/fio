@@ -14,7 +14,7 @@ printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::
 printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
 printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
 
-echo 'Enter Default Wallet Passkey'
+echo 'Enter Default Wallet Passkey:'
 cleos wallet unlock
 
 #Start Both Nodes
