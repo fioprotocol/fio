@@ -124,10 +124,12 @@ namespace eosio { namespace chain {
                                     3010011, "Invalid asset" )
       FC_DECLARE_DERIVED_EXCEPTION( chain_id_type_exception,           chain_type_exception,
                                     3010012, "Invalid chain ID" )
-      FC_DECLARE_DERIVED_EXCEPTION( fixed_key_type_exception,           chain_type_exception,
+      FC_DECLARE_DERIVED_EXCEPTION( fixed_key_type_exception,          chain_type_exception,
                                     3010013, "Invalid fixed key" )
-      FC_DECLARE_DERIVED_EXCEPTION( symbol_type_exception,           chain_type_exception,
+      FC_DECLARE_DERIVED_EXCEPTION( symbol_type_exception,             chain_type_exception,
                                     3010014, "Invalid symbol" )
+      FC_DECLARE_DERIVED_EXCEPTION( invalid_fio_name_exception,        chain_type_exception,
+                                    3010015, "Invalid fio_name" )
 
 
    FC_DECLARE_DERIVED_EXCEPTION( fork_database_exception, chain_exception,
