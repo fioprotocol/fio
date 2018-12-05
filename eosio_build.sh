@@ -1,10 +1,11 @@
 #!/bin/bash
 ##########################################################################
-# This is the FIOIO automated install script for Linux and Mac OS.
+# This is the EOSIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/EOSIO/eos
 #
-# Copyright (c) 2018, Dapix INC.
+# Copyright (c) 2017, Respective Authors all rights reserved.
 #
-# After ??? this software is available under the following terms:
+# After June 1, 2018 this software is available under the following terms:
 #
 # The MIT License
 #
@@ -26,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/daixio/dapix_core/blob/master/LICENSE
+# https://github.com/EOSIO/eos/blob/master/LICENSE
 ##########################################################################
 
    SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -47,9 +48,16 @@
    DISK_MIN=10
    DOXYGEN=false
    ENABLE_COVERAGE_TESTING=false
-   CORE_SYMBOL_NAME="FIO"
+   CORE_SYMBOL_NAME="SYS"
+   # Use current directory's tmp directory if noexec is enabled for /tmp
+   if (mount | grep "/tmp " | grep --quiet noexec); then
+        mkdir -p $SOURCE_DIR/tmp
+        TEMP_DIR="${SOURCE_DIR}/tmp"
+        rm -rf $SOURCE_DIR/tmp/*
+   else # noexec wasn't found
+        TEMP_DIR="/tmp"
+   fi
    START_MAKE=true
-   TEMP_DIR="/tmp"
    TIME_BEGIN=$( date -u +%s )
    VERSION=1.2
 
@@ -77,7 +85,7 @@
                DOXYGEN=true
             ;;
             s)
-               if [ "${#OPTARG}" -gt 6 ] || [ -z "${#OPTARG}" ]; then
+               if [ "${#OPTARG}" -gt 7 ] || [ -z "${#OPTARG}" ]; then
                   printf "\\n\\tInvalid argument: %s\\n" "${OPTARG}" 1>&2
                   usage
                   exit 1
@@ -119,7 +127,7 @@
 
    pushd "${SOURCE_DIR}" &> /dev/null
 
-   STALE_SUBMODS=$(( $(git submodule status | grep -c "^[+\-]") ))
+   STALE_SUBMODS=$(( $(git submodule status --recursive | grep -c "^[+\-]") ))
    if [ $STALE_SUBMODS -gt 0 ]; then
       printf "\\n\\tgit submodules are not up to date.\\n"
       printf "\\tPlease run the command 'git submodule update --init --recursive'.\\n"
@@ -152,7 +160,7 @@
       OS_NAME=$( cat /etc/os-release | grep ^NAME | cut -d'=' -f2 | sed 's/\"//gI' )
 
       case "$OS_NAME" in
-         "Amazon Linux AMI")
+         "Amazon Linux AMI"|"Amazon Linux")
             FILE="${SOURCE_DIR}/scripts/eosio_build_amazon.sh"
             CXX_COMPILER=g++
             C_COMPILER=gcc
@@ -257,7 +265,7 @@
       -DCMAKE_C_COMPILER="${C_COMPILER}" -DWASM_ROOT="${WASM_ROOT}" -DCORE_SYMBOL_NAME="${CORE_SYMBOL_NAME}" \
       -DOPENSSL_ROOT_DIR="${OPENSSL_ROOT_DIR}" -DBUILD_MONGO_DB_PLUGIN=true \
       -DENABLE_COVERAGE_TESTING="${ENABLE_COVERAGE_TESTING}" -DBUILD_DOXYGEN="${DOXYGEN}" \
-      -DCMAKE_INSTALL_PREFIX="/usr/local/eosio" "${SOURCE_DIR}"
+      -DCMAKE_INSTALL_PREFIX="/usr/local/eosio" ${LOCAL_CMAKE_FLAGS} "${SOURCE_DIR}"
    then
       printf "\\n\\t>>>>>>>>>>>>>>>>>>>> CMAKE building EOSIO has exited with the above error.\\n\\n"
       exit -1
@@ -268,7 +276,8 @@
       exit 0
    fi
 
-   if ! make -j"${CPU_CORE}"
+   if [ -z ${JOBS} ]; then JOBS=$CPU_CORE; fi # Future proofing: Ensure $JOBS is set (usually set in scripts/eosio_build_*.sh scripts)
+   if ! make -j"${JOBS}"
    then
       printf "\\n\\t>>>>>>>>>>>>>>>>>>>> MAKE building EOSIO has exited with the above error.\\n\\n"
       exit -1
@@ -276,54 +285,23 @@
 
    TIME_END=$(( $(date -u +%s) - ${TIME_BEGIN} ))
 
+   printf "\n\n${bldred}\t _______  _______  _______ _________ _______\n"
+   printf '\t(  ____ \(  ___  )(  ____ \\\\__   __/(  ___  )\n'
+   printf "\t| (    \/| (   ) || (    \/   ) (   | (   ) |\n"
+   printf "\t| (__    | |   | || (_____    | |   | |   | |\n"
+   printf "\t|  __)   | |   | |(_____  )   | |   | |   | |\n"
+   printf "\t| (      | |   | |      ) |   | |   | |   | |\n"
+   printf "\t| (____/\| (___) |/\____) |___) (___| (___) |\n"
+   printf "\t(_______/(_______)\_______)\_______/(_______)\n${txtrst}"
 
-
-	printf "\n\n${bldred}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
-	printf "  F:::::::::::::::::F I:::::::I   OO::::::::OO  I:::::::I   OO:::::::OO\n"   
-	printf "  FF:::::FFFFFFFF:::F II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
-	printf "    F::::F      FFFFF   I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
-	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::::::::::F     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F::::F              I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
-	printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
-	printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
-	printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
-
-	printf "\n\n${bldred}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
-	printf "  F:::::::::::::::::F I:::::::I   OO::::::::OO  I:::::::I   OO:::::::OO\n"   
-	printf "  FF:::::FFFFFFFF:::F II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
-	printf "    F::::F      FFFFF   I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
-	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::::::::::F     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F::::F              I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
-	printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
-	printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
-	printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
-
-	printf "\n\n${bldred}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
-	printf "  F:::::::::::::::::F I:::::::I   OO::::::::OO  I:::::::I   OO:::::::OO\n"   
-	printf "  FF:::::FFFFFFFF:::F II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
-	printf "    F::::F      FFFFF   I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
-	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::::::::::F     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
-	printf "    F::::F              I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
-	printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
-	printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
-	printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
-
-   printf "\\n\\tFIOIO has been successfully built. %02d:%02d:%02d\\n\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
+   printf "\\n\\tEOSIO has been successfully built. %02d:%02d:%02d\\n\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
    printf "\\tTo verify your installation run the following commands:\\n"
 
    print_instructions
 
    printf "\\tFor more information:\\n"
-   printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"
+   printf "\\tEOSIO website: https://eos.io\\n"
+   printf "\\tEOSIO Telegram channel @ https://t.me/EOSProject\\n"
+   printf "\\tEOSIO resources: https://eos.io/resources/\\n"
+   printf "\\tEOSIO Stack Exchange: https://eosio.stackexchange.com\\n"
+   printf "\\tEOSIO wiki: https://github.com/EOSIO/eos/wiki\\n\\n\\n"
