@@ -1,6 +1,5 @@
 
 # FIOIO  
---------
 
 ## Overview
 
@@ -33,7 +32,7 @@ Run: `./build_test_env.sh`
 Default Environment Settings: 
 
 |    Name    | Data     |
-| :--------: |:--------:|
+| :---------|:--------:|
 | Node Port  | 8889 |  
 | Domain     | brd | 
 | FIO Names  | adam , casey |
@@ -48,7 +47,7 @@ Default fio.name Folder: `~../fio/build/contracts/fio.name`
 
 Run: `./scripts/chain_nuke.sh`
 
-**Remove Folders:<br>**
+**Remove Folders Manually:<br>**
 Linux: `~/.local/nodeos`<br>
 Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/programs/nodeos`<br>
  `~../fio/node2` or `~../fio/scripts/node2` depending on the location the nodes have been launched at. 
