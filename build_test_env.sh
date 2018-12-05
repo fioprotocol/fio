@@ -53,7 +53,7 @@ if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
     echo 'No wasm file found at $PWD/build/contracts/fio.name'
     read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
 else
-    set fio_contract_name_path="$PWD/build/contracts/fio.name"
+    fio_contract_name_path="$PWD/build/contracts/fio.name"
 fi
 
 #Bind FIO.NAME Contract to Chain
