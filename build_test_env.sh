@@ -14,7 +14,8 @@ printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::
 printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
 printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
 
-echo 'Enter Default Wallet Passkey'
+echo 'Welcome to the Basic Environment'
+echo $'\nEnter Default Wallet Passkey'
 cleos wallet unlock
 
 #Import Wallet Keys
@@ -25,13 +26,14 @@ cleos wallet import --private-key 5Jr2SxVH6bh6QcJerJrGKvNAp7zfemN98rp4BfzFonkJQm
 cleos wallet import --private-key 5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY
 
 #Start Both Nodes
-if ! pgrep -x "nodeos" > /dev/null
+if pgrep -x "nodeos" > /dev/null
 then
-    sh scripts/node1_start.sh &
-    sleep 3s
-    sh scripts/node2_start.sh &
+    sh scripts/nodeos_kill.sh
 fi
 
+sh scripts/node1_start.sh &
+sleep 3s
+sh scripts/node2_start.sh &
 sleep 6s
 
 #Create Accounts
@@ -51,7 +53,7 @@ if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
     echo 'No wasm file found at $PWD/build/contracts/fio.name'
     read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
 else
-    fio_contract_name_path="$PWD/build/contracts/fio.name"
+    set fio_contract_name_path="$PWD/build/contracts/fio.name"
 fi
 
 #Bind FIO.NAME Contract to Chain
