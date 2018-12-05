@@ -112,8 +112,7 @@
 
    if [ ! -d "${SOURCE_DIR}/.git" ]; then
       printf "\\n\\tThis build script only works with sources cloned from git\\n"
-      printf "\\tPlease clone a new eos directory with 'git clone https://github.com/EOSIO/eos --recursive'\\n"
-      printf "\\tSee the wiki for instructions: https://github.com/EOSIO/eos/wiki\\n"
+      printf "\\tPlease clone a new eos directory with 'git clone https://github.com/Dapixio/fio --recursive'\\n"
       exit 1
    fi
 
@@ -138,7 +137,7 @@
    if [ "$ARCH" == "Linux" ]; then
 
       if [ ! -e /etc/os-release ]; then
-         printf "\\n\\tEOSIO currently supports Amazon, Centos, Fedora, Mint & Ubuntu Linux only.\\n"
+         printf "\\n\\tFIOIO currently supports Amazon, Centos, Fedora, Mint & Ubuntu Linux only.\\n"
          printf "\\tPlease install on the latest version of one of these Linux distributions.\\n"
          printf "\\thttps://aws.amazon.com/amazon-linux-ami/\\n"
          printf "\\thttps://www.centos.org/\\n"
@@ -259,18 +258,18 @@
       -DENABLE_COVERAGE_TESTING="${ENABLE_COVERAGE_TESTING}" -DBUILD_DOXYGEN="${DOXYGEN}" \
       -DCMAKE_INSTALL_PREFIX="/usr/local/eosio" "${SOURCE_DIR}"
    then
-      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> CMAKE building EOSIO has exited with the above error.\\n\\n"
+      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> CMAKE building FIOIO has exited with the above error.\\n\\n"
       exit -1
    fi
 
    if [ "${START_MAKE}" == "false" ]; then
-      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> EOSIO has been successfully configured but not yet built.\\n\\n"
+      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> FIOIO has been successfully configured but not yet built.\\n\\n"
       exit 0
    fi
 
    if ! make -j"${CPU_CORE}"
    then
-      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> MAKE building EOSIO has exited with the above error.\\n\\n"
+      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> MAKE building FIOIO has exited with the above error.\\n\\n"
       exit -1
    fi
 
