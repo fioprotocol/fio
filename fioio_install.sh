@@ -1,24 +1,23 @@
 #!/bin/bash
 ##########################################################################
-# This is the EOSIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/EOSIO/eos
+# This is the FIOIO automated install script for Linux and Mac OS.
 #
-# Copyright (c) 2017, Respective Authors all rights reserved.
+# Copyright (c) 2018, Dapix INC.
 #
-# After June 1, 2018 this software is available under the following terms:
-# 
+# After ??? this software is available under the following terms:
+#
 # The MIT License
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,7 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/EOSIO/eos/blob/master/LICENSE.txt
+# https://github.com/daixio/dapix_core/blob/master/LICENSE
 ##########################################################################
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -65,7 +64,7 @@ fi
    }
 
    install_symlinks() {
-      printf "\\n\\tInstalling EOSIO Binary Symlinks\\n\\n"
+      printf "\\n\\tInstalling FIOIO Binary Symlinks\\n\\n"
       create_symlink "cleos"
       create_symlink "eosio-abigen"
       create_symlink "eosio-launcher"
@@ -77,7 +76,7 @@ fi
    }
 
    if [ ! -d "${BUILD_DIR}" ]; then
-      printf "\\n\\tError, eosio_build.sh has not ran.  Please run ./eosio_build.sh first!\\n\\n"
+      printf "\\n\\tError, fioio_build.sh has not ran.  Please run ./fioio_build.sh first!\\n\\n"
       exit -1
    fi
 
@@ -95,7 +94,7 @@ fi
    
    if ! make install
    then
-      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> MAKE installing EOSIO has exited with the above error.\\n\\n"
+      printf "\\n\\t>>>>>>>>>>>>>>>>>>>> MAKE installing FIOIO has exited with the above error.\\n\\n"
       exit -1
    fi
    popd &> /dev/null 
@@ -103,18 +102,22 @@ fi
    install_symlinks   
    create_cmake_symlink "eosio-config.cmake"
 
-   printf "\n\n${bldred}\t _______  _______  _______ _________ _______\n"
-   printf '\t(  ____ \(  ___  )(  ____ \\\\__   __/(  ___  )\n'
-   printf "\t| (    \/| (   ) || (    \/   ) (   | (   ) |\n"
-   printf "\t| (__    | |   | || (_____    | |   | |   | |\n"
-   printf "\t|  __)   | |   | |(_____  )   | |   | |   | |\n"
-   printf "\t| (      | |   | |      ) |   | |   | |   | |\n"
-   printf "\t| (____/\| (___) |/\____) |___) (___| (___) |\n"
-   printf "\t(_______/(_______)\_______)\_______/(_______)\n${txtrst}"
+	printf "\n\n${bldred}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
+	printf "  F:::::::::::::::::F I:::::::I   OO::::::::OO  I:::::::I   OO:::::::OO\n"
+	printf "  FF:::::FFFFFFFF:::F II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
+	printf "    F::::F      FFFFF   I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
+	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F:::::::::::::F     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F:::::FFFFFFFFF     I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F::::F              I:::I  O::::O     O::::O  I:::I  O::::O     O::::O\n"
+	printf "    F::::F              I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
+	printf "  FF::::::FF          II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
+	printf "  F:::::::FF          I:::::::I   OO:::::::OO   I:::::::I   OO:::::::OO\n"
+	printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n${txtrst}"
+
+   printf "\\n\\tFIOIO has been successfully installed.\\n\\n"
+   printf "\\tTo verify your installation run the following commands:\\n"
 
    printf "\\tFor more information:\\n"
-   printf "\\tEOSIO website: https://eos.io\\n"
-   printf "\\tEOSIO Telegram channel @ https://t.me/EOSProject\\n"
-   printf "\\tEOSIO resources: https://eos.io/resources/\\n"
-   printf "\\tEOSIO Stack Exchange: https://eosio.stackexchange.com\\n"
-   printf "\\tEOSIO wiki: https://github.com/EOSIO/eos/wiki\\n\\n\\n"
+   printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"

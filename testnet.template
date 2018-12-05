@@ -12,7 +12,7 @@ if [ -z "$biosport" ]; then
     biosport=9776
 fi
 
-CORE_SYMBOL=`sed -r "s/CORE_SYMBOL='(.+)'/\1/" ./tests/core_symbol.py`
+CORE_SYMBOL=`sed -E "s/CORE_SYMBOL='(.+)'/\1/" ./tests/core_symbol.py`
 
 wddir=eosio-ignition-wd
 wdaddr=localhost:8899
