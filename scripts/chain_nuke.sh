@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sh nodeos_kill.sh
+sh ./nodeos_kill.sh
 
 echo $'Deleting Node Data...\n'
 find . -name node2 -type d -exec rm -r {} +
