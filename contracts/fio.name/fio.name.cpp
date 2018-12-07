@@ -90,6 +90,7 @@ namespace fioio{
             asset registerFee;
             string registerMemo;
             auto fees = trxfees.get_or_default(trxfee());
+            uint32_t expiration_time = 0;
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
@@ -97,7 +98,7 @@ namespace fioio{
                 // check if callee has requisite dapix funds.
                 
                 //get the expiration for this new domain.
-                uint32_t expiration_time = get_now_plus_one_year();
+                expiration_time = get_now_plus_one_year();
 
                 // Issue, create and transfer nft domain token
                 // Add domain entry in domain table
@@ -129,7 +130,7 @@ namespace fioio{
                 eosio_assert_message_code(fioname_iter == fionames.end(), "Fioname is already registered.", ErrorFioNameAlreadyRegistered);
                 
                 //set the expiration on this new fioname
-                uint32_t expiration = get_now_plus_one_year();
+                expiration_time = get_now_plus_one_year();
                 
                 // check if callee has requisite dapix funds.
                 // DO SOMETHING
@@ -143,7 +144,7 @@ namespace fioio{
                     a.namehash=nameHash;
                     a.domain=domain;
                     a.domainhash=domainHash;
-                    a.expiration=expiration;
+                    a.expiration=expiration_time;
                     a.addresses = vector<string>(chain_str.size(), "");
                 });
 
@@ -164,7 +165,7 @@ namespace fioio{
                 print("Payments currently disabled.");
             }
 
-            nlohmann::json json = {{"status","OK"},{"fio_name","purse.alice"},{"transaction_id","309753b6b0aca9ba107c06332c4294ec2d8a270133a17239f07bc62b704ccb87"},{"expiration",15734567}};
+            nlohmann::json json = {{"status","OK"},{"fio_name",newname},{"expiration",expiration_time}};
             send_response(json.dump().c_str());
         }
 

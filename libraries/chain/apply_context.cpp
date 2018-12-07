@@ -77,6 +77,7 @@ void apply_context::exec_one( action_trace& trace )
       throw;
    }
 
+   r.response = _response;
    r.global_sequence  = next_global_sequence();
    r.recv_sequence    = next_recv_sequence( receiver );
 
