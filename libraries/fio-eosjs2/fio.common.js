@@ -16,7 +16,7 @@ const exec = util.promisify(require('child_process').exec);
 class Config {
 }
 Config.MaxAccountCreationAttempts=  3;
-Config.EosUrl =                     'http://localhost:8888';
+Config.EosUrl =                     'http://localhost:8889';
 Config.KeosdUrl =                   'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
 Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount} system account active key
