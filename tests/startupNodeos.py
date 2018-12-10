@@ -9,15 +9,15 @@ from datetime import datetime
 import shlex
 import collections
 
-#hostname="localhost"
-hostname="0.0.0.0"
+hostname="localhost"
+#hostname="0.0.0.0"
 #hostname="10.201.200.11"
 
 CORE_SYMBOL='FIO'
 #CORE_SYMBOL='SYS'
 
 nPort=8889
-wPort=8899
+wPort=9899
 
 log_file=open("launcher.detailed.log", "w")
 
@@ -150,7 +150,7 @@ rm -rf var
 #programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -i 2018-09-12T16:21:19.132 -f --p2p-plugin net --boot --specific-num 00 --specific-nodeos "--http-server-address $MY_INTERFACE:8888" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 1 --contracts-console"
 
 echo Launching EOS nodes listening on host %(hostname)s, port %(nPort)s
-programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -f --p2p-plugin net --specific-num 00 --specific-nodeos "--http-server-address %(hostname)s:%(nPort)s" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 25 --contracts-console --logconf %(logName)s --chain-state-db-size-mb 10240"
+programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -f --p2p-plugin net --specific-num 00 --specific-nodeos "--http-server-address %(hostname)s:%(nPort)s" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 25 --contracts-console --logconf %(logName)s --chain-state-db-size-mb 10240 --disable-ram-billing-notify-checks"
 if [ $? -ne 0 ]; then
     echo "Launcher failed"
     exit 1
@@ -193,9 +193,24 @@ programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --walle
 # import eosio key
 programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key $EOSIO_PRVT_KEY
 programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key $prisyskey
+
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s system buyram eosio fio.system "100000.000 FIO" -p eosio@active
+
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s system delegatebw eosio fio.system "10000.000 FIO" "10000.000 FIO" -p eosio@active
+
     """ % {"hostname":hostname, "logName":logFileName, "nPort":nPort, "wPort":wPort}
     if Utils.Debug: print("script: %s" % (script))
     ret = os.system("bash -c '%s'" % script)
+    if ret != 0:
+        return (False, ret)
+
+    cmd='programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s  --wallet-url http://%(hostname)s:%(wPort)s push action -j eosio.token transfer \'{"from":"eosio","to":"fio.system","quantity":"200000000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % {
+        "hostname":hostname, "nPort":nPort, "wPort":wPort}
+
+    print(cmd)
+    print(cmd,file=log_file)
+    log_file.flush()
+    ret=subprocess.call(shlex.split(cmd),stdout=log_file,stderr=log_file)
     if ret != 0:
         return (False, ret)
 
@@ -223,10 +238,18 @@ def activateAccounts(accounts):
         if ret != 0:
             return (False, ret)
 
-        cmd='programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s  --wallet-url http://%(hostname)s:%(wPort)s system newaccount -j --transfer --stake-net "10000000.0000 %(symbol)s" --stake-cpu "10000000.0000 %(symbol)s" --buy-ram "10000000.0000 %(symbol)s" eosio %(name)s %(owner)s %(active)s' % {
+        cmd='programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s  --wallet-url http://%(hostname)s:%(wPort)s system newaccount -j --transfer --stake-net "1000000.0000 %(symbol)s" --stake-cpu "1000000.0000 %(symbol)s" --buy-ram "100000.0000 %(symbol)s" eosio %(name)s %(owner)s %(active)s' % {
             "hostname":hostname, "symbol":CORE_SYMBOL, "name":accounts[i].name, "owner":accounts[i].ownerPublicKey, "active":accounts[i].activePublicKey, "nPort":nPort, "wPort":wPort}
-
         #print(cmd.split())
+        print(cmd)
+        print(cmd,file=log_file)
+        log_file.flush()
+        ret=subprocess.call(shlex.split(cmd),stdout=log_file,stderr=log_file)
+        if ret != 0:
+            return (False, ret)
+
+        cmd='programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s  --wallet-url http://%(hostname)s:%(wPort)s push action -j eosio.token transfer \'{"from":"eosio","to":"%(to)s","quantity":"10000.0000 %(symbol)s","memo":"init transfer"}\' --permission eosio@active' % {
+            "hostname":hostname, "symbol":CORE_SYMBOL, "to":accounts[i].name, "nPort":nPort, "wPort":wPort}
         print(cmd)
         print(cmd,file=log_file)
         log_file.flush()

@@ -80,7 +80,7 @@ class Fio {
         return [true, fiocommon.Helper.randomString(12, '12345abcdefghijklmnopqrstuvwxyz')];
     }
 
-    // Will create a give username on the EOS chain.
+    // Will create a given username on the EOS chain.
     // Returns tuple [status, eos response]
     async activateAccount(creator, accountName, ownerPublicKey, ownerPrivateKey, activePublicKey, activePrivateKey, buyRamQuantity, stakeNetQuantity, stakeCpuQuantity, transfer) {
         fiocommon.Helper.checkTypes( arguments, ['string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'boolean'] );
@@ -89,6 +89,10 @@ class Fio {
             console.log(`Owner private key: ${ownerPrivateKey}, Owner public key : ${ownerPublicKey}`);
             console.log(`Active private key: ${activePrivateKey}, Active public key : ${activePublicKey}`);
         }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, { fetch });
+        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.SystemAccountKey]);
+        let myApi = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
 
         // Execute newaccount transactions
         const result = await this.api.transact({

@@ -19,12 +19,13 @@ Config.MaxAccountCreationAttempts=  3;
 Config.EosUrl =                     'http://localhost:8889';
 Config.KeosdUrl =                   'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
+Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount} system account active key
 Config.TokenAccount =               "eosio.token"
-Config.SystemAccountKey =           "5KDQzVMaD1iUdYDrA2PNK3qEP7zNbUf8D41ZVKqGzZ117PdM5Ap"; // ${Config.SystemAccount}
-Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
-Config.NewAccountStakeNetQuantity=  "100.0000 FIO";
-Config.NewAccountStakeCpuQuantity=  "100.0000 FIO";
+Config.NewAccountBuyRamQuantity=    "1000.0000 FIO";
+Config.NewAccountStakeNetQuantity=  "1000.0000 FIO";
+Config.NewAccountStakeCpuQuantity=  "1000.0000 FIO";
 Config.NewAccountTransfer=          false;
+Config.NameRegisterExpiration=      31561920; // 1 year in seconds
 // Config.TestAccount=              "fioname11111";
 Config.FioFinanceAccount=           "fio.finance";
 Config.LogLevel=                    3; // Log levels 0 - 5 with increasing verbosity.
@@ -63,7 +64,7 @@ class Helper {
         if (Config.LogLevel > 4) console.log("Enter execute()");
         if (Config.LogLevel > 4) console.log("Start exec " + command);
 
-        const { stdout, stderr } = await exec(command);
+        const { stdout, stderr } = await exec(command, {maxBuffer: 1024 * 500}); // maximum buffer size is increased to 500KB
         if (Config.LogLevel > 4) console.log("End exec");
         if (debug) {
             console.log('stdout: ' + stdout);

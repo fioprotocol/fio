@@ -17,7 +17,7 @@ const fiocommon=require('./fio.common.js');
 async function startup() {
     if (fiocommon.Config.LogLevel > 4) console.log("Enter startup().");
 
-    let result = await fiocommon.Helper.execute("tests/launcher.py", false)
+    let result = await fiocommon.Helper.execute("tests/startupNodeos.py", false)
         .catch(rej => {
             console.error(`Helper.execute() promise rejection handler.`);
             throw rej;
@@ -109,6 +109,20 @@ async function testFunction(creator) {
     assert(!getAccountResult[1].address, "Address expected to be empty.");
     assert(getAccountResult[1].expiration, "Expiration should not be empty.");
 
+    console.log("*** START MAS 111 tests ***");
+    let actionResponseStr = registerNameResult[1].processed.action_traces[0].receipt.response
+    console.log("Validate registername response.")
+    assert(actionResponseStr, "registername action response cannot be empty.")
+    let actionResponseJson = JSON.parse(actionResponseStr)
+    assert(actionResponseJson.status == "OK", "registername action response status should be 'OK'.")
+    assert(actionResponseJson.fio_name == domain, `registername action response 'fio_name' should be ${domain}.`)
+
+    let actualExipration = actionResponseJson.expiration
+    let expectedExpiration = Math.floor(Date.now() / 1000) + fiocommon.Config.NameRegisterExpiration;
+    // check if the expected and actul expiration are within a 5 minute range
+    assert(Math.abs(expectedExpiration - actualExipration) <= 300, `Invalid registername expiration. Expected: ${expectedExpiration}, Actual: ${actualExipration}`);
+    console.log("*** END MAS 111 tests ***");
+
     console.log(`Get currency balance after register domain for account "${account}".`)
     getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
         .catch(rej => {
@@ -176,6 +190,20 @@ async function testFunction(creator) {
     assert(getAccountResult[1].is_domain == "false", "Not a domain. Expected: false");
     assert(!getAccountResult[1].address, "Address expected to be empty.");
     assert(getAccountResult[1].expiration, "Expiration should not be empty.");
+
+    console.log("*** START MAS 111 tests ***");
+    actionResponseStr = registerNameResult[1].processed.action_traces[0].receipt.response
+    console.log("Validate registername response.")
+    assert(actionResponseStr, "registername action response cannot be empty.")
+    actionResponseJson = JSON.parse(actionResponseStr)
+    assert(actionResponseJson.status == "OK", "registername action response status should be 'OK'.")
+    assert(actionResponseJson.fio_name == name, `registername action response 'fio_name' should be ${name}.`)
+
+    actualExipration = actionResponseJson.expiration
+    expectedExpiration = Math.floor(Date.now() / 1000) + fiocommon.Config.NameRegisterExpiration;
+    // check if the expected and actul expiration are within a 5 minute range
+    assert(Math.abs(expectedExpiration - actualExipration) <= 300, `Invalid registername expiration. Expected: ${expectedExpiration}, Actual: ${actualExipration}`);
+    console.log("*** END MAS 111 tests ***");
 
     console.log(`Get currency balance after register name for account "${account}".`)
     getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
