@@ -110,8 +110,8 @@
       "type": "registername",
       "ricardian_contract": ""
     },{
-      "name": "addaddress",
-      "type": "addaddress",
+      "name": "add_pub_address",
+      "type": "add_pub_address",
       "ricardian_contract": ""
     },{
       "name": "removename",

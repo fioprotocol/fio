@@ -43,9 +43,9 @@ namespace fioio{
         // TODO MAS-120
         // Currently supported chains
         enum  class chain_type {
-               FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+               FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=6, OTHER=7
         };
-        const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
+        std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
     public:
         FioNameLookup(account_name self)
@@ -171,15 +171,15 @@ namespace fioio{
          */
         inline chain_type str_to_chain_type(const string &chain) {
 
-            print("size: ", chain_str.size(), "\n");
+        //    print("size: ", chain_str.size(), "\n");
             for (size_t i = 0; i < chain_str.size(); i++) {
-                print("chain: ", chain, ", chain_str: ", chain_str[i], "\n");
+        //        print("chain: ", chain, ", chain_str: ", chain_str[i], "\n");
                 if (chain == chain_str[i]) {
-                    print("Found supported chain.", "\n");
+        //            print("Found supported chain.", "\n");
                     return static_cast<chain_type>(i);
                 }
             }
-            return chain_type::NONE;
+            return chain_type::OTHER;
         }
         
         /***
@@ -200,16 +200,17 @@ namespace fioio{
          * Validate chain is in the supported chains list.
          * @param chain The chain to validate, expected to be in lower case.s
          */
-        inline void assert_valid_chain(const string &chain) {
-            assert(str_to_chain_type(chain) != chain_type::NONE);
-        }
+        //inline void assert_valid_chain(const string &chain) {
+        //    assert(str_to_chain_type(chain) != chain_type::NONE);
+        //}
 
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
-         * @param fio_user_name The FIO user name e.g. "adam.fio"
+         * @param fio_address The FIO user name e.g. "adam.fio"
          * @param chain The chain name e.g. "btc"
-         * @param address The chain specific user address
+         * @param pub_address The chain specific user address
+         * @param pub_address The FIO public key of owner. Has to match signature.
          */
         [[eosio::action]]
         void add_pub_address(const string &fio_address, const string &chain, const string &pub_address, const string &fio_pub_key) {
@@ -217,6 +218,9 @@ namespace fioio{
             eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
             eosio_assert_message_code(!pub_address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
             eosio_assert_message_code(!fio_pub_key.empty(), "Fio public key cannot be empty..", ErrorFioPubKeyEmpty);
+
+            // TODO MAS-73
+            // if fio_pub_key == fio_address.pub_key TODO: CIJU
 
             // Verify the address does not have a whitespace
             eosio_assert_message_code(pub_address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
@@ -227,7 +231,7 @@ namespace fioio{
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
             //print("Validating chain support: ", my_chain, "\n");
             chain_type c_type = str_to_chain_type(my_chain);
-            eosio_assert_message_code(c_type != chain_type::NONE, "Supplied chain isn't supported..", ErrorChainNotSupported);
+            //eosio_assert_message_code(c_type != chain_type::NONE, "Supplied chain isn't supported..", ErrorChainNotSupported);
 
             // validate fio fioname exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fio_address.c_str());
