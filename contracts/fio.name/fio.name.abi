@@ -75,20 +75,20 @@
       }
       ]
     },{
-      "name": "addaddress",
+      "name": "add_pub_address",
       "base": "",
       "fields": [{
-          "name": "fio_user_name",
+          "name": "fio_address",
           "type": "string"
         },{
           "name": "chain",
           "type": "string"
         },{
-          "name": "address",
+          "name": "pub_address",
           "type": "string"
         },{
-          "name": "requestor",
-          "type": "name"
+          "name": "fio_pub_key",
+          "type": "string"
         }
       ]
     },{
