@@ -43,7 +43,7 @@ namespace fioio{
         // TODO MAS-120
         // Currently supported chains
         enum  class chain_type {
-               FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=6, OTHER=7
+               FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=6, OTHER=7,
         };
         std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
@@ -219,18 +219,15 @@ namespace fioio{
             eosio_assert_message_code(!pub_address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
             eosio_assert_message_code(!fio_pub_key.empty(), "Fio public key cannot be empty..", ErrorFioPubKeyEmpty);
 
-            // TODO MAS-73
-            // if fio_pub_key == fio_address.pub_key TODO: CIJU
-
             // Verify the address does not have a whitespace
             eosio_assert_message_code(pub_address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
 
             // TODO MAS-120
             // validate chain is supported. This is a case insensitive check.
-            string my_chain = chain;
-            transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+            //string my_chain = chain;
+            //transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
             //print("Validating chain support: ", my_chain, "\n");
-            chain_type c_type = str_to_chain_type(my_chain);
+            //chain_type c_type = str_to_chain_type(my_chain);
             //eosio_assert_message_code(c_type != chain_type::NONE, "Supplied chain isn't supported..", ErrorChainNotSupported);
 
             // validate fio fioname exists
@@ -265,10 +262,11 @@ namespace fioio{
             uint32_t expiration = domains_iter->expiration;
             eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired);
 
+            // TODO MAS-120
             // insert/update <chain, address> pair
-            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[static_cast<size_t>(c_type)] = fio_address;
-            });
+            //fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+            //    a.addresses[static_cast<size_t>(c_type)] = fio_address;
+            //});
 
             // insert/update key into key-name table for reverse lookup
             auto idx = keynames.get_index<N(bykey)>();
@@ -276,16 +274,16 @@ namespace fioio{
             auto matchingItem = idx.lower_bound(keyhash);
 
             // Advance to the first entry matching the specified address and chain
-            while (matchingItem != idx.end() && matchingItem->keyhash == keyhash  && matchingItem->chaintype != static_cast<uint64_t>(c_type)) {
-                matchingItem++;
-            }
+            //while (matchingItem != idx.end() && matchingItem->keyhash == keyhash  && matchingItem->chaintype != static_cast<uint64_t>(c_type)) {
+            //    matchingItem++;
+            //}
 
             if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
                 keynames.emplace(_self, [&](struct key_name &k) {
                     k.id = keynames.available_primary_key();        // use next available primary key
                     k.key = pub_address;                            // persist key
                     k.keyhash = keyhash;                            // persist key hash
-                    k.chaintype = static_cast<uint64_t>(c_type);    // specific chain type
+                    //k.chaintype = static_cast<uint64_t>(c_type);    // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
                     k.expiration = name_expiration;
                 });
