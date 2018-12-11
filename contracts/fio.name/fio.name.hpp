@@ -37,17 +37,16 @@ namespace fioio {
         uint64_t domainhash = 0;
         //EXPIRATION this is the expiration for this fio name, this is a number of seconds since 1970
         uint32_t expiration;
-                
-                
+
         // Chain specific keys
         vector<string> addresses;
         // std::map<string, string> fionames;
-                
+
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
 
         uint64_t by_domain() const { return domainhash; }
-                
+
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
     };
 
@@ -59,6 +58,7 @@ namespace fioio {
     struct domain {
         string name;
         uint64_t domainhash;
+
         //EXPIRATION this is the expiration for this fio domain, this is a number of seconds since 1970
         uint32_t expiration;
 
@@ -84,6 +84,24 @@ namespace fioio {
     };
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
+
+/*    struct fio_pub_address {
+
+        string fiopub = nullptr;
+        uint64_t fiopubindex = 0;
+        string pubkey = nullptr;
+        uint64_t pubkeyindex = 0;
+
+        // primary_key is required to store structure in multi_index table
+        uint64_t primary_key() const { return fiopubindex; }
+        uint64_t by_pubkey() const { return pubkeyindex; }
+
+        EOSLIB_SERIALIZE(fio_pub_address, (fiopub)(fiopubindex)(pubkey)(pubkeyindex))
+    };
+
+    typedef multi_index<N(fiopubs), fio_pub_address,
+            indexed_by<N(bypubkey), const_mem_fun<fio_pub_address, uint64_t, &fio_pub_address::by_pubkey> > > fiopub_table;
+*/
 
 //    struct config {
 //        name tokencontr; // owner of the token contract
