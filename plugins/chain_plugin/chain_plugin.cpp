@@ -1381,7 +1381,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    }
 
    // name checked and set
-   result.is_registered = "true";
+   result.is_registered = true;
 
    return result;
 }

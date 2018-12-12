@@ -318,7 +318,7 @@ public:
 
     struct avail_check_result {
         string fio_name = "";
-        string is_registered = "false";
+        bool is_registered = false;
     };
 
     avail_check_result avail_check( const avail_check_params& params) const;
