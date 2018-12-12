@@ -38,7 +38,7 @@ namespace fioio{
             ErrorFioNameExpired =            110,   // Fioname not yet registered.
             ErrorPubAddressEmpty =           111,   // Public address is empty.
             ErrorPubKeyEmpty =               112,   // Public key is empty.
-            ErrorPubAddressExist =               113;   // Public address exists.
+            ErrorPubAddressExist =           113;   // Public address exists.
 
     class FioNameLookup : public contract {
         private:
@@ -324,13 +324,18 @@ namespace fioio{
             print("Begin rmvaddress()");
 		}
 
+    /***
+     * The provided Base58 encoded public address and public key will be listed directly
+     * into the fiopubs table.
+     *
+     * @param pub_address The Base58 Encoded FIO Public Address
+     * @param pub_key The public key to be indexed with the FIO Public Address
+     */
     [[eosio::action]]
     void addfiopubadd(const string &pub_address, const string &pub_key) {
 
       // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
       require_auth(::eosio::string_to_name(FIO_SYSTEM));
-
-
 
       string pub = pub_address;
       string key = pub_key;
