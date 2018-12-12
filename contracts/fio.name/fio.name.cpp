@@ -339,13 +339,16 @@ namespace fioio{
 
       string pub = pub_address;
       string key = pub_key;
+
+      //The indexes need to be calculated correctly here.
+      //Public Key and Public Address must be hashed uniquely to 12 characters to represent indexes.
       uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
       uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
 
       auto fiopubadd_iter = fiopubs.find(fiopubindex);
       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
 
-
+      //To do: Keep emplacing new entries or replace new ?
       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
         f.fiopub = pub_address;
         f.pubkey = pub_key;
@@ -353,11 +356,11 @@ namespace fioio{
         f.pubkeyindex = pubkeyindex;
       });
 
-
+      // Test json response
       nlohmann::json json = {{"status","OK"},{"[pub_address]",pub_address},{"pub_key",pub_key}};
       send_response(json.dump().c_str());
 
-    }
+    } // addfiopubadd
 
     }; // class FioNameLookup
 

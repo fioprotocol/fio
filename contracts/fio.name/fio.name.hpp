@@ -88,16 +88,16 @@ namespace fioio {
     // @abi table fiopubs i64
     struct fiopubaddr {
 
-        string fiopub = nullptr;
         uint64_t fiopubindex = 0;
-        string pubkey = nullptr;
+        string fiopub = nullptr;
         uint64_t pubkeyindex = 0;
+        string pubkey = nullptr;
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return fiopubindex; }
         uint64_t by_pubkey() const { return pubkeyindex; }
 
-        EOSLIB_SERIALIZE(fiopubaddr, (fiopub)(fiopubindex)(pubkey)(pubkeyindex))
+        EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
     };
 
     typedef multi_index<N(fiopubs), fiopubaddr,
