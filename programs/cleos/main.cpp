@@ -125,6 +125,7 @@ Options:
 #include "localize.hpp"
 #include "config.hpp"
 #include "httpc.hpp"
+#include <fc/crypto/elliptic.hpp>
 
 using namespace std;
 using namespace eosio;
@@ -1794,14 +1795,25 @@ int main( int argc, char** argv ) {
       auto pk    = r1 ? private_key_type::generate_r1() : private_key_type::generate();
       auto privs = string(pk);
       auto pubs  = string(pk.get_public_key());
+      auto fiopubas = string(fc::to_base58(pubs.c_str(),pubs.length()));
+
+/*
+      auto pub  = string(pk.get_public_key());
+      auto fiopubas2 = to_base58(pub.c_str());
+*/
+
       if (print_console) {
          std::cout << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
          std::cout << localized("Public key: ${key}", ("key", pubs ) ) << std::endl;
+         std::cout << localized("FIO Public Address ${address}", ("address", fiopubas ) ) << std::endl;
+
       } else {
          std::cerr << localized("saving keys to ${filename}", ("filename", key_file)) << std::endl;
          std::ofstream out( key_file.c_str() );
+
          out << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
          out << localized("Public key: ${key}", ("key", pubs ) ) << std::endl;
+         out << localized("FIO Public Address ${address}", ("address", fiopubas ) ) << std::endl;
       }
    });
    create_key->add_flag( "--r1", r1, "Generate a key using the R1 curve (iPhone), instead of the K1 curve (Bitcoin)"  );
