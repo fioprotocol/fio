@@ -199,6 +199,7 @@ namespace eosio {
    };
 
 
+/* Not yet implemented
    static constexpr uint64_t pubaddress_to_uint64_t( const char* str ) {
      uint64_t out = 0;
      uint32_t len = 0;
@@ -206,13 +207,13 @@ namespace eosio {
 
      for (uint32_t i = len; len >= 0; len--) {
 
-        
+
 
      }
 
      return out;
    }
-
+*/
 
 } // namespace eosio
 

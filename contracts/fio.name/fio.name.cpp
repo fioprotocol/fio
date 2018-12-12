@@ -5,6 +5,7 @@
  *  @copyright Dapix
  *
  *  Changes:
+ *  Adam Androulidakis 12-10-2018 - MAS-114
  *  Adam Androulidakis 9-18-2018
  *  Adam Androulidakis 9-6-2018
  *  Ciju John 9-5-2018
@@ -334,6 +335,9 @@ namespace fioio{
     [[eosio::action]]
     void addfiopubadd(const string &pub_address, const string &pub_key) {
 
+      eosio_assert_message_code(!pub_address.empty(), "Public Address field cannot be empty", ErrorPubAddressEmpty);
+      eosio_assert_message_code(!pub_key.empty(), "Public Key field cannot be empty", ErrorPubKeyEmpty);
+
       // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
       require_auth(::eosio::string_to_name(FIO_SYSTEM));
 
@@ -345,15 +349,17 @@ namespace fioio{
       uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
       uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
 
+      ///////////////////////////////////////////////////
+      //To do: Keep emplacing new entries or replace new ?
+
       auto fiopubadd_iter = fiopubs.find(fiopubindex);
       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
 
-      //To do: Keep emplacing new entries or replace new ?
       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
-        f.fiopub = pub_address;
-        f.pubkey = pub_key;
-        f.fiopubindex = fiopubindex;
-        f.pubkeyindex = pubkeyindex;
+        f.fiopub = pub_address; // The public address
+        f.pubkey = pub_key; // The public Key
+        f.fiopubindex = fiopubindex; // The index of the public address
+        f.pubkeyindex = pubkeyindex; // The index of the public key
       });
 
       // Test json response
