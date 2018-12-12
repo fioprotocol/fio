@@ -34,15 +34,19 @@ namespace fioio{
             ErrorChainContainsWhiteSpace =   106,   // Chain address contains whitespace.
             ErrorChainNotSupported =         107,   // Chain isn't supported.
             ErrorFioNameNotRegistered =      108,   // Fioname not yet registered.
-            ErrorDomainExpired =          109,   // Fioname not yet registered.
-            ErrorFioNameExpired =            110;   // Fioname not yet registered.
+            ErrorDomainExpired =             109,   // Fioname not yet registered.
+            ErrorFioNameExpired =            110,   // Fioname not yet registered.
+            ErrorPubAddressEmpty =           111,   // Public address is empty.
+            ErrorPubKeyEmpty =               112,   // Public key is empty.
+            ErrorPubAddressExist =               113;   // Public address exists.
 
-    class FioNameLookup : public contract { 
+    class FioNameLookup : public contract {
         private:
         domains_table domains;
         fionames_table fionames;
         keynames_table keynames;
-		trxfees_singleton trxfees;
+        trxfees_singleton trxfees;
+        fiopubs_table fiopubs;
         config appConfig;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
@@ -55,7 +59,7 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
+        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), fiopubs(self, self),
             trxfees(FeeContract,FeeContract)
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
@@ -68,10 +72,10 @@ namespace fioio{
             require_auth(requestor); // check for requestor authority; required for fee transfer
 
             string newname = name;
-			
-			// make fioname lowercase before hashing
-			transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
-			
+
+	      		// make fioname lowercase before hashing
+			      transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
+
             //parse the domain from the name.
             string domain = nullptr;
             string fioname = domain;
@@ -83,7 +87,7 @@ namespace fioio{
                 fioname = name.substr(0, pos);
                 domain = name.substr(pos + 1, string::npos);
             }
-	
+
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
@@ -96,7 +100,7 @@ namespace fioio{
                 auto domains_iter = domains.find(domainHash);
                 eosio_assert_message_code(domains_iter == domains.end(), "Domain is already registered.", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
-                
+
                 //get the expiration for this new domain.
                 expiration_time = get_now_plus_one_year();
 
@@ -115,29 +119,29 @@ namespace fioio{
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
                 eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
-                
+
                 // TODO check if domain permission is valid.
-                
+
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
                 eosio_assert(present_time <= domain_expiration,"Domain has expired.");
-                
+
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
                 eosio_assert_message_code(fioname_iter == fionames.end(), "Fioname is already registered.", ErrorFioNameAlreadyRegistered);
-                
+
                 //set the expiration on this new fioname
                 expiration_time = get_now_plus_one_year();
-                
+
                 // check if callee has requisite dapix funds.
                 // DO SOMETHING
-                
+
                 // Issue, create and transfer fioname token
                 // DO SOMETHING
-                
+
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a){
                     a.name=newname;
@@ -187,7 +191,7 @@ namespace fioio{
             }
             return chain_type::NONE;
         }
-        
+
         /***
          * This method will return now plus one year.
          * the result is the present block time, which is number of seconds since 1970
@@ -198,7 +202,7 @@ namespace fioio{
             //get the blockchain now time, time in seconds since 1970
             //add number of seconds in a year to this to get the expiration.
             uint32_t present_time = now();
-            uint32_t incremented_time = present_time + 31561920;
+            uint32_t incremented_time = present_time + DAYTOSECONDS;
             return incremented_time;
         }
 
@@ -224,7 +228,7 @@ namespace fioio{
             eosio_assert_message_code(!address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
 			// Verify the address does not have a whitespace
             eosio_assert_message_code(address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
-			
+
             // validate chain is supported. This is a case insensitive check.
             string my_chain=chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
@@ -237,11 +241,11 @@ namespace fioio{
             print("Name: ", fio_user_name, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
             eosio_assert_message_code(fioname_iter != fionames.end(), "fioname not registered..", ErrorFioNameNotRegistered);
-            
+
             //check that the name isnt expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
-            
+
             print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
             eosio_assert_message_code(present_time <= name_expiration, "fioname is expired.", ErrorFioNameExpired);
 
@@ -255,10 +259,10 @@ namespace fioio{
             }
             uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
             print("Domain: ", domain, ", domainHash: ", domainHash, "..");
-            
+
             auto domains_iter = domains.find(domainHash);
             eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
-            
+
             uint32_t expiration = domains_iter->expiration;
             eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired);
 
@@ -306,8 +310,8 @@ namespace fioio{
                 print("Payments currently disabled.");
             }
         }
-		
-		
+
+
 		void removename() {
             print("Begin removename()");
 		}
@@ -320,8 +324,40 @@ namespace fioio{
             print("Begin rmvaddress()");
 		}
 
+    [[eosio::action]]
+    void addfiopubadd(const string &pub_address, const string &pub_key) {
+
+      // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
+      require_auth(::eosio::string_to_name(FIO_SYSTEM));
+
+
+
+      string pub = pub_address;
+      string key = pub_key;
+      uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
+      uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
+
+      auto fiopubadd_iter = fiopubs.find(fiopubindex);
+      eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
+
+
+      fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
+        f.fiopub = pub_address;
+        f.pubkey = pub_key;
+        f.fiopubindex = fiopubindex;
+        f.pubkeyindex = pubkeyindex;
+      });
+
+
+      nlohmann::json json = {{"status","OK"},{"[pub_address]",pub_address},{"pub_key",pub_key}};
+      send_response(json.dump().c_str());
+
+    }
+
     }; // class FioNameLookup
 
 
-    EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress) )
+
+
+    EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd) )
 }

@@ -77,7 +77,6 @@ Options:
 #include <vector>
 #include <regex>
 #include <iostream>
-#include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/hex.hpp>
 #include <fc/variant.hpp>
 #include <fc/io/datastream.hpp>
@@ -126,6 +125,7 @@ Options:
 #include "localize.hpp"
 #include "config.hpp"
 #include "httpc.hpp"
+#include <fc/crypto/elliptic.hpp>
 
 using namespace std;
 using namespace eosio;
@@ -1795,11 +1795,12 @@ int main( int argc, char** argv ) {
       auto pk    = r1 ? private_key_type::generate_r1() : private_key_type::generate();
       auto privs = string(pk);
       auto pubs  = string(pk.get_public_key());
-
-
-      
       auto fiopubas = string(fc::to_base58(pubs.c_str(),pubs.length()));
 
+/*
+      auto pub  = string(pk.get_public_key());
+      auto fiopubas2 = to_base58(pub.c_str());
+*/
 
       if (print_console) {
          std::cout << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
