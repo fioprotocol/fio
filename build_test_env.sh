@@ -48,7 +48,7 @@ cleos -u http://localhost:8889 create account eosio fio.finance $pvt_key
 cleos -u http://localhost:8889 create account eosio fio.fee $pvt_key
 cleos -u http://localhost:8889 create account eosio fio.common $pvt_key
 
-#Directory Check
+#Fio Name Directory Check
 if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
     echo 'No wasm file found at $PWD/build/contracts/fio.name'
     read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
@@ -56,8 +56,20 @@ else
     fio_contract_name_path="$PWD/build/contracts/fio.name"
 fi
 
+#Fio Finance Directory Check
+if [ -f /build/contracts/fio.finance/fio.finance.wasm ]; then
+    echo 'No wasm file found at $PWD/build/contracts/fio.finance'
+    read -p 'Path to Fio Finance Contract Folder: ' fio_finance_contract_name_path
+else
+    fio_finance_contract_name_path="$PWD/build/contracts/fio.finance"
+fi
+
 #Bind FIO.NAME Contract to Chain
 cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
+
+#Bind fio.finance Contract to Chain
+cleos -u http://localhost:8889 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
+
 
 #Create Domain
 cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
