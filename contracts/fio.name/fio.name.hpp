@@ -85,6 +85,17 @@ namespace fioio {
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
 
+    //Blockchain Support Container
+    struct chain_pair {
+        uint64_t index;
+        string chain_name;
+
+        uint64_t primary_key() const { return index; }
+        EOSLIB_SERIALIZE(chain_pair, (index)(chain_name))
+    };
+
+    typedef multi_index<N(chainList), chain_pair> chainList;
+
 //    struct config {
 //        name tokencontr; // owner of the token contract
 //
@@ -98,5 +109,6 @@ namespace fioio {
 
         uint64_t primary_key()const { return balance.symbol.name(); }
     };
+
     typedef eosio::multi_index<N(accounts), account> accounts;
 }

@@ -536,7 +536,7 @@ class Fio {
     // **PLEASE READ** fioname11111 account is currently
     // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
     // account name (public address of the wallet user in production use.
-    async addaddress(fioname, address, chain, requestor, requestorActivePrivateKey, owner=fiocommon.Config.SystemAccount) {
+    async addaddress(fio_address, chain, pub_address, fio_pub_address) {
         fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string', 'string']);
 
         if (fiocommon.Config.LogLevel > 3) {
@@ -557,10 +557,10 @@ class Fio {
                     permission: 'active',
                 }],
                 data: {
-                    fio_user_name: fioname,
+                    fio_user_name: fio_address,
                     chain: chain,
-                    address: address,
-                    requestor: requestor
+                    pub_address: pub_address,
+                    fio_pub_key: fio_pub_address
                 },
             }]
         }, {
@@ -572,7 +572,7 @@ class Fio {
         });
         //console.log(JSON.stringify(result, null, 2));
         return [true, result];
-    } //addaddress
+    } //add_pub_address
 
 
 } //Fio class

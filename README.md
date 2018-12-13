@@ -46,7 +46,7 @@ Navigate to the `~/fio/build/` directory and run the `fioname.js`:
     cd build
     node libraries/fio-eosjs2/fioname-test.js
     
-_Note: `npm install minimist`, `npm install webpack`, `npm install yarn`, and `npm run build-web` may be required prior to running scripts._ 
+_Note: `npm install minimist`, `npm install text-encoding`, `npm install eosjs-ecc`, `npm install webpack`, `npm install yarn`, and `npm run build-web` may be required prior to running scripts._ 
     
 #### Chain Management
 ##### Shutdown Local Test Node

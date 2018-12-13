@@ -253,7 +253,7 @@ async function testFunction(creator) {
     let address="0x123456789";
     let chain="btc";
     console.log(`Add address. name: ${name}, address: ${address}, chain: ${chain}`);
-    let addAddressResult = await fio.addaddress(name, address, chain, account, accountActivePrivateKey)
+    let addAddressResult = await fio.addaddress(name, chain, address, "0")
         .catch(rej => {
             console.error(rej.stack);
             assert(false, "EXCEPTION: addaddress(), name: "+ name+ ", address: "+ address+ ", chain: "+ chain);

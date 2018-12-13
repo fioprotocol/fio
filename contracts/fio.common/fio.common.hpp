@@ -22,12 +22,12 @@ namespace fioio {
     using namespace std;
 
     // Currently supported blockchains
-    enum  class chain_type {
-        FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-    }; // enum  class chain_type
+    //enum  class chain_type {
+    //    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+    //}; // enum  class chain_type
 
     // Three letter acronyms for individual blockchains. The entries are matched to ${chain_type} positions.
-    static const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
+    //static const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
     struct trxfee {
 

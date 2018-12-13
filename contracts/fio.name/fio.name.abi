@@ -75,7 +75,7 @@
       }
       ]
     },{
-      "name": "add_pub_address",
+      "name": "addaddress",
       "base": "",
       "fields": [{
           "name": "fio_address",
@@ -110,8 +110,8 @@
       "type": "registername",
       "ricardian_contract": ""
     },{
-      "name": "add_pub_address",
-      "type": "add_pub_address",
+      "name": "addaddress",
+      "type": "addaddress",
       "ricardian_contract": ""
     },{
       "name": "removename",
