@@ -31,13 +31,22 @@ Run: `./build_test_env.sh`
 
 Default Environment Settings: 
 
-|    Name    | Data     |
-| :---------|:--------:|
-| Node Port  | 8889 |  
-| Domain     | brd | 
-| FIO Names  | adam , casey |
+| Name    | Data   |
+| :-------|:------:|
+| Node Port | 8889 |  
+| Domain    | brd  | 
+| FIO Names | adam , casey |
     
-Default fio.name Folder: `~../fio/build/contracts/fio.name`  
+Default fio.name Folder: `~../fio/build/contracts/fio.name`
+
+#### Javascript Testing
+
+Navigate to the `~/fio/build/` directory and run the `fioname.js`:
+    
+    cd build
+    node libraries/fio-eosjs2/fioname-test.js
+    
+_Note: `npm install minimist`, `npm install webpack`, `npm install yarn`, and `npm run build-web` may be required prior to running scripts._ 
     
 #### Chain Management
 ##### Shutdown Local Test Node
