@@ -196,6 +196,7 @@ namespace fioio{
             string my_chain = chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
             uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
+            auto chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
             auto chain_iter = chainlist.find(chainHash);
 
             uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
@@ -204,6 +205,7 @@ namespace fioio{
                 chainlist.emplace(_self, [&](struct chain_pair &a){
                     a.index = next_idx;
                     a.chain_name = chain;
+                    a.chainhash = chainhash;
                 });
             }
 

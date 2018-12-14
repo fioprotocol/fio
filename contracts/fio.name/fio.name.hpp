@@ -89,9 +89,10 @@ namespace fioio {
     struct chain_pair {
         uint64_t index;
         string chain_name;
+        uint64_t chainhash = 0;
 
-        uint64_t primary_key() const { return index; }
-        EOSLIB_SERIALIZE(chain_pair, (index)(chain_name))
+        uint64_t primary_key() const { return chainhash; }
+        EOSLIB_SERIALIZE(chain_pair, (index)(chain_name)(chainhash))
     };
 
     typedef multi_index<N(chainList), chain_pair> chainList;

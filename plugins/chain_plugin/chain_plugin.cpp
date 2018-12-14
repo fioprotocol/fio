@@ -1400,10 +1400,6 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
 
    get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
 
-   //auto chain_iter = chainlist_result.rows.find(chainHash);
-
-   //uint64_t c_type = (chainlist_result.rows.begin() == chainlist_result.rows.end() ? 0 : (chain_iter--)->index);
-
    uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
 
    string fio_key_lookup_table = "keynames";   // table name

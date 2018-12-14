@@ -86,6 +86,9 @@
         },{
           "name": "pub_address",
           "type": "string"
+        },{
+          "name": "chainhash",
+          "type": "uint64"
         }
       ]
     },{
