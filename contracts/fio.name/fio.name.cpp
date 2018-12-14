@@ -42,14 +42,6 @@ namespace fioio{
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
 
-        // TODO MAS-120
-        // Currently supported chains
-        //enum  class chain_type {
-        //       FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=6, OTHER=7
-        //};
-
-        //const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
-
     public:
         FioNameLookup(account_name self)
         : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
@@ -201,7 +193,6 @@ namespace fioio{
 
             // TODO MAS-73 Chain input validation 400 Responses
 
-            // TODO MAS-120
             string my_chain = chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
             uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
@@ -297,7 +288,7 @@ namespace fioio{
             //else {
                 //print("Payments currently disabled.");
             //}
-            nlohmann::json json = {{"status","OK"},{"fio_address",fio_address},{"pub_address",pub_address},{"chain",chain}};
+            nlohmann::json json = {{"status","OK"},{"fio_address",fio_address},{"chain",chain},{"pub_address",pub_address}};
             send_response(json.dump().c_str());
         }
 		

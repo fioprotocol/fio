@@ -32,50 +32,11 @@ namespace fioio{
         const string trx_type_dta_RCPT_VRFY=    R"({"memo":"%s"})";                   // ${trx_type::RCPT_VRFY}
         const string trx_type_dta_REQ_REJECT=   R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
 
-        // User printable supported chains strings.
-        //const std::vector<std::string> chain_str {
-        //        "FIO",
-        //        "EOS",
-        //        "BTC",
-        //        "ETH",
-        //        "XMR",
-        //        "BRD",
-        //        "BCH"
-        //};
-
-
     public:
         explicit FioFinance(account_name self)
                 : contract(self), contract_state(self,self), transaction_contexts(self, self),
                 transaction_logs(self,self), pending_requests(self, self), processed_requests(self,self)
         {}
-
-        /***
-         * Convert chain name to chain type.
-         *
-         * @param chain The chain name e.g. "BTC"
-         * @return chain_type::NONE if no match.
-         */
-        //inline chain_type str_to_chain_type(const string &chain) {
-//
-        //    print("size: ", chain_str.size(), "\n");
-        //    for (size_t i = 0; i < chain_str.size(); i++) {
-        //        print("..chain: ", chain, ", chain_str: ", chain_str[i]);
-        //        if (chain == chain_str[i]) {
-        //            print("..Found supported chain.");
-        //            return static_cast<chain_type>(i);
-        //        }
-        //    }
-        //    return chain_type::NONE;
-        //}
-
-        /***
-         * Validate chain is in the supported chains list.
-         * @param chain The chain to validate, expected to be in lower case.s
-         */
-        //inline void assert_valid_chain(const string &chain) {
-        //    assert(str_to_chain_type(chain) != chain_type::NONE);
-        //}
 
         // generic function to construct Fio log data string.
         inline static std::string trxlogformat(const std::string format, ...)
@@ -287,7 +248,6 @@ namespace fioio{
 
 
     }; // class FioFinance
-
 
     EOSIO_ABI( FioFinance, (requestfunds)(cancelrqst)(reportrqst)(rejectrqst) )
 }

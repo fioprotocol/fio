@@ -1110,24 +1110,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 /***** FIO API BEGIN *****/
 /*************************/
 
-
-// Used by fio_name_lookup
-//enum  class chain_type {
-//    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-//};
-//const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
-
-// Convert of chain to chain type
-//inline chain_type str_to_chain_type(const string &chain) {
-//
-//   for (int i = 0; i < chain_str.size(); i++) {
-//	  if (chain == chain_str[i]) {
-//		 return static_cast<chain_type>(i);
-//	  }
-//   }
-//   return chain_type::NONE;
-//}
-
 /***
  * Lookup address by FIO name.
  * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -1237,13 +1219,12 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       return result;
    }
 
-    // chain support check
-    string my_chain = p.chain;
-    transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-    uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
+   // chain support check
+   string my_chain = p.chain;
+   transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+   uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
 
-    // TODO Find access to master chain list
-    get_table_rows_params chain_table_row_params = get_table_rows_params{
+   get_table_rows_params chain_table_row_params = get_table_rows_params{
             .json=true,
             .code=code,
             .scope=fio_scope,
@@ -1252,23 +1233,10 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
             .upper_bound=boost::lexical_cast<string>(chainHash + 1),
             .encode_type="dec"};
 
-    get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+   get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
 
-    //auto chain_iter = chainlist_result.rows.find(chainHash);
-
-    //uint64_t c_type = (chainlist_result.rows.begin() == chainlist_result.rows.end() ? 0 : (chain_iter--)->index);
-
-    uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
-
-    // validate keys vector size is expected size.
-   // TODO Error checking on chain name
-   //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
-
-   //if (c_type != chain_type::NONE) {
-      // Pick out chain specific key and populate result
-      // TODO MAS-120 - c_type
-      result.address = name_result.rows[0]["addresses"][c_type].as_string();
-   //}
+   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
+   result.address = name_result.rows[0]["addresses"][c_type].as_string();
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
