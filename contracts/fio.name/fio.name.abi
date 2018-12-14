@@ -86,9 +86,6 @@
         },{
           "name": "pub_address",
           "type": "string"
-        },{
-          "name": "fio_pub_key",
-          "type": "string"
         }
       ]
     },{

@@ -33,15 +33,15 @@ namespace fioio{
         const string trx_type_dta_REQ_REJECT=   R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
 
         // User printable supported chains strings.
-        const std::vector<std::string> chain_str {
-                "FIO",
-                "EOS",
-                "BTC",
-                "ETH",
-                "XMR",
-                "BRD",
-                "BCH"
-        };
+        //const std::vector<std::string> chain_str {
+        //        "FIO",
+        //        "EOS",
+        //        "BTC",
+        //        "ETH",
+        //        "XMR",
+        //        "BRD",
+        //        "BCH"
+        //};
 
 
     public:
@@ -56,26 +56,26 @@ namespace fioio{
          * @param chain The chain name e.g. "BTC"
          * @return chain_type::NONE if no match.
          */
-        inline chain_type str_to_chain_type(const string &chain) {
-
-            print("size: ", chain_str.size(), "\n");
-            for (size_t i = 0; i < chain_str.size(); i++) {
-                print("..chain: ", chain, ", chain_str: ", chain_str[i]);
-                if (chain == chain_str[i]) {
-                    print("..Found supported chain.");
-                    return static_cast<chain_type>(i);
-                }
-            }
-            return chain_type::NONE;
-        }
+        //inline chain_type str_to_chain_type(const string &chain) {
+//
+        //    print("size: ", chain_str.size(), "\n");
+        //    for (size_t i = 0; i < chain_str.size(); i++) {
+        //        print("..chain: ", chain, ", chain_str: ", chain_str[i]);
+        //        if (chain == chain_str[i]) {
+        //            print("..Found supported chain.");
+        //            return static_cast<chain_type>(i);
+        //        }
+        //    }
+        //    return chain_type::NONE;
+        //}
 
         /***
          * Validate chain is in the supported chains list.
          * @param chain The chain to validate, expected to be in lower case.s
          */
-        inline void assert_valid_chain(const string &chain) {
-            assert(str_to_chain_type(chain) != chain_type::NONE);
-        }
+        //inline void assert_valid_chain(const string &chain) {
+        //    assert(str_to_chain_type(chain) != chain_type::NONE);
+        //}
 
         // generic function to construct Fio log data string.
         inline static std::string trxlogformat(const std::string format, ...)
@@ -104,8 +104,8 @@ namespace fioio{
             // validate chain is supported. This is a case insensitive check.
             string my_chain = chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-            print("..Validating chain support: ", my_chain);
-            assert_valid_chain(my_chain);
+            //print("..Validating chain support: ", my_chain);
+            //assert_valid_chain(my_chain);
 
             // Validate requestid is unique for this user
             print("..Validating requestid uniqueness");

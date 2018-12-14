@@ -36,7 +36,7 @@ namespace fioio{
         fionames_table fionames;
         keynames_table keynames;
 		trxfees_singleton trxfees;
-		chainList chains;
+		chainList chainlist;
 		int chainlistsize;
         config appConfig;
 
@@ -53,7 +53,7 @@ namespace fioio{
     public:
         FioNameLookup(account_name self)
         : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
-            trxfees(FeeContract,FeeContract), chains(self, self)
+            trxfees(FeeContract,FeeContract), chainlist(self, self)
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
@@ -143,7 +143,7 @@ namespace fioio{
                     a.domain = domain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses = vector<string>(chainlistsize , "");
+                    a.addresses = vector<string>(chainlistsize , ""); // TODO Max size now?
                 });
 
                 registerFee = fees.nameregister;
@@ -182,14 +182,6 @@ namespace fioio{
         }
 
         /***
-         * Validate chain is in the supported chains list.
-         * @param chain The chain to validate, expected to be in lower case.s
-         */
-        //inline void assert_valid_chain(const string &chain) {
-        //    assert(str_to_chain_type(chain) != chain_type::NONE);
-        //}
-
-        /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
          * @param fio_address The FIO user name e.g. "adam.fio"
@@ -198,45 +190,49 @@ namespace fioio{
          * @param pub_address The FIO public key of owner. Has to match signature.
          */
         [[eosio::action]]
-        void addaddress(const string &fio_address, const string &chain, const string &pub_address, const string &fio_pub_key) {
+        void addaddress(const string &fio_address, const string &chain, const string &pub_address) {
+            // TODO 400 Responses
             eosio_assert_message_code(!fio_address.empty(), "FIO user name cannot be empty..", ErrorFioNameEmpty);
             eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
             eosio_assert_message_code(!pub_address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
-            eosio_assert_message_code(!fio_pub_key.empty(), "Fio public key cannot be empty..", ErrorFioPubKeyEmpty);
 
             // Verify the address does not have a whitespace
             eosio_assert_message_code(pub_address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
+
+            // TODO MAS-73 Chain input validation 400 Responses
 
             // TODO MAS-120
             string my_chain = chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
             uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
-            auto chain_iter = chains.find(chainHash);
+            auto chain_iter = chainlist.find(chainHash);
 
-            uint64_t next_idx = (chains.begin() == chains.end() ? 0 : (chain_iter--)->index + 1);
+            uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
 
-            if( chain_iter == chains.end() ){
-                chains.emplace(_self, [&](struct chain_pair &a){
+            if( chain_iter == chainlist.end() ){
+                chainlist.emplace(_self, [&](struct chain_pair &a){
                     a.index = next_idx;
                     a.chain_name = chain;
                 });
+            }
+
+            //Chain List Size Update w/ size checking
+            if ( next_idx > chainlistsize ){
                 chainlistsize = next_idx;
-                //chain_type c_type = str_to_chain_type(my_chain);
-                //eosio_assert_message_code(c_type != chain_type::NONE, "Supplied chain isn't supported..", ErrorChainNotSupported);
             }
 
             // validate fio fioname exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fio_address.c_str());
             //print("Name: ", fio_address, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
-            eosio_assert_message_code(fioname_iter != fionames.end(), "fioname not registered..", ErrorFioNameNotRegistered);
+            eosio_assert_message_code(fioname_iter != fionames.end(), "fioname not registered..", ErrorFioNameNotRegistered); // TODO 404 Response
             
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
             
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            eosio_assert_message_code(present_time <= name_expiration, "fioname is expired.", ErrorFioNameExpired);
+            eosio_assert_message_code(present_time <= name_expiration, "fioname is expired.", ErrorFioNameExpired); // TODO 400 Response
 
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
@@ -252,12 +248,11 @@ namespace fioio{
             //print("Domain: ", domain, ", domainHash: ", domainHash, "..");
             
             auto domains_iter = domains.find(domainHash);
-            eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
+            eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered); // TODO 404 Response
 
             uint32_t expiration = domains_iter->expiration;
-            eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired);
+            eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired); // TODO 400 Response
 
-            // TODO MAS-120
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>(next_idx)] = fio_address;
@@ -278,7 +273,7 @@ namespace fioio{
                     k.id = keynames.available_primary_key();        // use next available primary key
                     k.key = pub_address;                            // persist key
                     k.keyhash = keyhash;                            // persist key hash
-                    //k.chaintype = static_cast<uint64_t>(uSize);    // specific chain type
+                    k.chaintype = static_cast<uint64_t>(next_idx);  // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
                     k.expiration = name_expiration;
                 });

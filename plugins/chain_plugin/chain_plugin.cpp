@@ -1112,21 +1112,21 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
 
 // Used by fio_name_lookup
-enum  class chain_type {
-    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-};
-const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
+//enum  class chain_type {
+//    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+//};
+//const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
 // Convert of chain to chain type
-inline chain_type str_to_chain_type(const string &chain) {
-
-   for (int i = 0; i < chain_str.size(); i++) {
-	  if (chain == chain_str[i]) {
-		 return static_cast<chain_type>(i);
-	  }
-   }
-   return chain_type::NONE;
-}
+//inline chain_type str_to_chain_type(const string &chain) {
+//
+//   for (int i = 0; i < chain_str.size(); i++) {
+//	  if (chain == chain_str[i]) {
+//		 return static_cast<chain_type>(i);
+//	  }
+//   }
+//   return chain_type::NONE;
+//}
 
 /***
  * Lookup address by FIO name.
@@ -1151,11 +1151,11 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
    //declare variables.
-   const string fio_code_name=fio_name_code;
+   const string fio_code_name = fio_name_code;
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope=fio_name_scope;
+   const string fio_scope = fio_name_scope;
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
@@ -1238,17 +1238,37 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
     // chain support check
-    string my_chain=p.chain;
+    string my_chain = p.chain;
     transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-    chain_type c_type= str_to_chain_type(my_chain);
+    uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
 
-   // validate keys vector size is expected size.
-   EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+    // TODO Find access to master chain list
+    get_table_rows_params chain_table_row_params = get_table_rows_params{
+            .json=true,
+            .code=code,
+            .scope=fio_scope,
+            .table="chainList",
+            .lower_bound=boost::lexical_cast<string>(chainHash),
+            .upper_bound=boost::lexical_cast<string>(chainHash + 1),
+            .encode_type="dec"};
 
-   if (c_type != chain_type::NONE) {
+    get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+
+    //auto chain_iter = chainlist_result.rows.find(chainHash);
+
+    //uint64_t c_type = (chainlist_result.rows.begin() == chainlist_result.rows.end() ? 0 : (chain_iter--)->index);
+
+    uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
+
+    // validate keys vector size is expected size.
+   // TODO Error checking on chain name
+   //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+
+   //if (c_type != chain_type::NONE) {
       // Pick out chain specific key and populate result
-      result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
-   }
+      // TODO MAS-120 - c_type
+      result.address = name_result.rows[0]["addresses"][c_type].as_string();
+   //}
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
@@ -1286,7 +1306,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope=fio_name_scope;
+   const string fio_scope = fio_name_scope;
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
@@ -1389,20 +1409,35 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio_key_lookup_params& p )const {
    // assert if empty chain key
    EOS_ASSERT( !p.key.empty(), chain::contract_table_query_exception,"Empty key string");
-
    EOS_ASSERT( !p.chain.empty(), chain::contract_table_query_exception,"Empty chain string");
-
-   // chain support check
-   string my_chain = p.chain;
-   transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-   chain_type c_type = str_to_chain_type(my_chain);
-   EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
    const string fio_code_name = fio_name_code;   // code
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope = fio_name_scope;    // scope
+   const string fio_scope = fio_name_scope;
+
+   string my_chain = p.chain;
+   transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+   uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
+
+   get_table_rows_params chain_table_row_params = get_table_rows_params{
+           .json=true,
+           .code=code,
+           .scope=fio_scope,
+           .table="chainList",
+           .lower_bound=boost::lexical_cast<string>(chainHash),
+           .upper_bound=boost::lexical_cast<string>(chainHash + 1),
+           .encode_type="dec"};
+
+   get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+
+   //auto chain_iter = chainlist_result.rows.find(chainHash);
+
+   //uint64_t c_type = (chainlist_result.rows.begin() == chainlist_result.rows.end() ? 0 : (chain_iter--)->index);
+
+   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
+
    string fio_key_lookup_table = "keynames";   // table name
    const uint64_t key_hash = ::eosio::string_to_uint64_t(p.key.c_str()); // hash of block key
 
@@ -1427,13 +1462,13 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    size_t pos=0;
    for (; pos < table_rows_result.rows.size(); pos++) {
        uint64_t a = table_rows_result.rows[pos]["chaintype"].as_int64();
-       uint64_t  b = static_cast<int64_t >(c_type);
-      if (table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type)) {
+       uint64_t  b = c_type;
+      if (table_rows_result.rows[pos]["chaintype"].as_int64() == c_type) {
          break;
       }
    }
 
-   EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type), chain::contract_table_query_exception,"key not found.");
+   EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == c_type, chain::contract_table_query_exception,"key not found.");
 
    dlog( "Lookup matched row: '${pos}'.", ("pos", pos) );
 
