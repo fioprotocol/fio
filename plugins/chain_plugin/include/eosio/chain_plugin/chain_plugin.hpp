@@ -452,6 +452,7 @@ public:
       const uint64_t table_with_index = get_table_index_name(p, primary);
       const auto* t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(boost::make_tuple(p.code, scope, p.table));
       const auto* index_t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(boost::make_tuple(p.code, scope, table_with_index));
+
       if (t_id != nullptr && index_t_id != nullptr) {
          const auto& secidx = d.get_index<IndexType, chain::by_secondary>();
          decltype(index_t_id->id) low_tid(index_t_id->id._id);

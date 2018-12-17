@@ -23,20 +23,19 @@ namespace fioio{
             ErrorChainEmpty =                104,   // Chain name is empty.
             ErrorChainAddressEmpty =         105,   // Chain address is empty.
             ErrorChainContainsWhiteSpace =   106,   // Chain address contains whitespace.
-            ErrorChainNotSupported =         107,   // Chain isn't supported.
+            ErrorChainFormat =               107,   // Chain format is invalid.
             ErrorFioNameNotRegistered =      108,   // Fioname not yet registered.
             ErrorDomainExpired =             109,   // Fioname not yet registered.
             ErrorFioNameExpired =            110,   // Fioname not yet registered.
             ErrorFioPubKeyEmpty =            111;   // FIO Public Key is empty.
-
 
     class FioNameLookup : public contract { 
         private:
         domains_table domains;
         fionames_table fionames;
         keynames_table keynames;
+        chain_table chainlist;
 		trxfees_singleton trxfees;
-		chainList chainlist;
 		int chainlistsize;
         config appConfig;
 
@@ -186,15 +185,20 @@ namespace fioio{
             // TODO 400 Responses
             eosio_assert_message_code(!fio_address.empty(), "FIO user name cannot be empty..", ErrorFioNameEmpty);
             eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
+
+            // Chain input validation TODO : 400 Responses
             eosio_assert_message_code(!pub_address.empty(), "Chain address cannot be empty..", ErrorChainAddressEmpty);
 
             // Verify the address does not have a whitespace
             eosio_assert_message_code(pub_address.find(" "), "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
 
-            // TODO MAS-73 Chain input validation 400 Responses
-
             string my_chain = chain;
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+
+            if(my_chain.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos) {
+                eosio_assert_message_code(false, "Invalid chain format", ErrorChainFormat);
+            }
+
             uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
             auto chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
             auto chain_iter = chainlist.find(chainHash);
@@ -214,18 +218,18 @@ namespace fioio{
                 chainlistsize = next_idx;
             }
 
-            // validate fio fioname exists
+            // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fio_address.c_str());
             //print("Name: ", fio_address, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
-            eosio_assert_message_code(fioname_iter != fionames.end(), "fioname not registered..", ErrorFioNameNotRegistered); // TODO 404 Response
+            eosio_assert_message_code(fioname_iter != fionames.end(), "FIO Address not registered..", ErrorFioNameNotRegistered); // TODO 404 Response
             
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
             
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            eosio_assert_message_code(present_time <= name_expiration, "fioname is expired.", ErrorFioNameExpired); // TODO 400 Response
+            eosio_assert_message_code(present_time <= name_expiration, "FIO Address is expired.", ErrorFioNameExpired); // TODO 400 Response
 
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
@@ -241,10 +245,10 @@ namespace fioio{
             //print("Domain: ", domain, ", domainHash: ", domainHash, "..");
             
             auto domains_iter = domains.find(domainHash);
-            eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered); // TODO 404 Response
+            eosio_assert_message_code(domains_iter != domains.end(), "FIO Domain not yet registered.", ErrorDomainNotRegistered); // TODO 404 Response
 
             uint32_t expiration = domains_iter->expiration;
-            eosio_assert_message_code(present_time <= expiration, "Domain is expired.", ErrorDomainExpired); // TODO 400 Response
+            eosio_assert_message_code(present_time <= expiration, "FIO Domain is expired.", ErrorDomainExpired); // TODO 400 Response
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {

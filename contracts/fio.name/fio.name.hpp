@@ -95,7 +95,7 @@ namespace fioio {
         EOSLIB_SERIALIZE(chain_pair, (index)(chain_name)(chainhash))
     };
 
-    typedef multi_index<N(chainList), chain_pair> chainList;
+    typedef multi_index<N(chainList), chain_pair> chain_table;
 
 //    struct config {
 //        name tokencontr; // owner of the token contract

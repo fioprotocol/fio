@@ -1228,7 +1228,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
             .json=true,
             .code=code,
             .scope=fio_scope,
-            .table="chainList",
+            .table="chainlist",
             .lower_bound=boost::lexical_cast<string>(chainHash),
             .upper_bound=boost::lexical_cast<string>(chainHash + 1),
             .encode_type="dec"};
