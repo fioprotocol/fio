@@ -56,7 +56,7 @@ _Note: `npm install minimist`, `npm install text-encoding`, `npm install eosjs-e
 
 Run: `./scripts/chain_nuke.sh`
 
-**Remove Folders Manually:<br>**
+#####Remove Folders Manually:
 Linux: `~/.local/nodeos`<br>
 Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/programs/nodeos`<br>
  `~../fio/node2` or `~../fio/scripts/node2` depending on the location the nodes have been launched at. 
