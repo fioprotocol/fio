@@ -61,7 +61,20 @@
           "name": "expiration",
           "type": "uint32"
         }
-
+      ]
+      },{
+      "name": "chain_pair",
+      "base": "",
+      "fields": [{
+          "name": "index",
+          "type": "uint64"
+        },{
+          "name": "chain_name",
+          "type": "string"
+        },{
+          "name": "chainhash",
+          "type": "uint32"
+        }
       ]
     },{
       "name": "registername",
