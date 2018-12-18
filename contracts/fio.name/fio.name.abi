@@ -157,7 +157,17 @@
         "uint64"
       ],
       "type": "key_name"
-    }
+    },{
+      "name": "chainlist",
+      "index_type": "i64",
+      "key_names": [
+        "index"
+      ],
+      "key_types": [
+        "uint64"
+      ],
+      "type": "chain_pair"
+      }
   ],
   "ricardian_clauses": [],
   "error_messages": [],
