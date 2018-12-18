@@ -36,15 +36,15 @@ namespace fioio{
         keynames_table keynames;
         chain_table chainlist;
 		trxfees_singleton trxfees;
-		int chainlistsize;
         config appConfig;
+        int chainlistsize;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
-            trxfees(FeeContract,FeeContract), chainlist(self, self)
+        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), chainlist(self, self),
+            trxfees(FeeContract,FeeContract) //, chainlistsize(self,self) TODO CIJU
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
@@ -181,7 +181,7 @@ namespace fioio{
          * @param pub_address The FIO public key of owner. Has to match signature.
          */
         [[eosio::action]]
-        void addaddress(const string &fio_address, const string &chain, const string &pub_address) {
+        void addaddress(const string &fio_address, const string &chain, const string &pub_address, const account_name &requestor) {
             // TODO 400 Responses
             eosio_assert_message_code(!fio_address.empty(), "FIO user name cannot be empty..", ErrorFioNameEmpty);
             eosio_assert_message_code(!chain.empty(), "Chain cannot be empty..", ErrorChainEmpty);
@@ -280,17 +280,17 @@ namespace fioio{
                 });
             }
 
-            //if (appConfig.pmtson) {
+            if (appConfig.pmtson) {
                 // collect fees; Check for funds is implicitly done as part of the funds transfer.
-                //auto fees = trxfees.get_or_default(trxfee());
-                //asset registerFee = fees.upaddress;
+                auto fees = trxfees.get_or_default(trxfee());
+                asset registerFee = fees.upaddress;
                 //print("Collecting registration fees: ", registerFee);
-                //action(permission_level{requestor, N(active)},
-                //       TokenContract, N(transfer),
-                //       make_tuple(requestor, _self, registerFee,
-                //                  string("Registration fees. Thank you."))
-                //).send();
-            //}
+                action(permission_level{requestor, N(active)},
+                       TokenContract, N(transfer),
+                       make_tuple(requestor, _self, registerFee,
+                                  string("Registration fees. Thank you."))
+                ).send();
+            }
             //else {
                 //print("Payments currently disabled.");
             //}
