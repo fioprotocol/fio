@@ -94,9 +94,7 @@ if [ $mChoice == 1 ]; then
     sleep 6s
 
     #Create Accounts
-    pvt_key="EOS6D6gSipBmP1KW9SMB5r4ELjooaogFt77gEs25V9TU9FrxKVeFb"
     echo $'Creating Accounts...\n'
-    echo 'Using Private Key:' $pvt_key
     cleos -u http://localhost:8889 create account eosio fioname11111 EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
     cleos -u http://localhost:8889 create account eosio fioname22222 EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN EOS8ApHc48DpXehLznVqMJgMGPAaJoyMbFJbfDLyGQ5QjF7nDPuvJ
     cleos -u http://localhost:8889 create account eosio fioname33333 EOS8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB EOS8JzoVTmdFCnjs7x2qEq7A4cKgfRatvnohgngUPnZs8XfeFknjL
@@ -124,27 +122,27 @@ if [ $mChoice == 1 ]; then
 elif [ $mChoice == 2 ]; then
     cd tests
     SOURCE="bootstrap"
-    DESTINATION="../build/tests"
+    DESTINATION="../build/"
 
     cp -r "$SOURCE"* "$DESTINATION"
-    cp launcher.py ../build/tests
+    cp launcher.py ../build/
     ls
     cd ..
-    cd build/tests
-    python3 ./launcher.py
+    cd build/
+    python3 ./tests/launcher.py
 
     sleep 3s
 
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    cleos -u http://localhost:8889 --print-request push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
 
 elif [ $mChoice == 3 ]; then
     cd build
     python3 ./tests/startupNodeos.py -v
 
-    sleep 4s
+    sleep 3s
 
     cd ..
 
@@ -154,10 +152,6 @@ elif [ $mChoice == 3 ]; then
     #Bind fio.finance Contract to Chain
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    #Bind EOSIO.Token Contract to Chain
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
-
     #Create Domain
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
@@ -165,7 +159,7 @@ elif [ $mChoice == 3 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
 elif [ $mChoice == 4 ]; then
-    read -p $'WARNING: ALL FILES ( WALLET, BC, AND BUILD ) WILL BE DELETED\n\nContinue? (1. No 2. Yes)' bChoice
+    read -p $'WARNING: ALL FILES ( WALLET, BC, AND BUILD ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
 
     if [ $bChoice == 2 ]; then
         cd scripts

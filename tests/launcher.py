@@ -5,13 +5,20 @@ import os
 import subprocess
 import random
 import string
-#import inspect
 from datetime import datetime
-#from sys import stdout
 import shlex
 import collections
 
+#hostname="localhost"
 hostname="0.0.0.0"
+#hostname="10.201.200.11"
+
+CORE_SYMBOL='FIO'
+#CORE_SYMBOL='SYS'
+
+nPort=8889
+wPort=9899
+
 log_file=open("launcher.detailed.log", "w")
 
 # pylint: disable=too-few-public-methods
@@ -124,46 +131,71 @@ def createAccounts(count):
 
     return accounts
 
-def startup():
+
+
+def startup(logFileStr):
+    logFileName = 'logging.json'
+    if logFileStr:
+        print("Writing out logging input file: " + logFileName)
+        with open(logFileName, 'w') as the_file:
+            the_file.write(logFileStr)
+
     script = """
-# set -x
+set -x
 pkill -9 nodeos
 pkill -9 keosd
 rm -rf test_wallet_0
 rm -rf var
-./bootstrap/eos_boot.sh %(hostname)s
+
+#programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -i 2018-09-12T16:21:19.132 -f --p2p-plugin net --boot --specific-num 00 --specific-nodeos "--http-server-address $MY_INTERFACE:8888" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 1 --contracts-console"
+
+echo Launching EOS nodes listening on host %(hostname)s, port %(nPort)s
+programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -f --p2p-plugin net --specific-num 00 --specific-nodeos "--http-server-address %(hostname)s:%(nPort)s" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 25 --contracts-console --logconf %(logName)s --chain-state-db-size-mb 10240"
 if [ $? -ne 0 ]; then
-    echo "bootstrap/eos_boot.sh failed"
+    echo "Launcher failed"
     exit 1
 fi
 
-programs/keosd/keosd --data-dir test_wallet_0 --config-dir test_wallet_0 --http-server-address=%(hostname)s:9899 &>/dev/null &
+# Privelaged account creation needs to happen before bios
+programs/keosd/keosd --data-dir test_wallet_0 --config-dir test_wallet_0 --http-server-address=%(hostname)s:%(wPort)s &>/dev/null &
 sleep 1
-programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet create --to-console
-# programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet create --file data-dir/pass-file
-echo Importing eosio private key...
-programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet import --private-key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet create --to-console &>/dev/null &
 
-echo Importing eosio. private key...
-# logfile=eosio-ignition-wd/bootlog.txt
-# prisyskey=`grep "^Private key:" $logfile | tail -1 | sed "s/^Private key://"`
-# pubsyskey=`grep "^Public key:" $logfile | tail -1 | sed "s/^Public key://"`
+# import eosio key
+EOSIO_PRVT_KEY=$(cat etc/eosio/node_bios/config.ini | grep private-key | cut -c 73-123)
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key $EOSIO_PRVT_KEY
+
 pubsyskey=EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
 prisyskey=5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY
-echo eosio. public key: $pubsyskey
-programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet import --private-key $prisyskey
-    """ % {"hostname":hostname}
+
+echo Creating FIO system accounts with private key: $prisyskey, public key: $pubsyskey
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s  create account eosio fio.token $pubsyskey $pubsyskey
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s  create account eosio fio.system $pubsyskey $pubsyskey
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s  create account eosio fio.fee $pubsyskey $pubsyskey
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s  create account eosio fio.finance $pubsyskey $pubsyskey
+
+# kill keosd as bios script launches its own
+pkill -9 keosd
+echo Running nodeos bios steps
+bash bios_boot.sh
+if [ $? -ne 0 ]; then
+    echo "bios_boot.sh failed"
+    exit 1
+fi
+
+# bios_boot.sh kills all keosd instances, so restarting it
+rm -rf test_wallet_0
+programs/keosd/keosd --data-dir test_wallet_0 --config-dir test_wallet_0 --http-server-address=%(hostname)s:%(wPort)s &>/dev/null &
+sleep 1
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet create --to-console
+#programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet create --file data-dir/pass-file
+
+# import eosio key
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key $EOSIO_PRVT_KEY
+programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key $prisyskey
+    """ % {"hostname":hostname, "logName":logFileName, "nPort":nPort, "wPort":wPort}
     if Utils.Debug: print("script: %s" % (script))
     ret = os.system("bash -c '%s'" % script)
-    if ret != 0:
-        return (False, ret)
-
-    cmd='programs/cleos/cleos --url http://%s:8889  --wallet-url http://%s:9899 push action -j eosio.token transfer \'{"from":"eosio","to":"fio.system","quantity":"10000000000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % (hostname,hostname)
-
-    print(cmd)
-    print(cmd,file=log_file)
-    log_file.flush()
-    ret=subprocess.call(shlex.split(cmd),stdout=log_file,stderr=log_file)
     if ret != 0:
         return (False, ret)
 
@@ -173,7 +205,8 @@ programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostna
 def activateAccounts(accounts):
     """Activate accounts on the chain."""
     for i in range(len(accounts)):
-        cmd="programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet import --private-key %(key)s" % {"hostname":hostname, "key":accounts[i].ownerPrivateKey}
+        cmd="programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key %(key)s" % {
+            "hostname":hostname, "key":accounts[i].ownerPrivateKey, "nPort":nPort, "wPort":wPort}
         print(cmd)
         print(cmd,file=log_file)
         log_file.flush()
@@ -181,7 +214,8 @@ def activateAccounts(accounts):
         if ret != 0:
             return (False, ret)
 
-        cmd="programs/cleos/cleos --url http://%(hostname)s:8889 --wallet-url http://%(hostname)s:9899 wallet import --private-key %(key)s" % {"hostname":hostname, "key":accounts[i].activePrivateKey}
+        cmd="programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --wallet-url http://%(hostname)s:%(wPort)s wallet import --private-key %(key)s" % {
+            "hostname":hostname, "key":accounts[i].activePrivateKey, "nPort":nPort, "wPort":wPort}
         print(cmd)
         print(cmd,file=log_file)
         log_file.flush()
@@ -189,17 +223,10 @@ def activateAccounts(accounts):
         if ret != 0:
             return (False, ret)
 
-        cmd='programs/cleos/cleos --url http://%s:8889  --wallet-url http://%s:9899 system newaccount -j eosio %s %s %s --stake-net "100 FIO" --stake-cpu "100 FIO" --buy-ram "100 FIO"' % (hostname,hostname,accounts[i].name, accounts[i].ownerPublicKey, accounts[i].activePublicKey)
+        cmd='programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s  --wallet-url http://%(hostname)s:%(wPort)s system newaccount -j --transfer --stake-net "10000000.0000 %(symbol)s" --stake-cpu "10000000.0000 %(symbol)s" --buy-ram "10000000.0000 %(symbol)s" eosio %(name)s %(owner)s %(active)s' % {
+            "hostname":hostname, "symbol":CORE_SYMBOL, "name":accounts[i].name, "owner":accounts[i].ownerPublicKey, "active":accounts[i].activePublicKey, "nPort":nPort, "wPort":wPort}
 
-        print(cmd)
-        print(cmd,file=log_file)
-        log_file.flush()
-        ret=subprocess.call(shlex.split(cmd),stdout=log_file,stderr=log_file)
-        if ret != 0:
-            return (False, ret)
-
-        cmd='programs/cleos/cleos --url http://%s:8889  --wallet-url http://%s:9899 push action -j eosio.token transfer \'{"from":"eosio","to":"%s","quantity":"10000.0000 FIO","memo":"init transfer"}\' --permission eosio@active' % (hostname,hostname,accounts[i].name)
-
+        #print(cmd.split())
         print(cmd)
         print(cmd,file=log_file)
         log_file.flush()
@@ -209,15 +236,87 @@ def activateAccounts(accounts):
 
     return (True, None)
 
+logFileStr="""
+{
+  "includes": [],
+  "appenders": [{
+      "name": "stderr",
+      "type": "console",
+      "args": {
+        "stream": "std_error",
+        "level_colors": [{
+            "level": "debug",
+            "color": "green"
+          },{
+            "level": "warn",
+            "color": "brown"
+          },{
+            "level": "error",
+            "color": "red"
+          }
+        ]
+      },
+      "enabled": true
+    },{
+      "name": "stdout",
+      "type": "console",
+      "args": {
+        "stream": "std_out",
+        "level_colors": [{
+            "level": "debug",
+            "color": "green"
+          },{
+            "level": "warn",
+            "color": "brown"
+          },{
+            "level": "error",
+            "color": "red"
+          }
+        ]
+      },
+      "enabled": true
+    },{
+      "name": "net",
+      "type": "gelf",
+      "args": {
+        "endpoint": "10.160.11.21:12201",
+        "host": "bios"
+      },
+      "enabled": true
+    }
+  ],
+  "loggers": [{
+      "name": "default",
+      "level": "debug",
+      "enabled": true,
+      "additivity": false,
+      "appenders": [
+        "stderr",
+        "net"
+      ]
+    },{
+      "name": "net_plugin_impl",
+      "level": "debug",
+      "enabled": true,
+      "additivity": false,
+      "appenders": [
+        "stderr",
+        "net"
+      ]
+    }
+  ]
+}
+"""
+
 if __name__ == '__main__':
     try:
-        ret1=startup()
+        ret1=startup(logFileStr)
         if not ret1[0]:
             print("ERROR: Failed to startup.")
             exit(1)
 
         names=('fioname11111', 'fioname22222', 'fioname33333')
-        # names=('fioname11111',)
+        #names=('hello.code',) # need a comma at the end to indicate this is a single element tuple, else P breaks string into tuple of characters.
         accounts=getAccounts(len(names))
         for i in range(len(names)):
             accounts[i].name=names[i]
@@ -231,4 +330,3 @@ if __name__ == '__main__':
         log_file.close()
 
 exit(0)
-
