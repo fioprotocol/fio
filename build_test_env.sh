@@ -16,7 +16,7 @@ printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n
 
 echo 'Welcome to the Basic Environment'
 
-read -p $'1. Local Blockchain ( No SDK Support ) 2. Full Launch\n3. Test Install 4. Nuke All\nChoose(#):' mChoice
+read -p $'1. Local Blockchain ( No SDK Support ) 2. Linux(AWS) Launch\n3. MacOS (Test) Install 4. Nuke All\nChoose(#):' mChoice
 
 #Fio Name Directory Check
 if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
@@ -128,14 +128,14 @@ elif [ $mChoice == 2 ]; then
     cp launcher.py ../build/
     cd ..
     cd build/
-    python3 ./tests/launcher.py
+    sh ./linuxLauncher.py
 
     sleep 3s
 
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
 
 elif [ $mChoice == 3 ]; then
     cd build
@@ -154,9 +154,6 @@ elif [ $mChoice == 3 ]; then
     #Create Domain
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
-    #Create Account Name
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
 elif [ $mChoice == 4 ]; then
     read -p $'WARNING: ALL FILES ( WALLET, BC, AND BUILD ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
 
@@ -165,7 +162,9 @@ elif [ $mChoice == 4 ]; then
         sh ./chain_nuke.sh
         find . -name eosio-wallet -type d -exec rm -r {} +
 
-        echo 'NUKE COMPLETE'
+        sh ./fioio_build.sh
+
+        echo $'\n\nNUKE COMPLETE - WELCOME TO YOUR NEW BUILD'
     fi
 
     exit 1
