@@ -16,7 +16,7 @@ printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n
 
 echo 'Welcome to the Basic Environment'
 
-read -p $'1. Local Blockchain ( No SDK Support ) 2. Linux(AWS) Launch\n3. MacOS (Test) Install 4. Nuke All\nChoose(#):' mChoice
+read -p $'1. Local Blockchain ( No SDK Support ) 2. AWS Launch\n3. MacOS (Test) Install 4. Nuke All\nChoose(#):' mChoice
 
 #Fio Name Directory Check
 if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
@@ -135,7 +135,7 @@ elif [ $mChoice == 2 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fioname11111@active
+    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
 elif [ $mChoice == 3 ]; then
     cd build
@@ -152,7 +152,7 @@ elif [ $mChoice == 3 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
     #Create Domain
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
 elif [ $mChoice == 4 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
