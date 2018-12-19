@@ -18,6 +18,37 @@ echo 'Welcome to the Basic Environment'
 
 read -p $'1. Local Blockchain ( No SDK Support ) 2. Full Launch\n3. Test Install 4. Nuke All\nChoose(#):' mChoice
 
+#Fio Name Directory Check
+if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
+    echo 'No wasm file found at $PWD/build/contracts/fio.name'
+    read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
+else
+    fio_contract_name_path="$PWD/build/contracts/fio.name"
+fi
+
+#Fio Finance Directory Check
+if [ -f /build/contracts/fio.finance/fio.finance.wasm ]; then
+    echo 'No wasm file found at $PWD/build/contracts/fio.finance'
+    read -p 'Path to Fio Finance Contract Folder: ' fio_finance_contract_name_path
+else
+    fio_finance_contract_name_path="$PWD/build/contracts/fio.finance"
+fi
+
+#EOSIO Directory Check
+if [ -f /build/contracts/eosio.bios/eosio.bios.wasm ]; then
+    echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
+    read -p 'Path to EOSIO.Token Contract Folder: ' eosio.bios_contract_name_path
+else
+    eosio_bios_contract_name_path="$PWD/build/contracts/eosio.bios"
+fi
+
+if [ -f /build/contracts/eosio.token/eosio.token.wasm ]; then
+    echo 'No wasm file found at $PWD/build/contracts/eosio.token'
+    read -p 'Path to EOSIO.Token Contract Folder: ' eosio.token_contract_name_path
+else
+    eosio_token_contract_name_path="$PWD/build/contracts/eosio.token"
+fi
+
 if [ $mChoice == 1 ]; then
     echo 'Welcome to the Basic Environment'
     echo $'\nEnter Default Wallet Passkey'
@@ -74,37 +105,6 @@ if [ $mChoice == 1 ]; then
     cleos -u http://localhost:8889 create account eosio fio.fee EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
     cleos -u http://localhost:8889 create account eosio fio.finance EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
 
-        #Fio Name Directory Check
-    if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/fio.name'
-        read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
-    else
-        fio_contract_name_path="$PWD/build/contracts/fio.name"
-    fi
-
-    #Fio Finance Directory Check
-    if [ -f /build/contracts/fio.finance/fio.finance.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/fio.finance'
-        read -p 'Path to Fio Finance Contract Folder: ' fio_finance_contract_name_path
-    else
-        fio_finance_contract_name_path="$PWD/build/contracts/fio.finance"
-    fi
-
-    #EOSIO Directory Check
-    if [ -f /build/contracts/eosio.bios/eosio.bios.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
-        read -p 'Path to EOSIO.Token Contract Folder: ' eosio.bios_contract_name_path
-    else
-        eosio_bios_contract_name_path="$PWD/build/contracts/eosio.bios"
-    fi
-
-    if [ -f /build/contracts/eosio.token/eosio.token.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/eosio.token'
-        read -p 'Path to EOSIO.Token Contract Folder: ' eosio.token_contract_name_path
-    else
-        eosio_token_contract_name_path="$PWD/build/contracts/eosio.token"
-    fi
-
     #Bind FIO.NAME Contract to Chain
     cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
 
@@ -124,74 +124,46 @@ if [ $mChoice == 1 ]; then
 elif [ $mChoice == 2 ]; then
     cd tests
     SOURCE="bootstrap"
-    DESTINATION="../build/"
+    DESTINATION="../build/tests"
 
     cp -r "$SOURCE"* "$DESTINATION"
-    cp launcher.py ../build/
+    cp launcher.py ../build/tests
     ls
     cd ..
-    cd build
-    sh ./launcher.py
+    cd build/tests
+    python3 ./launcher.py
 
-    sleep 5s
+    sleep 3s
 
-    #ADD DOMAIN AND NAMES
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
+
+    cleos -u http://localhost:8889 --print-request push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
 
 elif [ $mChoice == 3 ]; then
     cd build
-    sh ./tests/startupNodeos.py -v
+    python3 ./tests/startupNodeos.py -v
 
-    sleep 15s
+    sleep 4s
 
     cd ..
 
-    #Fio Name Directory Check
-    if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/fio.name'
-        read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
-    else
-        fio_contract_name_path="$PWD/build/contracts/fio.name"
-    fi
-
-    #Fio Finance Directory Check
-    if [ -f /build/contracts/fio.finance/fio.finance.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/fio.finance'
-        read -p 'Path to Fio Finance Contract Folder: ' fio_finance_contract_name_path
-    else
-        fio_finance_contract_name_path="$PWD/build/contracts/fio.finance"
-    fi
-
-    #EOSIO Directory Check
-    if [ -f /build/contracts/eosio.bios/eosio.bios.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
-        read -p 'Path to EOSIO.Token Contract Folder: ' eosio.bios_contract_name_path
-    else
-        eosio_bios_contract_name_path="$PWD/build/contracts/eosio.bios"
-    fi
-
-    if [ -f /build/contracts/eosio.token/eosio.token.wasm ]; then
-        echo 'No wasm file found at $PWD/build/contracts/eosio.token'
-        read -p 'Path to EOSIO.Token Contract Folder: ' eosio.token_contract_name_path
-    else
-        eosio_token_contract_name_path="$PWD/build/contracts/eosio.token"
-    fi
-
     #Bind FIO.NAME Contract to Chain
-    cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
 
     #Bind fio.finance Contract to Chain
-    cleos -u http://localhost:8889 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
     #Bind EOSIO.Token Contract to Chain
-    cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
-    cleos -u http://localhost:8889 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
 
     #Create Domain
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
     #Create Account Name
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
 elif [ $mChoice == 4 ]; then
     read -p $'WARNING: ALL FILES ( WALLET, BC, AND BUILD ) WILL BE DELETED\n\nContinue? (1. No 2. Yes)' bChoice
 
