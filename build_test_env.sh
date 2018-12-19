@@ -122,16 +122,15 @@ if [ $mChoice == 1 ]; then
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
 elif [ $mChoice == 2 ]; then
-
     cd tests
     SOURCE="bootstrap"
-    DESTINATION="../build/tests"
+    DESTINATION="../build/"
 
     cp -r "$SOURCE"* "$DESTINATION"
-    cp launcher.py ../build/tests
+    cp launcher.py ../build/
     ls
     cd ..
-    cd build/tests
+    cd build
     sh ./launcher.py
 
     sleep 5s
@@ -194,8 +193,15 @@ elif [ $mChoice == 3 ]; then
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
 elif [ $mChoice == 4 ]; then
-    ch scripts
-    sh ./chain_nuke.sh
+    read -p $'WARNING: ALL FILES ( WALLET, BC, AND BUILD ) WILL BE DELETED\n\nContinue? (1. No 2. Yes)' bChoice
+
+    if [ $bChoice == 2 ]; then
+        cd scripts
+        sh ./chain_nuke.sh
+        find . -name eosio-wallet -type d -exec rm -r {} +
+
+        echo 'NUKE COMPLETE'
+    fi
 
     exit 1
 else
