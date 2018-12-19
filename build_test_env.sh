@@ -128,14 +128,14 @@ elif [ $mChoice == 2 ]; then
     cp linuxLauncher.py ../build/
     cd ..
     cd build/
-    sh ./linuxLauncher.py
+    python3 ./linuxLauncher.py
 
     sleep 3s
 
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fioname11111@active
 
 elif [ $mChoice == 3 ]; then
     cd build
@@ -152,17 +152,15 @@ elif [ $mChoice == 3 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
     #Create Domain
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://0.0.0.0:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
 elif [ $mChoice == 4 ]; then
-    read -p $'WARNING: ALL FILES ( WALLET, BC, AND BUILD ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
+    read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
 
     if [ $bChoice == 2 ]; then
         cd scripts
         sh ./chain_nuke.sh
         find . -name eosio-wallet -type d -exec rm -r {} +
-
-        sh ./fioio_build.sh
 
         echo $'\n\nNUKE COMPLETE - WELCOME TO YOUR NEW BUILD'
     fi
