@@ -126,7 +126,6 @@ elif [ $mChoice == 2 ]; then
 
     cp -r "$SOURCE"* "$DESTINATION"
     cp launcher.py ../build/
-    ls
     cd ..
     cd build/
     python3 ./tests/launcher.py
@@ -134,7 +133,7 @@ elif [ $mChoice == 2 ]; then
     sleep 3s
 
     cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 set contract -j fio.system $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
+    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
     cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
 
