@@ -75,6 +75,35 @@ namespace eosio { namespace chain {
 
    };
 
+    /**
+     *  A transaction consits of a set of messages which must all be applied or
+     *  all are rejected. These messages have access to data within the given
+     *  read and write scopes.
+     */
+    struct fio_transaction : public transaction_header {
+        vector<action>         context_free_actions;
+        vector<fio_action>     actions;
+        extensions_type        transaction_extensions;
+
+        transaction_id_type        id()const;
+        digest_type                sig_digest( const chain_id_type& chain_id, const vector<bytes>& cfd = vector<bytes>() )const;
+        flat_set<public_key_type>  get_signature_keys( const vector<signature_type>& signatures,
+                                                       const chain_id_type& chain_id,
+                                                       const vector<bytes>& cfd = vector<bytes>(),
+                                                       bool allow_duplicate_keys = false,
+                                                       bool use_cache = true )const;
+
+        uint32_t total_actions()const { return context_free_actions.size() + actions.size(); }
+//        account_name first_authorizor()const {
+//            for( const auto& a : actions ) {
+//                for( const auto& u : a.authorization )
+//                    return u.actor;
+//            }
+//            return account_name();
+//        }
+
+    };
+
    struct signed_transaction : public transaction
    {
       signed_transaction() = default;
@@ -129,6 +158,7 @@ namespace eosio { namespace chain {
       fc::enum_type<uint8_t,compression_type> compression;
       bytes                                   packed_context_free_data;
       bytes                                   packed_trx;
+      bool                                    is_fio_trx = false;
 
       time_point_sec     expiration()const;
       transaction_id_type id()const;
@@ -139,13 +169,68 @@ namespace eosio { namespace chain {
       signed_transaction get_signed_transaction()const;
       void               set_transaction(const transaction& t, compression_type _compression = none);
       void               set_transaction(const transaction& t, const vector<bytes>& cfd, compression_type _compression = none);
+      bool               is_fio_transaction() const { return is_fio_trx; }
+      void               set_fio_transaction(const bool fio_trx) { this->is_fio_trx = fio_trx; }
 
    private:
       mutable optional<transaction>           unpacked_trx; // <-- intermediate buffer used to retrieve values
       void local_unpack()const;
    };
 
-   using packed_transaction_ptr = std::shared_ptr<packed_transaction>;
+    struct packed_fio_transaction {
+        enum compression_type {
+            none = 0,
+            zlib = 1,
+        };
+
+        packed_fio_transaction() = default;
+
+        explicit packed_fio_transaction(const transaction& t, compression_type _compression = none)
+        {
+            set_transaction(t, _compression);
+        }
+
+        explicit packed_fio_transaction(const signed_transaction& t, compression_type _compression = none)
+                :signatures(t.signatures)
+        {
+            set_transaction(t, t.context_free_data, _compression);
+        }
+
+        explicit packed_fio_transaction(signed_transaction&& t, compression_type _compression = none)
+                :signatures(std::move(t.signatures))
+        {
+            set_transaction(t, std::move(t.context_free_data), _compression);
+        }
+
+        uint32_t get_unprunable_size()const;
+        uint32_t get_prunable_size()const;
+
+        digest_type packed_digest()const;
+
+        vector<signature_type>                  signatures;
+        fc::enum_type<uint8_t,compression_type> compression;
+        bytes                                   packed_context_free_data;
+        bytes                                   packed_trx;
+
+        time_point_sec     expiration()const;
+        transaction_id_type id()const;
+        transaction_id_type get_uncached_id()const; // thread safe
+        bytes              get_raw_transaction()const; // thread safe
+        vector<bytes>      get_context_free_data()const;
+        transaction        get_transaction()const;
+        signed_transaction get_signed_transaction()const;
+        void               set_transaction(const transaction& t, compression_type _compression = none);
+        void               set_transaction(const transaction& t, const vector<bytes>& cfd, compression_type _compression = none);
+
+    private:
+        mutable optional<transaction>           unpacked_trx; // <-- intermediate buffer used to retrieve values
+        void local_unpack()const;
+    };
+
+
+
+        using packed_transaction_ptr = std::shared_ptr<packed_transaction>;
+   using packed_fio_transaction_ptr = std::shared_ptr<packed_fio_transaction>;
 
    /**
     *  When a transaction is generated it can be scheduled to occur
@@ -194,5 +279,6 @@ FC_REFLECT_DERIVED( eosio::chain::transaction, (eosio::chain::transaction_header
 FC_REFLECT_DERIVED( eosio::chain::signed_transaction, (eosio::chain::transaction), (signatures)(context_free_data) )
 FC_REFLECT_ENUM( eosio::chain::packed_transaction::compression_type, (none)(zlib))
 FC_REFLECT( eosio::chain::packed_transaction, (signatures)(compression)(packed_context_free_data)(packed_trx) )
+FC_REFLECT_ENUM( eosio::chain::packed_fio_transaction::compression_type, (none)(zlib))
 FC_REFLECT_DERIVED( eosio::chain::deferred_transaction, (eosio::chain::signed_transaction), (sender_id)(sender)(payer)(execute_after) )
 FC_REFLECT( eosio::chain::deferred_reference, (sender)(sender_id) )

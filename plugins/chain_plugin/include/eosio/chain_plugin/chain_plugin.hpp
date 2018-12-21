@@ -602,8 +602,15 @@ public:
    };
    void push_transaction(const push_transaction_params& params, chain::plugin_interface::next_function<push_transaction_results> next);
 
+    using register_fio_name_params = fc::variant_object;
+    struct register_fio_name_results {
+        chain::transaction_id_type  transaction_id;
+        fc::variant                 processed;
+    };
+    void register_fio_name(const register_fio_name_params& params, chain::plugin_interface::next_function<register_fio_name_results> next);
 
-   using push_transactions_params  = vector<push_transaction_params>;
+
+    using push_transactions_params  = vector<push_transaction_params>;
    using push_transactions_results = vector<push_transaction_results>;
    void push_transactions(const push_transactions_params& params, chain::plugin_interface::next_function<push_transactions_results> next);
 
@@ -745,6 +752,7 @@ FC_REFLECT( eosio::chain_apis::read_only::avail_check_result, (fio_name)(is_regi
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration) );
+FC_REFLECT( eosio::chain_apis::read_write::register_fio_name_results, (transaction_id)(processed) )
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));

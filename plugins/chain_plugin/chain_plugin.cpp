@@ -1870,6 +1870,54 @@ void read_write::push_transaction(const read_write::push_transaction_params& par
    } CATCH_AND_CALL(next);
 }
 
+void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
+
+  try {
+     auto pretty_input = std::make_shared<packed_transaction>();
+     auto resolver = make_resolver(this, abi_serializer_max_time);
+     try {
+        abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+     } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+
+     pretty_input->set_fio_transaction(true);
+
+//      auto fio_trans = std::make_shared<packed_fio_transaction>();
+//      auto fio_resolver = make_resolver(this, abi_serializer_max_time);
+//      try {
+//          abi_serializer::from_variant(params, *fio_trans, fio_resolver, abi_serializer_max_time);
+//      } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed fio transaction")
+
+      try {
+          abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+      } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+
+     transaction trans = pretty_input->get_transaction();
+     app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+         if (result.contains<fc::exception_ptr>()) {
+            next(result.get<fc::exception_ptr>());
+         } else {
+            auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+            try {
+               chain::transaction_id_type id = trx_trace_ptr->id;
+               fc::variant output;
+               try {
+                  output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+               } catch( chain::abi_exception& ) {
+                  output = *trx_trace_ptr;
+               }
+
+               next(read_write::register_fio_name_results{id, output});
+            } CATCH_AND_CALL(next);
+         }
+     });
+
+
+  } catch ( boost::interprocess::bad_alloc& ) {
+     chain_plugin::handle_db_exhaustion();
+  } CATCH_AND_CALL(next);
+}
+
 static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
    auto wrapped_next = [=](const fc::static_variant<fc::exception_ptr, read_write::push_transaction_results>& result) {
       if (result.contains<fc::exception_ptr>()) {

@@ -430,6 +430,95 @@ class producer_plugin_impl : public std::enable_shared_from_this<producer_plugin
          } CATCH_AND_CALL(send_response);
       }
 
+//    void on_incoming_transaction_async(const packed_fio_transaction_ptr& trx, bool persist_until_expired, next_function<transaction_trace_ptr> next) {
+//       chain::controller& chain = app().get_plugin<chain_plugin>().chain();
+//       if (!chain.pending_block_state()) {
+//          _pending_incoming_transactions.emplace_back(trx, persist_until_expired, next);
+//          return;
+//       }
+//
+//       auto block_time = chain.pending_block_state()->header.timestamp.to_time_point();
+//
+//       auto send_response = [this, &trx, &chain, &next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& response) {
+//           next(response);
+//           if (response.contains<fc::exception_ptr>()) {
+//              _transaction_ack_channel.publish(std::pair<fc::exception_ptr, packed_transaction_ptr>(response.get<fc::exception_ptr>(), trx));
+//              if (_pending_block_mode == pending_block_mode::producing) {
+//                 fc_dlog(_trx_trace_log, "[TRX_TRACE] Block ${block_num} for producer ${prod} is REJECTING tx: ${txid} : ${why} ",
+//                         ("block_num", chain.head_block_num() + 1)
+//                                 ("prod", chain.pending_block_state()->header.producer)
+//                                 ("txid", trx->id())
+//                                 ("why",response.get<fc::exception_ptr>()->what()));
+//              } else {
+//                 fc_dlog(_trx_trace_log, "[TRX_TRACE] Speculative execution is REJECTING tx: ${txid} : ${why} ",
+//                         ("txid", trx->id())
+//                                 ("why",response.get<fc::exception_ptr>()->what()));
+//              }
+//           } else {
+//              _transaction_ack_channel.publish(std::pair<fc::exception_ptr, packed_transaction_ptr>(nullptr, trx));
+//              if (_pending_block_mode == pending_block_mode::producing) {
+//                 fc_dlog(_trx_trace_log, "[TRX_TRACE] Block ${block_num} for producer ${prod} is ACCEPTING tx: ${txid}",
+//                         ("block_num", chain.head_block_num() + 1)
+//                                 ("prod", chain.pending_block_state()->header.producer)
+//                                 ("txid", trx->id()));
+//              } else {
+//                 fc_dlog(_trx_trace_log, "[TRX_TRACE] Speculative execution is ACCEPTING tx: ${txid}",
+//                         ("txid", trx->id()));
+//              }
+//           }
+//       };
+//
+//       auto id = trx->id();
+//       if( fc::time_point(trx->expiration()) < block_time ) {
+//          send_response(std::static_pointer_cast<fc::exception>(std::make_shared<expired_tx_exception>(FC_LOG_MESSAGE(error, "expired transaction ${id}", ("id", id)) )));
+//          return;
+//       }
+//
+//       if( chain.is_known_unexpired_transaction(id) ) {
+//          send_response(std::static_pointer_cast<fc::exception>(std::make_shared<tx_duplicate>(FC_LOG_MESSAGE(error, "duplicate transaction ${id}", ("id", id)) )));
+//          return;
+//       }
+//
+//       auto deadline = fc::time_point::now() + fc::milliseconds(_max_transaction_time_ms);
+//       bool deadline_is_subjective = false;
+//       if (_max_transaction_time_ms < 0 || (_pending_block_mode == pending_block_mode::producing && block_time < deadline) ) {
+//          deadline_is_subjective = true;
+//          deadline = block_time;
+//       }
+//
+//       try {
+//          auto trace = chain.push_transaction(std::make_shared<transaction_metadata>(*trx), deadline);
+//          if (trace->except) {
+//             if (failure_is_subjective(*trace->except, deadline_is_subjective)) {
+//                _pending_incoming_transactions.emplace_back(trx, persist_until_expired, next);
+//                if (_pending_block_mode == pending_block_mode::producing) {
+//                   fc_dlog(_trx_trace_log, "[TRX_TRACE] Block ${block_num} for producer ${prod} COULD NOT FIT, tx: ${txid} RETRYING ",
+//                           ("block_num", chain.head_block_num() + 1)
+//                                   ("prod", chain.pending_block_state()->header.producer)
+//                                   ("txid", trx->id()));
+//                } else {
+//                   fc_dlog(_trx_trace_log, "[TRX_TRACE] Speculative execution COULD NOT FIT tx: ${txid} RETRYING",
+//                           ("txid", trx->id()));
+//                }
+//             } else {
+//                auto e_ptr = trace->except->dynamic_copy_exception();
+//                send_response(e_ptr);
+//             }
+//          } else {
+//             if (persist_until_expired) {
+//                // if this trx didnt fail/soft-fail and the persist flag is set, store its ID so that we can
+//                // ensure its applied to all future speculative blocks as well.
+//                _persistent_transactions.insert(transaction_id_with_expiry{trx->id(), trx->expiration()});
+//             }
+//             send_response(trace);
+//          }
+//
+//       } catch ( const guard_exception& e ) {
+//          app().get_plugin<chain_plugin>().handle_guard_exception(e);
+//       } catch ( boost::interprocess::bad_alloc& ) {
+//          chain_plugin::handle_db_exhaustion();
+//       } CATCH_AND_CALL(send_response);
+//    }
 
       fc::microseconds get_irreversible_block_age() {
          auto now = fc::time_point::now();

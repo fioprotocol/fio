@@ -93,6 +93,38 @@ namespace eosio { namespace chain {
       }
    };
 
+     struct fio_action {
+         action_name                name;
+         bytes                      pub_key;
+         bytes                      data;
+
+         fio_action(){}
+
+         template<typename T, std::enable_if_t<std::is_base_of<bytes, T>::value, int> = 1>
+         fio_action( vector<permission_level> auth, const T& value ) {
+            name        = T::get_name();
+            pub_key.assign(value.pub_keys(), value.pub_keys() + value.size()); // we need to figure out public_key end position
+            data.assign(value.data(), value.data() + value.size());
+         }
+
+         template<typename T, std::enable_if_t<!std::is_base_of<bytes, T>::value, int> = 1>
+         fio_action( vector<permission_level> auth, const T& value ) {
+            name        = T::get_name();
+            pub_key     = fc::raw::pack(value);
+            data        = fc::raw::pack(value);
+         }
+
+         fio_action( action_name name, const bytes& pub_key, const bytes& data )
+                 : name(name), pub_key(pub_key), data(data) {
+         }
+
+         template<typename T>
+         T data_as()const {
+            EOS_ASSERT( name == T::get_name(), action_type_exception, "action name is not consistent with action struct"  );
+            return fc::raw::unpack<T>(data);
+         }
+     };
+
    struct action_notice : public action {
       account_name receiver;
    };
