@@ -1883,8 +1883,6 @@ static void push_next_transaction(const std::shared_ptr<std::vector<signed_trans
         } else {
             if (index + 1 < trxs->size()) {
                 push_next_transaction(trxs, index + 1, next);
-            } else {
-                next(nullptr);
             }
         }
     });
@@ -1897,7 +1895,7 @@ void push_transactions( std::vector<signed_transaction>&& trxs, const std::funct
 
 void create_account(std::string&  new_account, std::string& new_account_pub_key, const std::string& init_name, const std::string& init_priv_key, const std::function<void(const fc::exception_ptr&)>& next) {
     std::vector<signed_transaction> trxs;
-    trxs.reserve(2);
+    trxs.reserve(1);
 
     try {
         name newaccountA(new_account);
@@ -1920,10 +1918,11 @@ void create_account(std::string&  new_account, std::string& new_account_pub_key,
 
             //create "A" account
             {
-                auto owner_auth   = eosio::chain::authority{1, {{txn_text_receiver_A_pub_key, 1}}, {}};
-                auto active_auth  = eosio::chain::authority{1, {{txn_text_receiver_A_pub_key, 1}}, {}};
+                auto owner_auth = eosio::chain::authority{1, {{txn_text_receiver_A_pub_key, 1}}, {}};
+                auto active_auth = eosio::chain::authority{1, {{txn_text_receiver_A_pub_key, 1}}, {}};
 
-                trx.actions.emplace_back(vector<chain::permission_level>{{creator,"active"}}, newaccount{creator, newaccountA, owner_auth, active_auth});
+                trx.actions.emplace_back(vector<chain::permission_level>{{creator, "active"}},
+                                         newaccount{creator, newaccountA, owner_auth, active_auth});
             }
             {
                 action act;
@@ -1938,7 +1937,7 @@ void create_account(std::string&  new_account, std::string& new_account_pub_key,
                 act.account = N(eosio);
                 act.name = N(delegatebw);
                 act.authorization = vector<permission_level>{{creator,config::active_name}};
-                act.data = eosio_system_serializer.variant_to_binary("delegatebw", fc::json::from_string("{\"from\":\""+init_name+"\",\"receiver\":\""+new_account+"\",\"quant\":\"10000.0000 FIO\",\"stake_net_quantity\":\"10000.0000 FIO\",\"stake_cpu_quantity\":\"10000.0000 FIO\",\"transfer\":\"0\"}}"), abi_serializer_max_time);
+                act.data = eosio_system_serializer.variant_to_binary("delegatebw", fc::json::from_string("{\"from\":\""+init_name+"\",\"receiver\":\""+new_account+"\",\"quant\":\"10000.0000 FIO\",\"stake_net_quantity\":\"10000.0000 FIO\",\"stake_cpu_quantity\":\"10000.0000 FIO\",\"transfer\":\"1\"}}"), abi_serializer_max_time);
                 trx.actions.push_back(act);
             }
 
