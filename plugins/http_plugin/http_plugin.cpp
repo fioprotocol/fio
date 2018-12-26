@@ -5,6 +5,7 @@
 #include <eosio/http_plugin/http_plugin.hpp>
 #include <eosio/http_plugin/local_endpoint.hpp>
 #include <eosio/chain/exceptions.hpp>
+#include <eosio/http_plugin/fioio/fioerror.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/log/logger_config.hpp>
@@ -561,7 +562,7 @@ namespace eosio {
       try {
          try {
             throw;
-         } catch (chain::unsatisfied_authorization& e) {
+         } catch (const chain::unsatisfied_authorization& e) {
             error_results results{401, "UnAuthorized", error_results::error_info(e, verbose_http_errors)};
             cb( 401, fc::json::to_string( results ));
          } catch (chain::tx_duplicate& e) {
@@ -572,22 +573,29 @@ namespace eosio {
             cb( 422, fc::json::to_string( results ));
             elog( "Unable to parse arguments to ${api}.${call}", ("api", api_name)( "call", call_name ));
             dlog("Bad arguments: ${args}", ("args", body));
-         } catch (fc::exception& e) {
-            error_results results{500, "Internal Service Error", error_results::error_info(e, verbose_http_errors)};
-            cb( 500, fc::json::to_string( results ));
-            if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
-               elog( "FC Exception encountered while processing ${api}.${call}",
-                     ("api", api_name)( "call", call_name ));
-               dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
+         } catch (const fc::exception& e) {
+            if ( fioio::is_fio_error(e.code()) ) {
+               auto rescode = fioio::get_http_result(e.code());
+               elog ("got FIO error code ${f}",("f",rescode));
+               cb( rescode, e.what());
+            }
+            else {
+               error_results results{500 , "Internal Service Error - fc", error_results::error_info(e, verbose_http_errors)};
+               cb( 500, fc::json::to_string( results ));
+               if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
+                  elog( "FC Exception encountered while processing ${api}.${call}",
+                        ("api", api_name)( "call", call_name ));
+                  dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
+               }
             }
          } catch (std::exception& e) {
-            error_results results{500, "Internal Service Error", error_results::error_info(fc::exception( FC_LOG_MESSAGE( error, e.what())), verbose_http_errors)};
+            error_results results{500, "Internal Service Error - std", error_results::error_info(fc::exception( FC_LOG_MESSAGE( error, e.what())), verbose_http_errors)};
             cb( 500, fc::json::to_string( results ));
             elog( "STD Exception encountered while processing ${api}.${call}",
                   ("api", api_name)( "call", call_name ));
             dlog( "Exception Details: ${e}", ("e", e.what()));
          } catch (...) {
-            error_results results{500, "Internal Service Error",
+            error_results results{500, "Internal Service Error - other",
                error_results::error_info(fc::exception( FC_LOG_MESSAGE( error, "Unknown Exception" )), verbose_http_errors)};
             cb( 500, fc::json::to_string( results ));
             elog( "Unknown Exception encountered while processing ${api}.${call}",
