@@ -13,6 +13,7 @@
  *  Ciju John  8-30-2018
  *  Adam Androulidakis  8-29-2018
  *  Ed Rotthoff 10-26-2018
+ *  Phil Mesnier 12-26-2018
  */
 
 #include <eosiolib/asset.hpp>
@@ -82,7 +83,6 @@ namespace fioio{
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                //eosio_assert_message_code(domains_iter == domains.end(), Code_400_Result ("name",name,"already registered").to_json().c_str(), ErrorDomainAlreadyRegistered);
                 fio_400_assert(domains_iter == domains.end(), "name", name, "already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
@@ -104,7 +104,6 @@ namespace fioio{
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
                 fio_400_assert(domains_iter != domains.end(), "name", name, "Domain not yet registered.", ErrorDomainNotRegistered);
-                //eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
 

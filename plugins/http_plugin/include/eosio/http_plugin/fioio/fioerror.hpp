@@ -1,9 +1,23 @@
+/** FioError definitions file
+ *  Description: Contains helper functions to generate appropriately formatted http error messages
+ *               that are returned by the HTTP messaging layer when an assertion test fails.
+ *  @author Phil Mesnier
+ *  @file fioerror.hpp
+ *  @copyright Dapix
+ *
+ *  Changes:
+ */
+
 #pragma once
 
 namespace fioio {
    using namespace std;
 
-   // error codes
+   /**
+    * error code definition. Error codes are bitfielded uint64_t values.
+    * The fields are: An itentifier, 'FIO\0', then http error code and finally a FIO specific error number.
+    */
+
    constexpr auto identOffset = 48;
    constexpr uint64_t ident = uint64_t((('F' << 4) | 'I' << 4) | 'O') << identOffset; // to distinguish the error codes generically
    constexpr auto httpOffset = 32;
@@ -112,7 +126,17 @@ namespace fioio {
          return json_str;
       }
    };
-}
 
-#define fio_400_assert(test,fieldname,fieldvalue,fielderror,fioerrorcode) \
-   eosio_assert_message_code(test, Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), fioerrorcode)
+}
+   /**
+    * helper macros that hide the string conversion tedium
+    */
+
+#define fio_400_assert(test,fieldname,fieldvalue,fielderror,code) \
+         eosio_assert_message_code(test, Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), code)
+
+#define fio_403_assert(test,code) \
+         eosio_assert_message_code(test, Code_403_Result().to_json().c_str(), code)
+
+#define fio_404_assert(test,message,code) \
+         eosio_assert_message_code(test, Code_404_Result(message).to_json().c_str(), code)
