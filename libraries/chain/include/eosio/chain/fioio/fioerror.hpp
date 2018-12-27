@@ -133,10 +133,10 @@ namespace fioio {
     */
 
 #define fio_400_assert(test,fieldname,fieldvalue,fielderror,code) \
-         eosio_assert_message_code(test, Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), code)
+   eosio_assert_message_code(test, fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), code)
 
 #define fio_403_assert(test,code) \
-         eosio_assert_message_code(test, Code_403_Result().to_json().c_str(), code)
+   eosio_assert_message_code(test, fioio::Code_403_Result().to_json().c_str(), code)
 
 #define fio_404_assert(test,message,code) \
-         eosio_assert_message_code(test, Code_404_Result(message).to_json().c_str(), code)
+   eosio_assert_message_code(test, fioio::Code_404_Result(message).to_json().c_str(), code)

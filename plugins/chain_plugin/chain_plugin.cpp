@@ -18,6 +18,8 @@
 
 #include <eosio/chain/eosio_contract.hpp>
 
+#include <eosio/chain/fioio/fioerror.hpp>
+
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
 #include <eosio/chain/wast_to_wasm.hpp>

@@ -20,7 +20,7 @@
 #include "fio.name.hpp"
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
-#include <eosio/http_plugin/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/fioerror.hpp>
 #include <climits>
 
 namespace fioio{
