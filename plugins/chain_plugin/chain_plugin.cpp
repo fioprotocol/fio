@@ -15,6 +15,7 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
+#include <eosio/chain/actionmapping.hpp>
 
 #include <eosio/chain/eosio_contract.hpp>
 
@@ -1699,7 +1700,6 @@ auto make_resolver(const Api* api, const fc::microseconds& max_serialization_tim
    return resolver_factory<Api>::make(api, max_serialization_time);
 }
 
-
 read_only::get_scheduled_transactions_result
 read_only::get_scheduled_transactions( const read_only::get_scheduled_transactions_params& p ) const {
    const auto& d = db.db();
@@ -2136,18 +2136,14 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
    return result;
 }
 
-
-
 read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
    serialize_json_result result;
 
    name code = 0;
-   if (params.action.to_string() == regfioaddress_action || params.action.to_string() == addaddress_action)
-	   	code = ::eosio::string_to_name(fio_system_acct.c_str());
-   else if (params.action.to_string() == requestfunds_action)
-	  	code = ::eosio::string_to_name(fio_finance_acct.c_str());
-   else
-		code = ::eosio::string_to_name(system_acct.c_str());
+   string actionname;
+
+   actionname = fioio::returncontract(params.action.to_string());
+   code = ::eosio::string_to_name(actionname.c_str());
 
    const auto code_account = db.db().find<account_object,by_name>( code );
    EOS_ASSERT(code_account != nullptr, contract_query_exception, "Contract can't be found ${contract}", ("contract", code));
@@ -2168,7 +2164,6 @@ read_only::serialize_json_result read_only::serialize_json( const read_only::ser
    return result;
 } FC_RETHROW_EXCEPTIONS( warn, "action: ${action}, args: ${args}",
                          ( "action", params.action )( "args", params.json ))
-
 
 
 read_only::get_required_keys_result read_only::get_required_keys( const get_required_keys_params& params )const {
