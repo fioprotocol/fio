@@ -293,7 +293,6 @@ public:
    ////////////////
    // FIO COMMON //
 
-   //TODO MAS-124
    const string fio_system_code = "fio.system";    // FIO name contract account
    const string fio_system_scope = "fio.system";   // FIO name contract scope
    const string fio_address_table = "fionames"; // FIO Address Table
