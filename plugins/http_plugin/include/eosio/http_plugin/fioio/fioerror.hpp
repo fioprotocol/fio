@@ -133,25 +133,6 @@ namespace fioio {
     * helper macros that hide the string conversion tedium
     */
 
-#define FIO_400_ASSERT(expr,fieldname,fieldvalue,fielderror,code) \
-   FC_MULTILINE_MACRO_BEGIN                                           \
-   if( !(expr) )                                                      \
-      throw eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str()); \
-   FC_MULTILINE_MACRO_END
-
-#define FIO_403_ASSERT(expr,code) \
-   FC_MULTILINE_MACRO_BEGIN                                           \
-   if( !(expr) )                                                      \
-      throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_403_Result().to_json().c_str()); \
-   FC_MULTILINE_MACRO_END
-
-#define FIO_404_ASSERT(expr,message,code) \
-   FC_MULTILINE_MACRO_BEGIN                                           \
-   if( !(expr) )                                                      \
-      throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_400_Result(message).to_json().c_str()); \
-   FC_MULTILINE_MACRO_END
-
-
 #define fio_400_assert(test,fieldname,fieldvalue,fielderror,code) \
    eosio_assert_message_code(test, fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), code)
 

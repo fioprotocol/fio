@@ -1261,7 +1261,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
    // assert if empty fio name
-   EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
+   //EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
+   FIO_400_ASSERT( !p.fio_name.empty(), "fio_name",p.fio_name,"Invalid empty name", fioio::ErrorInvalidFioNameFormat);
 
    // Split the fio name and domain portions
    string fio_name = "";
