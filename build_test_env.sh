@@ -129,6 +129,7 @@ elif [ $mChoice == 2 ]; then
     cd ..
     cd build/
     python3 ./linuxLauncher.py
+    cd ..
 
     sleep 3s
 
