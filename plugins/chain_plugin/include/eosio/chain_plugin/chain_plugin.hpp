@@ -205,7 +205,6 @@ public:
    get_raw_abi_results get_raw_abi( const get_raw_abi_params& params)const;
 
 
-
    struct abi_json_to_bin_params {
       name         code;
       name         action;
@@ -217,7 +216,6 @@ public:
 
    abi_json_to_bin_result abi_json_to_bin( const abi_json_to_bin_params& params )const;
 
-
    struct abi_bin_to_json_params {
       name         code;
       name         action;
@@ -228,9 +226,7 @@ public:
    };
 
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
-
-
-
+  
   struct serialize_json_params {
 
 	  name         action;
@@ -241,11 +237,7 @@ public:
    };
 
    serialize_json_result serialize_json( const serialize_json_params& params )const;
-
-
-
-
-
+  
    struct get_required_keys_params {
       fc::variant transaction;
       flat_set<public_key_type> available_keys;
@@ -289,7 +281,7 @@ public:
 
    struct get_table_rows_result {
       vector<fc::variant> rows; ///< one row per item, either encoded as hex String or JSON object
-      bool                more = false; ///< true if last element in data is not the end and sizeof data() < limit
+      bool        more = false; ///< true if last element in data is not the end and sizeof data() < limit
    };
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
@@ -319,7 +311,7 @@ public:
        string is_domain = "false";
        string address ="";
        //the expiration is an epoch date, number of seconds since midnight 1970.
-       string expiration="";
+       string expiration = "";
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
@@ -343,7 +335,7 @@ public:
     };
     struct fio_key_lookup_result {
         string name = "";   // FIO name
-        string expiration="";
+        string expiration = "";
     };
 
     /**
@@ -473,6 +465,7 @@ public:
       const uint64_t table_with_index = get_table_index_name(p, primary);
       const auto* t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(boost::make_tuple(p.code, scope, p.table));
       const auto* index_t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(boost::make_tuple(p.code, scope, table_with_index));
+
       if (t_id != nullptr && index_t_id != nullptr) {
          const auto& secidx = d.get_index<IndexType, chain::by_secondary>();
          decltype(index_t_id->id) low_tid(index_t_id->id._id);
