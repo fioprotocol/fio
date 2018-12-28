@@ -226,9 +226,9 @@ public:
    };
 
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
-	
+  
   struct serialize_json_params {
-      
+
 	  name         action;
       fc::variant  json;
    };
@@ -237,7 +237,7 @@ public:
    };
 
    serialize_json_result serialize_json( const serialize_json_params& params )const;
-	
+  
    struct get_required_keys_params {
       fc::variant transaction;
       flat_set<public_key_type> available_keys;
@@ -286,8 +286,21 @@ public:
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
 
-   const string fio_name_code = "fio.system";    // FIO name contract account
-   const string fio_name_scope = "fio.system";   // FIO name contract scope
+   ////////////////
+   // FIO COMMON //
+
+   const string system_acct = "eosio"; // Blockchain system account
+   const string fio_system_code = "fio.system";    // FIO name contract account
+   const string fio_system_acct = "fio.system";    // FIO name contract account
+   const string fio_system_scope = "fio.system";   // FIO name contract scope
+   const string fio_finance_acct = "fio.finance"; //  FIO finance contract account
+   const string regfioaddress_action = "registername"; // FIO address registration contract action
+   const string addaddress_action = "addaddress"; // FIO contract add address action
+   const string requestfunds_action = "requestfunds"; // FIO finance contract funds request action
+   const string cancelrqst_action = "cancelrqst"; // FIO finance contract cancel request action
+   const string fio_address_table = "fionames"; // FIO Address Table
+   const string fio_domains_table = "domains"; // FIO Domains Table
+
    struct fio_name_lookup_params {
        string fio_name;  // FIO complete account name e.g. john.fio
        string chain;     // chain name e.g. BTC, ETH, EOS etc.

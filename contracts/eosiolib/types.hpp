@@ -61,14 +61,14 @@ namespace eosio {
 
       return value;
    }
-	
+
 	   /**
     *  Converts a string to a uint64_t. This is a constexpr so that
     *  this method can be used in template arguments as well.
     *
     *  @brief Converts a string to a uint64_t.
     *  @param str - String representation of the name
-    *  @return constexpr uint64_t - 64-bit unsigned integer form of the string for hashing 
+    *  @return constexpr uint64_t - 64-bit unsigned integer form of the string for hashing
     *  @ingroup types
     */
    static constexpr uint64_t string_to_uint64_t( const char* str ) {
@@ -95,7 +95,7 @@ namespace eosio {
 
       return value;
    }
-	
+
 
 
    /**
@@ -197,6 +197,23 @@ namespace eosio {
             str = str.substr(0, last + 1);
       }
    };
+
+
+/* Not yet implemented
+   static constexpr uint64_t pubaddress_to_uint64_t( const char* str ) {
+     uint64_t out = 0;
+     uint32_t len = 0;
+     while( str[len] ) ++len;
+
+     for (uint32_t i = len; len >= 0; len--) {
+
+
+
+     }
+
+     return out;
+   }
+*/
 
 } // namespace eosio
 

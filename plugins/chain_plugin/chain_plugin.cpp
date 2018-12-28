@@ -18,6 +18,8 @@
 
 #include <eosio/chain/eosio_contract.hpp>
 
+#include <eosio/chain/fioio/fioerror.hpp>
+
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
 #include <eosio/chain/wast_to_wasm.hpp>
@@ -1138,6 +1140,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
    const string fio_scope = fio_name_scope;
+
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
@@ -1155,8 +1158,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    //get the domain, check if the domain is expired.
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
            .code=code,
-           .scope=fio_scope,
-           .table="domains",
+           .scope=fio_system_scope,
+           .table=fio_domains_table,
            .lower_bound=boost::lexical_cast<string>(domain_hash),
            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
            .encode_type="dec"};
@@ -1184,8 +1187,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
         //query the names table and check if the name is expired
         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                 .code=code,
-                .scope=fio_scope,
-                .table="fionames",
+                .scope=fio_system_scope,
+                .table=fio_address_table,
                 .lower_bound=boost::lexical_cast<string>(name_hash),
                 .upper_bound=boost::lexical_cast<string>(name_hash + 1),
                 .encode_type="dec"};
@@ -1249,7 +1252,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
    // assert if empty fio name
-   EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
+   //EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
+   FIO_400_ASSERT( !p.fio_name.empty(), "fio_name",p.fio_name,"Invalid empty name", fioio::ErrorInvalidFioNameFormat);
 
    // Split the fio name and domain portions
    string fio_name = "";
@@ -1270,8 +1274,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    }
 
    //declare variables.
-   const string fio_code_name = fio_name_code;
-   const name code = ::eosio::string_to_name(fio_code_name.c_str());
+   const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
    const string fio_scope = fio_name_scope;
@@ -1288,8 +1291,8 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
            .code=code,
-           .scope=fio_scope,
-           .table="domains",
+           .scope=fio_system_scope,
+           .table=fio_domains_table,
            .lower_bound=boost::lexical_cast<string>(domain_hash),
            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
            .encode_type="dec"};
@@ -1328,8 +1331,8 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
               .code=code,
-              .scope=fio_scope,
-              .table="fionames",
+              .scope=fio_system_scope,
+              .table=fio_address_table,
               .lower_bound=boost::lexical_cast<string>(name_hash),
               .upper_bound=boost::lexical_cast<string>(name_hash + 1),
               .encode_type="dec"};
@@ -1369,7 +1372,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    }
 
    // name checked and set
-   result.is_registered = "true";
+   result.is_registered = true;
 
    return result;
 }
@@ -1378,7 +1381,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    // assert if empty chain key
    EOS_ASSERT( !p.key.empty(), chain::contract_table_query_exception,"Empty key string");
    EOS_ASSERT( !p.chain.empty(), chain::contract_table_query_exception,"Empty chain string");
-
+   
    const string fio_code_name = fio_name_code;   // code
    const name code = ::eosio::string_to_name(fio_code_name.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
@@ -1409,7 +1412,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    get_table_rows_params table_row_params = get_table_rows_params{
            .json        = true,
            .code        = code,
-           .scope       = fio_scope,
+           .scope       = fio_system_scope,
            .table       = fio_key_lookup_table,
            .lower_bound = boost::lexical_cast<string>(key_hash),
            .upper_bound = boost::lexical_cast<string>(key_hash + 1),
@@ -2141,18 +2144,18 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
    return result;
 }
 
-	
-	
+
+
 read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
    serialize_json_result result;
- 
+
    name code = 0;
-   if (params.action.to_string() == "registername" || params.action.to_string() == "addaddress")
-	   	code = ::eosio::string_to_name("fio.system");
-   else if (params.action.to_string() == "requestfunds")
-	  	code = ::eosio::string_to_name("fio.finance");
+   if (params.action.to_string() == regfioaddress_action || params.action.to_string() == addaddress_action)
+	   	code = ::eosio::string_to_name(fio_system_acct.c_str());
+   else if (params.action.to_string() == requestfunds_action)
+	  	code = ::eosio::string_to_name(fio_finance_acct.c_str());
    else
-		code = ::eosio::string_to_name("eosio");
+		code = ::eosio::string_to_name(system_acct.c_str());
 
    const auto code_account = db.db().find<account_object,by_name>( code );
    EOS_ASSERT(code_account != nullptr, contract_query_exception, "Contract can't be found ${contract}", ("contract", code));
@@ -2174,8 +2177,8 @@ read_only::serialize_json_result read_only::serialize_json( const read_only::ser
 } FC_RETHROW_EXCEPTIONS( warn, "action: ${action}, args: ${args}",
                          ( "action", params.action )( "args", params.json ))
 
-	
-	
+
+
 read_only::get_required_keys_result read_only::get_required_keys( const get_required_keys_params& params )const {
    transaction pretty_input;
    auto resolver = make_resolver(this, abi_serializer_max_time);

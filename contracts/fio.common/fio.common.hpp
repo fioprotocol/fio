@@ -16,6 +16,14 @@
 #define TOKEN_CONTRACT "eosio.token"
 #endif
 
+#ifndef FIO_SYSTEM
+#define FIO_SYSTEM "fio.system"
+#endif
+
+#ifndef DAYTOSECONDS
+#define DAYTOSECONDS 31561920
+#endif
+
 namespace fioio {
 
     using namespace eosio;
