@@ -2139,11 +2139,8 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
 read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
    serialize_json_result result;
 
-   name code = 0;
-   string actionname;
-
-   actionname = fioio::returncontract(params.action.to_string());
-   code = ::eosio::string_to_name(actionname.c_str());
+   string actionname = fioio::returncontract(params.action.to_string());
+   name code = ::eosio::string_to_name(actionname.c_str());
 
    const auto code_account = db.db().find<account_object,by_name>( code );
    EOS_ASSERT(code_account != nullptr, contract_query_exception, "Contract can't be found ${contract}", ("contract", code));

@@ -22,19 +22,15 @@ namespace fioio {
     vector<string> fioFinanceActions;
 
     static void Set_map(void){
-
+        //eosio actions
         eosioActions.push_back("default");
-        //ctType.insert(pair<string, string>("eosio")("default"));
 
-        //ctType.insert(pair<string, string>("fio.system")("registername"));
-        //ctType.insert(pair<string, string>("fio.system")("addaddress"));
+        //fio.system actions
         fiosystemActions.push_back("registername");
         fiosystemActions.push_back("addaddress");
 
+        //fio.finance actions
         fioFinanceActions.push_back("requestfunds");
-        //ctType.insert(pair<string, string>("fio.finance")("requestfunds"));
-
-
     }
 
     static string map_to_contract( string t ){
@@ -51,10 +47,9 @@ namespace fioio {
     }
 
     inline string returncontract(string incomingaction) {
-        string contract;
         Set_map();
 
-        contract = map_to_contract( incomingaction );
+        string contract = map_to_contract( incomingaction );
 
         return contract;
     }
