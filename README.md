@@ -31,23 +31,14 @@ Run: `./build_test_env.sh`
 
 Default Environment Settings:
 
-| Name    | Data   |
-| :-------|:------:|
-| Node Port | 8889 |  
-| Domain    | brd  | 
-| FIO Names | adam , casey |
-    
-Default fio.name Folder: `~../fio/build/contracts/fio.name`
+|    Name    | Data     |
+| :---------|:--------:|
+| Node Port  | 8889 |  
+| Domain     | brd |
+| FIO Names  | adam , casey |
 
-#### Javascript Testing
+Default fio.name Folder: `~../fio/build/contracts/fio.name`  
 
-Navigate to the `~/fio/build/` directory and run the `fioname.js`:
-    
-    cd build
-    node libraries/fio-eosjs2/fioname-test.js
-    
-_Note: `npm install minimist`, `npm install text-encoding`, `npm install eosjs-ecc`, `npm install webpack`, `npm install yarn`, and `npm run build-web` may be required prior to running scripts._ 
-    
 #### Chain Management
 ##### Shutdown Local Test Node
 `./scripts/nodeos_kill.sh`
@@ -56,7 +47,7 @@ _Note: `npm install minimist`, `npm install text-encoding`, `npm install eosjs-e
 
 Run: `./scripts/chain_nuke.sh`
 
-#####Remove Folders Manually:
+**Remove Folders Manually:<br>**
 Linux: `~/.local/nodeos`<br>
 Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/programs/nodeos`<br>
  `~../fio/node2` or `~../fio/scripts/node2` depending on the location the nodes have been launched at.
