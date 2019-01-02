@@ -1261,8 +1261,16 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
  */
 read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
+   avail_check_result result;
+
+   //Lower Case
+   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
+
    // assert if empty fio name
-   FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+   if(p.fio_name.empty()){
+      FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+      return result;
+   }
 
    // Split the fio name and domain portions
    string fio_name = "";
@@ -1292,10 +1300,6 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    get_table_rows_result fioname_result;
    get_table_rows_result name_result;
    get_table_rows_result domain_result;
-   avail_check_result result;
-
-   //Lower Case
-   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
 
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
            .code=code,
