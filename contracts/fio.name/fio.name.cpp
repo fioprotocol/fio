@@ -13,33 +13,18 @@
  *  Ciju John  8-30-2018
  *  Adam Androulidakis  8-29-2018
  *  Ed Rotthoff 10-26-2018
+ *  Phil Mesnier 12-26-2018
  */
 
 #include <eosiolib/asset.hpp>
 #include "fio.name.hpp"
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
-
+#include <eosio/chain/fioio/fioerror.hpp>
 #include <climits>
 
 namespace fioio{
-    // error codes
-    static const uint64_t
-            ErrorDomainAlreadyRegistered =   100,   // Domain is already registered.
-            ErrorDomainNotRegistered =       101,   // Domain not yet registered.
-            ErrorFioNameAlreadyRegistered =  102,   // Fioname is already registered.
-            ErrorFioNameEmpty =              103,   // FIO user name is empty.
-            ErrorChainEmpty =                104,   // Chain name is empty.
-            ErrorChainAddressEmpty =         105,   // Chain address is empty.
-            ErrorChainContainsWhiteSpace =   106,   // Chain address contains whitespace.
-            ErrorChainNotSupported =         107,   // Chain isn't supported.
-            ErrorFioNameNotRegistered =      108,   // Fioname not yet registered.
-            ErrorDomainExpired =             109,   // Fioname not yet registered.
-            ErrorFioNameExpired =            110,   // Fioname not yet registered.
-            ErrorPubAddressEmpty =           111,   // Public address is empty.
-            ErrorPubKeyEmpty =               112,   // Public key is empty.
-            ErrorPubAddressExist =           113;   // Public address exists.
-            
+
     class FioNameLookup : public contract {
         private:
         domains_table domains;
@@ -98,7 +83,7 @@ namespace fioio{
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                eosio_assert_message_code(domains_iter == domains.end(), "Domain is already registered.", ErrorDomainAlreadyRegistered);
+                fio_400_assert(domains_iter == domains.end(), "name", name, "already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 //get the expiration for this new domain.
@@ -118,14 +103,14 @@ namespace fioio{
 
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                eosio_assert_message_code(domains_iter != domains.end(), "Domain not yet registered.", ErrorDomainNotRegistered);
+                fio_400_assert(domains_iter != domains.end(), "name", name, "Domain not yet registered.", ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
 
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                eosio_assert(present_time <= domain_expiration,"Domain has expired.");
+                eosio_assert_message_code (present_time <= domain_expiration,"Domain has expired.", ErrorDomainExpired);
 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
