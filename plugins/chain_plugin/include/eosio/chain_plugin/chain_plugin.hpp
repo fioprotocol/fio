@@ -229,6 +229,7 @@ public:
 
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
 
+
   struct serialize_json_params {
 
 	  name         action;
@@ -239,6 +240,7 @@ public:
    };
 
    serialize_json_result serialize_json( const serialize_json_params& params )const;
+
 
    struct get_required_keys_params {
       fc::variant transaction;

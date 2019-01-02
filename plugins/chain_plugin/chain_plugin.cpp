@@ -19,8 +19,6 @@
 
 #include <eosio/chain/eosio_contract.hpp>
 
-#include <eosio/chain/fioio/fioerror.hpp>
-
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
 #include <eosio/chain/wast_to_wasm.hpp>
@@ -1262,8 +1260,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
    // assert if empty fio name
-   //EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
-   FIO_400_ASSERT( !p.fio_name.empty(), "fio_name",p.fio_name,"Invalid empty name", fioio::ErrorInvalidFioNameFormat);
+   EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 
    // Split the fio name and domain portions
    string fio_name = "";
