@@ -23,7 +23,6 @@
 #include <climits>
 
 namespace fioio{
-
     // error codes
     static const uint64_t
             ErrorDomainAlreadyRegistered =   100,   // Domain is already registered.
@@ -40,7 +39,7 @@ namespace fioio{
             ErrorPubAddressEmpty =           111,   // Public address is empty.
             ErrorPubKeyEmpty =               112,   // Public key is empty.
             ErrorPubAddressExist =           113;   // Public address exists.
-
+            
     class FioNameLookup : public contract {
         private:
         domains_table domains;
