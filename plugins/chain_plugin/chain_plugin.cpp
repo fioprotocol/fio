@@ -1263,9 +1263,6 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    avail_check_result result;
 
-   //Lower Case
-   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
-
    // assert if empty fio name
    if(p.fio_name.empty()){
       FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
@@ -1279,15 +1276,18 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    int pos = p.fio_name.find('.');
    bool domainOnly = false;
 
-   if (pos == string::npos) {
-      fio_domain = p.fio_name;
-   } else {
-      fio_name = p.fio_name.substr(0, pos);
-      fio_domain = p.fio_name.substr(pos + 1, string::npos);
+   //Lower Case
+   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
 
-      if(fio_name.size() < 1){
-          domainOnly = true;
-      }
+   if (pos == string::npos) {
+       fio_domain = result.fio_name;
+   } else {
+       fio_name = result.fio_name.substr(0, pos);
+       fio_domain = result.fio_name.substr(pos + 1, string::npos);
+
+       if(fio_name.size() < 1){
+           domainOnly = true;
+       }
    }
 
    //declare variables.
@@ -1315,30 +1315,19 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
     if (fio_domain.size() >= 1 && fio_domain.size() <= 50 && !domainOnly){
         if(fio_domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
             result.is_registered = "Invalid fio_name format";
-            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name1", fioio::ErrorInvalidFioNameFormat);
             return result;
         }
         else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-'){
             result.is_registered = "Invalid fio_name format";
-            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name2", fioio::ErrorInvalidFioNameFormat);
             return result;
         }
     } else {
         result.is_registered = "Invalid fio_name";
-        FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+        FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name3", fioio::ErrorInvalidFioNameFormat);
         return result;
     }
-
-   if (domain_result.rows.empty()) {
-      return result;
-   }
-
-   uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
-   uint32_t present_time = (uint32_t)time(0);
-
-   if (present_time > domain_expiration) {
-      return result;
-   }
 
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -1353,20 +1342,20 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
       //Name validation.
       if (fio_name.size() >= 1 && fio_name.size() <= 50){
-         if( fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-.") != std::string::npos) {
+         if(fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
             result.is_registered = "Invalid fio_name format";
-             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name4", fioio::ErrorInvalidFioNameFormat);
             return result;
          }
          else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-'){
              result.is_registered = "Invalid fio_name format";
-             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name5", fioio::ErrorInvalidFioNameFormat);
              return result;
          }
       } else {
-         result.is_registered = "Invalid fio_name";
-          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-         return result;
+          result.is_registered = "Invalid fio_name";
+          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name6", fioio::ErrorInvalidFioNameFormat);
+          return result;
       }
 
       if (fioname_result.rows.empty()) {
@@ -1381,6 +1370,17 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
       if (present_time > name_expiration) {
          return result;
       }
+   }
+
+   if (domain_result.rows.empty()) {
+       return result;
+   }
+
+   uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
+   uint32_t present_time = (uint32_t)time(0);
+
+   if (present_time > domain_expiration) {
+       return result;
    }
 
    // name checked and set
