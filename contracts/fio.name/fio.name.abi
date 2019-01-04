@@ -79,6 +79,20 @@
           "type": "string"
         }
       ]
+     },{
+      "name": "chainpair",
+      "base": "",
+      "fields": [{
+          "name": "index",
+          "type": "uint64"
+        },{
+          "name": "chainname",
+          "type": "string"
+        },{
+          "name": "chainhash",
+          "type": "uint64"
+        }
+      ]
     },{
       "name": "registername",
       "base": "",
@@ -94,13 +108,13 @@
       "name": "addaddress",
       "base": "",
       "fields": [{
-          "name": "fio_user_name",
+          "name": "fio_address",
           "type": "string"
         },{
           "name": "chain",
           "type": "string"
         },{
-          "name": "address",
+          "name": "pub_address",
           "type": "string"
         },{
           "name": "requestor",

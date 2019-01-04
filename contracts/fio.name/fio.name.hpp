@@ -105,16 +105,16 @@ namespace fioio {
             indexed_by<N(bypubkey), const_mem_fun<fiopubaddr, uint64_t, &fiopubaddr::by_pubkey> > > fiopubs_table;
 
     //Blockchain Support Container
-    struct chain_pair {
+    struct chainpair {
         uint64_t index;
-        string chain_name;
+        string chainname;
         uint64_t chainhash = 0;
 
         uint64_t primary_key() const { return chainhash; }
-        EOSLIB_SERIALIZE(chain_pair, (index)(chain_name)(chainhash))
+        EOSLIB_SERIALIZE(chainpair, (index)(chainname)(chainhash))
     };
 
-    typedef multi_index<N(chainList), chain_pair> chain_table;
+    typedef multi_index<N(chainList), chainpair> chaintable;
 
 //    struct config {
 //        name tokencontr; // owner of the token contract

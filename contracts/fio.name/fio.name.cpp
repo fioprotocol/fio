@@ -34,7 +34,7 @@ namespace fioio{
         fiopubs_table fiopubs;
         config appConfig;
 
-        chain_table chainlist;
+        chaintable chainlist;
         int chainlistsize;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
@@ -202,9 +202,9 @@ namespace fioio{
             uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
 
             if( chain_iter == chainlist.end() ){
-                chainlist.emplace(_self, [&](struct chain_pair &a){
+                chainlist.emplace(_self, [&](struct chainpair &a){
                     a.index = next_idx;
-                    a.chain_name = chain;
+                    a.chainname = chain;
                     a.chainhash = chainhash;
                 });
             }
