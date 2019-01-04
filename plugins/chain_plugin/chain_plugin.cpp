@@ -1318,7 +1318,9 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
             return result;
         }
-        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-'){
+        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-' ||
+        fio_domain.at(fio_domain.size() - 1) == '-' )
+        {
             result.is_registered = "Invalid fio_name format";
             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
             return result;
@@ -1340,15 +1342,24 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
+      int totalsize = fio_name.size() + fio_domain.size();
+
+      if( totalsize >= 100){
+          result.is_registered = "Invalid fio_name format";
+          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+          return result;
+      }
+
       //Name validation.
-      if (fio_name.size() >= 1 && fio_name.size() < 50){
+      if (fio_name.size() >= 1 && fio_name.size() <= 50){
          if(fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
             result.is_registered = "Invalid fio_name format";
             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
             return result;
          }
          else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-' ||
-            boost::algorithm::equals(fio_name, "-") || fio_name.at(0) == '-'){
+            boost::algorithm::equals(fio_name, "-") || fio_name.at(0) == '-')
+         {
              result.is_registered = "Invalid fio_name format";
              FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
              return result;
