@@ -44,6 +44,8 @@ namespace fioio {
         if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()){
             return "fio.finance";
         }
+
+        return "eosio";
     }
 
     inline string returncontract(string incomingaction) {
