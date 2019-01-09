@@ -195,9 +195,8 @@ namespace fioio{
                 fio_400_assert(false, "chain", my_chain, "Invalid chain format", ErrorInvalidFioNameFormat);
             }
 
-            uint64_t chainHash = ::eosio::string_to_uint64_t(my_chain.c_str());
-            auto chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
-            auto chain_iter = chainlist.find(chainHash);
+            uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
+            auto chain_iter = chainlist.find(chainhash);
 
             uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
 
@@ -219,7 +218,7 @@ namespace fioio{
             //print("Name: ", fio_address, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
 
-            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not registered..", ErrorFioNameNotRegistered);
+            fio_404_assert(fioname_iter == fionames.end(), "FIO Address not registered..", ErrorFioNameNotRegistered);
 
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
