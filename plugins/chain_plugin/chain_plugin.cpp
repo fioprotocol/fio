@@ -1113,24 +1113,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 /***** FIO API BEGIN *****/
 /*************************/
 
-
-// Used by fio_name_lookup
-//enum  class chain_type {
-//    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-//};
-//const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
-//
-//// Convert of chain to chain type
-//inline chain_type str_to_chain_type(const string &chain) {
-//
-//   for (int i = 0; i < chain_str.size(); i++) {
-//	  if (chain == chain_str[i]) {
-//		 return static_cast<chain_type>(i);
-//	  }
-//   }
-//   return chain_type::NONE;
-//}
-
 /***
  * Lookup address by FIO name.
  * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
