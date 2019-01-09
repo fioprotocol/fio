@@ -218,7 +218,7 @@ namespace fioio{
             //print("Name: ", fio_address, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
 
-            fio_404_assert(fioname_iter == fionames.end(), "FIO Address not registered..", ErrorFioNameNotRegistered);
+            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not registered..", ErrorFioNameNotRegistered);
 
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
