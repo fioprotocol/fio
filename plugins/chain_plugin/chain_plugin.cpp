@@ -1966,6 +1966,29 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
         pretty_input->set_fio_transaction(true);
 
+        std::string fio_pub_key;
+        try {
+            const variant& v = params;
+            const variant_object& vo = v.get_object();
+            if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
+                auto pretty_input2 = std::make_shared<packed_transaction>();
+                from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+                pretty_input2->set_fio_transaction(true);
+                transaction my_trx = pretty_input2->get_transaction();
+                vector<action> actions = my_trx.actions;
+                vector<fio_action> fio_actions = my_trx.fio_actions;
+                bytes fio_pub_key = fio_actions[0].fio_pub_key;
+                std::string pub_key(fio_pub_key.begin(),fio_pub_key.end());
+//                string pu_key = fio_actions[0].fio_pub_key
+                string xyz = "123";
+            }
+//            EOS_ASSERT(vo.contains("signatures"), packed_transaction_type_exception, "Missing signatures 2");
+//            EOS_ASSERT(vo.contains("actions"), packed_transaction_type_exception, "Missing actions");
+//            EOS_ASSERT(vo["actions"].get_array().size() > 0, packed_transaction_type_exception, "Missing minimum of one action");
+////            EOS_ASSERT((vo["actions"].get_array()[0]).contains("fio_pub_key"), packed_transaction_type_exception, "Missing FIO public key");
+//            from_variant(vo["actions"].get_array()[0]["fio_pub_key"], fio_pub_key);
+        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
+
 //      auto fio_trans = std::make_shared<packed_fio_transaction>();
 //      auto fio_resolver = make_resolver(this, abi_serializer_max_time);
 //      try {
@@ -1977,6 +2000,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         // for now assume these values
         std::string new_account = "txntestaccnt";
         std::string new_account_pub_key = "EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82";
+//        std::string new_account_pub_key = fio_pub_key;
         std::string creator = "fio.system";
         std::string creator_private_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
 
