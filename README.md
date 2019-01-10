@@ -1,4 +1,4 @@
-
+        
 # FIOIO  
 
 ## Overview
@@ -34,11 +34,11 @@ Default Environment Settings:
 |    Name    | Data     |
 | :---------|:--------:|
 | Node Port  | 8889 |  
-| Domain     | brd | 
+| Domain     | brd |
 | FIO Names  | adam , casey |
-    
+
 Default fio.name Folder: `~../fio/build/contracts/fio.name`  
-    
+
 #### Chain Management
 ##### Shutdown Local Test Node
 `./scripts/nodeos_kill.sh`

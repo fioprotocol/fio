@@ -229,10 +229,8 @@ public:
 
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
 
-
-	
   struct serialize_json_params {
-      
+
 	  name         action;
       fc::variant  json;
    };
@@ -242,10 +240,6 @@ public:
 
    serialize_json_result serialize_json( const serialize_json_params& params )const;
 
-
-	
-	
-	
    struct get_required_keys_params {
       fc::variant transaction;
       flat_set<public_key_type> available_keys;
@@ -294,8 +288,14 @@ public:
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
 
-   const string fio_name_code = "fio.system";    // FIO name contract account
-   const string fio_name_scope = "fio.system";   // FIO name contract scope
+   ////////////////
+   // FIO COMMON //
+
+   const string fio_system_code = "fio.system";    // FIO name contract account
+   const string fio_system_scope = "fio.system";   // FIO name contract scope
+   const string fio_address_table = "fionames"; // FIO Address Table
+   const string fio_domains_table = "domains"; // FIO Domains Table
+
    struct fio_name_lookup_params {
        string fio_name;  // FIO complete account name e.g. john.fio
        string chain;     // chain name e.g. BTC, ETH, EOS etc.
@@ -318,7 +318,7 @@ public:
 
     struct avail_check_result {
         string fio_name = "";
-        string is_registered = "false";
+        bool is_registered = false;
     };
 
     avail_check_result avail_check( const avail_check_params& params) const;

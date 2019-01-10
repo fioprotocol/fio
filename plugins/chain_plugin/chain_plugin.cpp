@@ -15,8 +15,11 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
+#include <eosio/chain/actionmapping.hpp>
 
 #include <eosio/chain/eosio_contract.hpp>
+
+#include <eosio/chain/fioio/fioerror.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
@@ -1154,11 +1157,9 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    }
 
    //declare variables.
-   const string fio_code_name=fio_name_code;
-   const name code = ::eosio::string_to_name(fio_code_name.c_str());
+   const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope=fio_name_scope;
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
@@ -1176,8 +1177,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    //get the domain, check if the domain is expired.
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
            .code=code,
-           .scope=fio_scope,
-           .table="domains",
+           .scope=fio_system_scope,
+           .table=fio_domains_table,
            .lower_bound=boost::lexical_cast<string>(domain_hash),
            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
            .encode_type="dec"};
@@ -1205,8 +1206,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
         //query the names table and check if the name is expired
         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                 .code=code,
-                .scope=fio_scope,
-                .table="fionames",
+                .scope=fio_system_scope,
+                .table=fio_address_table,
                 .lower_bound=boost::lexical_cast<string>(name_hash),
                 .upper_bound=boost::lexical_cast<string>(name_hash + 1),
                 .encode_type="dec"};
@@ -1263,8 +1264,13 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
  */
 read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
+   avail_check_result result;
+
    // assert if empty fio name
-   EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
+   if(p.fio_name.empty()){
+      FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+      return result;
+   }
 
    // Split the fio name and domain portions
    string fio_name = "";
@@ -1273,38 +1279,35 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    int pos = p.fio_name.find('.');
    bool domainOnly = false;
 
-   if (pos == string::npos) {
-      fio_domain = p.fio_name;
-   } else {
-      fio_name = p.fio_name.substr(0, pos);
-      fio_domain = p.fio_name.substr(pos + 1, string::npos);
+   //Lower Case
+   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
 
-      if(fio_name.size() < 1){
-          domainOnly = true;
-      }
+   if (pos == string::npos) {
+       fio_domain = result.fio_name;
+   } else {
+       fio_name = result.fio_name.substr(0, pos);
+       fio_domain = result.fio_name.substr(pos + 1, string::npos);
+
+       if(fio_name.size() < 1){
+           domainOnly = true;
+       }
    }
 
    //declare variables.
-   const string fio_code_name = fio_name_code;
-   const name code = ::eosio::string_to_name(fio_code_name.c_str());
+   const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope=fio_name_scope;
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
    get_table_rows_result fioname_result;
    get_table_rows_result name_result;
    get_table_rows_result domain_result;
-   avail_check_result result;
-
-   //Lower Case
-   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
 
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
            .code=code,
-           .scope=fio_scope,
-           .table="domains",
+           .scope=fio_system_scope,
+           .table=fio_domains_table,
            .lower_bound=boost::lexical_cast<string>(domain_hash),
            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
            .encode_type="dec"};
@@ -1315,62 +1318,63 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
     if (fio_domain.size() >= 1 && fio_domain.size() <= 50 && !domainOnly){
         if(fio_domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
             result.is_registered = "Invalid fio_name format";
-            EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
             return result;
         }
-        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-'){
+        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-' ||
+        fio_domain.at(fio_domain.size() - 1) == '-' )
+        {
             result.is_registered = "Invalid fio_name format";
-            EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
             return result;
         }
     } else {
         result.is_registered = "Invalid fio_name";
-        EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+        FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
         return result;
     }
-
-   if (domain_result.rows.empty()) {
-      return result;
-   }
-
-   uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
-   uint32_t present_time = (uint32_t)time(0);
-
-   if (present_time > domain_expiration) {
-      return result;
-   }
 
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
               .code=code,
-              .scope=fio_scope,
-              .table="fionames",
+              .scope=fio_system_scope,
+              .table=fio_address_table,
               .lower_bound=boost::lexical_cast<string>(name_hash),
               .upper_bound=boost::lexical_cast<string>(name_hash + 1),
               .encode_type="dec"};
 
       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
+      int totalsize = fio_name.size() + fio_domain.size();
+
+      if( totalsize >= 100){
+          result.is_registered = "Invalid fio_name format";
+          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+          return result;
+      }
+
       //Name validation.
       if (fio_name.size() >= 1 && fio_name.size() <= 50){
-         if( fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-.") != std::string::npos) {
+         if(fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
             result.is_registered = "Invalid fio_name format";
-            EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
             return result;
          }
-         else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-'){
+         else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-' ||
+            boost::algorithm::equals(fio_name, "-") || fio_name.at(0) == '-')
+         {
              result.is_registered = "Invalid fio_name format";
-             EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
+             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
              return result;
          }
       } else {
-         result.is_registered = "Invalid fio_name";
-         EOS_ASSERT(false,chain::invalid_fio_name_exception,"Invalid fio_name");
-         return result;
+          result.is_registered = "Invalid fio_name";
+          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+          return result;
       }
 
       if (fioname_result.rows.empty()) {
-         return result;
+          return result;
       }
 
       uint32_t name_expiration = (uint32_t)(fioname_result.rows[0]["expiration"].as_uint64());
@@ -1383,8 +1387,19 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
       }
    }
 
+   if (domain_result.rows.empty()) {
+       return result;
+   }
+
+   uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
+   uint32_t present_time = (uint32_t)time(0);
+
+   if (present_time > domain_expiration) {
+       return result;
+   }
+
    // name checked and set
-   result.is_registered = "true";
+   result.is_registered = true;
 
    return result;
 }
@@ -1406,11 +1421,9 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    chain_type c_type = str_to_chain_type(my_chain);
    EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
-   const string fio_code_name = fio_name_code;   // code
-   const name code = ::eosio::string_to_name(fio_code_name.c_str());
+   const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const string fio_scope = fio_name_scope;    // scope
    string fio_key_lookup_table = "keynames";   // table name
    const uint64_t key_hash = ::eosio::string_to_uint64_t(p.key.c_str()); // hash of block key
 
@@ -1418,7 +1431,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    get_table_rows_params table_row_params = get_table_rows_params{
            .json        = true,
            .code        = code,
-           .scope       = fio_scope,
+           .scope       = fio_system_scope,
            .table       = fio_key_lookup_table,
            .lower_bound = boost::lexical_cast<string>(key_hash),
            .upper_bound = boost::lexical_cast<string>(key_hash + 1),
@@ -1712,7 +1725,6 @@ template<typename Api>
 auto make_resolver(const Api* api, const fc::microseconds& max_serialization_time) {
    return resolver_factory<Api>::make(api, max_serialization_time);
 }
-
 
 read_only::get_scheduled_transactions_result
 read_only::get_scheduled_transactions( const read_only::get_scheduled_transactions_params& p ) const {
@@ -2350,8 +2362,6 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
    return result;
 }
 
-
-
 read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
    serialize_json_result result;
 
@@ -2382,8 +2392,6 @@ read_only::serialize_json_result read_only::serialize_json( const read_only::ser
    return result;
 } FC_RETHROW_EXCEPTIONS( warn, "action: ${action}, args: ${args}",
                          ( "action", params.action )( "args", params.json ))
-
-
 
 read_only::get_required_keys_result read_only::get_required_keys( const get_required_keys_params& params )const {
    transaction pretty_input;
