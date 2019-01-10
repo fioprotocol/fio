@@ -95,7 +95,7 @@ namespace eosio { namespace chain {
 
      struct fio_action {
          action_name                name;
-         bytes                      fio_pub_key;
+         std::string                fio_pub_key;
          bytes                      data;
 
          fio_action(){}
@@ -103,25 +103,19 @@ namespace eosio { namespace chain {
          template<typename T, std::enable_if_t<std::is_base_of<bytes, T>::value, int> = 1>
          fio_action( vector<permission_level> auth, const T& value ) {
             name        = T::get_name();
-            fio_pub_key.assign(value.fio_pub_key(), value.fio_pub_key() + value.size()); // we need to figure out public_key end position
+            fio_pub_key = T::get_fio_pub_key();
             data.assign(value.data(), value.data() + value.size());
          }
 
          template<typename T, std::enable_if_t<!std::is_base_of<bytes, T>::value, int> = 1>
          fio_action( vector<permission_level> auth, const T& value ) {
             name        = T::get_name();
-             fio_pub_key     = fc::raw::pack(value);
+            fio_pub_key     = T::get_fio_pub_key(value);
             data        = fc::raw::pack(value);
          }
 
-         fio_action( action_name name, const bytes& fio_pub_key, const bytes& data )
+         fio_action( action_name name, const std::string& fio_pub_key, const bytes& data )
                  : name(name), fio_pub_key(fio_pub_key), data(data) {
-         }
-
-         template<typename T>
-         T fio_pub_key_as()const {
-//             EOS_ASSERT( name == T::get_name(), action_type_exception, "action name is not consistent with action struct"  );
-             return fc::raw::unpack<T>(fio_pub_key);
          }
 
          template<typename T>

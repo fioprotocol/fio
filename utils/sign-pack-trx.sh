@@ -38,6 +38,7 @@ refBlockPrefix=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPo
 echo REF BLOCK PREFIX: $refBlockPrefix
 echo ------------------------------------------
 
+
 # Unsigned request
 unsignedRequest='{
     "expiration": "'${expirationStr}'",
@@ -49,7 +50,7 @@ unsignedRequest='{
     "context_free_actions": [],
     "fio_actions": [{
         "name": "registername",
-        "fio_pub_key": "0ab5801a7d398351b8be11c439e05c5b3259aec9b",
+        "fio_pub_key": "EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY",
         "data": "'${actualPackedData}'"
       }
     ],
