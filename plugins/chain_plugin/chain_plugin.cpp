@@ -1955,6 +1955,25 @@ void create_account(std::string&  new_account, std::string& new_account_pub_key,
     push_transactions(std::move(trxs), next);
 }
 
+void static gen_random(char *s, const int len) {
+
+  static const char alphanum[] = "12345abcdefghijklmnopqrstuvwxyz";
+
+  for (int i = 0; i < len; ++i) {
+     s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+  }
+
+  s[len] = 0;
+}
+
+static string generate_name () {
+   const size_t len = 12;
+   char nameArr[len];
+   gen_random(nameArr, len);
+   string name (nameArr);
+   return name;
+}
+
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
     try {
@@ -1964,6 +1983,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
         } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
 
+       string new_account_pub_key;
        try {
             const variant& v = params;
             const variant_object& vo = v.get_object();
@@ -1975,27 +1995,38 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                 transaction trx = pretty_input2->get_transaction();
                 vector<fio_action> fio_actions = trx.fio_actions;
                 EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
-                string new_account_pub_key = fio_actions[0].fio_pub_key;
-
-               // for now assume these values
-               std::string new_account = "txntestaccnt";
-               std::string creator = "fio.system";
-               std::string creator_private_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
-
-               // create new account associated with above pub_key and account_name
-               create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
+                new_account_pub_key = fio_actions[0].fio_pub_key;
             }
         } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
 
-//        // for now assume these values
-//        std::string new_account = "txntestaccnt";
-//        std::string new_account_pub_key = "EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82";
-////        std::string new_account_pub_key = fio_pub_key;
-//        std::string creator = "fio.system";
-//        std::string creator_private_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
-//
-//        // create new account associated with above pub_key and account_name
-//        create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
+
+       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
+
+       // TBD: check fio_pub_key against MAS-14 table if new account needs to be created.
+       bool createFioAccount = true;
+
+       if (createFioAccount) {
+          // TBD: Retrieve private key & creator account from the chain instance specific config.ini
+          std::string creator = "fio.system";
+          std::string creator_private_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
+          size_t maxAccountCreationAttempts = 3;
+
+          bool accountCreated = false;
+          for (int count = 0; count < maxAccountCreationAttempts; count++) {
+             try {
+                std::string new_account = generate_name();
+
+                dlog("Attempting to create account ${name}.",("name",new_account));
+                create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
+             } catch (...) {
+                continue; // account creation failed, try again
+             }
+             dlog("New account created.");
+             accountCreated = true;
+             break; // account creation succeeded, break out of the loop
+          }
+          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
+       }
 
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {
