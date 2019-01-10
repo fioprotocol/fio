@@ -1259,7 +1259,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 /***
  * Checks if a FIO Address or FIO Domain is available for registration.
  * @param p
- * @return
+ * @return result.fio_name, result.is_registered
  */
 read_only::avail_check_result read_only::avail_check( const read_only::avail_check_params& p ) const {
 
@@ -1389,6 +1389,11 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    return result;
 }
 
+/***
+ * Lookup the fio address by public address
+ * @param p
+ * @return
+ */
 read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio_key_lookup_params& p )const {
    // assert if empty chain key
    EOS_ASSERT( !p.key.empty(), chain::contract_table_query_exception,"Empty key string");
@@ -1974,27 +1979,45 @@ static string generate_name () {
    return name;
 }
 
+//Temporary to register_fio_name_params
+#define TEMPPRIVATEKEY "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"
+#define CREATORACCOUNT "FIOSYSTEM"
+
+/***
+ * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
+    //
     try {
         auto pretty_input = std::make_shared<packed_transaction>();
         auto resolver = make_resolver(this, abi_serializer_max_time);
         try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
         } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
-
        string new_account_pub_key;
+
        try {
+            // Full received transaction
             const variant& v = params;
             const variant_object& vo = v.get_object();
             if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
                 auto pretty_input2 = std::make_shared<packed_transaction>();
+
+                // Unpack the transaction
                 from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+
+                //Set transaction type
                 pretty_input2->set_fio_transaction(true);
 
                 transaction trx = pretty_input2->get_transaction();
+                //Unpack the fio_actions
                 vector<fio_action> fio_actions = trx.fio_actions;
+                //Check if it is a fio_action (as opposed to regular action)
                 EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
+                //Use the fio_pub_key in the first fio_action element
                 new_account_pub_key = fio_actions[0].fio_pub_key;
             }
         } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
@@ -2002,13 +2025,13 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
        EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
 
-       // TBD: check fio_pub_key against MAS-14 table if new account needs to be created.
+       // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
-
+       //Create the internal FIOAccount)
        if (createFioAccount) {
           // TBD: Retrieve private key & creator account from the chain instance specific config.ini
-          std::string creator = "fio.system";
-          std::string creator_private_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
+          std::string creator = CREATORACCOUNT;
+          std::string creator_private_key = TEMPPRIVATEKEY;
           size_t maxAccountCreationAttempts = 3;
 
           bool accountCreated = false;
@@ -2028,6 +2051,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
           EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
        }
 
+      //Return the transaction_id and results
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {
                 next(result.get<fc::exception_ptr>());
@@ -2326,11 +2350,11 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
    return result;
 }
 
-	
-	
+
+
 read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
    serialize_json_result result;
- 
+
    name code = 0;
    if (params.action.to_string() == "registername" || params.action.to_string() == "addaddress")
 	   	code = ::eosio::string_to_name("fio.system");
@@ -2359,8 +2383,8 @@ read_only::serialize_json_result read_only::serialize_json( const read_only::ser
 } FC_RETHROW_EXCEPTIONS( warn, "action: ${action}, args: ${args}",
                          ( "action", params.action )( "args", params.json ))
 
-	
-	
+
+
 read_only::get_required_keys_result read_only::get_required_keys( const get_required_keys_params& params )const {
    transaction pretty_input;
    auto resolver = make_resolver(this, abi_serializer_max_time);
