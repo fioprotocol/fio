@@ -20,6 +20,7 @@
 
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
+#include <eosio/chain/fioio/signature_validator.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
@@ -816,10 +817,13 @@ bool chain_plugin::recover_reversible_blocks( const fc::path& db_dir, uint32_t c
    uint32_t num = 0;
    uint32_t start = 0;
    uint32_t end = 0;
+
    old_reversible.add_index<reversible_block_index>();
    new_reversible.add_index<reversible_block_index>();
+
    const auto& ubi = old_reversible.get_index<reversible_block_index,by_num>();
    auto itr = ubi.begin();
+
    if( itr != ubi.end() ) {
       start = itr->blocknum;
       end = start - 1;
@@ -2083,7 +2087,6 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                 } CATCH_AND_CALL(next);
             }
         });
-
 
     } catch ( boost::interprocess::bad_alloc& ) {
         chain_plugin::handle_db_exhaustion();
