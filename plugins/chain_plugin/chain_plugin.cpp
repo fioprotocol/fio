@@ -15,11 +15,11 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
-#include <eosio/chain/actionmapping.hpp>
 
 #include <eosio/chain/eosio_contract.hpp>
 
 #include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/actionmapping.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
