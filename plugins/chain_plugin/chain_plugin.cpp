@@ -2045,7 +2045,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
        EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
-       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), packed_transaction_type_exception, "Key Signature mismatch");
+       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Key Signature mismatch");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
