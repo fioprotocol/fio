@@ -2012,34 +2012,41 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         auto resolver = make_resolver(this, abi_serializer_max_time);
         try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
-       string new_account_pub_key;
+        }
+
+        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+
+        string new_account_pub_key;
+        string transaction_signature;
 
        try {
             // Full received transaction
             const variant& v = params;
             const variant_object& vo = v.get_object();
-            if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
-                auto pretty_input2 = std::make_shared<packed_transaction>();
 
-                // Unpack the transaction
-                from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+            if( fioio::fio_transaction_validator(vo) ) {
+               auto pretty_input2 = std::make_shared<packed_transaction>();
+               // Unpack the transaction
+               from_variant(vo["packed_trx"], pretty_input2->packed_trx);
 
-                //Set transaction type
-                pretty_input2->set_fio_transaction(true);
+               //Set transaction type
+               pretty_input2->set_fio_transaction(true);
 
-                transaction trx = pretty_input2->get_transaction();
-                //Unpack the fio_actions
-                vector<fio_action> fio_actions = trx.fio_actions;
-                //Check if it is a fio_action (as opposed to regular action)
-                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
-                //Use the fio_pub_key in the first fio_action element
-                new_account_pub_key = fio_actions[0].fio_pub_key;
+               transaction trx = pretty_input2->get_transaction();
+               //Unpack the fio_actions
+               vector <fio_action> fio_actions = trx.fio_actions;
+               //Check if it is a fio_action (as opposed to regular action)
+               EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
+               //Use the fio_pub_key in the first fio_action element
+               new_account_pub_key = fio_actions[0].fio_pub_key;
+               transaction_signature = vo["signatures"].as_string();
             }
-        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
+       }
 
-
+       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
        EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
+       EOS_ASSERT(!fioio::pubadd_signature_validate(transaction_signature, new_account_pub_key),
+               packed_transaction_type_exception, "Key Signature mismatch");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
