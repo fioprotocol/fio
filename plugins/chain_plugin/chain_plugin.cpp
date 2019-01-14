@@ -2024,7 +2024,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             const variant& v = params;
             const variant_object& vo = v.get_object();
 
-            if( fioio::fio_transaction_validator(vo) ) {
+            if( fioio::is_signature_packed(vo) ) {
                auto pretty_input2 = std::make_shared<packed_transaction>();
                // Unpack the transaction
                from_variant(vo["packed_trx"], pretty_input2->packed_trx);

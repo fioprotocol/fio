@@ -16,9 +16,6 @@ namespace fioio {
 
     using namespace std;
 
-    //string signature;
-    //fc::crypto::public_key publickey;
-
     static void assert_recover_key( const fc::sha256& digest, const char * sig, size_t siglen, const char * pub, size_t publen ) {
         fc::crypto::signature s;
         fc::crypto::public_key p;
@@ -46,7 +43,7 @@ namespace fioio {
         return true;
     }
 
-    inline bool fio_transaction_validator(const fc::variant_object& t_vo){
+    inline bool is_signature_packed(const fc::variant_object& t_vo){
         if( t_vo.contains("packed_trx") && t_vo["packed_trx"].is_string() && !t_vo["packed_trx"].as_string().empty() ) {
             if( t_vo.contains("signatures") && t_vo["signatures"].is_string() && !t_vo["signatures"].as_string().empty() ) {
                 return true;
