@@ -21,6 +21,7 @@
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
+#include <eosio/chain/fioio/fio_name_validator.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
@@ -1271,37 +1272,20 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    avail_check_result result;
 
    // assert if empty fio name
-   if(p.fio_name.empty()){
-      FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-      return result;
-   }
+   FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+
+   fioio::FioAddress fa = fioio::getFioAddressStruct(p.fio_name);
 
    // Split the fio name and domain portions
-   string fio_name = "";
-   string fio_domain = "";
-
-   int pos = p.fio_name.find('.');
-   bool domainOnly = false;
-
-   //Lower Case
-   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
-
-   if (pos == string::npos) {
-       fio_domain = result.fio_name;
-   } else {
-       fio_name = result.fio_name.substr(0, pos);
-       fio_domain = result.fio_name.substr(pos + 1, string::npos);
-
-       if(fio_name.size() < 1){
-           domainOnly = true;
-       }
-   }
+   string fio_name = fa.fioname;
+   string fio_domain = fa.fiodomain;
+   bool domainOnly = fa.domainOnly;
 
    //declare variables.
    const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
+   const uint64_t name_hash = ::eosio::string_to_uint64_t(fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
    get_table_rows_result fioname_result;
@@ -1319,24 +1303,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
     //Domain validation.
-    if (fio_domain.size() >= 1 && fio_domain.size() <= 50 && !domainOnly){
-        if(fio_domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
-            result.is_registered = "Invalid fio_name format";
-            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-            return result;
-        }
-        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-' ||
-        fio_domain.at(fio_domain.size() - 1) == '-' )
-        {
-            result.is_registered = "Invalid fio_name format";
-            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-            return result;
-        }
-    } else {
-        result.is_registered = "Invalid fio_name";
-        FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-        return result;
-    }
+    FIO_400_ASSERT(fioio::isDomainNameValid(fio_domain, domainOnly), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -1349,34 +1316,12 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
-      int totalsize = fio_name.size() + fio_domain.size();
-
-      if( totalsize >= 100){
-          result.is_registered = "Invalid fio_name format";
-          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-          return result;
-      }
+      FIO_400_ASSERT(fioio::fioNameSizeCheck(fio_name, fio_domain), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
       //Name validation.
-      if (fio_name.size() >= 1 && fio_name.size() <= 50){
-         if(fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
-            result.is_registered = "Invalid fio_name format";
-            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-            return result;
-         }
-         else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-' ||
-            boost::algorithm::equals(fio_name, "-") || fio_name.at(0) == '-')
-         {
-             result.is_registered = "Invalid fio_name format";
-             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-             return result;
-         }
-      } else {
-          result.is_registered = "Invalid fio_name";
-          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-          return result;
-      }
+       FIO_400_ASSERT(fioio::isFioNameValid(fio_name), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
+      // Not Registered
       if (fioname_result.rows.empty()) {
           return result;
       }

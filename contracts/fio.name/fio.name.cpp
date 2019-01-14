@@ -21,6 +21,7 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/fio_name_validator.hpp>
 #include <climits>
 
 namespace fioio{
@@ -47,7 +48,6 @@ namespace fioio{
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
         }
-
 
         [[eosio::action]]
         void registername(const string &name, const account_name &requestor) {
