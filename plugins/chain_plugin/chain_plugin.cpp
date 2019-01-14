@@ -1976,6 +1976,65 @@ void create_account(std::string&  new_account, std::string& new_account_pub_key,
     push_transactions(std::move(trxs), next);
 }
 
+
+void add_pub_address(std::string&  pub_address, std::string& pub_key, const std::string& init_name, const std::string& init_priv_key, const std::function<void(const fc::exception_ptr&)>& next) {
+    std::vector<signed_transaction> trxs;
+    trxs.reserve(1);
+
+    try {
+        name principal(init_name);
+
+        controller& cc = app().get_plugin<chain_plugin>().chain();
+        auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+        auto abi_serializer_max_time = app().get_plugin<chain_plugin>().get_abi_serializer_max_time();
+
+        abi_serializer eosio_system_serializer{fc::json::from_string(eosio_system_abi).as<abi_def>(), abi_serializer_max_time};
+
+        fc::crypto::private_key creator_priv_key = fc::crypto::private_key(init_priv_key);
+        fc::crypto::public_key  txn_text_receiver_A_pub_key;
+
+        //create some test accounts
+        {
+            signed_transaction trx;
+
+            //create "A" account
+            {
+                auto owner_auth = eosio::chain::authority{1, {{txn_text_receiver_A_pub_key, 1}}, {}};
+                auto active_auth = eosio::chain::authority{1, {{txn_text_receiver_A_pub_key, 1}}, {}};
+
+                trx.actions.emplace_back(vector<chain::permission_level>{{principal, "active"}},
+                                         newaccount{principal, principal, owner_auth, active_auth});
+            }
+            {
+                action act;
+                act.account = N(fio_system_code);
+                act.name = N(addfiopubadd);
+                act.authorization = vector<permission_level>{{principal,config::active_name}};
+                act.data = eosio_system_serializer.variant_to_binary("addfiopubadd", fc::json::from_string("{\"pub_address\":\""+pub_address+"\",\"pub_key\":\""+pub_key+"\"}}"), abi_serializer_max_time);
+                trx.actions.push_back(act);
+            }
+
+            trx.expiration = cc.head_block_time() + fc::seconds(30);
+            trx.set_reference_block(cc.head_block_id());
+            trx.sign(creator_priv_key, chainid);
+            trxs.emplace_back(std::move(trx));
+        }
+
+    } catch (const fc::exception& e) {
+        next(e.dynamic_copy_exception());
+        return;
+    }
+
+    push_transactions(std::move(trxs), next);
+}
+
+
+
+
+
+
+
+
 void static gen_random(char *s, const int len) {
 
   static const char alphanum[] = "12345abcdefghijklmnopqrstuvwxyz";
@@ -1997,7 +2056,7 @@ static string generate_name () {
 
 //Temporary to register_fio_name_params
 #define TEMPPRIVATEKEY "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"
-#define CREATORACCOUNT "FIOSYSTEM"
+#define CREATORACCOUNT "FIO.SYSTEM"
 
 /***
  * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
@@ -2006,18 +2065,18 @@ static string generate_name () {
  */
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
-    //
+    string new_account_pub_key;
     try {
         auto pretty_input = std::make_shared<packed_transaction>();
         auto resolver = make_resolver(this, abi_serializer_max_time);
         try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-        }
 
-        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+        }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
 
         string new_account_pub_key;
         string unpacked_signature;
+
 
        try {
             // Full received transaction
@@ -2049,6 +2108,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
+       std::string new_account;
        //Create the internal FIOAccount)
        if (createFioAccount) {
           // TBD: Retrieve private key & creator account from the chain instance specific config.ini
@@ -2059,7 +2119,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
           bool accountCreated = false;
           for (int count = 0; count < maxAccountCreationAttempts; count++) {
              try {
-                std::string new_account = generate_name();
+                new_account = generate_name();
 
                 dlog("Attempting to create account ${name}.",("name",new_account));
                 create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
@@ -2071,6 +2131,22 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
              break; // account creation succeeded, break out of the loop
           }
           EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
+
+
+      try {
+            dlog("Attempting to populate public_address and public_key references: ${public_key}.",("public_key",new_account_pub_key));
+
+
+            //Public address generation (currently just base58 encoding)
+            std::string fio_pub_address = string(fc::to_base58(new_account_pub_key.c_str(),new_account_pub_key.length()));
+            dlog("\n\nPublic Address: ${public_address}.",("public_address",fio_pub_address));
+
+            add_pub_address(fio_pub_address, new_account_pub_key, creator, creator_private_key, next);
+            dlog("\n\nFIO Public Address and Public Key Emplaced.");
+          }catch (...){
+            dlog("Failed to generate and emplace FIO public address");
+          }
+
        }
 
       //Return the transaction_id and results
