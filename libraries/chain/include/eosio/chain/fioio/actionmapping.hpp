@@ -34,16 +34,13 @@ namespace fioio {
     }
 
     static string map_to_contract( string t ){
-
-        if (find(eosioActions.begin(), eosioActions.end(), t) != eosioActions.end()){
-            return "eosio";
-        }
         if (find(fiosystemActions.begin(), fiosystemActions.end(), t) != fiosystemActions.end()){
             return "fio.system";
         }
         if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()){
             return "fio.finance";
         }
+        return "eosio";
     }
 
     inline string returncontract(string incomingaction) {
