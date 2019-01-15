@@ -56,7 +56,7 @@ namespace fioio {
     inline bool isFioNameValid( string name ){
         //Name validation.
         if (name.size() >= 1 && name.size() <= 50){
-            if(name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
+            if(name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
                 return false;
             }
             else if(name.at(name.size() - 1) == '.' || name.at(name.size() - 1) == '-' ||

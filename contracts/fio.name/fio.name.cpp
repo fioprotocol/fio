@@ -53,22 +53,13 @@ namespace fioio{
         void registername(const string &name, const account_name &requestor) {
             require_auth(requestor); // check for requestor authority; required for fee transfer
 
-            string newname = name;
+            FioAddress fa = getFioAddressStruct(name);
 
-	      		// make fioname lowercase before hashing
-			      transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
-
-            //parse the domain from the name.
-            string domain = nullptr;
-            string fioname = domain;
-
-            size_t pos = newname.find('.');
-            if (pos == string::npos) {
-                domain = name;
-            } else {
-                fioname = name.substr(0, pos);
-                domain = name.substr(pos + 1, string::npos);
-            }
+            // Split the fio name and domain portions
+            string fioname = fa.fioname;
+            string domain = fa.fiodomain;
+            string newname = fa.fiopubaddress;
+            bool domainOnly = fa.domainOnly;
 
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
