@@ -61,9 +61,9 @@ namespace fioio{
             string newname = fa.fiopubaddress;
             bool domainOnly = fa.domainOnly; // used for name syntax validation check.
 
-            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", fioname, "Invalid fio_name", ErrorInvalidFioNameFormat);
-            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", fioname, "Invalid fio_name", ErrorInvalidFioNameFormat);
-            fio_400_assert(isFioNameValid(fioname), "fio_name", fioname, "Invalid fio_name", ErrorInvalidFioNameFormat);
+            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(isFioNameValid(fioname), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
