@@ -21,7 +21,7 @@
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
-#include <eosio/chain/fioio/fio_name_validator.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
@@ -1274,7 +1274,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    // assert if empty fio name
    FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
-   fioio::FioAddress fa = fioio::getFioAddressStruct(p.fio_name);
+   const fioio::FioAddress fa = fioio::getFioAddressStruct(p.fio_name);
 
    // Split the fio name and domain portions
    string fio_name = fa.fioname;

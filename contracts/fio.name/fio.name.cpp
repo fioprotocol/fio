@@ -21,7 +21,7 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
-#include <eosio/chain/fioio/fio_name_validator.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <climits>
 
 namespace fioio{
@@ -53,22 +53,17 @@ namespace fioio{
         void registername(const string &name, const account_name &requestor) {
             require_auth(requestor); // check for requestor authority; required for fee transfer
 
-            string newname = name;
+            // Split the fio name and domain portions
+            FioAddress fa = getFioAddressStruct(name);
 
-	      		// make fioname lowercase before hashing
-			      transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
+            string fioname = fa.fioname;
+            string domain = fa.fiodomain;
+            string newname = fa.fiopubaddress;
+            bool domainOnly = fa.domainOnly; // used for name syntax validation check.
 
-            //parse the domain from the name.
-            string domain = nullptr;
-            string fioname = domain;
-
-            size_t pos = newname.find('.');
-            if (pos == string::npos) {
-                domain = name;
-            } else {
-                fioname = name.substr(0, pos);
-                domain = name.substr(pos + 1, string::npos);
-            }
+            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(isFioNameValid(fioname), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
