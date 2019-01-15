@@ -21,7 +21,7 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
-#include <eosio/chain/fioio/fio_name_validator.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <climits>
 
 namespace fioio{
@@ -53,13 +53,17 @@ namespace fioio{
         void registername(const string &name, const account_name &requestor) {
             require_auth(requestor); // check for requestor authority; required for fee transfer
 
+            // Split the fio name and domain portions
             FioAddress fa = getFioAddressStruct(name);
 
-            // Split the fio name and domain portions
             string fioname = fa.fioname;
             string domain = fa.fiodomain;
             string newname = fa.fiopubaddress;
-            bool domainOnly = fa.domainOnly;
+            bool domainOnly = fa.domainOnly; // used for name syntax validation check.
+
+            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", fioname, "Invalid fio_name", ErrorInvalidFioNameFormat);
+            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", fioname, "Invalid fio_name", ErrorInvalidFioNameFormat);
+            fio_400_assert(isFioNameValid(fioname), "fio_name", fioname, "Invalid fio_name", ErrorInvalidFioNameFormat);
 
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
