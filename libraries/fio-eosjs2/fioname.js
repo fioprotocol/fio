@@ -557,9 +557,9 @@ class Fio {
                     permission: 'active',
                 }],
                 data: {
-                    fio_user_name: fioname,
+                    fio_address: fioname,
                     chain: chain,
-                    address: address,
+                    pub_address: address,
                     requestor: requestor
                 },
             }]

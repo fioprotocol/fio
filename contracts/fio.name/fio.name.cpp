@@ -191,8 +191,9 @@ namespace fioio{
 
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
 
-            if(my_chain.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") == std::string::npos) {
-                fio_400_assert(false, "chain", my_chain, "Invalid chain format", ErrorInvalidFioNameFormat);
+            // Ensure chain name consists only of aphabets
+            if(my_chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos) {
+                fio_400_assert(false, "chain", chain, "Invalid chain format", ErrorInvalidFioNameFormat);
             }
 
             uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());

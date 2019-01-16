@@ -1134,6 +1134,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       fio_user_name = p.fio_name.substr(0, pos);
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
+   dlog( "fio user name: ${name}, fio domain: ${domain}", ("name", fio_user_name)("domain", fio_domain) );
 
    //declare variables.
    const name code = ::eosio::string_to_name(fio_system_code.c_str());
@@ -1141,6 +1142,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
+   dlog( "fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash) );
 
    const string fio_scope = fio_system_scope;
 
@@ -1166,7 +1168,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
-   // If no matchs, then domain not found, return empty result
+   // If no matches, then domain not found, return empty result
+   dlog( "Domain matched: ${matched}", ("matched", !domain_result.rows.empty()) );
    if (domain_result.rows.empty()) {
       return result;
    }
@@ -1176,6 +1179,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    uint32_t present_time = (uint32_t)time(0);
 
    //if the domain is expired then return an empty result.
+   dlog( "Domain expired: ${expired}", ("expired", present_time > domain_expiration) );
    if (present_time > domain_expiration) {
      return result;
    }
@@ -1195,8 +1199,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
         fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
-
-        // If no matchs, the name does not exist, return empty result
+        // If no matches, the name does not exist, return empty result
+       dlog( "FIO name matched: ${matched}", ("matched", !fioname_result.rows.empty()) );
         if (fioname_result.rows.empty()) {
             return result;
         }
@@ -1204,6 +1208,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
         uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
 
         //if the name is expired then return an empty result.
+       dlog( "FIO name expired: ${expired}", ("expired", present_time > domain_expiration) );
         if (present_time > domain_expiration) {
             return result;
         }
