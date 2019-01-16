@@ -2006,7 +2006,9 @@ static string generate_name () {
  */
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
-    string new_account_pub_key;
+    string new_account_pub_key = nullptr;
+    string unpacked_signature = nullptr;
+
     try {
         auto pretty_input = std::make_shared<packed_transaction>();
         auto resolver = make_resolver(this, abi_serializer_max_time);
@@ -2014,8 +2016,6 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
 
         }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
-
-        string unpacked_signature;
 
 
        try {
@@ -2044,7 +2044,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
        EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed.");
+       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. 2");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
@@ -2081,6 +2081,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             std::string fio_pub_address = string(fc::to_base58(new_account_pub_key.c_str(),new_account_pub_key.length()));
             dlog("\n\nPublic Address: ${public_address}.",("public_address",fio_pub_address));
 
+            add_pub_address(new_account, new_account_pub_key, creator, creator_private_key, next);
             add_pub_address(fio_pub_address, new_account_pub_key, creator, creator_private_key, next);
             dlog("\n\nFIO Public Address and Public Key Emplaced.");
           }catch (...){
