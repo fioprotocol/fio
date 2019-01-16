@@ -1118,26 +1118,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
 
 
-/***** FIO API BEGIN *****/
-/*************************/
 
-
-// Used by fio_name_lookup
-enum  class chain_type {
-    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-};
-const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
-
-// Convert of chain to chain type
-inline chain_type str_to_chain_type(const string &chain) {
-
-   for (int i = 0; i < chain_str.size(); i++) {
-	  if (chain == chain_str[i]) {
-		 return static_cast<chain_type>(i);
-	  }
-   }
-   return chain_type::NONE;
-}
 
 /***
  * Lookup address by FIO name.
@@ -2017,7 +1998,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
 
-        }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+        }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
 
         string unpacked_signature;
 
@@ -2039,16 +2020,16 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                //Unpack the fio_actions
                vector <fio_action> fio_actions = trx.fio_actions;
                //Check if it is a fio_action (as opposed to regular action)
-               EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
+               EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
                //Use the fio_pub_key in the first fio_action element
                new_account_pub_key = fio_actions[0].fio_pub_key;
                unpacked_signature = vo["signatures"].as_string();
             }
        }
 
-       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
-       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
-       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Key Signature mismatch");
+       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
+       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
+       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed.");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
@@ -2074,7 +2055,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
              accountCreated = true;
              break; // account creation succeeded, break out of the loop
           }
-          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
+          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
 
 
       try {

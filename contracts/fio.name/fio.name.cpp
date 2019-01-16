@@ -76,7 +76,7 @@ namespace fioio{
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter == domains.end(), "name", name, "already registered", ErrorDomainAlreadyRegistered);
+                fio_400_assert(domains_iter == domains.end(), "name", name, "FIO domain already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 //get the expiration for this new domain.
@@ -96,20 +96,20 @@ namespace fioio{
 
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter != domains.end(), "name", name, "Domain not yet registered.", ErrorDomainNotRegistered);
+                fio_400_assert(domains_iter != domains.end(), "name", name, "FIO Domain not registered", ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
 
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                eosio_assert_message_code (present_time <= domain_expiration,"Domain has expired.", ErrorDomainExpired);
+                eosio_assert_message_code (present_time <= domain_expiration,"FIO Domain expired", ErrorDomainExpired);
 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                eosio_assert_message_code(fioname_iter == fionames.end(), "Fioname is already registered.", ErrorFioNameAlreadyRegistered);
+                eosio_assert_message_code(fioname_iter == fionames.end(), "FIO name already registered", ErrorFioNameAlreadyRegistered);
 
                 //set the expiration on this new fioname
                 expiration_time = get_now_plus_one_year();
