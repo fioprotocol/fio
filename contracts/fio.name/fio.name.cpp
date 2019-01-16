@@ -61,9 +61,12 @@ namespace fioio{
             string newname = fa.fiopubaddress;
             bool domainOnly = fa.domainOnly; // used for name syntax validation check.
 
-            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
-            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
-            fio_400_assert(isFioNameValid(fioname), "fio_name", fioname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+
+            if(!fioname.empty()){
+                fio_400_assert(isFioNameValid(fioname), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            }
 
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
 
@@ -76,7 +79,7 @@ namespace fioio{
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter == domains.end(), "name", name, "FIO domain already registered", ErrorDomainAlreadyRegistered);
+                fio_400_assert(domains_iter == domains.end(), "fio_name", fioname, "FIO domain already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 //get the expiration for this new domain.
@@ -96,20 +99,20 @@ namespace fioio{
 
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter != domains.end(), "name", name, "FIO Domain not registered", ErrorDomainNotRegistered);
+                fio_400_assert(domains_iter != domains.end(), "fio_name", fioname, "FIO Domain not registered", ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
 
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                eosio_assert_message_code (present_time <= domain_expiration,"FIO Domain expired", ErrorDomainExpired);
+                fio_400_assert(present_time <= domain_expiration,"fio_name", domain, "FIO Domain is expired.""FIO Domain expired", ErrorDomainExpired);
 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                eosio_assert_message_code(fioname_iter == fionames.end(), "FIO name already registered", ErrorFioNameAlreadyRegistered);
+                fio_400_assert(fioname_iter == fionames.end(), "fio_name", name,"FIO name already registered", ErrorFioNameAlreadyRegistered);
 
                 //set the expiration on this new fioname
                 expiration_time = get_now_plus_one_year();
