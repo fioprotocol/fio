@@ -2019,7 +2019,6 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
         }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
 
-        string new_account_pub_key;
         string unpacked_signature;
 
 
