@@ -2021,7 +2021,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             // Full received transaction
             const variant& v = params;
             const variant_object& vo = v.get_object();
-               if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
+            if( fioio::is_transaction_packed(vo) ) {
                 auto pretty_input2 = std::make_shared<packed_transaction>();
 
                 // Unpack the transaction
@@ -2036,45 +2036,46 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                 vector<fio_action> fio_actions = trx.fio_actions;
                 vector<signature_type> tsig = strx.signatures;
                 //Check if it is a fio_action (as opposed to regular action)
-                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
+                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
                 //Use the fio_pub_key in the first fio_action element
                 new_account_pub_key = fio_actions[0].fio_pub_key;
                 trans_signature = (string) tsig[0];
             }
         }
 
-       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
-    //   EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-    //   EOS_ASSERT(!fioio::pubadd_signature_validate(trans_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. ");
+         EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
+         EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
 
-       // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
-       bool createFioAccount = true;
-       std::string new_account;
-       //Create the internal FIOAccount)
-       if (createFioAccount) {
-          // TBD: Retrieve private key & creator account from the chain instance specific config.ini
-          std::string creator = CREATORACCOUNT;
-          std::string creator_private_key = TEMPPRIVATEKEY;
-          size_t maxAccountCreationAttempts = 3;
+         fioio::pubadd_signature_validate(trans_signature, new_account_pub_key);
 
-          bool accountCreated = false;
-          for (int count = 0; count < maxAccountCreationAttempts; count++) {
-             try {
-                new_account = generate_name();
+         // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
+         bool createFioAccount = true;
+         std::string new_account;
+         //Create the internal FIOAccount)
+         if (createFioAccount) {
+            // TBD: Retrieve private key & creator account from the chain instance specific config.ini
+            std::string creator = CREATORACCOUNT;
+            std::string creator_private_key = TEMPPRIVATEKEY;
+            size_t maxAccountCreationAttempts = 3;
 
-                dlog("Attempting to create account ${name}.",("name",new_account));
-                create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
-             } catch (...) {
-                continue; // account creation failed, try again
-             }
-             dlog("New account created.");
-             accountCreated = true;
-             break; // account creation succeeded, break out of the loop
-          }
-          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
+            bool accountCreated = false;
+            for (int count = 0; count < maxAccountCreationAttempts; count++) {
+               try {
+                  new_account = generate_name();
+
+                  dlog("Attempting to create account ${name}.",("name",new_account));
+                  create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
+               } catch (...) {
+                  continue; // account creation failed, try again
+               }
+               dlog("New account created.");
+               accountCreated = true;
+               break; // account creation succeeded, break out of the loop
+            }
+            EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
 
 
-      try {
+         try {
             dlog("Attempting to populate public_address and public_key references: ${public_key}.",("public_key",new_account_pub_key));
 
 
@@ -2392,13 +2393,8 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
 read_only::serialize_json_result read_only::serialize_json( const read_only::serialize_json_params& params )const try {
    serialize_json_result result;
 
-   name code = 0;
-   if (params.action.to_string() == "registername" || params.action.to_string() == "addaddress")
-	   	code = ::eosio::string_to_name("fio.system");
-   else if (params.action.to_string() == "requestfunds")
-	  	code = ::eosio::string_to_name("fio.finance");
-   else
-		code = ::eosio::string_to_name("eosio");
+   string actionname = fioio::returncontract(params.action.to_string());
+   name code = ::eosio::string_to_name(actionname.c_str());
 
    const auto code_account = db.db().find<account_object,by_name>( code );
    EOS_ASSERT(code_account != nullptr, contract_query_exception, "Contract can't be found ${contract}", ("contract", code));

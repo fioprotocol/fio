@@ -29,7 +29,7 @@ namespace fioio {
         EOS_ASSERT( check == p, eosio::chain::invalid_signature_address, "Key Signature mismatch");
     }
 
-    inline bool pubadd_signature_validate(string t_unpackedSig, string fio_pub_key){
+    inline void pubadd_signature_validate(string t_unpackedSig, string fio_pub_key){
         const int sigSize = t_unpackedSig.size();
         const int pubSize = fio_pub_key.size();
 
@@ -39,15 +39,11 @@ namespace fioio {
 
         //  find pub_key inside t_unpackedSig (recover key in crypto library)
         assert_recover_key(digest, (const char *)&tsig, sizeof(t_unpackedSig), (const char *)&tpubkey, sizeof(fio_pub_key) );
-
-        return true;
     }
 
     inline bool is_transaction_packed(const fc::variant_object& t_vo){
         if( t_vo.contains("packed_trx") && t_vo["packed_trx"].is_string() && !t_vo["packed_trx"].as_string().empty() ) {
-            if( t_vo.contains("signatures") && t_vo["signatures"].is_string() && !t_vo["signatures"].as_string().empty() ) {
-                return true;
-            }
+            return true;
         }
         return false;
     }
