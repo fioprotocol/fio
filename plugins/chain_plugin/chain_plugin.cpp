@@ -2006,8 +2006,8 @@ static string generate_name () {
  */
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
-    string new_account_pub_key = nullptr;
-    string trans_signature = nullptr;
+    string new_account_pub_key = "";
+    string trans_signature = "";
 
     try {
         auto pretty_input = std::make_shared<packed_transaction>();
