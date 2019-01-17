@@ -2018,28 +2018,29 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
 
 
-       try {
+            try {
             // Full received transaction
             const variant& v = params;
             const variant_object& vo = v.get_object();
+            if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
+                auto pretty_input2 = std::make_shared<packed_transaction>();
 
-            if( fioio::is_transaction_packed(vo) ) {
-               auto pretty_input2 = std::make_shared<packed_transaction>();
-               // Unpack the transaction
-               from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+                // Unpack the transaction
+                from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+                from_variant(vo["signatures"], pretty_input2->signatures);
 
-               from_variant(vo["signatures"], trans_signature );
 
-               //Set transaction type
-               pretty_input2->set_fio_transaction(true);
-
-               transaction trx = pretty_input2->get_transaction();
-               //Unpack the fio_actions
-               vector <fio_action> fio_actions = trx.fio_actions;
-               //Check if it is a fio_action (as opposed to regular action)
-               EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
-               //Use the fio_pub_key in the first fio_action element
-               new_account_pub_key = fio_actions[0].fio_pub_key;
+                //Set transaction type
+                pretty_input2->set_fio_transaction(true);
+                signed_transaction strx = pretty_input2->get_signed_transaction();
+                //Unpack the fio_actions
+                vector<fio_action> fio_actions = strx.fio_actions;
+                vector <signature_type> tsig = strx.signatures;
+                //Check if it is a fio_action (as opposed to regular action)
+                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
+                //Use the fio_pub_key in the first fio_action element
+                new_account_pub_key = fio_actions[0].fio_pub_key;
+               signature = (string)tsig[0];
             }
        }
 
