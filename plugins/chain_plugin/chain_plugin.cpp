@@ -2007,7 +2007,7 @@ static string generate_name () {
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
     string new_account_pub_key = nullptr;
-    string unpacked_signature = nullptr;
+    string trans_signature = nullptr;
 
     try {
         auto pretty_input = std::make_shared<packed_transaction>();
@@ -2023,10 +2023,12 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             const variant& v = params;
             const variant_object& vo = v.get_object();
 
-            if( fioio::is_signature_packed(vo) ) {
+            if( fioio::is_transaction_packed(vo) ) {
                auto pretty_input2 = std::make_shared<packed_transaction>();
                // Unpack the transaction
                from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+
+               from_variant(vo["signatures"], trans_signature );
 
                //Set transaction type
                pretty_input2->set_fio_transaction(true);
@@ -2038,13 +2040,12 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
                //Use the fio_pub_key in the first fio_action element
                new_account_pub_key = fio_actions[0].fio_pub_key;
-               unpacked_signature = vo["signatures"].as_string();
             }
        }
 
        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
        EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. 2");
+       EOS_ASSERT(!fioio::pubadd_signature_validate(trans_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. 2");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
