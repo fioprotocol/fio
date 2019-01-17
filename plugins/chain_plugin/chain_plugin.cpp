@@ -1997,7 +1997,7 @@ static string generate_name () {
 
 //Temporary to register_fio_name_params
 #define TEMPPRIVATEKEY "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"
-#define CREATORACCOUNT "FIO.SYSTEM"
+#define CREATORACCOUNT "fio.system"
 
 /***
  * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
@@ -2021,7 +2021,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
             // Full received transaction
             const variant& v = params;
             const variant_object& vo = v.get_object();
-            if( fioio::is_transaction_packed(vo) ) {
+               if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
                 auto pretty_input2 = std::make_shared<packed_transaction>();
 
                 // Unpack the transaction
@@ -2030,9 +2030,10 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
                 //Set transaction type
                 pretty_input2->set_fio_transaction(true);
+                transaction trx = pretty_input2->get_transaction();
                 signed_transaction strx = pretty_input2->get_signed_transaction();
                 //Unpack the fio_actions
-                vector<fio_action> fio_actions = strx.fio_actions;
+                vector<fio_action> fio_actions = trx.fio_actions;
                 vector<signature_type> tsig = strx.signatures;
                 //Check if it is a fio_action (as opposed to regular action)
                 EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
@@ -2043,8 +2044,8 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         }
 
        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
-       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-       EOS_ASSERT(!fioio::pubadd_signature_validate(trans_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. 2");
+    //   EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
+    //   EOS_ASSERT(!fioio::pubadd_signature_validate(trans_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. ");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;

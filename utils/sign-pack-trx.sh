@@ -9,8 +9,8 @@ hostname="localhost"
 
 echo ------------------------------------------
 dataJson='{
-  "name": "dapix",
-  "requestor": "fioname11111"
+  "name": "adam5.brd",
+  "requestor": "fio.system"
 }'
 
 expectedPackedData=056461706978104208414933a95b
