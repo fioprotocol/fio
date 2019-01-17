@@ -21,6 +21,7 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <climits>
 
 namespace fioio{
@@ -48,26 +49,23 @@ namespace fioio{
             appConfig = configsSingleton.get_or_default(config());
         }
 
-
         [[eosio::action]]
         void registername(const string &name, const account_name &requestor) {
             require_auth(requestor); // check for requestor authority; required for fee transfer
 
-            string newname = name;
+            // Split the fio name and domain portions
+            FioAddress fa = getFioAddressStruct(name);
 
-	      		// make fioname lowercase before hashing
-			      transform(newname.begin(), newname.end(), newname.begin(), ::tolower);
+            string fioname = fa.fioname;
+            string domain = fa.fiodomain;
+            string newname = fa.fiopubaddress;
+            bool domainOnly = fa.domainOnly; // used for name syntax validation check.
 
-            //parse the domain from the name.
-            string domain = nullptr;
-            string fioname = domain;
+            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
-            size_t pos = newname.find('.');
-            if (pos == string::npos) {
-                domain = name;
-            } else {
-                fioname = name.substr(0, pos);
-                domain = name.substr(pos + 1, string::npos);
+            if(!fioname.empty()){
+                fio_400_assert(isFioNameValid(fioname), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
             }
 
             print("fioname: ", fioname, ", Domain: ", domain, "\n");
@@ -81,7 +79,7 @@ namespace fioio{
             if (fioname.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter == domains.end(), "name", name, "already registered", ErrorDomainAlreadyRegistered);
+                fio_400_assert(domains_iter == domains.end(), "fio_name", newname, "FIO domain already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 //get the expiration for this new domain.
@@ -101,20 +99,20 @@ namespace fioio{
 
 				// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter != domains.end(), "name", name, "Domain not yet registered.", ErrorDomainNotRegistered);
+                fio_400_assert(domains_iter != domains.end(), "fio_name", newname, "FIO Domain not registered", ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
 
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                eosio_assert_message_code (present_time <= domain_expiration,"Domain has expired.", ErrorDomainExpired);
+                fio_400_assert(present_time <= domain_expiration,"fio_name", newname, "FIO Domain is expired.""FIO Domain expired", ErrorDomainExpired);
 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                eosio_assert_message_code(fioname_iter == fionames.end(), "Fioname is already registered.", ErrorFioNameAlreadyRegistered);
+                fio_400_assert(fioname_iter == fionames.end(), "fio_name", newname,"FIO name already registered", ErrorFioNameAlreadyRegistered);
 
                 //set the expiration on this new fioname
                 expiration_time = get_now_plus_one_year();
