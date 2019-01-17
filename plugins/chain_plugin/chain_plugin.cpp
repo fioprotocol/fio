@@ -16,13 +16,12 @@
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
 
+
 #include <eosio/chain/eosio_contract.hpp>
 
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
-#include <eosio/chain/fioio/fio_common_validator.hpp>
-
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
 #include <eosio/chain/wast_to_wasm.hpp>
@@ -818,13 +817,10 @@ bool chain_plugin::recover_reversible_blocks( const fc::path& db_dir, uint32_t c
    uint32_t num = 0;
    uint32_t start = 0;
    uint32_t end = 0;
-
    old_reversible.add_index<reversible_block_index>();
    new_reversible.add_index<reversible_block_index>();
-
    const auto& ubi = old_reversible.get_index<reversible_block_index,by_num>();
    auto itr = ubi.begin();
-
    if( itr != ubi.end() ) {
       start = itr->blocknum;
       end = start - 1;
@@ -1117,25 +1113,29 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 }
 
 
+
+/***** FIO API BEGIN *****/
+/*************************/
+
+
 // Used by fio_name_lookup
-    enum  class chain_type {
-        FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-    };
-    const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
+enum  class chain_type {
+    FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
+};
+const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
 // Convert of chain to chain type
-    inline chain_type str_to_chain_type(const string &chain) {
+inline chain_type str_to_chain_type(const string &chain) {
 
-        for (int i = 0; i < chain_str.size(); i++) {
-            if (chain == chain_str[i]) {
-                return static_cast<chain_type>(i);
-            }
-        }
-        return chain_type::NONE;
-    }
+   for (int i = 0; i < chain_str.size(); i++) {
+	  if (chain == chain_str[i]) {
+		 return static_cast<chain_type>(i);
+	  }
+   }
+   return chain_type::NONE;
+}
 
-
-    /***
+/***
  * Lookup address by FIO name.
  * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
  * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
@@ -1268,20 +1268,37 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    avail_check_result result;
 
    // assert if empty fio name
-   FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-
-   const fioio::FioAddress fa = fioio::getFioAddressStruct(p.fio_name);
+   if(p.fio_name.empty()){
+      FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+      return result;
+   }
 
    // Split the fio name and domain portions
-   string fio_name = fa.fioname;
-   string fio_domain = fa.fiodomain;
-   bool domainOnly = fa.domainOnly;
+   string fio_name = "";
+   string fio_domain = "";
+
+   int pos = p.fio_name.find('.');
+   bool domainOnly = false;
+
+   //Lower Case
+   result.fio_name = boost::algorithm::to_lower_copy(p.fio_name); //WARNING: Fails for non-ASCII-7
+
+   if (pos == string::npos) {
+       fio_domain = result.fio_name;
+   } else {
+       fio_name = result.fio_name.substr(0, pos);
+       fio_domain = result.fio_name.substr(pos + 1, string::npos);
+
+       if(fio_name.size() < 1){
+           domainOnly = true;
+       }
+   }
 
    //declare variables.
    const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
 
-   const uint64_t name_hash = ::eosio::string_to_uint64_t(fio_name.c_str());
+   const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
 
    get_table_rows_result fioname_result;
@@ -1299,7 +1316,24 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
     //Domain validation.
-    FIO_400_ASSERT(fioio::isDomainNameValid(fio_domain, domainOnly), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+    if (fio_domain.size() >= 1 && fio_domain.size() <= 50 && !domainOnly){
+        if(fio_domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
+            result.is_registered = "Invalid fio_name format";
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+            return result;
+        }
+        else if(boost::algorithm::equals(fio_domain, "-") || fio_domain.at(0) == '-' ||
+        fio_domain.at(fio_domain.size() - 1) == '-' )
+        {
+            result.is_registered = "Invalid fio_name format";
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+            return result;
+        }
+    } else {
+        result.is_registered = "Invalid fio_name";
+        FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+        return result;
+    }
 
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -1312,12 +1346,34 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
-      FIO_400_ASSERT(fioio::fioNameSizeCheck(fio_name, fio_domain), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+      int totalsize = fio_name.size() + fio_domain.size();
+
+      if( totalsize >= 100){
+          result.is_registered = "Invalid fio_name format";
+          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+          return result;
+      }
 
       //Name validation.
-       FIO_400_ASSERT(fioio::isFioNameValid(fio_name), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+      if (fio_name.size() >= 1 && fio_name.size() <= 50){
+         if(fio_name.find_first_not_of("abcdefghijklmnopqrstuvwxyz01234567890-") != std::string::npos) {
+            result.is_registered = "Invalid fio_name format";
+            FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+            return result;
+         }
+         else if(fio_name.at(fio_name.size() - 1) == '.' || fio_name.at(fio_name.size() - 1) == '-' ||
+            boost::algorithm::equals(fio_name, "-") || fio_name.at(0) == '-')
+         {
+             result.is_registered = "Invalid fio_name format";
+             FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+             return result;
+         }
+      } else {
+          result.is_registered = "Invalid fio_name";
+          FIO_400_ASSERT(false, "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+          return result;
+      }
 
-      // Not Registered
       if (fioname_result.rows.empty()) {
           return result;
       }
@@ -1970,12 +2026,6 @@ void add_pub_address(std::string&  pub_address, std::string& pub_key, const std:
 }
 
 
-
-
-
-
-
-
 void static gen_random(char *s, const int len) {
 
   static const char alphanum[] = "12345abcdefghijklmnopqrstuvwxyz";
@@ -1997,7 +2047,7 @@ static string generate_name () {
 
 //Temporary to register_fio_name_params
 #define TEMPPRIVATEKEY "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"
-#define CREATORACCOUNT "FIO.SYSTEM"
+#define CREATORACCOUNT "fio.system"
 
 /***
  * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
@@ -2006,45 +2056,48 @@ static string generate_name () {
  */
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
-    string new_account_pub_key = nullptr;
-    string unpacked_signature = nullptr;
+   string new_account_pub_key;
+   string signature;
 
     try {
         auto pretty_input = std::make_shared<packed_transaction>();
         auto resolver = make_resolver(this, abi_serializer_max_time);
         try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-
-        }  EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
+        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
 
 
        try {
             // Full received transaction
             const variant& v = params;
             const variant_object& vo = v.get_object();
+            if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
+                auto pretty_input2 = std::make_shared<packed_transaction>();
 
-            if( fioio::is_signature_packed(vo) ) {
-               auto pretty_input2 = std::make_shared<packed_transaction>();
-               // Unpack the transaction
-               from_variant(vo["packed_trx"], pretty_input2->packed_trx);
+                // Unpack the transaction
+                from_variant(vo["packed_trx"], pretty_input2->packed_trx);
 
-               //Set transaction type
-               pretty_input2->set_fio_transaction(true);
+                //Set transaction type
+                pretty_input2->set_fio_transaction(true);
 
-               transaction trx = pretty_input2->get_transaction();
-               //Unpack the fio_actions
-               vector <fio_action> fio_actions = trx.fio_actions;
-               //Check if it is a fio_action (as opposed to regular action)
-               EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
-               //Use the fio_pub_key in the first fio_action element
-               new_account_pub_key = fio_actions[0].fio_pub_key;
-               unpacked_signature = vo["signatures"].as_string();
+                transaction trx = pretty_input2->get_transaction();
+                //Unpack the fio_actions
+                vector<fio_action> fio_actions = trx.fio_actions;
+                //Check if it is a fio_action (as opposed to regular action)
+                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Missing fio_action");
+                //Use the fio_pub_key in the first fio_action element
+                new_account_pub_key = fio_actions[0].fio_pub_key;
+                if( vo.contains("signatures") && !vo["signatures"].as_string().empty() ) {
+                    signature = vo["signatures"].as_string();
+                    std::cout<<std::endl<<std::endl<<signature;
+                }
             }
-       }
 
-       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
-       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-       EOS_ASSERT(!fioio::pubadd_signature_validate(unpacked_signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed. 2");
+          } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
+
+
+       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
+      // EOS_ASSERT(!fioio::pubadd_signature_validate(signature, new_account_pub_key), invalid_signature_address, "Request signature not valid or not allowed.");
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
@@ -2059,7 +2112,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
           bool accountCreated = false;
           for (int count = 0; count < maxAccountCreationAttempts; count++) {
              try {
-                new_account = generate_name();
+              new_account = generate_name();
 
                 dlog("Attempting to create account ${name}.",("name",new_account));
                 create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
@@ -2070,25 +2123,20 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
              accountCreated = true;
              break; // account creation succeeded, break out of the loop
           }
-          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
+          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
+
+          dlog("Attempting to populate public_address and public_key references: ${public_key}.",("public_key",new_account_pub_key));
 
 
-      try {
-            dlog("Attempting to populate public_address and public_key references: ${public_key}.",("public_key",new_account_pub_key));
+          //Public address generation (currently just base58 encoding)
+          std::string fio_pub_address = string(fc::to_base58(new_account_pub_key.c_str(),new_account_pub_key.length()));
+          dlog("\n\nPublic Address: ${public_address}.",("public_address",fio_pub_address));
 
+          add_pub_address(new_account, new_account_pub_key, creator, creator_private_key, next);
+          add_pub_address(fio_pub_address, new_account_pub_key, creator, creator_private_key, next);
+          dlog("\n\nFIO Public Address and Public Key Emplaced.");
+}
 
-            //Public address generation (currently just base58 encoding)
-            std::string fio_pub_address = string(fc::to_base58(new_account_pub_key.c_str(),new_account_pub_key.length()));
-            dlog("\n\nPublic Address: ${public_address}.",("public_address",fio_pub_address));
-
-            add_pub_address(new_account, new_account_pub_key, creator, creator_private_key, next);
-            add_pub_address(fio_pub_address, new_account_pub_key, creator, creator_private_key, next);
-            dlog("\n\nFIO Public Address and Public Key Emplaced.");
-          }catch (...){
-            dlog("Failed to generate and emplace FIO public address");
-          }
-
-       }
 
       //Return the transaction_id and results
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
@@ -2110,6 +2158,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                 } CATCH_AND_CALL(next);
             }
         });
+
 
     } catch ( boost::interprocess::bad_alloc& ) {
         chain_plugin::handle_db_exhaustion();
