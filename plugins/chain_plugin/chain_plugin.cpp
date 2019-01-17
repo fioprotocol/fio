@@ -2045,7 +2045,6 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
          EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
          EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-
          fioio::pubadd_signature_validate(trans_signature, new_account_pub_key);
 
          // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.

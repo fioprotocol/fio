@@ -106,7 +106,7 @@ namespace fioio{
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                fio_400_assert(present_time <= domain_expiration,"fio_name", newname, "FIO Domain is expired.""FIO Domain expired", ErrorDomainExpired);
+                fio_400_assert(present_time <= domain_expiration,"fio_name", newname, "FIO Domain expired", ErrorDomainExpired);
 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
