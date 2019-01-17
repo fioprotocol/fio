@@ -295,6 +295,125 @@ async function testFunction(creator) {
 
     console.log("*** END MAS 54 test ***")
 
+    console.log("*** START addfiopubadd test ***")
+
+
+    console.log("*** START addfiopubadd test ***")
+
+    console.log("*** END tests ***")
+    // return [true, ""];
+}
+
+async function testAddfiopubadd(creator) {
+    fiocommon.Helper.checkTypes( arguments, ['string'] );
+
+    console.log("*** START tests ***");
+    fio = new fioname.Fio();
+
+    console.log("*** START addfiopubadd test ***")
+    let pubAddress ="";
+    let pub_key ="";
+    let addfiopubaddResult;
+    let addfiopubaddTestSuccess=false
+
+    // TBD: 400 error response handling is broken correctly, commenting the test
+    // console.log("addfiopubadd: Testing addfiopubadd action with empty public address parameter (expect 400 error response)")
+    // pubAddress =" ";
+    // pub_key ="xyz";
+    // addfiopubaddTestSuccess=false
+    // addfiopubaddResult = await fio.addfiopubadd(pubAddress, pub_key, fiocommon.Config.SystemAccount, fiocommon.Config.SystemAccountKey)
+    //     .catch(rej => {
+    //         if (fiocommon.Config.LogLevel > 4) { console.error(rej); }
+    //
+    //         // expect the 400 error to be part of the thrown exceptioon
+    //         let addfiopubaddStr = rej.json;
+    //         let expectedResponseCode="400";
+    //         let expectedResponseMessage="UnAuthorized";
+    //
+    //         addfiopubaddStr = JSON.stringify(addfiopubaddStr)
+    //         let addfiopubaddJson = JSON.parse(addfiopubaddStr)
+    //         // console.log(JSONify(addfiopubaddJson));
+    //
+    //         assert(addfiopubaddJson.code == expectedResponseCode, "addfiopubadd action response invalid code.");
+    //         assert(addfiopubaddJson.message == expectedResponseMessage, "addfiopubadd action response invalid message.");
+    //         addfiopubaddTestSuccess=true;
+    //     });
+    // assert(addfiopubaddTestSuccess, "addfiopubadd() with empty public address should have failed.");
+    //
+    // console.log("addfiopubadd: Testing addfiopubadd with empty public key parameter (expect 400 error response)")
+    // pubAddress ="xyz";
+    // pub_key ="";
+    // addfiopubaddTestSuccess=false
+    // addfiopubaddResult = await fio.addfiopubadd(pubAddress, pub_key, fiocommon.Config.SystemAccount, fiocommon.Config.SystemAccountKey)
+    //     .catch(rej => {
+    //         if (fiocommon.Config.LogLevel > 4) { console.error(rej); }
+    //
+    //         // expect the 400 error to be part of the thrown exceptioon
+    //         let addfiopubaddStr = rej.json;
+    //         let expectedResponseCode="400";
+    //         let expectedResponseMessage="UnAuthorized";
+    //
+    //         addfiopubaddStr = JSON.stringify(addfiopubaddStr)
+    //         let addfiopubaddJson = JSON.parse(addfiopubaddStr)
+    //         // console.log(JSONify(addfiopubaddJson));
+    //
+    //         assert(addfiopubaddJson.code == expectedResponseCode, "addfiopubadd action response invalid code.");
+    //         assert(addfiopubaddJson.message == expectedResponseMessage, "addfiopubadd action response invalid message.");
+    //         addfiopubaddTestSuccess=true;
+    //     });
+    // assert(addfiopubaddTestSuccess, "addfiopubadd() with empty public key should have failed.");
+
+    console.log("addfiopubadd: Testing addfiopubadd action invocation with wrong account permission (expect 401 error response)")
+    console.log("create a new account");
+    let createAccountResult = await fio.createAccount(fiocommon.Config.SystemAccount)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: createAccount()");
+        });
+    assert(createAccountResult[0], "FAIL: createAccount()");
+
+    let account =                   createAccountResult[2];
+    let accountActivePrivateKey =   createAccountResult[4][0];
+
+    pubAddress ="abc";
+    pub_key ="xyz";
+    addfiopubaddTestSuccess=false
+    addfiopubaddResult = await fio.addfiopubadd(pubAddress, pub_key, account, accountActivePrivateKey)
+        .catch(rej => {
+            if (fiocommon.Config.LogLevel > 4) { console.error(rej); }
+
+            // expect the 401 error to be part of the thrown exceptioon
+            let addfiopubaddStr = rej.json;
+            let expectedResponseCode="401";
+            let expectedResponseMessage="UnAuthorized";
+
+            addfiopubaddStr = JSON.stringify(addfiopubaddStr)
+            let addfiopubaddJson = JSON.parse(addfiopubaddStr)
+            // console.log(JSONify(addfiopubaddJson));
+
+            assert(addfiopubaddJson.code == expectedResponseCode, "addfiopubadd action response invalid code.");
+            assert(addfiopubaddJson.message == expectedResponseMessage, "addfiopubadd action response invalid message.");
+            addfiopubaddTestSuccess=true;
+        });
+    assert(addfiopubaddTestSuccess, "addfiopubadd() with wrong signature should have failed.");
+
+    console.log("addfiopubadd: Testing action invocation happy path.")
+    pubAddress ="abc";
+    pub_key ="xyz";
+    addfiopubaddResult = await fio.addfiopubadd(pubAddress, pub_key, fiocommon.Config.SystemAccount, fiocommon.Config.SystemAccountKey)
+        .catch(rej => {
+            console.error(rej.stack);
+            assert(false, "EXCEPTION: addfiopubadd(), pub address: "+ pubAddress+ ", pub key: "+ pub_key);
+        });
+    assert(addfiopubaddResult[0], "FAIL addfiopubadd(), pub address: "+ pubAddress+ ", pub key: "+ pub_key);
+    if (fiocommon.Config.LogLevel > 4) {
+        console.log(JSON.stringify(addfiopubaddResult[1], null, 2));
+    }
+
+    // TBD validate the address - key mapping has been done.
+
+    console.log("*** START addfiopubadd test ***")
+
     console.log("*** END tests ***")
     // return [true, ""];
 }
@@ -325,12 +444,12 @@ async function main() {
     console.log(`Debug ${args.debug}`);
 
     if (args.debug) {
-        fiocommon.Config.LogLevel = 5;
+        fiocommon.Config.LogLevel = 4;
     }
 
-    if (fiocommon.Config.LogLevel > 4) console.log("Enter main sync");
+    if (fiocommon.Config.LogLevel > 3) console.log("Enter main sync");
     try {
-        if (fiocommon.Config.LogLevel > 4) console.log("Start startup()");
+        if (fiocommon.Config.LogLevel > 3) console.log("Start startup()");
 
         console.log("Standing up nodeos.");
         let result = await startup()
@@ -342,7 +461,7 @@ async function main() {
             console.error("ERROR: startup() failed.");
             return [false, result[1]];
         }
-        if (fiocommon.Config.LogLevel > 4) console.log("End startup()");
+        if (fiocommon.Config.LogLevel > 3) console.log("End startup()");
         console.log("nodeos successfully configured.");
 
         let contract="fio.name";
@@ -361,7 +480,13 @@ async function main() {
         }
         console.log("Contract fio.name set successfully.");
 
-        await testFunction(args.creator)
+        // await testFunction(args.creator)
+        //     .catch(rej => {
+        //         console.error(`testFunction() promise rejection handler.`);
+        //         throw rej;
+        //     });
+
+        await testAddfiopubadd(args.creator)
             .catch(rej => {
                 console.error(`testFunction() promise rejection handler.`);
                 throw rej;
@@ -371,18 +496,18 @@ async function main() {
     } finally {
         if (!args.leaverunning) {
             fiocommon.Helper.sleep(100);    // allow time for logs to be updated before shutdown
-            if (fiocommon.Config.LogLevel > 4) console.log("start shutdown()");
+            if (fiocommon.Config.LogLevel > 3) console.log("start shutdown()");
             console.log("Shuting down nodeos and keosd.");
             await shutdown().catch(rej => {
-                if (fiocommon.Config.LogLevel > 4) console.log(`shutdown promise rejection handler: ${rej}`);
+                if (fiocommon.Config.LogLevel > 3) console.log(`shutdown promise rejection handler: ${rej}`);
                 throw rej;
             });
-            if (fiocommon.Config.LogLevel > 4) console.log("End shutdown()");
+            if (fiocommon.Config.LogLevel > 3) console.log("End shutdown()");
         }
     }
-    if (fiocommon.Config.LogLevel > 4) console.log("End main sync");
+    if (fiocommon.Config.LogLevel > 3) console.log("End main sync");
 
-    if (fiocommon.Config.LogLevel > 4) console.log("Exit main.");
+    if (fiocommon.Config.LogLevel > 3) console.log("Exit main.");
 }
 
 main()

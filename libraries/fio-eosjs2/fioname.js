@@ -537,7 +537,7 @@ class Fio {
     // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
     // account name (public address of the wallet user in production use.
     async addaddress(fioname, address, chain, requestor, requestorActivePrivateKey, owner=fiocommon.Config.SystemAccount) {
-        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string', 'string']);
+        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string', 'string', 'string']);
 
         if (fiocommon.Config.LogLevel > 3) {
             console.log(`Requestor ${requestor} adding address. FIO name: ${fioname}, address: ${address}, chain: ${chain}`);
@@ -574,6 +574,40 @@ class Fio {
         return [true, result];
     } //addaddress
 
+    async addfiopubadd(pub_address, pub_key, requestor, requestorActivePrivateKey, owner=fiocommon.Config.SystemAccount) {
+        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string']);
+
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Requestor ${requestor} associating pub address ${pub_address} with public key ${pub_key}`);
+        }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, {fetch});
+        // include keys for both system and requestor active
+        const signatureProvider = new eosjs2.SignatureProvider([requestorActivePrivateKey]);
+        let api = new eosjs2.Api({rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder});
+
+        const result = await this.api.transact({
+            actions: [{
+                account: owner,
+                name: 'addfiopubadd',
+                authorization: [{
+                    actor: requestor,
+                    permission: 'active',
+                }],
+                data: {
+                    pub_address: pub_address.trim(),
+                    pub_key: pub_key.trim()
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        return [true, result];
+    } //addfiopubadd
 
 } //Fio class
 
