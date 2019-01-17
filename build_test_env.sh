@@ -125,10 +125,10 @@ elif [ $mChoice == 2 ]; then
     DESTINATION="../build/"
 
     cp -r "$SOURCE"* "$DESTINATION"
-    cp linuxLauncher.py ../build/
+    cp launcher.py ../build/
     cd ..
     cd build/
-    python3 ./linuxLauncher.py
+    python3 ./launcher.py
     cd ..
 
     sleep 3s
