@@ -9,6 +9,7 @@
 
 #include <string>
 #include <eosio/chain/exceptions.hpp>
+#include <eosio/chain/fioio/fioerror.hpp>
 
 #pragma once
 
@@ -26,7 +27,8 @@ namespace fioio {
         fc::raw::unpack(pubds, p);
 
         auto check = fc::crypto::public_key( s, digest, false );
-        EOS_ASSERT( check == p, eosio::chain::invalid_signature_address, "Key Signature mismatch");
+
+        FIO_403_ASSERT(check == p, eosio::chain::invalid_signature_address);
     }
 
     inline void pubadd_signature_validate(string t_unpackedSig, string fio_pub_key){
