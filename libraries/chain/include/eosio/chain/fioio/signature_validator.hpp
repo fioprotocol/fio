@@ -40,7 +40,7 @@ namespace fioio {
         const string tpubkey = fio_pub_key;
 
         //  find pub_key inside t_unpackedSig (recover key in crypto library)
-        assert_recover_key(digest, (const char *)&tsig, sizeof(t_unpackedSig), (const char *)&tpubkey, sizeof(fio_pub_key) );
+        assert_recover_key(digest, (const char *)&tsig, sigSize, (const char *)&tpubkey, pubSize );
     }
 
     inline bool is_transaction_packed(const fc::variant_object& t_vo){

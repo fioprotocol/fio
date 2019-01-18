@@ -27,7 +27,7 @@ _**Reminder: Save this password somewhere as you will need it later.**_
     
 #### Development Environment Setup
 
-Run: `./build_test_env.sh`  
+Run: `./fioio_launcher.sh`  
 
 Default Environment Settings: 
 
@@ -82,11 +82,11 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
   
 ##### Create Domain  
   
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active  
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active  
   
 ##### Create FIO Name  
   
-     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"name.brd","requestor":"fioname11111"}' --permission fioname11111@active   
+     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"name.brd","requestor":"fio.fioname11111"}' --permission fio.system@active   
   
 ##### Add FIO Address  
   
