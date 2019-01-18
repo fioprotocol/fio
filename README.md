@@ -98,7 +98,7 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
   
 ##### Get Registered FIO Domains  
   
-    cleos -u http://localhost:8889 get table fio.system fio.system fiodomains  
+    cleos -u http://localhost:8889 get table fio.system fio.system domains  
   
 ##### Test API Endpoints  
   
