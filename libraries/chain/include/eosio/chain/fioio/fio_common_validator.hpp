@@ -34,7 +34,7 @@ namespace fioio {
         fa.fioname = "";
         fa.fiodomain = "";
 
-        unsigned int pos = p.find('.');
+        int pos = p.find('.');
         fa.domainOnly = false;
 
         //Lower Case
@@ -46,7 +46,7 @@ namespace fioio {
             fa.fioname = fa.fiopubaddress.substr(0, pos);
             fa.fiodomain = fa.fiopubaddress.substr(pos + 1, string::npos);
 
-            if(fa.fiopubaddress.size() < 1){
+            if(fa.fiopubaddress.size() < 1 || ( fa.fiodomain.size() + 1 ) == fa.fiopubaddress.size()){
                 fa.domainOnly = true;
             }
         }
@@ -70,7 +70,7 @@ namespace fioio {
     }
 
     inline bool isDomainNameValid( string domain, bool singlecheck ){
-        if (domain.size() >= 1 && domain.size() <= 50 && !singlecheck){
+        if (( domain.size() >= 1 && domain.size() <= 50 ) && !singlecheck){
             if(domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
                 return false;
             }

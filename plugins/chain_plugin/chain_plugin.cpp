@@ -1142,6 +1142,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
  */
 read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
 
+   fioio::FioAddress fa;
+
    // assert if empty fio name
    EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
 
@@ -1273,9 +1275,22 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    const fioio::FioAddress fa = fioio::getFioAddressStruct(p.fio_name);
 
    // Split the fio name and domain portions
+   string fio_address = fa.fiopubaddress;
    string fio_name = fa.fioname;
    string fio_domain = fa.fiodomain;
+
    bool domainOnly = fa.domainOnly;
+
+   result.fio_name = fio_address;
+
+   //Domain validation.
+   FIO_400_ASSERT(fioio::isDomainNameValid(fio_domain, domainOnly), "fio_name", fio_address, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+   FIO_400_ASSERT(fioio::fioNameSizeCheck(fio_name, fio_domain), "fio_name", fio_address, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+
+   //Name validation.
+   if( !fio_name.empty()){
+       FIO_400_ASSERT(fioio::isFioNameValid(fio_name), "fio_name", fio_address, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
+   }
 
    //declare variables.
    const name code = ::eosio::string_to_name(fio_system_code.c_str());
@@ -1298,9 +1313,6 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
-    //Domain validation.
-    FIO_400_ASSERT(fioio::isDomainNameValid(fio_domain, domainOnly), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
               .code=code,
@@ -1312,23 +1324,16 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
-      FIO_400_ASSERT(fioio::fioNameSizeCheck(fio_name, fio_domain), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-
-      //Name validation.
-       FIO_400_ASSERT(fioio::isFioNameValid(fio_name), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-
       // Not Registered
       if (fioname_result.rows.empty()) {
           return result;
       }
-
       uint32_t name_expiration = (uint32_t)(fioname_result.rows[0]["expiration"].as_uint64());
       //This is not the local computer time, it is in fact the block time.
       uint32_t present_time = (uint32_t) time(0);
-
       //if the domain is expired then return an empty result.
       if (present_time > name_expiration) {
-         return result;
+          return result;
       }
    }
 
@@ -1345,7 +1350,6 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    // name checked and set
    result.is_registered = true;
-
    return result;
 }
 
@@ -1968,13 +1972,6 @@ void add_pub_address(std::string&  pub_address, std::string& pub_key, const std:
 
     push_transactions(std::move(trxs), next);
 }
-
-
-
-
-
-
-
 
 void static gen_random(char *s, const int len) {
 
