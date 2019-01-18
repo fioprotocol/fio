@@ -151,7 +151,6 @@ namespace fioio {
       throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_400_Result(message).to_json().c_str()); \
    FC_MULTILINE_MACRO_END
 
-
 #define fio_400_assert(test,fieldname,fieldvalue,fielderror,code) \
    eosio_assert_message_code(test, fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), code)
 

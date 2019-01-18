@@ -28,7 +28,7 @@ namespace fioio {
 
         auto check = fc::crypto::public_key( s, digest, false );
 
-        FIO_403_ASSERT(check == p, eosio::chain::invalid_signature_address);
+        FIO_403_ASSERT(check == p, false);
     }
 
     inline void pubadd_signature_validate(string t_unpackedSig, string fio_pub_key){
