@@ -51,8 +51,10 @@ fi
 
 if [ $mChoice == 1 ]; then
     echo 'Welcome to the Basic Environment'
-    echo $'\nEnter Default Wallet Passkey'
-    cleos wallet unlock
+
+    walletkey=$(head -n 1 walletkey.ini)
+
+    cleos wallet unlock --password $walletkey
 
     #Import Wallet Keys
     cleos wallet import --private-key 5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg

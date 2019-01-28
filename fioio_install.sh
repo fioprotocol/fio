@@ -123,5 +123,5 @@ fi
 
    if cleos wallet create -f walletkey.ini
    then
-      printf "SAVE THIS WALLET DEFAULT PASSWORD\\n\\n"
+      printf "SAVE THIS DEFAULT WALLET PASSWORD\\n\\n"
    fi
