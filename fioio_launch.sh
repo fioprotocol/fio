@@ -113,14 +113,13 @@ if [ $mChoice == 1 ]; then
     cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
     cleos -u http://localhost:8889 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
 
-    sleep 10s
-
     #Create Domain
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
 
     #Create Account Name
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"adam.brd","requestor":"fioname11111"}' --permission fioname11111@active
+
 elif [ $mChoice == 2 ]; then
     cd tests
     SOURCE="bootstrap"
@@ -165,6 +164,8 @@ elif [ $mChoice == 4 ]; then
         sh ./chain_nuke.sh
         find . -name eosio-wallet -type d -exec rm -r {} +
 
+        nodeos --hard-replay
+
         echo $'\n\nNUKE COMPLETE - WELCOME TO YOUR NEW BUILD'
     fi
 
@@ -173,7 +174,7 @@ else
     exit 1
 fi
 
-printf "\n\n${bldred}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
+printf "\n\n${bldgrn}  FFFFFFFFFFFFFFFFFFF IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOOOO\n"
 printf "  F:::::::::::::::::F I:::::::I   OO::::::::OO  I:::::::I   OO:::::::OO\n"
 printf "  FF:::::FFFFFFFF:::F II:::::II O:::::OOO:::::O II:::::II O:::::OOO:::::O\n"
 printf "    F::::F      FFFFF   I:::I  O:::::O   O:::::O  I:::I  O:::::O   O:::::O\n"
