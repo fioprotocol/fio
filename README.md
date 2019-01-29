@@ -27,7 +27,7 @@ _**Reminder: Save this password somewhere as you will need it later.**_
     
 #### Development Environment Setup
 
-Run: `./fioio_launcher.sh`  
+Run: `./fioio_launch.sh`  
 
 Default Environment Settings: 
 
