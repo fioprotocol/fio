@@ -18,8 +18,8 @@ echo 'Welcome to the Basic Environment'
 
 restartneeded=0
 
-if [ -d /node2 ]; then
-    echo 'Restart Detected'
+if [ -d node2/ ]; then
+    echo $'Restart Detected\n'
     restartneeded=1
 fi
 
@@ -58,6 +58,9 @@ fi
 
 if [ $mChoice == 1 ]; then
     walletkey=$(head -n 1 walletkey.ini)
+
+    echo 'Using Password:' $walletkey
+    sleep 2s
 
     cleos wallet unlock -n default --password $walletkey
 
@@ -150,7 +153,7 @@ elif [ $mChoice == 2 ]; then
 
     cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
-elif [ $mChoice == 3 ] || [ ]; then
+elif [ $mChoice == 3 ]; then
     cd build
     python3 ./tests/startupNodeos.py -v
 
@@ -173,7 +176,9 @@ elif [ $mChoice == 4 ]; then
     if [ $bChoice == 2 ]; then
         cd scripts
         sh ./chain_nuke.sh
+
         find . -name eosio-wallet -type d -exec rm -r {} +
+        find . -name node2 -type d -exec rm -r {} +
 
         nodeos --hard-replay
 

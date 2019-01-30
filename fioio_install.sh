@@ -121,7 +121,7 @@ fi
    printf "\\tFor more information:\\n"
    printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"
 
-   if [ -d /node2 ]; then
+   if [ -d node2/ ]; then
     exit -1
    else
     cleos wallet create --file walletkey.ini -n default
