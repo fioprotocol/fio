@@ -121,7 +121,4 @@ fi
    printf "\\tFor more information:\\n"
    printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"
 
-   if cleos wallet create -f walletkey.ini
-   then
-      printf "SAVE THIS DEFAULT WALLET PASSWORD\\n\\n"
-   fi
+   cleos wallet create --name default --file walletkey.ini
