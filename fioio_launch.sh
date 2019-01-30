@@ -59,7 +59,7 @@ fi
 if [ $mChoice == 1 ]; then
     walletkey=$(head -n 1 walletkey.ini)
 
-    cleos wallet unlock --password $walletkey
+    cleos wallet unlock -n default --password $walletkey
 
     if [ restartneeded == 0 ]; then
         #Import Wallet Keys
