@@ -16,6 +16,13 @@ printf "  FFFFFFFFFF          IIIIIIIII     OOOOOOO     IIIIIIIII     OOOOO0O \n
 
 echo 'Welcome to the Basic Environment'
 
+restartneeded=0
+
+if [ -d /node2 ]; then
+    echo 'Restart Detected'
+    restartneeded=1
+fi
+
 read -p $'1. Local Blockchain ( No SDK Support ) 2. AWS Launch\n3. MacOS (Test) Install 4. Nuke All\nChoose(#):' mChoice
 
 #Fio Name Directory Check
@@ -49,7 +56,7 @@ else
     eosio_token_contract_name_path="$PWD/build/contracts/eosio.token"
 fi
 
-if [ $mChoice == 1 ]; then
+if [ $mChoice == 1 ] && [ $restartNeeded == 0 ]; then
     echo 'Welcome to the Basic Environment'
 
     walletkey=$(head -n 1 walletkey.ini)
@@ -141,7 +148,7 @@ elif [ $mChoice == 2 ]; then
 
     cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active
 
-elif [ $mChoice == 3 ]; then
+elif [ $mChoice == 3 ] || [ ]; then
     cd build
     python3 ./tests/startupNodeos.py -v
 
