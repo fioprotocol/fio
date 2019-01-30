@@ -308,4 +308,4 @@
    printf "\\n\\tFIOIO has been successfully built. %02d:%02d:%02d\\n\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
 
    printf "\\tFor more information:\\n"
-   printf "\\tFIOIO wiki: https://github.com/dapix/dapix_core/wiki\\n\\n\\n"
+   printf "\\tFIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"

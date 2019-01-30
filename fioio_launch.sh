@@ -62,7 +62,7 @@ if [ $mChoice == 1 ]; then
     echo 'Using Password:' $walletkey
     sleep 2s
 
-    cleos wallet unlock -n default --password $walletkey
+    cleos wallet unlock --password $walletkey
 
     if [ restartneeded == 0 ]; then
         #Import Wallet Keys
