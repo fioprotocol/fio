@@ -120,15 +120,3 @@ fi
 
    printf "\\tFor more information:\\n"
    printf "\\tFIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
-
-   if [ -d node2/ ]; then
-    exit -1
-   else
-    cleos wallet create --to-console
-
-    read -p $"Enter Wallet Password Listed Above: " walletpassword
-
-    echo "$walletpassword" > walletkey.ini
-    echo 'Saved'
-
-   fi

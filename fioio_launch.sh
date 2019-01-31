@@ -57,6 +57,8 @@ else
 fi
 
 if [ $mChoice == 1 ]; then
+    cleos wallet create -f walletkey.ini
+
     walletkey=$(head -n 1 walletkey.ini)
 
     echo 'Using Password:' $walletkey
@@ -64,7 +66,7 @@ if [ $mChoice == 1 ]; then
 
     cleos wallet unlock --password $walletkey
 
-    if [ restartneeded == 0 ]; then
+    if [ $restartneeded == 0 ]; then
         #Import Wallet Keys
         cleos wallet import --private-key 5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg
         cleos wallet import --private-key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
