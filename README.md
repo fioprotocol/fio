@@ -18,16 +18,9 @@ Some Mac OS users will need to run the follow command before executing the build
     ./fioio_build.sh  
     sudo ./fioio_install.sh  
   
-#### Wallet Management
-##### Create Default Wallet  
-  
-    cleos wallet create --to-console
-    
-_**Reminder: Save this password somewhere as you will need it later.**_ 
-    
 #### Development Environment Setup
 
-Run: `./build_test_env.sh`  
+Run: `./fioio_launch.sh`  
 
 Default Environment Settings: 
 
@@ -37,15 +30,17 @@ Default Environment Settings:
 | Domain     | brd |
 | FIO Names  | adam , casey |
 
-Default fio.name Folder: `~../fio/build/contracts/fio.name`  
-
 #### Chain Management
-##### Shutdown Local Test Node
-`./scripts/nodeos_kill.sh`
+###### Shutdown Local Test Node
+Run: `./scripts/nodeos_kill.sh`
 
 ###### Hard Restart:
 
 Run: `./scripts/chain_nuke.sh`
+
+###### Signed Transaction
+
+Run: `../utils/sign-pack-trx.sh` ( from build folder )
 
 **Remove Folders Manually:<br>**
 Linux: `~/.local/nodeos`<br>
@@ -82,11 +77,11 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
   
 ##### Create Domain  
   
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fioname11111"}' --permission fioname11111@active  
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active  
   
 ##### Create FIO Name  
   
-     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"name.brd","requestor":"fioname11111"}' --permission fioname11111@active   
+     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"name.brd","requestor":"fio.fioname11111"}' --permission fio.system@active   
   
 ##### Add FIO Address  
   
@@ -98,8 +93,12 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
   
 ##### Get Registered FIO Domains  
   
-    cleos -u http://localhost:8889 get table fio.system fio.system fiodomains  
+    cleos -u http://localhost:8889 get table fio.system fio.system domains  
   
 ##### Test API Endpoints  
   
-    curl --request POST  http://localhost:8889/v1/chain/avail_check --data '{"fio_name":"ese.brd"}'
+    curl --request POST  http://localhost:8889/v1/chain/avail_check --data '{"fio_name":"test.brd"}'
+    
+##### API Call for register_fio_name
+
+    curl --request POST --url http://localhost:8889/v1/chain/register_fio_name  --data '<packed signed transaction>'

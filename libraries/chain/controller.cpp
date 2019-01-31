@@ -973,6 +973,7 @@ struct controller_impl {
       transaction_trace_ptr trace;
       try {
          transaction_context trx_context(self, trx->trx, trx->id);
+         trx_context.set_fio_trx(trx->packed_trx.is_fio_transaction());
          if ((bool)subjective_cpu_leeway && pending->_block_status == controller::block_status::incomplete) {
             trx_context.leeway = *subjective_cpu_leeway;
          }
@@ -1008,7 +1009,8 @@ struct controller_impl {
                        [](){}
                        /*std::bind(&transaction_context::add_cpu_usage_and_check_time, &trx_context,
                                  std::placeholders::_1)*/,
-                       false
+                                 trx->packed_trx.is_fio_transaction()
+//                       false
                );
             }
             trx_context.exec();

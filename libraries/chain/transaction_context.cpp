@@ -314,7 +314,9 @@ namespace bacc = boost::accumulators;
       if (!control.skip_trx_checks()) {
          control.validate_expiration(trx);
          control.validate_tapos(trx);
-         control.validate_referenced_accounts(trx);
+         if (!this->is_fio_trx()) {
+            control.validate_referenced_accounts(trx);
+         }
       }
       init( initial_net_usage);
       if (!skip_recording)

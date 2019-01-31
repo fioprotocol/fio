@@ -8,6 +8,7 @@ import string
 from datetime import datetime
 import shlex
 import collections
+import sys
 
 hostname="localhost"
 #hostname="0.0.0.0"
@@ -141,7 +142,7 @@ def startup(logFileStr):
             the_file.write(logFileStr)
 
     script = """
-set -x
+#set -x
 pkill -9 nodeos
 pkill -9 keosd
 rm -rf test_wallet_0
@@ -150,7 +151,7 @@ rm -rf var
 #programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -i 2018-09-12T16:21:19.132 -f --p2p-plugin net --boot --specific-num 00 --specific-nodeos "--http-server-address $MY_INTERFACE:8888" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 1 --contracts-console"
 
 echo Launching EOS nodes listening on host %(hostname)s, port %(nPort)s
-programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -f --p2p-plugin net --specific-num 00 --specific-nodeos "--http-server-address %(hostname)s:%(nPort)s" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 25 --contracts-console --logconf %(logName)s --chain-state-db-size-mb 10240 --disable-ram-billing-notify-checks"
+programs/eosio-launcher/eosio-launcher -p 1 -n 1 -s mesh -d 1 -f --p2p-plugin net --specific-num 00 --specific-nodeos "--http-server-address %(hostname)s:%(nPort)s" --enable-gelf-logging 0 --nodeos "--max-transaction-time 50000 --abi-serializer-max-time-ms 990000 --filter-on * --p2p-max-nodes-per-host 25 --contracts-console --logconf %(logName)s --chain-state-db-size-mb 10240 --disable-ram-billing-notify-checks -e"
 if [ $? -ne 0 ]; then
     echo "Launcher failed"
     exit 1
@@ -200,6 +201,7 @@ programs/cleos/cleos --no-auto-keosd --url http://%(hostname)s:%(nPort)s --walle
 
     """ % {"hostname":hostname, "logName":logFileName, "nPort":nPort, "wPort":wPort}
     if Utils.Debug: print("script: %s" % (script))
+    sys.stdout.flush()
     ret = os.system("bash -c '%s'" % script)
     if ret != 0:
         return (False, ret)

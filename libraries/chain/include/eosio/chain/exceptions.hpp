@@ -130,7 +130,8 @@ namespace eosio { namespace chain {
                                     3010014, "Invalid symbol" )
       FC_DECLARE_DERIVED_EXCEPTION( invalid_fio_name_exception,        chain_type_exception,
                                     3010015, "Invalid fio_name" )
-
+      FC_DECLARE_DERIVED_EXCEPTION( invalid_signature_address,         chain_type_exception,
+                                    3010016, "Request signature not valid or not allowed." )
 
    FC_DECLARE_DERIVED_EXCEPTION( fork_database_exception, chain_exception,
                                  3020000, "Fork database exception" )
