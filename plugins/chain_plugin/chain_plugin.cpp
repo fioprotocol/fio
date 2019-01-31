@@ -1158,6 +1158,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
       fio_user_name = p.fio_name.substr(0, pos);
       fio_domain = p.fio_name.substr(pos + 1, string::npos);
    }
+   dlog( "fio user name: ${name}, fio domain: ${domain}", ("name", fio_user_name)("domain", fio_domain) );
 
    //declare variables.
    const name code = ::eosio::string_to_name(fio_system_code.c_str());
@@ -1165,6 +1166,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
+   dlog( "fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash) );
 
    //these are the results for the table searches for domain ansd fio name
    get_table_rows_result domain_result;
@@ -1188,7 +1190,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
-   // If no matchs, then domain not found, return empty result
+   // If no matches, then domain not found, return empty result
+   dlog( "Domain matched: ${matched}", ("matched", !domain_result.rows.empty()) );
    if (domain_result.rows.empty()) {
       return result;
    }
@@ -1198,6 +1201,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    uint32_t present_time = (uint32_t)time(0);
 
    //if the domain is expired then return an empty result.
+   dlog( "Domain expired: ${expired}", ("expired", present_time > domain_expiration) );
    if (present_time > domain_expiration) {
      return result;
    }
@@ -1217,8 +1221,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
         fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
-
-        // If no matchs, the name does not exist, return empty result
+        // If no matches, the name does not exist, return empty result
+       dlog( "FIO name matched: ${matched}", ("matched", !fioname_result.rows.empty()) );
         if (fioname_result.rows.empty()) {
             return result;
         }
@@ -1226,6 +1230,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
         uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
 
         //if the name is expired then return an empty result.
+       dlog( "FIO name expired: ${expired}", ("expired", present_time > domain_expiration) );
         if (present_time > domain_expiration) {
             return result;
         }
@@ -1249,13 +1254,15 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
     transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
     chain_type c_type= str_to_chain_type(my_chain);
 
-   // validate keys vector size is expected size.
-   EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
-
-   if (c_type != chain_type::NONE) {
-      // Pick out chain specific key and populate result
-      result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
-   }
+//   TBD: CHAIN SPECIFIC PUBLIC ADDRESS LOOKUP
+//   // validate keys vector size is expected size.
+//   get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+//   //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+//
+//   // Pick out chain specific key and populate result
+//   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
+//   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+  
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup

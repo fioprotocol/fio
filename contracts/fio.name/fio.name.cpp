@@ -189,8 +189,9 @@ namespace fioio{
 
             transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
 
-            if(my_chain.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") == std::string::npos) {
-                fio_400_assert(false, "chain", my_chain, "Invalid chain format", ErrorInvalidFioNameFormat);
+            // Ensure chain name consists only of aphabets
+            if(my_chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos) {
+                fio_400_assert(false, "chain", chain, "Invalid chain format", ErrorInvalidFioNameFormat);
             }
 
             uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
@@ -332,6 +333,12 @@ namespace fioio{
       //To do: Keep emplacing new entries or replace new ?
 
       auto fiopubadd_iter = fiopubs.find(fiopubindex);
+      if (fiopubadd_iter != fiopubs.end()) {
+          print("Found pub address: pub address: ", fiopubadd_iter->fiopub, ", pub key: ", fiopubadd_iter->pubkey, "\n");
+          print("Found pub address: n pub address hash: ", fiopubindex, ",n pub key hash: ", pubkeyindex, "o pub address hash: ", fiopubadd_iter->fiopubindex, ",o pub key hash: ", fiopubadd_iter->pubkeyindex, "\n");
+      } else {
+          print("No pub address match found.");
+      }
       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
 
       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
@@ -341,8 +348,8 @@ namespace fioio{
         f.pubkeyindex = pubkeyindex; // The index of the public key
       });
 
-      // Test json response
-      nlohmann::json json = {{"status","OK"},{"[pub_address]",pub_address},{"pub_key",pub_key}};
+      // json response
+      nlohmann::json json = {{"status","OK"},{"pub_address",pub_address},{"pub_key",pub_key}};
       send_response(json.dump().c_str());
 
     } // addfiopubadd
