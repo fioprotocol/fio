@@ -58,7 +58,7 @@ fi
 
 if [ $mChoice == 1 ]; then
 
-    if [ -f /walletkey.ini ]; then
+    if [ ! -f walletkey.ini ]; then
         cleos wallet create -f walletkey.ini
     fi
 
