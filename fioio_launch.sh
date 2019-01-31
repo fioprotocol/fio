@@ -57,13 +57,14 @@ else
 fi
 
 if [ $mChoice == 1 ]; then
-    cleos wallet create -f walletkey.ini
+
+    if [ -f /walletkey.ini ]; then
+        cleos wallet create -f walletkey.ini
+    fi
 
     walletkey=$(head -n 1 walletkey.ini)
-
     echo 'Using Password:' $walletkey
     sleep 2s
-
     cleos wallet unlock --password $walletkey
 
     if [ $restartneeded == 0 ]; then
