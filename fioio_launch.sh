@@ -108,7 +108,7 @@ if [ $mChoice == 1 ]; then
     sh scripts/node2_start.sh &
     sleep 6s
 
-    if [ restartneeded == 0 ]; then
+    if [ $restartneeded == 0 ]; then
         #Create Accounts
         echo $'Creating Accounts...\n'
         cleos -u http://localhost:8889 create account eosio fioname11111 EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
