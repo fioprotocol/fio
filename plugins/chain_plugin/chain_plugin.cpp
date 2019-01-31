@@ -1241,13 +1241,14 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
             .upper_bound=boost::lexical_cast<string>(chainHash + 1),
             .encode_type="dec"};
 
-   // validate keys vector size is expected size.
-   get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
-   //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
-
-   // Pick out chain specific key and populate result
-   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
-   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+    //     TBD: CHAIN SPECIFIC PUBLIC ADDRESS LOOKUP
+//   // validate keys vector size is expected size.
+//   get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+//   //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
+//
+//   // Pick out chain specific key and populate result
+//   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
+//   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
