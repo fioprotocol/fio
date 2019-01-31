@@ -28,7 +28,13 @@ Config.NewAccountTransfer=          false;
 Config.NameRegisterExpiration=      31561920; // 1 year in seconds
 // Config.TestAccount=              "fioname11111";
 Config.FioFinanceAccount=           "fio.finance";
-Config.LogLevel=                    3; // Log levels 0 - 5 with increasing verbosity.
+Config.FioFinanceAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
+Config.LogLevelTrace = 5
+Config.LogLevelDebug = 4
+Config.LogLevelInfo = 3
+Config.LogLevelWarn = 2
+Config.LogLevelError = 1
+Config.LogLevel=                    Config.LogLevelInfo;
 Config.FinalizationTime=            20;     // time in milliseconds to transaction finalization
 Config.pmtson=                      false;
 
@@ -141,6 +147,37 @@ class Helper {
             });
 
         return [true, result];
+    }
+
+    static async startup() {
+        if (Config.LogLevel > 4) console.log("Enter startup().");
+
+        let result = await Helper.execute("tests/startupNodeos.py", false)
+            .catch(rej => {
+                console.error(`Helper.execute() promise rejection handler.`);
+                throw rej;
+            });
+
+        if (Config.LogLevel > 4) console.log("Exit startup()");
+        return [true, result];
+    }
+
+    static async shutdown() {
+        try {
+            console.log("Shutting down blockchain and wallet.");
+            let result = await Helper.execute("/usr/bin/pkill -9 nodeos", false);
+            result = await Helper.execute("/usr/bin/pkill -9 keosd", false);
+            return [true, result];
+        } catch (e) {
+            console.error("Helper.execute() threw exception");
+            throw e;
+        }
+    }
+
+    static Log(logSwitch, ...restArgs) {
+        if (logSwitch) {
+            console.log(restArgs.toString());
+        }
     }
 
 }

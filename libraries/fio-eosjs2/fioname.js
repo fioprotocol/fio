@@ -537,7 +537,7 @@ class Fio {
     // hard coded to fiocommon.Config.TestAccount (fio.common.js) and the actor should be changed to the 
     // account name (public address of the wallet user in production use.
     async addaddress(fioname, address, chain, requestor, requestorActivePrivateKey, owner=fiocommon.Config.SystemAccount) {
-        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string', 'string', 'string']);
+        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string', 'string']);
 
         if (fiocommon.Config.LogLevel > 3) {
             console.log(`Requestor ${requestor} adding address. FIO name: ${fioname}, address: ${address}, chain: ${chain}`);

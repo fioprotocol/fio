@@ -335,6 +335,12 @@ namespace fioio{
       //To do: Keep emplacing new entries or replace new ?
 
       auto fiopubadd_iter = fiopubs.find(fiopubindex);
+      if (fiopubadd_iter != fiopubs.end()) {
+          print("Found pub address: pub address: ", fiopubadd_iter->fiopub, ", pub key: ", fiopubadd_iter->pubkey, "\n");
+          print("Found pub address: n pub address hash: ", fiopubindex, ",n pub key hash: ", pubkeyindex, "o pub address hash: ", fiopubadd_iter->fiopubindex, ",o pub key hash: ", fiopubadd_iter->pubkeyindex, "\n");
+      } else {
+          print("No pub address match found.");
+      }
       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
 
       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
@@ -344,8 +350,8 @@ namespace fioio{
         f.pubkeyindex = pubkeyindex; // The index of the public key
       });
 
-      // Test json response
-      nlohmann::json json = {{"status","OK"},{"[pub_address]",pub_address},{"pub_key",pub_key}};
+      // json response
+      nlohmann::json json = {{"status","OK"},{"pub_address",pub_address},{"pub_key",pub_key}};
       send_response(json.dump().c_str());
 
     } // addfiopubadd
