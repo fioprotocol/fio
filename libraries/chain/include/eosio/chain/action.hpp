@@ -57,11 +57,12 @@ namespace eosio { namespace chain {
     *  application code. An application code will check to see if the required authorization
     *  were properly declared when it executes.
     */
-   struct action {
-      account_name               account;
-      action_name                name;
-      vector<permission_level>   authorization;
-      bytes                      data;
+    struct action {
+        account_name               account;
+        fc::string                 fio_pub_key;
+        action_name                name;
+        vector<permission_level>   authorization;
+        bytes                      data;
 
       action(){}
 
@@ -93,37 +94,6 @@ namespace eosio { namespace chain {
       }
    };
 
-     struct fio_action {
-         action_name                name;
-         std::string                fio_pub_key;
-         bytes                      data;
-
-         fio_action(){}
-
-         template<typename T, std::enable_if_t<std::is_base_of<bytes, T>::value, int> = 1>
-         fio_action( vector<permission_level> auth, const T& value ) {
-            name        = T::get_name();
-            fio_pub_key = T::get_fio_pub_key();
-            data.assign(value.data(), value.data() + value.size());
-         }
-
-         template<typename T, std::enable_if_t<!std::is_base_of<bytes, T>::value, int> = 1>
-         fio_action( vector<permission_level> auth, const T& value ) {
-            name        = T::get_name();
-            fio_pub_key     = T::get_fio_pub_key(value);
-            data        = fc::raw::pack(value);
-         }
-
-         fio_action( action_name name, const std::string& fio_pub_key, const bytes& data )
-                 : name(name), fio_pub_key(fio_pub_key), data(data) {
-         }
-
-         template<typename T>
-         T data_as()const {
-            EOS_ASSERT( name == T::get_name(), action_type_exception, "action name is not consistent with action struct"  );
-            return fc::raw::unpack<T>(data);
-         }
-     };
 
    struct action_notice : public action {
       account_name receiver;
@@ -132,5 +102,4 @@ namespace eosio { namespace chain {
 } } /// namespace eosio::chain
 
 FC_REFLECT( eosio::chain::permission_level, (actor)(permission) )
-FC_REFLECT( eosio::chain::action, (account)(name)(authorization)(data) )
-FC_REFLECT( eosio::chain::fio_action, (name)(fio_pub_key)(data) )
+FC_REFLECT( eosio::chain::action, (account)(fio_pub_key)(name)(authorization)(data) )

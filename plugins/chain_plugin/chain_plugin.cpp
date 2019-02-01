@@ -1262,7 +1262,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 //   // Pick out chain specific key and populate result
 //   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
 //   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
-  
+
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
@@ -1991,12 +1991,15 @@ void static gen_random(char *s, const int len) {
   s[len] = 0;
 }
 
-static string generate_name () {
+static void generate_name (fc::string &name) {
+   static const char alphanum[] = "`.12345abcdefghijklmnopqrstuvwxyz";
+   srand(time(0));
    const size_t len = 12;
-   char nameArr[len];
-   gen_random(nameArr, len);
-   string name (nameArr);
-   return name;
+   name.resize(len);
+
+   for (size_t i = 0; i < len; ++i) {
+      name[i] = alphanum[rand() % (sizeof(alphanum))];
+   }
 }
 
 //Temporary to register_fio_name_params
@@ -2010,93 +2013,81 @@ static string generate_name () {
  */
 void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
 
-    string new_account_pub_key = "";
-    string trans_signature = "";
+   try {
+      string new_account_pub_key = "";
+      bool debugmode = true;
+      auto pretty_input = std::make_shared<packed_transaction>();
+      auto unpacked = std::make_shared<packed_transaction>();
+      auto resolver = make_resolver(this, abi_serializer_max_time);
+      transaction trx;
 
-    try {
-        auto pretty_input = std::make_shared<packed_transaction>();
-        auto resolver = make_resolver(this, abi_serializer_max_time);
         try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception,
-                "Signed transactions is not valid or is not formatted properly.")
+        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
 
-        try {
-            // Full received transaction
-            const variant& v = params;
-            const variant_object& vo = v.get_object();
-            if( fioio::is_transaction_packed(vo) ) {
-                auto pretty_input2 = std::make_shared<packed_transaction>();
+       try {
+          // Full received transaction
+          const variant& v = params;
+          const variant_object& vo = v.get_object();
+          FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorPermissions);
 
-                // Unpack the transaction
-                from_variant(vo["packed_trx"], pretty_input2->packed_trx);
-                from_variant(vo["signatures"], pretty_input2->signatures);
+          // Unpack the transaction
+          from_variant(vo["packed_trx"], unpacked->packed_trx);
 
-                //Set transaction type
-                pretty_input2->set_fio_transaction(true);
-                transaction trx = pretty_input2->get_transaction();
-                signed_transaction strx = pretty_input2->get_signed_transaction();
-                //Unpack the fio_actions
-                vector<fio_action> fio_actions = trx.fio_actions;
-                vector<signature_type> tsig = strx.signatures;
-                //Check if it is a fio_action (as opposed to regular action)
-                EOS_ASSERT(fio_actions.size() > 0, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
-                //Use the fio_pub_key in the first fio_action element
-                new_account_pub_key = fio_actions[0].fio_pub_key;
-                trans_signature = (string) tsig[0];
-            }
-        }
+          //Set transaction type
+          unpacked->set_fio_transaction(true);
+          trx = unpacked->get_transaction();
+          //Unpack the actions
+          vector<action> &actions = trx.actions;
 
-         EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.")
-         EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Request signature not valid or not allowed.");
-         fioio::pubadd_signature_validate(trans_signature, new_account_pub_key);
+          EOS_ASSERT(actions.size() > 0, packed_transaction_type_exception, "Missing action");
+          //Use the fio_pub_key in the first action element
+          new_account_pub_key = actions[0].fio_pub_key;
+       }
+       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
+       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
 
-         // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
-         bool createFioAccount = true;
-         std::string new_account;
-         //Create the internal FIOAccount)
-         if (createFioAccount) {
-            // TBD: Retrieve private key & creator account from the chain instance specific config.ini
-            std::string creator = CREATORACCOUNT;
-            std::string creator_private_key = TEMPPRIVATEKEY;
-            size_t maxAccountCreationAttempts = 3;
+       signed_transaction strx = pretty_input->get_signed_transaction();
+       transaction pitrx = pretty_input->get_transaction();
+       vector<action> &pi_act = pitrx.actions;
+       EOS_ASSERT(pi_act.size() > 0, packed_transaction_type_exception, "Missing action");
+       pi_act[0].account = CREATORACCOUNT;
+       pi_act[0].authorization.emplace_back ((permission_level){CREATORACCOUNT,"active"});
+       pretty_input->set_transaction(pitrx);
 
-            bool accountCreated = false;
-            for (int count = 0; count < maxAccountCreationAttempts; count++) {
-               try {
-                  new_account = generate_name();
+       auto tsig = strx.signatures;
+       auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+       auto digest = strx.sig_digest(chainid,strx.context_free_data);
+       fioio::pubadd_signature_validate(digest, tsig, new_account_pub_key);
 
-                  dlog("Attempting to create account ${name}.",("name",new_account));
-                  create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
-               } catch (...) {
-                  continue; // account creation failed, try again
-               }
-               dlog("New account created.");
-               accountCreated = true;
-               break; // account creation succeeded, break out of the loop
-            }
-            EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Signed transactions is not valid or is not formatted properly.");
+       // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
+       bool createFioAccount = true;
+       std::string new_account = "";
+       //Create the internal FIOAccount)
+       if (createFioAccount) {
+          // TBD: Retrieve private key & creator account from the chain instance specific config.ini
+          std::string creator = CREATORACCOUNT;
+          std::string creator_private_key = TEMPPRIVATEKEY;
+          size_t maxAccountCreationAttempts = 3;
 
-
-         try {
-            dlog("Attempting to populate public_address and public_key references: ${public_key}.",("public_key",new_account_pub_key));
-
-
-            //Public address generation (currently just base58 encoding)
-            std::string fio_pub_address = string(fc::to_base58(new_account_pub_key.c_str(),new_account_pub_key.length()));
-            dlog("\n\nPublic Address: ${public_address}.",("public_address",fio_pub_address));
-
-            add_pub_address(new_account, new_account_pub_key, creator, creator_private_key, next);
-            add_pub_address(fio_pub_address, new_account_pub_key, creator, creator_private_key, next);
-            dlog("\n\nFIO Public Address and Public Key Emplaced.");
-          }catch (...){
-            dlog("Failed to generate and emplace FIO public address");
+          bool accountCreated = false;
+          for (int count = 0; !accountCreated && count < maxAccountCreationAttempts; count++) {
+             try {
+                generate_name(new_account);
+                create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
+                accountCreated = true;
+             } catch (...) {
+                ilog ("create_account failed for name ${n}", ("n",new_account));
+             }
           }
 
+          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
        }
 
+       ilog("New Account: ${n}",("n",new_account));
+
       //Return the transaction_id and results
-        app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+       app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {
                 next(result.get<fc::exception_ptr>());
             } else {
@@ -2110,15 +2101,14 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                     } catch( chain::abi_exception& ) {
                         output = *trx_trace_ptr;
                     }
-
                     next(read_write::register_fio_name_results{id, output});
                 } CATCH_AND_CALL(next);
             }
         });
-
-    } catch ( boost::interprocess::bad_alloc& ) {
+    } catch ( const boost::interprocess::bad_alloc& ) {
         chain_plugin::handle_db_exhaustion();
     } CATCH_AND_CALL(next);
+
 }
 
 static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
