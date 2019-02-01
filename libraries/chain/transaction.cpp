@@ -346,6 +346,7 @@ signed_transaction packed_transaction::get_signed_transaction() const
 void packed_transaction::set_transaction(const transaction& t, packed_transaction::compression_type _compression)
 {
    try {
+      unpacked_trx.reset();
       switch(_compression) {
          case none:
             packed_trx = pack_transaction(t);
@@ -364,6 +365,7 @@ void packed_transaction::set_transaction(const transaction& t, packed_transactio
 void packed_transaction::set_transaction(const transaction& t, const vector<bytes>& cfd, packed_transaction::compression_type _compression)
 {
    try {
+      unpacked_trx.reset();
       switch(_compression) {
          case none:
             packed_trx = pack_transaction(t);

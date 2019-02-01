@@ -2098,8 +2098,12 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                     fc::variant output;
                     try {
                         output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                        wlog ("to variant worked");
                     } catch( chain::abi_exception& ) {
                         output = *trx_trace_ptr;
+                    } catch( ... ) {
+                       wlog ("to_variant_with_abi raised a mystery exception");
+                       throw;
                     }
                     next(read_write::register_fio_name_results{id, output});
                 } CATCH_AND_CALL(next);
