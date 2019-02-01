@@ -606,41 +606,7 @@ namespace impl {
          }
       }
 
-       template<typename Resolver>
-       static void extract( const variant& v, packed_fio_transaction& ptrx, Resolver resolver, abi_traverse_context& ctx )
-       {
-          auto h = ctx.enter_scope();
-          const variant_object& vo = v.get_object();
-          EOS_ASSERT(vo.contains("signatures"), packed_transaction_type_exception, "Missing signatures");
-          EOS_ASSERT(vo.contains("compression"), packed_transaction_type_exception, "Missing compression");
-          from_variant(vo["signatures"], ptrx.signatures);
-          from_variant(vo["compression"], ptrx.compression);
-
-          // TODO: Make this nicer eventually. But for now, if it works... good enough.
-          if( vo.contains("packed_trx") && vo["packed_trx"].is_string() && !vo["packed_trx"].as_string().empty() ) {
-             from_variant(vo["packed_trx"], ptrx.packed_trx);
-             auto trx = ptrx.get_transaction(); // Validates transaction data provided.
-             if( vo.contains("packed_context_free_data") && vo["packed_context_free_data"].is_string() && !vo["packed_context_free_data"].as_string().empty() ) {
-                from_variant(vo["packed_context_free_data"], ptrx.packed_context_free_data );
-             } else if( vo.contains("context_free_data") ) {
-                vector<bytes> context_free_data;
-                from_variant(vo["context_free_data"], context_free_data);
-                ptrx.set_transaction(trx, context_free_data, ptrx.compression);
-             }
-          } else {
-             EOS_ASSERT(vo.contains("transaction"), packed_transaction_type_exception, "Missing transaction");
-             transaction trx;
-             vector<bytes> context_free_data;
-             extract(vo["transaction"], trx, resolver, ctx);
-             if( vo.contains("packed_context_free_data") && vo["packed_context_free_data"].is_string() && !vo["packed_context_free_data"].as_string().empty() ) {
-                from_variant(vo["packed_context_free_data"], ptrx.packed_context_free_data );
-                context_free_data = ptrx.get_context_free_data();
-             } else if( vo.contains("context_free_data") ) {
-                from_variant(vo["context_free_data"], context_free_data);
-             }
-             ptrx.set_transaction(trx, context_free_data, ptrx.compression);
-          }
-       }
+       
    };
 
    /**
