@@ -9,8 +9,8 @@ hostname="localhost"
 
 echo ------------------------------------------
 dataJson='{
-  "name": "adam5.brd",
-  "requestor": "fio.system"
+  "name": "dapix",
+  "requestor": "fioname11111"
 }'
 
 expectedPackedData=056461706978104208414933a95b
@@ -22,19 +22,27 @@ echo PACKED DATA: $actualPackedData
 if [[ $ret != 0 ]]; then  exit $ret; fi
 echo ------------------------------------------
 
-# expirationStr=`date --date='+1 hour' "+%FT"%T`
-# echo EXPIRATION: $expirationStr
-
 headBlockTime=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep head_block_time | awk '{print substr($2,2,length($2)-3)}'`
 echo HEAD BLOCK TIME: $headBlockTime
 
-expirationStr=`date -d "+1 hour $headBlockTime" "+%FT"%T`
+cmd="date -d \"+1 hour $headBlockTime\" \"+%FT\"%T"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    cmd="date -j -v+1H -f \"%Y-%m-%dT%H:%M:%S.\" \"$headBlockTime\" \"+%FT\"%T"
+fi
+echo CMD: $cmd
+expirationStr=`eval $cmd`
 echo EXPIRATION: $expirationStr
 
-lastIrreversibleBlockNum=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep last_irreversible_block_num | grep -o '[[:digit:]]*'`
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep last_irreversible_block_num | grep -o '[0-9]\+'"
+echo CMD: $cmd
+lastIrreversibleBlockNum=`eval $cmd`
+#lastIrreversibleBlockNum=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep last_irreversible_block_num | grep -o '[[:digit:]]*'`
 echo LAST IRREVERSIBLE BLOCK NUM: $lastIrreversibleBlockNum
 
-refBlockPrefix=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[[:digit:]]*'`
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[0-9]\+'"
+echo CMD: $cmd
+refBlockPrefix=`eval $cmd`
+#refBlockPrefix=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[[:digit:]]*'`
 echo REF BLOCK PREFIX: $refBlockPrefix
 echo ------------------------------------------
 
