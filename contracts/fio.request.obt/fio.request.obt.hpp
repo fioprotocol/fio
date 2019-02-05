@@ -1,7 +1,7 @@
-/** Fio Finance header file
- *  Description: FioFinance smart contract supports funds request and approval.
+/** FIO Request OBT header file
+ *  Description: Smart contract to track requests and OBT.
  *  @author Ciju John
- *  @file fio.finance.hpp
+ *  @file fio.request.obt.hpp
  *  @copyright Dapix
  *
  *  Changes:
