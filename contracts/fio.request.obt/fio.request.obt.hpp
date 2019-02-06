@@ -73,11 +73,11 @@ namespace fioio {
     indexed_by<N(byfiotime), const_mem_fun<fioreqsts, uint64_t, &fioreqsts::by_fiotime> >
     > fiorequest_status_table;
 
-    // Structure for "OBT request" context.
-    // @abi table obtreqctxts i64
-    struct obtctxt {        // FIO funds request context; specific to requests native to FIO platform
-        uint64_t    fioobtid;       // primary key, hash of {fioreqidstr}
-        string      fioobtidstr;    // fio funds request id; genetrated by FIO blockchain e.g. 2f9c49bd83632b756efc5184aacf5b41b5ae436189f45c2591ca89248e161c09
+    // Structure for "OBT" context.
+    // @abi table obtctxts i64
+    struct obtctxt {        // Other Blockchain Transaction (OBT) specific data
+        uint64_t    fioobtid;       // primary key, hash of {fioobtidstr}
+        string      fioobtidstr;    // fio OBT id; genetrated by FIO blockchain e.g. 2f9c49bd83632b756efc5184aacf5b41b5ae436189f45c2591ca89248e161c09
         name        fromfioaddr;    // sender FIO address e.g. john.xyz
         name        tofioaddr;      // receiver FIO address e.g. jane.xyz
         string      frompubaddr;    // chain specific sender public address e.g 0xab5801a7d398351b8be11c439e05c5b3259aec9b
@@ -87,39 +87,39 @@ namespace fioio {
         string      obtidstr;         // OBT id string e.g. 0xf6eaddd3851923f6f9653838d3021c02ab123a4a6e4485e83f5063b3711e000b
         uint64_t    obtid;          // hash of {obtidstr}
         string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
-        date        fiotime;        // FIO blockchain request received timestamp
+        date        fiotime;        // FIO blockchain OBT received timestamp
 
         uint64_t primarykey() const     { return fioobtid; }
         uint64_t by_sender() const      { return fromfioaddr; }
         uint64_t by_receiver() const    { return tofioaddr; }
         uint64_t by_obtid() const       { return obtid; }
         uint64_t by_fiotime() const     { return fiotime; }
-        EOSLIB_SERIALIZE(reqcontext, (fioreqid)(fioreqidstr)(tofioaddr)(topubaddr)(amount)(tokencode)(obtidstr)(obtid)(metadata)(fiotime))
+        EOSLIB_SERIALIZE(obtctxt, (fioobtid)(fioobtidstr)(tofioaddr)(topubaddr)(amount)(tokencode)(obtidstr)(obtid)(metadata)(fiotime))
     };
-    // FIO requests contexts table
-    typedef multi_index<N(obtreqctxts), obtreqctxt,
-            indexed_by<N(bysender), const_mem_fun<obtreqctxt, uint64_t, &obtreqctxt::by_sender> >,
-    indexed_by<N(byreceiver), const_mem_fun<obtreqctxt, uint64_t, &obtreqctxt::by_receiver> >,
-    indexed_by<N(byfiotime), const_mem_fun<obtreqctxt, uint64_t, &obtreqctxt::by_fiotime> >
-    > obtrequest_contexts_table;
+    // FIO OBT table
+    typedef multi_index<N(obtctxts), obtctxt,
+            indexed_by<N(bysender), const_mem_fun<obtctxt, uint64_t, &obtctxt::by_sender> >,
+    indexed_by<N(byreceiver), const_mem_fun<obtctxt, uint64_t, &obtctxt::by_receiver> >,
+    indexed_by<N(byfiotime), const_mem_fun<obtctxt, uint64_t, &obtctxt::by_fiotime> >
+    > obt_contexts_table;
 
-    // Structure for "OBT request status" updates.
-    // @abi table obtreqstss i64
-    struct obtreqsts {
+    // Structure for "OBT status" updates.
+    // @abi table obtstss i64
+    struct obtsts {
         uint64_t    id;             // primary key, auto-increment
-        uint64_t    fioreqid;       // OBT request {obtreqctxt.fioreqid} this OBT status update is related to
-        trxstatus   status;         // request status
+        uint64_t    fioobtid;       // OBT {obtctxt.fioobtid} this OBT status update is related to
+        trxstatus   status;         // OBT status
         date        fiotime;        // FIO blockchain status update received timestamp
 
         uint64_t primarykey() const     { return id; }
-        uint64_t by_fioreqid() const     { return fioreqid; }
+        uint64_t by_fioobtid() const     { return fioobtid; }
         uint64_t by_fiotime() const  { return statustime; }
-        EOSLIB_SERIALIZE(obtreqsts, (id)(fioreqid)(status)(fiotime))
+        EOSLIB_SERIALIZE(obtsts, (id)(fioobtid)(status)(fiotime))
     };
-    // OBT requests status table
-    typedef multi_index<N(obtreqstss), obtreqsts,
-            indexed_by<N(byfioreqid), const_mem_fun<obtreqsts, uint64_t, &obtreqsts::by_fioreqid> >,
-    indexed_by<N(byfiotime), const_mem_fun<obtreqsts, uint64_t, &obtreqsts::by_fiotime> >
-    > obtrequest_status_table;
+    // OBT status table
+    typedef multi_index<N(obtstss), obtsts,
+            indexed_by<N(byfioobtid), const_mem_fun<obtsts, uint64_t, &obtsts::by_fioobtid> >,
+    indexed_by<N(byfiotime), const_mem_fun<obtsts, uint64_t, &obtsts::by_fiotime> >
+    > obt_status_table;
 
 }
