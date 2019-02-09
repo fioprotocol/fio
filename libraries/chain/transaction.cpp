@@ -89,7 +89,6 @@ flat_set<public_key_type> transaction::get_signature_keys( const vector<signatur
    constexpr size_t recovery_cache_size = 1000;
    static recovery_cache_type recovery_cache;
    const digest_type digest = sig_digest(chain_id, cfd);
-
    flat_set<public_key_type> recovered_pub_keys;
    for(const signature_type& sig : signatures) {
       public_key_type recov;

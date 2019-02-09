@@ -11,9 +11,6 @@ With the FIO Protocol enabled, the sending and receiving of crypto tokens and co
 
 ____
 #### Mac OS X Build & Install  
-  
-Some Mac OS users will need to run the follow command before executing the build script:<br>
-`export LLVM_DIR=/usr/local/Cellar/llvm@4/4.0.1/lib/cmake/llvm`
     
     ./fioio_build.sh  
     sudo ./fioio_install.sh  

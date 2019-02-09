@@ -515,7 +515,6 @@ namespace eosio { namespace chain {
                      ("provided_keys", provided_keys)
                      ("delay_max_limit_ms", delay_max_limit.count()/1000)
                    );
-
       }
 
       if( !allow_unused_keys ) {
