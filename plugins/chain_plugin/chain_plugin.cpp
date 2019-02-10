@@ -209,7 +209,7 @@ public:
    fc::optional<scoped_connection>                                   applied_transaction_connection;
    fc::optional<scoped_connection>                                   accepted_confirmation_connection;
 
-
+   chain_apis::fio_config_parameters                                 fio_config;
 };
 
 chain_plugin::chain_plugin()
@@ -258,6 +258,9 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
           "In \"light\" mode all incoming blocks headers will be fully validated; transactions in those validated blocks will be trusted \n")
          ("disable-ram-billing-notify-checks", bpo::bool_switch()->default_value(false),
           "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
+      ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),"Account to serve as a procy for FIO name creation actions")
+      ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
+      ("fio-proxy-file", bpo::value<bfs::path>(), "File containing the private key for FIO proxy signing")
          ;
 
 // TODO: rate limiting
@@ -624,6 +627,31 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
          my->chain_config->block_validation_mode = options.at("validation-mode").as<validation_mode>();
       }
 
+      if( options.count("fio-proxy") == 1) {
+         my->fio_config.proxy_account = options.at("fio-proxy").as<string>();
+         my->fio_config.proxy_name = chain::name(my->fio_config.proxy_account);
+         dlog ("set fio proxy ${a} ${n} ", ("a",my->fio_config.proxy_account)( "n",my->fio_config.proxy_name));
+      }
+      {
+         int numkey = options.count( "fio-proxy-key" );
+         int numfile = options.count( "fio-proxy-key-file" );
+         EOS_ASSERT ( !(numkey >0 && numfile > 0), plugin_config_exception, "set either fio-proxy-key or fio-proxy-key-file but not both");
+
+         if (numkey) {
+            EOS_ASSERT( numkey == 1, plugin_config_exception, "Only one fio-proxy-key may be supplied");
+            my->fio_config.proxy_key = options.at("fio-proxy-key").as<string>();
+         }
+         if (numfile) {
+            EOS_ASSERT( numfile == 1, plugin_config_exception, "Only one fio-proxy-key-file may be supplied");
+            bfs::path keyfile = options.at("fio-proxy-key-file").as<bfs::path>();
+            EOS_ASSERT( fc::exists(keyfile), plugin_config_exception,
+                     "Cannot load fio key from file, ${name} does not exist", ("name", keyfile.generic_string()) );
+            auto infile = std::ifstream(keyfile.generic_string());
+            infile >> my->fio_config.proxy_key;
+            infile.close();
+         }
+      }
+
       my->chain.emplace( *my->chain_config );
       my->chain_id.emplace( my->chain->get_chain_id());
 
@@ -690,6 +718,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
             } );
 
       my->chain->add_indices();
+
    } FC_LOG_AND_RETHROW()
 
 }
@@ -745,6 +774,11 @@ void chain_apis::read_write::validate() const {
 
 chain_apis::read_write chain_plugin::get_read_write_api() {
    return chain_apis::read_write(chain(), get_abi_serializer_max_time());
+}
+
+const chain_apis::fio_config_parameters&
+chain_plugin::get_fio_config () const {
+   return my->fio_config;
 }
 
 void chain_plugin::accept_block(const signed_block_ptr& block ) {
@@ -1992,11 +2026,11 @@ static void generate_name (fc::string &name) {
    }
 }
 
+
 //Temporary to register_fio_name_params
    constexpr const char * fioCreatorKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; //  "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS" - fiosystem
-   constexpr const char * eosioSignKey = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"; // "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV" - eosio
-   constexpr const char * fioSignKey = "5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"; // "EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY" - fioname11111/newaccount
-
+   // constexpr const char * eosioSignKey = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"; // "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV" - eosio
+   // constexpr const char * fioSignKey = "5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"; // "EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY" - fioname11111/newaccount
    constexpr const char * fioCreator = "fio.system";
 
 /***
@@ -2011,6 +2045,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
       string requestor;
       bool debugmode = true;
       controller &cc = app().get_plugin<chain_plugin>().chain();
+      const fio_config_parameters &config = app().get_plugin<chain_plugin>().get_fio_config();
       auto pretty_input = std::make_shared<packed_transaction>();
       auto unpacked = std::make_shared<packed_transaction>();
       auto resolver = make_resolver(this, abi_serializer_max_time);
@@ -2085,21 +2120,20 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
        // step 3 compose, sign, and push new transaction
 
        signed_transaction tosend;
-       fc::crypto::private_key signkey = fc::crypto::private_key(std::string(fioSignKey));
-       fc::crypto::private_key fiosyskey = fc::crypto::private_key(std::string(fioCreatorKey));
        {
           action act;
           act.account = fiosystem;
           act.name = N(registername);
-          act.authorization = vector<permission_level>{{newname,config::active_name}};
-          rn.requestor = newname;
+          rn.requestor = config.proxy_name;
+          dlog("requstor is ${n}",("n",rn.requestor));
           act.data = fc::raw::pack<fioio::registername>(rn);
+          act.authorization = vector<permission_level>{{rn.requestor,config::active_name}};
           tosend.actions.emplace_back(std::move(act));
        }
 
        tosend.expiration = cc.head_block_time() + fc::seconds(30);
        tosend.set_reference_block(cc.head_block_id());
-       tosend.sign(signkey, chainid);
+       tosend.sign(fc::crypto::private_key(config.proxy_key), chainid);
 
        packed_transaction pt(std::move(tosend));
        auto spt = std::make_shared<packed_transaction>(pt);
