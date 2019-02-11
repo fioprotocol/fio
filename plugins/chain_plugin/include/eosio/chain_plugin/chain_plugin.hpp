@@ -44,6 +44,7 @@ namespace eosio {
    using chain::abi_serializer;
 
 namespace chain_apis {
+
 struct empty{};
 
 struct permission {
@@ -65,6 +66,13 @@ Type convert_to_type(const string& str, const string& desc) {
 
 template<>
 uint64_t convert_to_type(const string& str, const string& desc);
+
+struct fio_config_parameters
+{
+   string proxy_account = "fio.system";
+   string proxy_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
+   uint64_t proxy_name = N(fio.system);
+};
 
 class read_only {
    const controller& db;
@@ -720,6 +728,8 @@ public:
 
    chain::chain_id_type get_chain_id() const;
    fc::microseconds get_abi_serializer_max_time() const;
+
+   const chain_apis::fio_config_parameters &get_fio_config () const;
 
    void handle_guard_exception(const chain::guard_exception& e) const;
 

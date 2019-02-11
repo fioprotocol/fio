@@ -10,6 +10,9 @@
 #include <string>
 #include <eosio/chain/exceptions.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
+#include <fc/crypto/signature.hpp>
+#include <fc/crypto/public_key.hpp>
+#include <eosio/chain/transaction.hpp>
 
 #pragma once
 

@@ -7,10 +7,9 @@
  *  Changes:
  */
 
-#include <string>
-
 #pragma once
-
+#include <string>
+#include <fc/reflect/reflect.hpp>
 namespace fioio {
 
     using namespace std;
@@ -49,4 +48,13 @@ namespace fioio {
 
         return contract;
     }
+
+   struct registername {
+      string name;
+      uint64_t requestor;
+   };
+
+
 }
+
+FC_REFLECT( fioio::registername, (name)(requestor) )

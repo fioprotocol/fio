@@ -52,7 +52,7 @@ namespace fioio {
 
    inline bool is_fio_error ( uint64_t ec) {
       constexpr uint64_t mask = ident | httpMask | ecCodeMask;
-      return (ec & ~mask) == 0;
+      return (ec & ident) == ident && (ec & ~mask) == 0;
    }
 
    inline uint16_t get_http_result (uint64_t ec) {
@@ -142,7 +142,7 @@ namespace fioio {
 #define FIO_403_ASSERT(expr,code) \
    FC_MULTILINE_MACRO_BEGIN                                           \
    if( !(expr) )                                                      \
-      throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_403_Result().to_json().c_str()); \
+      { throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_403_Result().to_json().c_str()); } \
    FC_MULTILINE_MACRO_END
 
 #define FIO_404_ASSERT(expr,message,code) \

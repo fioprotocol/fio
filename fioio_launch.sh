@@ -130,8 +130,33 @@ if [ $mChoice == 1 ]; then
     cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
     cleos -u http://localhost:8889 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
 
-    #Create Domain
+    echo setting accounts
+    sleep 1
+    dom=1
+
+    function chkdomain ()
+    {
+        cleos  -u http://localhost:8889 get table fio.system fio.system domains | grep -q $1
+        dom=$?
+    }
+
+    retries=3
+    chkdomain "brd"
+    for (( retries=3; $(($retries > 0 && $dom == 1)); retries=$(($retries - 1)) )); do
+        echo creating domain has $retries retries left
+        cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"lamb","requestor":"fio.system"}' --permission fio.system@active
+        sleep 1
+        chkdomain "lamb"
+    done
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"brd","requestor":"fio.system"}' --permission fio.system@active
+
+    sleep 1
+    chkdomain "brd"
+    if [ $dom -eq 0 ]; then
+        echo brd exists
+    else
+        echo failed to register brd
+    fi
 
     #Create Account Name
     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"casey.brd","requestor":"fioname11111"}' --permission fioname11111@active
@@ -179,9 +204,6 @@ elif [ $mChoice == 4 ]; then
     if [ $bChoice == 2 ]; then
         cd scripts
         sh ./chain_nuke.sh
-
-        find . -name eosio-wallet -type d -exec rm -r {} +
-        find . -name node2 -type d -exec rm -r {} +
 
         nodeos --hard-replay
 

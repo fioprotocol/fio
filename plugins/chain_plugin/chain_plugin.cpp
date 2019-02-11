@@ -15,6 +15,7 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
+#include <eosio/chain/name.hpp>
 
 #include <eosio/chain/eosio_contract.hpp>
 
@@ -208,7 +209,7 @@ public:
    fc::optional<scoped_connection>                                   applied_transaction_connection;
    fc::optional<scoped_connection>                                   accepted_confirmation_connection;
 
-
+   chain_apis::fio_config_parameters                                 fio_config;
 };
 
 chain_plugin::chain_plugin()
@@ -257,6 +258,9 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
           "In \"light\" mode all incoming blocks headers will be fully validated; transactions in those validated blocks will be trusted \n")
          ("disable-ram-billing-notify-checks", bpo::bool_switch()->default_value(false),
           "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
+      ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),"Account to serve as a procy for FIO name creation actions")
+      ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
+      ("fio-proxy-key-file", bpo::value<bfs::path>(), "File containing the private key for FIO proxy signing")
          ;
 
 // TODO: rate limiting
@@ -623,6 +627,39 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
          my->chain_config->block_validation_mode = options.at("validation-mode").as<validation_mode>();
       }
 
+      if( options.count("fio-proxy") == 1) {
+         my->fio_config.proxy_account = options.at("fio-proxy").as<string>();
+         my->fio_config.proxy_name = chain::name(my->fio_config.proxy_account);
+         dlog ("set fio proxy ${a} ${n} ", ("a",my->fio_config.proxy_account)( "n",my->fio_config.proxy_name));
+      }
+      {
+         int numkey = options.count( "fio-proxy-key" );
+         int numfile = options.count( "fio-proxy-key-file" );
+         EOS_ASSERT ( (numkey == 0 || numfile == 0), plugin_config_exception, "set either fio-proxy-key or fio-proxy-key-file but not both");
+
+         if (numkey) {
+            EOS_ASSERT( numkey == 1, plugin_config_exception, "Only one fio-proxy-key may be supplied");
+            my->fio_config.proxy_key = options.at("fio-proxy-key").as<string>();
+         }
+         if (numfile) {
+            EOS_ASSERT( numfile == 1, plugin_config_exception, "Only one fio-proxy-key-file may be supplied");
+            auto keyfile = options.at("fio-proxy-key-file").as<bfs::path>();
+            EOS_ASSERT( fc::exists(keyfile), plugin_config_exception,
+                     "Cannot load fio key from file, ${name} does not exist", ("name", keyfile.generic_string()) );
+            auto stat = bfs::status(keyfile);
+            EOS_ASSERT( stat.type() == bfs::regular_file && (stat.permissions() | 0700) == 0700, plugin_config_exception,
+                        "fio-proxy-key-file must be a regular file with owner only acceess");
+            stat = bfs::status(bfs::canonical(keyfile).parent_path());
+            EOS_ASSERT( stat.type() == bfs::directory_file && (stat.permissions() | 0700) == 0700, plugin_config_exception,
+                        "fio-proxy-key-file must be in a directory with owner only access");
+
+
+            auto infile = std::ifstream(keyfile.generic_string());
+            infile >> my->fio_config.proxy_key;
+            infile.close();
+         }
+      }
+
       my->chain.emplace( *my->chain_config );
       my->chain_id.emplace( my->chain->get_chain_id());
 
@@ -689,6 +726,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
             } );
 
       my->chain->add_indices();
+
    } FC_LOG_AND_RETHROW()
 
 }
@@ -744,6 +782,11 @@ void chain_apis::read_write::validate() const {
 
 chain_apis::read_write chain_plugin::get_read_write_api() {
    return chain_apis::read_write(chain(), get_abi_serializer_max_time());
+}
+
+const chain_apis::fio_config_parameters&
+chain_plugin::get_fio_config () const {
+   return my->fio_config;
 }
 
 void chain_plugin::accept_block(const signed_block_ptr& block ) {
@@ -1980,19 +2023,8 @@ void add_pub_address(std::string&  pub_address, std::string& pub_key, const std:
     push_transactions(std::move(trxs), next);
 }
 
-void static gen_random(char *s, const int len) {
-
-  static const char alphanum[] = "12345abcdefghijklmnopqrstuvwxyz";
-
-  for (int i = 0; i < len; ++i) {
-     s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
-  }
-
-  s[len] = 0;
-}
-
 static void generate_name (fc::string &name) {
-   static const char alphanum[] = "`.12345abcdefghijklmnopqrstuvwxyz";
+   static const char alphanum[] = "12345abcdefghijklmnopqrstuvwxyz";
    srand(time(0));
    const size_t len = 12;
    name.resize(len);
@@ -2002,9 +2034,12 @@ static void generate_name (fc::string &name) {
    }
 }
 
+
 //Temporary to register_fio_name_params
-#define TEMPPRIVATEKEY "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"
-#define CREATORACCOUNT "fio.system"
+   constexpr const char * fioCreatorKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; //  "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS" - fiosystem
+   // constexpr const char * eosioSignKey = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"; // "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV" - eosio
+   // constexpr const char * fioSignKey = "5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"; // "EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY" - fioname11111/newaccount
+   constexpr const char * fioCreator = "fio.system";
 
 /***
  * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
@@ -2015,15 +2050,28 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
    try {
       string new_account_pub_key = "";
+      string requestor;
       bool debugmode = true;
+      controller &cc = app().get_plugin<chain_plugin>().chain();
+      const fio_config_parameters &config = app().get_plugin<chain_plugin>().get_fio_config();
       auto pretty_input = std::make_shared<packed_transaction>();
       auto unpacked = std::make_shared<packed_transaction>();
       auto resolver = make_resolver(this, abi_serializer_max_time);
       transaction trx;
+      name fiosystem = N(fio.system);
 
-        try {
+      fioio::registername rn;
+
+      try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
         } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+
+             /**
+              *  Three steps involved in registering a new name
+              *  1. verify the supplied fio_pub_key was used to sign the received transaction
+              *  2. generate a new eosio account name and associate it with the fio_pub_key
+              *  3. compose and sign a new transaction for hitting fio.name:registername
+              */
 
        try {
           // Full received transaction
@@ -2033,32 +2081,25 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
           // Unpack the transaction
           from_variant(vo["packed_trx"], unpacked->packed_trx);
-
-          //Set transaction type
-          unpacked->set_fio_transaction(true);
           trx = unpacked->get_transaction();
-          //Unpack the actions
           vector<action> &actions = trx.actions;
-
           EOS_ASSERT(actions.size() > 0, packed_transaction_type_exception, "Missing action");
           //Use the fio_pub_key in the first action element
           new_account_pub_key = actions[0].fio_pub_key;
+          rn = fc::raw::unpack<fioio::registername>(actions[0].data);
        }
        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
        EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
 
        signed_transaction strx = pretty_input->get_signed_transaction();
-       transaction pitrx = pretty_input->get_transaction();
-       vector<action> &pi_act = pitrx.actions;
-       EOS_ASSERT(pi_act.size() > 0, packed_transaction_type_exception, "Missing action");
-       pi_act[0].account = CREATORACCOUNT;
-       pi_act[0].authorization.emplace_back ((permission_level){CREATORACCOUNT,"active"});
-       pretty_input->set_transaction(pitrx);
 
        auto tsig = strx.signatures;
        auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
        auto digest = strx.sig_digest(chainid,strx.context_free_data);
        fioio::pubadd_signature_validate(digest, tsig, new_account_pub_key);
+
+
+       // step 2: create a new eosio account
 
        // TBD: check fio_pub_key against MAS-114 table if new account needs to be created.
        bool createFioAccount = true;
@@ -2066,15 +2107,13 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
        //Create the internal FIOAccount)
        if (createFioAccount) {
           // TBD: Retrieve private key & creator account from the chain instance specific config.ini
-          std::string creator = CREATORACCOUNT;
-          std::string creator_private_key = TEMPPRIVATEKEY;
           size_t maxAccountCreationAttempts = 3;
 
           bool accountCreated = false;
           for (int count = 0; !accountCreated && count < maxAccountCreationAttempts; count++) {
              try {
                 generate_name(new_account);
-                create_account(new_account, new_account_pub_key, creator, creator_private_key, next);
+                create_account(new_account, new_account_pub_key, fioCreator, fioCreatorKey, next);
                 accountCreated = true;
              } catch (...) {
                 ilog ("create_account failed for name ${n}", ("n",new_account));
@@ -2083,11 +2122,32 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
           EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
        }
-
+       name newname (new_account);
        ilog("New Account: ${n}",("n",new_account));
 
-      //Return the transaction_id and results
-       app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+       // step 3 compose, sign, and push new transaction
+
+       signed_transaction tosend;
+       {
+          action act;
+          act.account = fiosystem;
+          act.name = N(registername);
+          rn.requestor = config.proxy_name;
+          dlog("requstor is ${n}",("n",rn.requestor));
+          act.data = fc::raw::pack<fioio::registername>(rn);
+          act.authorization = vector<permission_level>{{rn.requestor,config::active_name}};
+          tosend.actions.emplace_back(std::move(act));
+       }
+
+       tosend.expiration = cc.head_block_time() + fc::seconds(30);
+       tosend.set_reference_block(cc.head_block_id());
+       tosend.sign(fc::crypto::private_key(config.proxy_key), chainid);
+
+       packed_transaction pt(std::move(tosend));
+       auto spt = std::make_shared<packed_transaction>(pt);
+       spt->set_fio_transaction(true);
+
+       app().get_method<incoming::methods::transaction_async>()(spt, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {
                 next(result.get<fc::exception_ptr>());
             } else {
