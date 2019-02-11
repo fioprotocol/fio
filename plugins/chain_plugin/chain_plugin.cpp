@@ -260,7 +260,7 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
           "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
       ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),"Account to serve as a procy for FIO name creation actions")
       ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
-      ("fio-proxy-file", bpo::value<bfs::path>(), "File containing the private key for FIO proxy signing")
+      ("fio-proxy-key-file", bpo::value<bfs::path>(), "File containing the private key for FIO proxy signing")
          ;
 
 // TODO: rate limiting
@@ -635,7 +635,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
       {
          int numkey = options.count( "fio-proxy-key" );
          int numfile = options.count( "fio-proxy-key-file" );
-         EOS_ASSERT ( !(numkey >0 && numfile > 0), plugin_config_exception, "set either fio-proxy-key or fio-proxy-key-file but not both");
+         EOS_ASSERT ( (numkey == 0 || numfile == 0), plugin_config_exception, "set either fio-proxy-key or fio-proxy-key-file but not both");
 
          if (numkey) {
             EOS_ASSERT( numkey == 1, plugin_config_exception, "Only one fio-proxy-key may be supplied");
@@ -643,9 +643,17 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
          }
          if (numfile) {
             EOS_ASSERT( numfile == 1, plugin_config_exception, "Only one fio-proxy-key-file may be supplied");
-            bfs::path keyfile = options.at("fio-proxy-key-file").as<bfs::path>();
+            auto keyfile = options.at("fio-proxy-key-file").as<bfs::path>();
             EOS_ASSERT( fc::exists(keyfile), plugin_config_exception,
                      "Cannot load fio key from file, ${name} does not exist", ("name", keyfile.generic_string()) );
+            auto stat = bfs::status(keyfile);
+            EOS_ASSERT( stat.type() == bfs::regular_file && (stat.permissions() | 0700) == 0700, plugin_config_exception,
+                        "fio-proxy-key-file must be a regular file with owner only acceess");
+            stat = bfs::status(bfs::canonical(keyfile).parent_path());
+            EOS_ASSERT( stat.type() == bfs::directory_file && (stat.permissions() | 0700) == 0700, plugin_config_exception,
+                        "fio-proxy-key-file must be in a directory with owner only access");
+
+
             auto infile = std::ifstream(keyfile.generic_string());
             infile >> my->fio_config.proxy_key;
             infile.close();
