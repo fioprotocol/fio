@@ -2083,13 +2083,13 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
           from_variant(vo["packed_trx"], unpacked->packed_trx);
           trx = unpacked->get_transaction();
           vector<action> &actions = trx.actions;
-          EOS_ASSERT(actions.size() > 0, packed_transaction_type_exception, "Missing action");
+          FIO_403_ASSERT(actions.size() > 0, fioio::PackedTransactionType);
           //Use the fio_pub_key in the first action element
           new_account_pub_key = actions[0].fio_pub_key;
           rn = fc::raw::unpack<fioio::registername>(actions[0].data);
        }
        EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
-       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
+       FIO_403_ASSERT(!new_account_pub_key.empty(), fioio::PackedTransactionType);
 
        signed_transaction strx = pretty_input->get_signed_transaction();
 
@@ -2120,7 +2120,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
              }
           }
 
-          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
+          FIO_403_ASSERT(accountCreated, fioio::PackedTransactionType);
        }
        name newname (new_account);
        ilog("New Account: ${n}",("n",new_account));

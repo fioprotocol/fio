@@ -42,11 +42,13 @@ namespace fioio {
    constexpr auto ErrorPubKeyEmpty =               ident | httpDataError | 112;   // Public key is empty
    constexpr auto ErrorPubAddressExist =           ident | httpDataError | 113;   // Public address exists
 
-   constexpr auto ErrorPermissions =         ident | httpPermissionError | 114;   // user permission failure
-   constexpr auto ErrorNotFound =              ident | httpLocationError | 115;   // cannot locate resource
-   constexpr auto ErrorInvalidFioNameFormat =   ident | httpDataError | 116;   // Public address exists
+   constexpr auto ErrorPermissions =               ident | httpPermissionError | 114;   // user permission failure
+   constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
+   constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
+   constexpr auto PackedTransactionType =          ident | httpDataError | 117;   // Public address exists
 
-   /**
+
+    /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */
 
