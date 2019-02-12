@@ -53,6 +53,19 @@ struct permission {
    authority         required_auth;
 };
 
+struct fiodomain_record {
+
+  string fio_domain;
+  string expiration;
+
+};
+
+struct fioaddress_record {
+  string fio_address;
+  string expiration;
+
+};
+
 template<typename>
 struct resolver_factory;
 
@@ -318,6 +331,25 @@ public:
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
+
+
+  struct get_fio_names_params {
+     string fio_pub_address;
+    };
+  struct get_fio_names_result {
+    string fio_pub_address;
+    vector<fiodomain_record>  fio_domains;
+    vector<fioaddress_record>  fio_addresses;
+    };
+
+     /**
+      * Lookup FIO domains and addresses based upon public address
+      * @param params
+      * @return
+      */
+    get_fio_names_result get_fio_names( const get_fio_names_params& params) const;
+
+
 
    //avail_check - FIO Address or Domain availability check
     struct avail_check_params {
@@ -756,6 +788,12 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );
+
+FC_REFLECT( eosio::chain_apis::fiodomain_record, (fio_domain)(expiration))
+FC_REFLECT( eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
+
+FC_REFLECT( eosio::chain_apis::read_only::get_fio_names_params, (fio_pub_address))
+FC_REFLECT( eosio::chain_apis::read_only::get_fio_names_result, (fio_pub_address)(fio_domains)(fio_addresses));
 
 FC_REFLECT( eosio::chain_apis::read_only::avail_check_params, (fio_name) )
 FC_REFLECT( eosio::chain_apis::read_only::avail_check_result, (fio_name)(is_registered) );
