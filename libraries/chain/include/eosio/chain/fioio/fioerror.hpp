@@ -22,7 +22,7 @@ namespace fioio {
    constexpr uint64_t ident = uint64_t((('F' << 4) | 'I' << 4) | 'O') << identOffset; // to distinguish the error codes generically
    constexpr auto httpOffset = 32;
    constexpr uint64_t httpDataError = 400LL << httpOffset;
-   constexpr uint64_t httpPermissionError = 403LL << httpOffset;
+   constexpr uint64_t httpInvalidError = 403LL << httpOffset;
    constexpr uint64_t httpLocationError = 404LL << httpOffset;
    constexpr uint64_t httpMask = 0xfffLL << httpOffset;
    constexpr uint64_t ecCodeMask = 0xff;
@@ -42,11 +42,13 @@ namespace fioio {
    constexpr auto ErrorPubKeyEmpty =               ident | httpDataError | 112;   // Public key is empty
    constexpr auto ErrorPubAddressExist =           ident | httpDataError | 113;   // Public address exists
 
-   constexpr auto ErrorPermissions =         ident | httpPermissionError | 114;   // user permission failure
-   constexpr auto ErrorNotFound =              ident | httpLocationError | 115;   // cannot locate resource
-   constexpr auto ErrorInvalidFioNameFormat =   ident | httpDataError | 116;   // Public address exists
+   constexpr auto ErrorSignature =                 ident | httpInvalidError | 114;   // user permission failure
+   constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
+   constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
+   constexpr auto ErrorTransaction =               ident | httpInvalidError | 117;   // Public address exists
 
-   /**
+
+    /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */
 
@@ -107,8 +109,13 @@ namespace fioio {
    };
 
    struct Code_403_Result : public Http_Result {
-      Code_403_Result () :
-         Http_Result ("invalid_signature","Request signature not valid or not allowed.") {}
+      Code_403_Result (uint64_t code) :
+         Http_Result ("invalid_signature","Request signature not valid or not allowed.") {
+         if (code == fioio::ErrorTransaction) {
+            type = "invalid_transaction";
+            message = "Signed transaction is not valid or is not formatted properly";
+         }
+      }
 
       string to_json ( ) const {
          string json_str = "{ \n  \"type\": \"" + type +
@@ -132,8 +139,24 @@ namespace fioio {
    /**
     * helper macros that hide the string conversion tedium
     */
+#if 0
+#define FIO_400_THROW(fieldname,fieldvalue,fielderror,code) \
+   FC_MULTILINE_MACRO_BEGIN                            \
+   throw eosio::chain::fio_data_exception(code,fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str()); \
+   FC_MULTILINE_MACRO_END
 
-#define FIO_400_ASSERT(expr,fieldname,fieldvalue,fielderror,code) \
+#define FIO_403_THROW(code) \
+   FC_MULTILINE_MACRO_BEGIN                            \
+   throw eosio::chain::fio_invalid_exception(code,fioio::Code_403_Result(code).to_json().c_str()); \
+   FC_MULTILINE_MACRO_END
+
+#define FIO_404_THROW(message,code) \
+   FC_MULTILINE_MACRO_BEGIN                            \
+   throw eosio::chain::fio_location_exception(code,fioio::Code__400_Result(message).to_json().c_str()); \
+   FC_MULTILINE_MACRO_END
+#endif
+
+#define FIO_400_ASSERT(expr,fieldname,fieldvalue,fielderror,code)     \
    FC_MULTILINE_MACRO_BEGIN                                           \
    if( !(expr) )                                                      \
       throw eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str()); \
@@ -142,20 +165,20 @@ namespace fioio {
 #define FIO_403_ASSERT(expr,code) \
    FC_MULTILINE_MACRO_BEGIN                                           \
    if( !(expr) )                                                      \
-      { throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_403_Result().to_json().c_str()); } \
+      { throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_403_Result(code).to_json().c_str()); } \
    FC_MULTILINE_MACRO_END
 
 #define FIO_404_ASSERT(expr,message,code) \
    FC_MULTILINE_MACRO_BEGIN                                           \
    if( !(expr) )                                                      \
-      throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_400_Result(message).to_json().c_str()); \
+      throw  eosio::chain::eosio_assert_code_exception(code, "message", fioio::Code_404_Result(message).to_json().c_str()); \
    FC_MULTILINE_MACRO_END
 
 #define fio_400_assert(test,fieldname,fieldvalue,fielderror,code) \
    eosio_assert_message_code(test, fioio::Code_400_Result(fieldname, fieldvalue, fielderror).to_json().c_str(), code)
 
 #define fio_403_assert(test,code) \
-   eosio_assert_message_code(test, fioio::Code_403_Result().to_json().c_str(), code)
+   eosio_assert_message_code(test, fioio::Code_403_Result(code).to_json().c_str(), code)
 
 #define fio_404_assert(test,message,code) \
    eosio_assert_message_code(test, fioio::Code_404_Result(message).to_json().c_str(), code)

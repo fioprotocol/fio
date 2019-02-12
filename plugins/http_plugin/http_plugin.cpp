@@ -562,6 +562,14 @@ namespace eosio {
       try {
          try {
             throw;
+         } catch (const chain::fio_data_exception& e) {
+            cb( 400, e.what());
+         } catch (const chain::fio_invalid_sig_exception& e) {
+            cb( 403, e.what());
+         } catch (const chain::fio_invalid_trans_exception& e) {
+            cb( 403, e.what());
+         } catch (const chain::fio_location_exception& e) {
+            cb( 404, e.what());
          } catch (const chain::unsatisfied_authorization& e) {
             error_results results{401, "UnAuthorized", error_results::error_info(e, verbose_http_errors)};
             cb( 401, fc::json::to_string( results ));
@@ -580,12 +588,16 @@ namespace eosio {
                cb( rescode, e.what());
             }
             else {
-               error_results results{500 , "Internal Service Error - fc", error_results::error_info(e, verbose_http_errors)};
-               cb( 500, fc::json::to_string( results ));
-               if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
-                  elog( "FC Exception encountered while processing ${api}.${call}",
-                        ("api", api_name)( "call", call_name ));
-                  dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
+               if (e.code() == chain::unsatisfied_authorization().code()) {
+                  cb( 403, "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}" );
+               } else {
+                  error_results results{500 , "Internal Service Error - fc", error_results::error_info(e, verbose_http_errors)};
+                  cb( 500, fc::json::to_string( results ));
+                  if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
+                     elog( "FC Exception encountered while processing ${api}.${call}",
+                           ("api", api_name)( "call", call_name ));
+                     dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
+                  }
                }
             }
          } catch (std::exception& e) {

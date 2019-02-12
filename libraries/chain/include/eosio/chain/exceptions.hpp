@@ -23,7 +23,7 @@
  * This macro will rethrow the exception as the specified "exception_type"
  */
 #define EOS_RETHROW_EXCEPTIONS(exception_type, FORMAT, ... ) \
-   catch (eosio::chain::chain_exception& e) { \
+   catch (eosio::chain::chain_exception& e) {                \
       FC_RETHROW_EXCEPTION( e, warn, FORMAT, __VA_ARGS__ ); \
    } catch (fc::exception& e) { \
       exception_type new_exception(FC_LOG_MESSAGE( warn, FORMAT, __VA_ARGS__ )); \
@@ -522,4 +522,15 @@ namespace eosio { namespace chain {
                                  3240000, "Snapshot exception" )
       FC_DECLARE_DERIVED_EXCEPTION( snapshot_validation_exception,   snapshot_exception,
                                     3240001, "Snapshot Validation Exception" )
+
+   FC_DECLARE_DERIVED_EXCEPTION( fio_exception, chain_exception,
+                                 5010000, "FIO exception")
+   FC_DECLARE_DERIVED_EXCEPTION( fio_data_exception, fio_exception,
+                                 5010001, "FIO Data Exception")
+   FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_sig_exception, fio_exception,
+                                 5010002, "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}")
+   FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_trans_exception, fio_exception,
+                                 5010003, "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly\"\n}")
+      FC_DECLARE_DERIVED_EXCEPTION( fio_location_exception, fio_exception,
+                                 5010004, "FIO Location Exception")
 } } // eosio::chain

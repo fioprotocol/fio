@@ -78,7 +78,7 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
   
 ##### Create FIO Name  
   
-     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"name.brd","requestor":"fio.fioname11111"}' --permission fio.system@active   
+     cleos -u http://localhost:8889 push action -j fio.system registername '{"name":"name.brd","requestor":"fioname11111"}' --permission fio.system@active   
   
 ##### Add FIO Address  
   

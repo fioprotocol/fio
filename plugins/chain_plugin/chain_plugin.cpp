@@ -1861,7 +1861,7 @@ void read_write::push_transaction(const read_write::push_transaction_params& par
       auto resolver = make_resolver(this, abi_serializer_max_time);
       try {
          abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-      } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+      } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid packed FIO transaction")
 
       app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
          if (result.contains<fc::exception_ptr>()) {
@@ -2073,23 +2073,22 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
               *  3. compose and sign a new transaction for hitting fio.name:registername
               */
 
-       try {
-          // Full received transaction
+             // Full received transaction
           const variant& v = params;
           const variant_object& vo = v.get_object();
-          FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorPermissions);
+          FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
 
           // Unpack the transaction
           from_variant(vo["packed_trx"], unpacked->packed_trx);
           trx = unpacked->get_transaction();
           vector<action> &actions = trx.actions;
-          EOS_ASSERT(actions.size() > 0, packed_transaction_type_exception, "Missing action");
+          FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
           //Use the fio_pub_key in the first action element
           new_account_pub_key = actions[0].fio_pub_key;
           rn = fc::raw::unpack<fioio::registername>(actions[0].data);
-       }
-       EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed FIO transaction")
-       EOS_ASSERT(!new_account_pub_key.empty(), packed_transaction_type_exception, "Missing FIO public key.");
+
+
+          FIO_403_ASSERT(!new_account_pub_key.empty(), fioio::ErrorSignature);
 
        signed_transaction strx = pretty_input->get_signed_transaction();
 
@@ -2119,8 +2118,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
                 ilog ("create_account failed for name ${n}", ("n",new_account));
              }
           }
-
-          EOS_ASSERT(accountCreated, packed_transaction_type_exception, "Failed to create new FIO account.");
+          FIO_403_ASSERT(accountCreated, fioio::ErrorSignature);
        }
        name newname (new_account);
        ilog("New Account: ${n}",("n",new_account));
@@ -2141,7 +2139,9 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
        tosend.expiration = cc.head_block_time() + fc::seconds(30);
        tosend.set_reference_block(cc.head_block_id());
-       tosend.sign(fc::crypto::private_key(config.proxy_key), chainid);
+       try {
+          tosend.sign(fc::crypto::private_key(config.proxy_key), chainid);
+       } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_sig_exception, "Invalid signature")
 
        packed_transaction pt(std::move(tosend));
        auto spt = std::make_shared<packed_transaction>(pt);
