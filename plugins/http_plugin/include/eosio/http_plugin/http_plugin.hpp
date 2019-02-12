@@ -89,6 +89,9 @@ namespace eosio {
               add_handler(call.first, call.second);
         }
 
+      // alternate rendering for genericized fc exceptions.
+      static void httpify_exception(const fc::exception &e, url_response_callback cb);
+
         // standard exception handling for api handlers
         static void handle_exception( const char *api_name, const char *call_name, const string& body, url_response_callback cb );
 
