@@ -25,7 +25,7 @@ namespace fioio {
                                    const fc::string &pub)
    {
         auto check = fc::crypto::public_key( sig, digest, false );
-        FIO_403_ASSERT(string (check) == pub, ErrorPermissions);
+        FIO_403_ASSERT(string (check) == pub, ErrorSignature);
     }
 
    inline void pubadd_signature_validate(const fc::sha256& digest,
