@@ -2064,31 +2064,30 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
 
       try {
             abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::packed_transaction_type_exception, "Invalid packed transaction")
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-             /**
-              *  Three steps involved in registering a new name
-              *  1. verify the supplied fio_pub_key was used to sign the received transaction
-              *  2. generate a new eosio account name and associate it with the fio_pub_key
-              *  3. compose and sign a new transaction for hitting fio.name:registername
-              */
+       /**
+       *  Three steps involved in registering a new name
+       *  1. verify the supplied fio_pub_key was used to sign the received transaction
+       *  2. generate a new eosio account name and associate it with the fio_pub_key
+       *  3. compose and sign a new transaction for hitting fio.name:registername
+       */
+       // Full received transaction
+       const variant& v = params;
+       const variant_object& vo = v.get_object();
+       FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
 
-             // Full received transaction
-          const variant& v = params;
-          const variant_object& vo = v.get_object();
-          FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
+       // Unpack the transaction
+       from_variant(vo["packed_trx"], unpacked->packed_trx);
+       trx = unpacked->get_transaction();
+       vector<action> &actions = trx.actions;
+       FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
 
-          // Unpack the transaction
-          from_variant(vo["packed_trx"], unpacked->packed_trx);
-          trx = unpacked->get_transaction();
-          vector<action> &actions = trx.actions;
-          FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
-          //Use the fio_pub_key in the first action element
-          new_account_pub_key = actions[0].fio_pub_key;
-          rn = fc::raw::unpack<fioio::registername>(actions[0].data);
+       //Use the fio_pub_key in the first action element
+       new_account_pub_key = actions[0].fio_pub_key;
+       rn = fc::raw::unpack<fioio::registername>(actions[0].data);
 
-
-          FIO_403_ASSERT(!new_account_pub_key.empty(), fioio::ErrorSignature);
+       FIO_403_ASSERT(!new_account_pub_key.empty(), fioio::ErrorSignature);
 
        signed_transaction strx = pretty_input->get_signed_transaction();
 
@@ -2096,7 +2095,6 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
        auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
        auto digest = strx.sig_digest(chainid,strx.context_free_data);
        fioio::pubadd_signature_validate(digest, tsig, new_account_pub_key);
-
 
        // step 2: create a new eosio account
 

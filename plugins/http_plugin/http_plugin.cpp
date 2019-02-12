@@ -558,6 +558,25 @@ namespace eosio {
       });
    }
 
+   void http_plugin::httpify_exception (const fc::exception &e,  url_response_callback cb ) {
+      uint32_t rescode = e.code();
+      string message = "";
+      if (rescode == chain::unsatisfied_authorization().code() ||
+          rescode == chain::fio_invalid_sig_exception().code()) {
+         rescode = 403;
+         message = "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}";
+      } else if (rescode == chain::fio_invalid_trans_exception().code()) {
+         rescode = 403;
+         message =  "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly.\"\n}";
+      } else {
+         rescode = 500;
+         error_results results{500 , "Internal Service Error - fc", error_results::error_info(e, verbose_http_errors)};
+         message = fc::json::to_string( results );
+      }
+      cb(rescode, message);
+  }
+
+
    void http_plugin::handle_exception( const char *api_name, const char *call_name, const string& body, url_response_callback cb ) {
       try {
          try {
@@ -588,17 +607,12 @@ namespace eosio {
                cb( rescode, e.what());
             }
             else {
-               if (e.code() == chain::unsatisfied_authorization().code()) {
-                  cb( 403, "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}" );
-               } else {
-                  error_results results{500 , "Internal Service Error - fc", error_results::error_info(e, verbose_http_errors)};
-                  cb( 500, fc::json::to_string( results ));
-                  if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
-                     elog( "FC Exception encountered while processing ${api}.${call}",
-                           ("api", api_name)( "call", call_name ));
-                     dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
-                  }
+               if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
+                  elog( "FC Exception encountered while processing ${api}.${call}",
+                        ("api", api_name)( "call", call_name ));
+                  dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
                }
+               httpify_exception (e, cb);
             }
          } catch (std::exception& e) {
             error_results results{500, "Internal Service Error - std", error_results::error_info(fc::exception( FC_LOG_MESSAGE( error, e.what())), verbose_http_errors)};
