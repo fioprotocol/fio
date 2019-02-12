@@ -562,8 +562,7 @@ namespace eosio {
       uint32_t rescode = e.code();
       string message = "";
       if (rescode == chain::unsatisfied_authorization().code() ||
-          rescode == chain::fio_invalid_sig_exception().code())
-         {
+          rescode == chain::fio_invalid_sig_exception().code()) {
          rescode = 403;
          message = "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}";
       } else if (rescode == chain::fio_invalid_trans_exception().code()) {
