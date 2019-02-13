@@ -34,11 +34,12 @@ namespace fioio {
         void recordsend(const string &obtjson) {
 
 
+            print("FioRequestObt.recordsend input obtjson:  ", obtjson, "\n");
             //TBD implement the necessary logic...Ed will do this.
 
 
             //get the sender and receiver and the fio_funds_requestid if it is set.
-            nlohmann::json jsonobt = obtjson;
+            /*nlohmann::json jsonobt = obtjson;
             string fromFioAddress = jsonobt["from_fio_address"];
             string toFioAddress = jsonobt["to_fio_address"];
 
@@ -46,7 +47,7 @@ namespace fioio {
             FioAddress fa = getFioAddressStruct(fromFioAddress);
             FioAddress ta = getFioAddressStruct(toFioAddress);
 
-            print("FioRequestObt.recordsend input json processing: from address: ", fa.fioname, ", to address: ", ta.fioname, "\n");
+            print("FioRequestObt.recordsend input json processing: from address: ", fa.fioname, ", to address: ", ta.fioname, "\n");*/
         }
 
 

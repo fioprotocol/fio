@@ -2043,7 +2043,103 @@ static void generate_name (fc::string &name) {
  */
 void read_write::record_send(const record_send_params& params, chain::plugin_interface::next_function<record_send_results> next)
 {
-       //TBD Ed will fill this in.....
+   try {
+      string new_account_pub_key = "";
+      string requestor;
+      bool debugmode = true;
+      controller &cc = app().get_plugin<chain_plugin>().chain();
+      const fio_config_parameters &config = app().get_plugin<chain_plugin>().get_fio_config();
+      auto pretty_input = std::make_shared<packed_transaction>();
+      auto unpacked = std::make_shared<packed_transaction>();
+      auto resolver = make_resolver(this, abi_serializer_max_time);
+      transaction trx;
+      name fioreqobt = N(fio.reqobt);
+
+      try {
+         abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+      } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+      /*
+      *  Three steps involved in processing a transaction in fio
+      *  1. verify the supplied fio_pub_key was used to sign the received transaction
+      *  2. generate a new eosio account name and associate it with the fio_pub_key,
+      *  3. compose and sign a new transaction for hitting fio.request.obt::recordsend
+      */
+      // Full received transaction
+      const variant& v = params;
+      const variant_object& vo = v.get_object();
+      FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
+
+      // Unpack the transaction
+      from_variant(vo["packed_trx"], unpacked->packed_trx);
+      trx = unpacked->get_transaction();
+      vector<action> &actions = trx.actions;
+      FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
+
+      //Use the fio_pub_key in the first action element
+      new_account_pub_key = actions[0].fio_pub_key;
+
+      FIO_403_ASSERT(!new_account_pub_key.empty(), fioio::ErrorSignature);
+
+      signed_transaction strx = pretty_input->get_signed_transaction();
+
+      auto tsig = strx.signatures;
+      auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+      auto digest = strx.sig_digest(chainid,strx.context_free_data);
+      fioio::pubadd_signature_validate(digest, tsig, new_account_pub_key);
+
+      // step 2: create a new eosio account
+      //TBD   TBD   TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD
+      //TBD   TBD   logic needs added here to manage fio accounts, check if the account to pub key mapping exists,
+      //TBD   TBD   if the mapping does not exist then make the new account and add the account to pub key mapping
+      //TBD   TBD   to the table
+      //TBD   TBD   SEE ED FOR DETAILS
+      //TBD   TBD   TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD
+
+
+      // step 3 compose, sign, and push new transaction
+
+      signed_transaction tosend;
+      {
+         action act;
+         act.account = fioreqobt;
+         act.name = actions[0].name;
+         act.data = actions[0].data;
+         act.authorization = vector<permission_level>{{config.proxy_name,config::active_name}};
+         tosend.actions.emplace_back(std::move(act));
+      }
+
+      tosend.expiration = cc.head_block_time() + fc::seconds(30);
+      tosend.set_reference_block(cc.head_block_id());
+      try {
+         tosend.sign(fc::crypto::private_key(config.proxy_key), chainid);
+      } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_sig_exception, "Invalid signature")
+
+      packed_transaction pt(std::move(tosend));
+      auto spt = std::make_shared<packed_transaction>(pt);
+      spt->set_fio_transaction(true);
+
+      app().get_method<incoming::methods::transaction_async>()(spt, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+          if (result.contains<fc::exception_ptr>()) {
+             next(result.get<fc::exception_ptr>());
+          } else {
+             auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+             try {
+                fc::variant output;
+                try {
+                   output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                } catch( chain::abi_exception& ) {
+                   output = *trx_trace_ptr;
+                }
+                next(read_write::record_send_results{ output});
+             } CATCH_AND_CALL(next);
+          }
+      });
+   } catch ( const boost::interprocess::bad_alloc& ) {
+      chain_plugin::handle_db_exhaustion();
+   } CATCH_AND_CALL(next);
+
 }
 
 

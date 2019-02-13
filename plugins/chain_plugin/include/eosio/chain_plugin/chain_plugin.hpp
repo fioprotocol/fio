@@ -774,6 +774,7 @@ FC_REFLECT( eosio::chain_apis::read_only::avail_check_result, (fio_name)(is_regi
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration) );
 FC_REFLECT( eosio::chain_apis::read_write::register_fio_name_results, (transaction_id)(processed) )
+FC_REFLECT( eosio::chain_apis::read_write::record_send_results, (processed) )
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));
