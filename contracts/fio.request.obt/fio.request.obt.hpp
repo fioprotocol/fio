@@ -5,6 +5,7 @@
  *  @copyright Dapix
  *
  *  Changes:
+ *  Ed Rotthoff 2/13/2019   modified the includes so they will build properly when used.
  */
 
 
@@ -41,7 +42,7 @@ namespace fioio {
         string      amount;         // token quantity
         string      tokencode;      // token type e.g. BLU
         string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
-        date        fiotime;        // FIO blockchain request received timestamp
+        uint64_t    fiotime;        // FIO blockchain request received timestamp
 
         uint64_t primarykey() const     { return fioreqid; }
         uint64_t by_sender() const      { return fromfioaddr; }
@@ -50,10 +51,10 @@ namespace fioio {
         EOSLIB_SERIALIZE(fioreqctxt, (fioreqid)(fioreqidstr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
     };
     // FIO requests contexts table
-    typedef multi_index<N(fioreqctexts), fioreqctext,
-            indexed_by<N(bysender), const_mem_fun<fioreqctext, uint64_t, &fioreqctext::by_sender> >,
-    indexed_by<N(byreceiver), const_mem_fun<fioreqctext, uint64_t, &fioreqctext::by_receiver> >,
-    indexed_by<N(byfiotime), const_mem_fun<fioreqctext, uint64_t, &fioreqctext::by_fiotime> >
+    typedef multi_index<N(fioreqctexts), fioreqctxt,
+            indexed_by<N(bysender), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_sender> >,
+    indexed_by<N(byreceiver), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver> >,
+    indexed_by<N(byfiotime), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_fiotime> >
     > fiorequest_contexts_table;
 
     // Structure for "FIO request status" updates.
@@ -63,7 +64,7 @@ namespace fioio {
         uint64_t    fioreqid;       // FIO request {fioreqctxt.fioreqid} this request status update is related to
         trxstatus   status;         // request status
         string      metadata;       // JSON formatted meta data e.g. {"obt_hash": "962167B2F99B20"}
-        date        fiotime;        // FIO blockchain status update received timestamp
+        uint64_t    fiotime;        // FIO blockchain status update received timestamp
 
         uint64_t primarykey() const     { return id; }
         uint64_t by_fioreqid() const    { return fioreqid; }

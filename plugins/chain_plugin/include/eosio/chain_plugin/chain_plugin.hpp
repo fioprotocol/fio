@@ -618,6 +618,17 @@ public:
     void register_fio_name(const register_fio_name_params& params, chain::plugin_interface::next_function<register_fio_name_results> next);
 
 
+
+    //Begin Added for record send api method
+    using record_send_params = fc::variant_object;
+
+    struct record_send_results {
+        fc::variant                 processed;
+    };
+    void record_send(const record_send_params& params, chain::plugin_interface::next_function<record_send_results> next);
+    //End added for record send api method.
+
+
     using push_transactions_params  = vector<push_transaction_params>;
    using push_transactions_results = vector<push_transaction_results>;
    void push_transactions(const push_transactions_params& params, chain::plugin_interface::next_function<push_transactions_results> next);

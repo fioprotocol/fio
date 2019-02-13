@@ -2035,6 +2035,22 @@ static void generate_name (fc::string &name) {
 }
 
 
+/***
+ * record_send - This api method will invoke the fio.request.obt smart contract for recordsend. this api method is
+ * intended to add the json passed into this method to the block log so that it can be scraped as necessary.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.processed (fc::variant) json blob meeting the api specification.
+ */
+void read_write::record_send(const record_send_params& params, chain::plugin_interface::next_function<record_send_results> next)
+{
+       //TBD Ed will fill this in.....
+}
+
+
+
+
+
+
 //Temporary to register_fio_name_params
    constexpr const char * fioCreatorKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; //  "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS" - fiosystem
    // constexpr const char * eosioSignKey = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"; // "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV" - eosio

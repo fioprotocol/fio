@@ -33,6 +33,14 @@ else
     fio_contract_name_path="$PWD/build/contracts/fio.name"
 fi
 
+#Fio request obt Directory Check
+if [ -f /build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
+    echo 'No wasm file found at $PWD/build/contracts/fio.request.obt'
+    read -p 'Path to Fio request obt Contract Folder: ' fio_request_obt_path
+else
+    fio_request_obt_path="$PWD/build/contracts/fio.request.obt"
+fi
+
 #Fio Finance Directory Check
 if [ -f /build/contracts/fio.finance/fio.finance.wasm ]; then
     echo 'No wasm file found at $PWD/build/contracts/fio.finance'
@@ -118,6 +126,8 @@ if [ $mChoice == 1 ]; then
         cleos -u http://localhost:8889 create account eosio fio.system EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         cleos -u http://localhost:8889 create account eosio fio.fee EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         cleos -u http://localhost:8889 create account eosio fio.finance EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        cleos -u http://localhost:8889 create account eosio fio.reqobt EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+
     fi
 
     #Bind FIO.NAME Contract to Chain
@@ -125,6 +135,9 @@ if [ $mChoice == 1 ]; then
 
     #Bind fio.finance Contract to Chain
     cleos -u http://localhost:8889 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
+
+    #Bind fio.request.obt Contract to Chain
+        cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_request_obt_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
 
     #Bind EOSIO.Token Contract to Chain
     cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
