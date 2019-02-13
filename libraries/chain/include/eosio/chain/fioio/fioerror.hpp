@@ -46,7 +46,7 @@ namespace fioio {
    constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
    constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
    constexpr auto ErrorTransaction =               ident | httpInvalidError | 117;   // Public address exists
-
+   constexpr auto ErrorNoFIONames =                ident | httpDataError | 118; // No FIO Names
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
