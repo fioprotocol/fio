@@ -8,7 +8,7 @@
  * @brief Public Address of an account
  * @details Public Address of an account
  */
-typedef uint128_t public_address;
+typedef uint64_t public_address;
 
 namespace eosio {
 
@@ -29,7 +29,7 @@ namespace eosio {
          * @brief Conversion Operator
          * @return uint128_t - Converted result
          */
-        operator uint128_t()const { return value; }
+        operator uint64_t()const { return value; }
 
         // keep in sync with name::operator string() in eosio source code definition for name
         std::string to_string() const {
@@ -53,7 +53,7 @@ namespace eosio {
          * @brief Internal Representation of the account public address
          */
         public_address value = 0;   // public address hash
-        std::string address_str     // public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
+        std::string address_str;     // public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
 
     private:
 
