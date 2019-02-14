@@ -112,7 +112,8 @@ void chain_api_plugin::plugin_startup() {
 
         CHAIN_RO_CALL(fio_name_lookup, 200),
         CHAIN_RO_CALL(fio_key_lookup, 200),
-        CHAIN_RW_CALL_ASYNC(register_fio_name, chain_apis::read_write::register_fio_name_results, 202)
+        CHAIN_RW_CALL_ASYNC(register_fio_name, chain_apis::read_write::register_fio_name_results, 202),
+        CHAIN_RW_CALL_ASYNC(record_send, chain_apis::read_write::record_send_results, 202)
    });
 }
 

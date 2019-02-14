@@ -18,6 +18,8 @@ namespace fioio {
     vector<string> eosioActions;
     vector<string> fiosystemActions;
     vector<string> fioFinanceActions;
+    vector<string> fioRequestObtActions;
+
 
     static void Set_map(void){
         //eosio actions
@@ -29,6 +31,9 @@ namespace fioio {
 
         //fio.finance actions
         fioFinanceActions.push_back("requestfunds");
+
+        //fio.request.obt actions
+        fioRequestObtActions.push_back("recordsend");
     }
 
     static string map_to_contract( string t ){
@@ -37,6 +42,9 @@ namespace fioio {
         }
         if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()){
             return "fio.finance";
+        }
+        if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()){
+            return "fio.request.obt";
         }
         return "eosio";
     }
@@ -53,7 +61,6 @@ namespace fioio {
       string name;
       uint64_t requestor;
    };
-
 
 }
 
