@@ -14,14 +14,12 @@
  *  Adam Androulidakis  8-29-2019
  */
 
-
 #pragma once
 
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 #include <string>
-
 
 using std::string;
 
@@ -51,7 +49,7 @@ namespace fioio {
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
     };
 
-        //Where fioname tokens are stored
+    //Where fioname tokens are stored
     typedef multi_index<N(fionames), fioname,
             indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
 
@@ -64,6 +62,7 @@ namespace fioio {
         uint32_t expiration;
 
         uint64_t primary_key() const { return domainhash; }
+
         EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration))
     };
 
@@ -80,9 +79,12 @@ namespace fioio {
         uint32_t expiration;        //expiration of the fioname.
 
         uint64_t primary_key() const { return id; }
+
         uint64_t by_keyhash() const { return keyhash; }
+
         EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(expiration))
     };
+
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
 
@@ -96,6 +98,7 @@ namespace fioio {
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return fiopubindex; }
+
         uint64_t by_pubkey() const { return pubkeyindex; }
 
         EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
@@ -108,10 +111,10 @@ namespace fioio {
     struct chainpair {
         uint64_t index;
         string chainname;
-        uint64_t chainhash = 0;
 
-        uint64_t primary_key() const { return chainhash; }
-        EOSLIB_SERIALIZE(chainpair, (index)(chainname)(chainhash))
+        uint64_t primary_key() const { return index; }
+
+        EOSLIB_SERIALIZE(chainpair, (index)(chainname))
     };
 
     typedef multi_index<N(chainList), chainpair> chaintable;
@@ -125,9 +128,10 @@ namespace fioio {
 //    typedef singleton<N(configs), config> configs;
 
     struct account {
-        asset    balance;
+        asset balance;
 
-        uint64_t primary_key()const { return balance.symbol.name(); }
+        uint64_t primary_key() const { return balance.symbol.name(); }
     };
+
     typedef eosio::multi_index<N(accounts), account> accounts;
 }

@@ -22,6 +22,7 @@
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
+#include <eosio/chain/fioio/chain_control.hpp>
 #include <climits>
 
 namespace fioio{
@@ -36,7 +37,6 @@ namespace fioio{
         config appConfig;
 
         chaintable chainlist;
-        int chainlistsize;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
 
@@ -185,16 +185,11 @@ namespace fioio{
             fio_400_assert(!pub_address.empty(), "pub_address", pub_address, "Chain address cannot be empty..", ErrorChainAddressEmpty);
             fio_400_assert(pub_address.find(" "), "pub_address", pub_address, "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
 
-            string my_chain = chain;
+            string my_chain = chainToUpper(chain);
 
-            transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-
-            // Ensure chain name consists only of aphabets
-            if(my_chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos) {
-                fio_400_assert(false, "chain", chain, "Invalid chain format", ErrorInvalidFioNameFormat);
-            }
-
+            fio_400_assert(isChainNameValid(my_chain), "chain", chain, "Invalid chain format", ErrorInvalidFioNameFormat);
             uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
+
             auto chain_iter = chainlist.find(chainhash);
 
             uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
@@ -203,14 +198,14 @@ namespace fioio{
                 chainlist.emplace(_self, [&](struct chainpair &a){
                     a.index = next_idx;
                     a.chainname = chain;
-                    a.chainhash = chainhash;
+                    //a.chainhash = chainhash;
                 });
             }
 
             //Chain List Size Update w/ size checking
-            if ( next_idx > chainlistsize ){
-                chainlistsize = next_idx;
-            }
+            //if ( next_idx > chainlistsize ){
+            //    chainlistsize = next_idx;
+            //}
 
             // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fio_address.c_str());
