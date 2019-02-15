@@ -18,20 +18,15 @@ namespace fioio {
 
     struct chainpair {
         uint64_t index;
-        string chain;
+        string chainname;
 
         uint64_t primary_key() const { return index; }
 
-        EOSLIB_SERIALIZE(chainpair, (index)(chain))
+        EOSLIB_SERIALIZE(chainpair, (index)(chainname))
     };
 
-    //typedef multi_index<N(chainList), chainpair> chaintable;
+    typedef multi_index<N(chainList), chainpair> chaintable;
 
-    inline chainpair chainInit(string index) {
-        chainpair na;
+    inline chaintable chainInit( void ){
 
-
-
-        return na;
     }
-}
