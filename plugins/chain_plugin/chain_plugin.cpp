@@ -1310,6 +1310,91 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    return result;
 } // fioname_lookup
 
+
+/*** v1/chain/get_fio_names
+* Retrieves the fionames associated with the provided public address
+* @param p
+* @return result
+*/
+read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_fio_names_params& p )const {
+  // assert if empty chain key
+  get_fio_names_result result;
+  if(p.fio_pub_address.empty()) {
+    EOS_ASSERT( !p.fio_pub_address.empty(), chain::contract_table_query_exception,"Empty fio_pub_address string");
+    return result;
+  }
+
+  string fio_key_lookup_table = "keynames";   // table name
+
+  const name code = ::eosio::string_to_name(fio_system_code.c_str());
+  const abi_def abi = eosio::chain_apis::get_abi( db, code );
+
+  const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_pub_address.c_str()); // hash of public address
+  get_table_rows_result domain_result;
+  get_table_rows_result table_rows_result;
+
+  dlog( "Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash) );
+  get_table_rows_params table_row_params = get_table_rows_params{
+          .json        = true,
+          .code        = code,
+          .scope       = fio_system_scope,
+          .table       = fio_key_lookup_table,
+          .lower_bound = boost::lexical_cast<string>(key_hash),
+          .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+          .key_type       = "i64",
+          .index_position ="2"};
+
+  // Do secondary key lookup
+  table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi, [](uint64_t v)->uint64_t {
+      return v;
+  });
+
+
+  dlog( "Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()) );
+
+  FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
+
+  std::string nam, namexpiration, dom, domexpiration;
+
+  // Look through the keynames lookup results and push the fio_addresses into results
+  for (size_t pos=0; pos < table_rows_result.rows.size(); pos++) {
+
+    nam = (string)table_rows_result.rows[pos]["name"].as_string();
+    namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
+
+    fioaddress_record fa{nam,namexpiration};
+   //pushback results
+    result.fio_addresses.push_back(fa);
+
+    //Get the domain
+    int domlook = nam.find('.');
+    dom = nam.substr(domlook + 1, string::npos);
+    std::cout<<"Domain name:"<<dom<<std::endl;
+    const uint64_t domain_hash = ::eosio::string_to_uint64_t(dom.c_str());
+    get_table_rows_params domain_table_params = get_table_rows_params{.json=true,
+            .code=code,
+            .scope=fio_system_scope,
+            .table=fio_domains_table,
+            .lower_bound=boost::lexical_cast<string>(domain_hash),
+            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
+            .encode_type="dec"};
+   get_table_rows_result domain_result = get_table_rows_ex<key_value_index>(domain_table_params, abi);
+
+
+   domexpiration = domain_result.rows[0]["expiration"].as_string();
+   fiodomain_record d{dom,domexpiration};
+     //pushback results
+    result.fio_domains.push_back(d);
+
+  } // Get FIO domains and push
+
+  result.fio_pub_address = p.fio_pub_address;
+  return result;
+} // get_fio_names
+
+
+
+
 /***
  * Checks if a FIO Address or FIO Domain is available for registration.
  * @param p
