@@ -46,6 +46,8 @@ namespace fioio {
    constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
    constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
    constexpr auto ErrorTransaction =               ident | httpInvalidError | 117;   // Public address exists
+   constexpr auto ErrorInvalidJsonInput =            ident | httpInvalidError | 118;   // invalid json sent for json input
+   constexpr auto ErrorRequestContextNotFound =            ident | httpInvalidError | 119;   // the specified request context record was not found
 
 
     /**

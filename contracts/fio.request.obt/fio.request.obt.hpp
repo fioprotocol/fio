@@ -44,7 +44,7 @@ namespace fioio {
         string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
         uint64_t    fiotime;        // FIO blockchain request received timestamp
 
-        uint64_t primarykey() const     { return fioreqid; }
+        uint64_t primary_key() const     { return fioreqid; }
         uint64_t by_sender() const      { return fromfioaddr; }
         uint64_t by_receiver() const    { return tofioaddr; }
         uint64_t by_fiotime() const     { return fiotime; }
@@ -66,7 +66,7 @@ namespace fioio {
         string      metadata;       // JSON formatted meta data e.g. {"obt_hash": "962167B2F99B20"}
         uint64_t    fiotime;        // FIO blockchain status update received timestamp
 
-        uint64_t primarykey() const     { return id; }
+        uint64_t primary_key() const     { return id; }
         uint64_t by_fioreqid() const    { return fioreqid; }
         uint64_t by_fiotime() const     { return fiotime; }
         EOSLIB_SERIALIZE(fioreqsts, (id)(fioreqid)(status)(fiotime))
