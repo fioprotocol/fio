@@ -92,6 +92,7 @@ Options:
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
 #include <eosio/chain/contract_types.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
 
 #pragma push_macro("N")
 #undef N
@@ -1826,6 +1827,17 @@ int main( int argc, char** argv ) {
    // convert subcommand
    auto convert = app.add_subcommand("convert", localized("Pack and unpack transactions"), false); // TODO also add converting action args based on abi from here ?
    convert->require_subcommand();
+
+   // fio account for public key
+   string fio_pub_key;
+   auto fio_account_for_key = convert->add_subcommand("fiokey_to_account", localized("generate an account name for the public key"));
+   fio_account_for_key->add_option("key", fio_pub_key, localized("the public key for the new account"));
+   fio_account_for_key->set_callback([&] {
+      string new_account;
+      fioio::key_to_account(fio_pub_key, new_account);
+      std::cout << new_account << std::endl;
+   });
+
 
    // pack transaction
    string plain_signed_transaction_json;
