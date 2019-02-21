@@ -22,8 +22,8 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 echo ------------------------------------------
 dataJson="{
-  \"name\": \"${domain}\",
-  \"requestor\": \"${fioactor}\"
+  \"fioname\": \"${domain}\",
+  \"actor\": \"${fioactor}\"
 }"
 
 expectedPackedData=056461706978104208414933a95b
