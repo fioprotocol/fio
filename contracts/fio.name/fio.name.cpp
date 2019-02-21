@@ -50,25 +50,25 @@ namespace fioio{
         }
 
         [[eosio::action]]
-        void registername(const string &name, const account_name &requestor) {
-            require_auth(requestor); // check for requestor authority; required for fee transfer
+        void registername(const string &fioname, const account_name &actor) {
+            require_auth(actor); // check for requestor authority; required for fee transfer
 
             // Split the fio name and domain portions
-            FioAddress fa = getFioAddressStruct(name);
+            FioAddress fa = getFioAddressStruct(fioname);
 
-            string fioname = fa.fioname;
+            string name = fa.fioname;
             string domain = fa.fiodomain;
             string newname = fa.fiopubaddress;
             bool domainOnly = fa.domainOnly; // used for name syntax validation check.
 
             fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
-            fio_400_assert(fioNameSizeCheck(fioname, domain), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            fio_400_assert(fioNameSizeCheck(name, domain), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
-            if(!fioname.empty()){
-                fio_400_assert(isFioNameValid(fioname), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            if(!name.empty()){
+                fio_400_assert(isFioNameValid(name), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
             }
 
-            print("fioname: ", fioname, ", Domain: ", domain, "\n");
+            print("fioname: ", name, ", Domain: ", domain, "\n");
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
             asset registerFee;
@@ -76,7 +76,7 @@ namespace fioio{
             auto fees = trxfees.get_or_default(trxfee());
             uint32_t expiration_time = 0;
 
-            if (fioname.empty()) { // domain register
+            if (name.empty()) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
                 fio_400_assert(domains_iter == domains.end(), "fio_name", newname, "FIO domain already registered", ErrorDomainAlreadyRegistered);
@@ -140,9 +140,9 @@ namespace fioio{
                 // collect fees
                 // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting registration fees: ", registerFee);
-                action(permission_level{requestor, N(active)},
+                action(permission_level{actor, N(active)},
                        TokenContract, N(transfer),
-                       make_tuple(requestor, _self, registerFee,
+                       make_tuple(actor, _self, registerFee,
                                   string("Registration fees. Thank you."))
                 ).send();
             }

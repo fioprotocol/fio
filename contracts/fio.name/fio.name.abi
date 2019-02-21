@@ -97,10 +97,10 @@
       "name": "registername",
       "base": "",
       "fields": [{
-          "name": "name",
+          "name": "fioname",
           "type": "string"
         },{
-          "name": "requestor",
+          "name": "actor",
           "type": "name"
         }
       ]
