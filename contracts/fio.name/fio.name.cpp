@@ -36,14 +36,11 @@ namespace fioio{
         fiopubs_table fiopubs;
         config appConfig;
 
-        chaintable chainlist;
-
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), fiopubs(self, self), chainlist(self, self),
-            trxfees(FeeContract,FeeContract)
+        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), fiopubs(self, self), trxfees(FeeContract,FeeContract)
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
@@ -130,7 +127,7 @@ namespace fioio{
                     a.domain = domain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses = vector<string>(chainlistsize , "");
+                    //a.addresses = vector<string>(chainlistsize , "");
                 });
 
                 registerFee = fees.nameregister;
@@ -190,17 +187,17 @@ namespace fioio{
             fio_400_assert(isChainNameValid(my_chain), "chain", chain, "Invalid chain format", ErrorInvalidFioNameFormat);
             uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
 
-            auto chain_iter = chainlist.find(chainhash);
-
-            uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
-
-            if( chain_iter == chainlist.end() ){
-                chainlist.emplace(_self, [&](struct chainpair &a){
-                    a.index = next_idx;
-                    a.chainname = chain;
-                    //a.chainhash = chainhash;
-                });
-            }
+            //auto chain_iter = chainlist.find(chainhash);
+//
+            //uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
+//
+            //if( chain_iter == chainlist.end() ){
+            //    chainlist.emplace(_self, [&](struct chainpair &a){
+            //        a.index = next_idx;
+            //        a.chainname = chain;
+            //        //a.chainhash = chainhash;
+            //    });
+            //}
 
             //Chain List Size Update w/ size checking
             //if ( next_idx > chainlistsize ){
@@ -241,9 +238,9 @@ namespace fioio{
             fio_400_assert(present_time <= expiration, "domain", domain, "FIO Domain is expired.", ErrorDomainExpired);
 
             // insert/update <chain, address> pair
-            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[static_cast<size_t>(next_idx)] = fio_address;
-            });
+            //fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+            //    a.addresses[static_cast<size_t>(next_idx)] = fio_address;
+            //});
 
             // insert/update key into key-name table for reverse lookup
             auto idx = keynames.get_index<N(bykey)>();
@@ -260,7 +257,7 @@ namespace fioio{
                     k.id = keynames.available_primary_key();        // use next available primary key
                     k.key = pub_address;                            // persist key
                     k.keyhash = keyhash;                            // persist key hash
-                    k.chaintype = static_cast<uint64_t>(next_idx);  // specific chain type
+                    //k.chaintype = static_cast<uint64_t>(next_idx);  // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
                     k.expiration = name_expiration;
                 });

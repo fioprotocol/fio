@@ -9,6 +9,7 @@
 
 #include <string>
 #include <boost/algorithm/string.hpp>
+#include <ostream>
 
 #pragma once
 
@@ -25,8 +26,11 @@ namespace fioio {
         EOSLIB_SERIALIZE(chainpair, (index)(chainname))
     };
 
-    typedef multi_index<N(chainList), chainpair> chaintable;
+    //typedef multi_index<N(chainList), chainpair> chaintable;
 
-    inline chaintable chainInit( void ){
+    inline chainpair chainInit(string index) {
+        chainpair na;
 
+        return na;
     }
+}
