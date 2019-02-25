@@ -649,7 +649,12 @@ public:
     };
     void register_fio_name(const register_fio_name_params& params, chain::plugin_interface::next_function<register_fio_name_results> next);
 
-
+    using add_pub_address_params = fc::variant_object;
+    struct add_pub_address_results {
+        chain::transaction_id_type  transaction_id;
+        fc::variant                 processed;
+    };
+    void add_pub_address(const add_pub_address_params& params, chain::plugin_interface::next_function<add_pub_address_results> next);
 
     //Begin Added for record send api method
     using record_send_params = fc::variant_object;

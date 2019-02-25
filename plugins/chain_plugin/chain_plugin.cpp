@@ -2057,8 +2057,7 @@ void create_account(std::string&  new_account, std::string& new_account_pub_key,
     push_transactions(std::move(trxs), next);
 }
 
-
-void add_pub_address(std::string&  pub_address, std::string& pub_key, const std::string& init_name, const std::string& init_priv_key, const std::function<void(const fc::exception_ptr&)>& next) {
+void add_address(std::string&  pub_address, std::string& pub_key, const std::string& init_name, const std::string& init_priv_key, const std::function<void(const fc::exception_ptr&)>& next) {
     std::vector<signed_transaction> trxs;
     trxs.reserve(1);
 
@@ -2107,6 +2106,74 @@ void add_pub_address(std::string&  pub_address, std::string& pub_key, const std:
     }
 
     push_transactions(std::move(trxs), next);
+}
+
+void read_write::add_pub_address(const read_write::add_pub_address_params& params, next_function<read_write::add_pub_address_results> next) {
+    try {
+        auto pretty_input = std::make_shared<packed_transaction>();
+        auto unpacked = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction trx;
+        name fiosystem = N(fio.system);
+
+        fioio::addaddress rn;
+        dlog("add_fio_address called");
+        try {
+            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        // Full received transaction
+        const variant& v = params;
+        const variant_object& vo = v.get_object();
+        FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
+
+        // Unpack the transaction
+        from_variant(vo["packed_trx"], unpacked->packed_trx);
+        trx = unpacked->get_transaction();
+        vector<action> &actions = trx.actions;
+        FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+        name actor = actions[0].authorization[0].actor;
+
+        dlog("got actor ${a}",("a",actor));
+
+        signed_transaction strx = pretty_input->get_signed_transaction();
+        auto tsig = strx.signatures;
+        auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+        auto digest = strx.sig_digest(chainid,strx.context_free_data);
+        auto check = fc::crypto::public_key( tsig[0], digest, false );
+
+        //Hash Public Key
+        auto pubkey = string(check);
+        std::string new_account;
+        fioio::key_to_account(pubkey, new_account);
+
+        //Verify is same as tx
+        FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
+
+
+
+        app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+            if (result.contains<fc::exception_ptr>()) {
+                next(result.get<fc::exception_ptr>());
+            } else {
+                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                try {
+                    chain::transaction_id_type id = trx_trace_ptr->id;
+                    fc::variant output;
+                    try {
+                        output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                    } catch( chain::abi_exception& ) {
+                        output = *trx_trace_ptr;
+                    }
+                    next(read_write::add_pub_address_results{id, output});
+                } CATCH_AND_CALL(next);
+            }
+        });
+    } catch ( const boost::interprocess::bad_alloc& ) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
 }
 
 /***

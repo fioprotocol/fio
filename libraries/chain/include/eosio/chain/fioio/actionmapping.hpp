@@ -62,6 +62,10 @@ namespace fioio {
       uint64_t requestor;
    };
 
+    struct addaddress {
+        string name;
+        uint64_t actor;
+    };
 }
 
 FC_REFLECT( fioio::registername, (name)(requestor) )

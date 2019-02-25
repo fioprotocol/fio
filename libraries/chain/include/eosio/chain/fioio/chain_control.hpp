@@ -9,7 +9,6 @@
 
 #include <string>
 #include <boost/algorithm/string.hpp>
-#include <ostream>
 
 #pragma once
 
@@ -19,17 +18,19 @@ namespace fioio {
 
     struct chainpair {
         uint64_t index;
-        string chainname;
+        string chain;
 
         uint64_t primary_key() const { return index; }
 
-        EOSLIB_SERIALIZE(chainpair, (index)(chainname))
+        EOSLIB_SERIALIZE(chainpair, (index)(chain))
     };
 
     //typedef multi_index<N(chainList), chainpair> chaintable;
 
     inline chainpair chainInit(string index) {
         chainpair na;
+
+
 
         return na;
     }
