@@ -150,7 +150,7 @@ namespace fioio {
             //check the to address, see that its a valid fio name
             nameHash = ::eosio::string_to_uint64_t(toFioAddress.c_str());
             fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fio_name", fromFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "fio_name", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
 
 
             nlohmann::json json = obtjson;
