@@ -2212,7 +2212,7 @@ void read_write::record_send(const record_send_params& params, chain::plugin_int
 
 
 /***
- * Reg./ister_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
+ * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
