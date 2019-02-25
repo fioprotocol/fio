@@ -63,7 +63,9 @@ namespace fioio {
    };
 
     struct addaddress {
-        string name;
+        string fioaddress;
+        string tokencode;
+        string pubaddress;
         uint64_t actor;
     };
 }

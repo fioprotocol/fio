@@ -173,18 +173,18 @@ namespace fioio{
          * @param address The chain specific user address
          */
         [[eosio::action]]
-        void addaddress(const string &fio_address, const string &chain, const string &pub_address, const account_name &requestor) {
+        void addaddress(const string &fioaddress, const string &tokencode, const string &pubaddress, const account_name &actor) {
 
-            fio_400_assert(!fio_address.empty(), "fio_address", fio_address, "FIO address cannot be empty..", ErrorDomainAlreadyRegistered);
-            fio_400_assert(!chain.empty(), "chain", chain, "Chain cannot be empty..", ErrorChainEmpty);
+            fio_400_assert(!fioaddress.empty(), "fio_address", fioaddress, "FIO address cannot be empty..", ErrorDomainAlreadyRegistered);
+            fio_400_assert(!tokencode.empty(), "chain", tokencode, "Chain cannot be empty..", ErrorChainEmpty);
 
             // Chain input validation
-            fio_400_assert(!pub_address.empty(), "pub_address", pub_address, "Chain address cannot be empty..", ErrorChainAddressEmpty);
-            fio_400_assert(pub_address.find(" "), "pub_address", pub_address, "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
+            fio_400_assert(!pubaddress.empty(), "pub_address", pubaddress, "Chain address cannot be empty..", ErrorChainAddressEmpty);
+            fio_400_assert(pubaddress.find(" "), "pub_address", pubaddress, "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
 
-            string my_chain = chainToUpper(chain);
+            string my_chain = tokencode;
 
-            fio_400_assert(isChainNameValid(my_chain), "chain", chain, "Invalid chain format", ErrorInvalidFioNameFormat);
+            fio_400_assert(isChainNameValid(my_chain), "chain", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
             uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
 
             //auto chain_iter = chainlist.find(chainhash);
@@ -205,7 +205,7 @@ namespace fioio{
             //}
 
             // validate fio FIO Address exists
-            uint64_t nameHash = ::eosio::string_to_uint64_t(fio_address.c_str());
+            uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
             //print("Name: ", fio_address, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
 
@@ -216,16 +216,16 @@ namespace fioio{
             uint32_t present_time = now();
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            fio_400_assert(present_time <= name_expiration, "fio_address", fio_address, "FIO Address is expired.", ErrorFioNameExpired);
+            fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress, "FIO Address is expired.", ErrorFioNameExpired);
 
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
-            size_t pos = fio_address.find('.');
+            size_t pos = fioaddress.find('.');
 
             if (pos == string::npos) {                                          // TODO Refactor since its used so much
                 eosio_assert(true,"could not find domain name in fio name.");
             } else {
-                domain = fio_address.substr(pos + 1, string::npos);
+                domain = fioaddress.substr(pos + 1, string::npos);
             }
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
@@ -244,7 +244,7 @@ namespace fioio{
 
             // insert/update key into key-name table for reverse lookup
             auto idx = keynames.get_index<N(bykey)>();
-            auto keyhash = ::eosio::string_to_uint64_t(pub_address.c_str());
+            auto keyhash = ::eosio::string_to_uint64_t(pubaddress.c_str());
             auto matchingItem = idx.lower_bound(keyhash);
 
             // Advance to the first entry matching the specified address and chain
@@ -255,7 +255,7 @@ namespace fioio{
             if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
                 keynames.emplace(_self, [&](struct key_name &k) {
                     k.id = keynames.available_primary_key();        // use next available primary key
-                    k.key = pub_address;                            // persist key
+                    k.key = pubaddress;                            // persist key
                     k.keyhash = keyhash;                            // persist key hash
                     //k.chaintype = static_cast<uint64_t>(next_idx);  // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
@@ -272,16 +272,16 @@ namespace fioio{
                 auto fees = trxfees.get_or_default(trxfee());
                 asset registerFee = fees.upaddress;
                 //print("Collecting registration fees: ", registerFee);
-                action(permission_level{requestor, N(active)},
+                action(permission_level{actor, N(active)},
                        TokenContract, N(transfer),
-                       make_tuple(requestor, _self, registerFee,
+                       make_tuple(actor, _self, registerFee,
                                   string("Registration fees. Thank you."))
                 ).send();
             }
             //else {
             //print("Payments currently disabled.");
             //}
-            nlohmann::json json = {{"status","OK"},{"fio_address",fio_address},{"chain",chain},{"pub_address",pub_address}};
+            nlohmann::json json = {{"status","OK"},{"fioaddress",fioaddress},{"tokencode",tokencode},{"pubaddress",pubaddress},{"actor",actor}};
             send_response(json.dump().c_str());
         }
 
