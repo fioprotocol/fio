@@ -185,7 +185,8 @@ namespace fioio{
             string my_chain = tokencode;
 
             fio_400_assert(isChainNameValid(my_chain), "chain", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
-            uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
+
+            // uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
 
             //auto chain_iter = chainlist.find(chainhash);
 //
