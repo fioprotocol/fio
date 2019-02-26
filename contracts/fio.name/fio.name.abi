@@ -108,16 +108,16 @@
       "name": "addaddress",
       "base": "",
       "fields": [{
-          "name": "fio_address",
+          "name": "fioaddress",
           "type": "string"
         },{
-          "name": "chain",
+          "name": "tokencode",
           "type": "string"
         },{
-          "name": "pub_address",
+          "name": "pubaddress",
           "type": "string"
         },{
-          "name": "requestor",
+          "name": "actor",
           "type": "name"
         }
       ]

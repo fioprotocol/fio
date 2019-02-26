@@ -108,5 +108,7 @@ namespace fioio {
         string my_chain = chain;
 
         transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+
+        return my_chain;
     }
 }

@@ -168,23 +168,23 @@ namespace fioio{
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
-         * @param fio_address The FIO user name e.g. "adam.fio"
-         * @param chain The chain name e.g. "btc"
-         * @param address The chain specific user address
+         * @param fioaddress The FIO user name e.g. "adam.fio"
+         * @param tokencode The chain name e.g. "btc"
+         * @param pubaddress The chain specific user address
          */
         [[eosio::action]]
         void addaddress(const string &fioaddress, const string &tokencode, const string &pubaddress, const account_name &actor) {
 
-            fio_400_assert(!fioaddress.empty(), "fio_address", fioaddress, "FIO address cannot be empty..", ErrorDomainAlreadyRegistered);
-            fio_400_assert(!tokencode.empty(), "chain", tokencode, "Chain cannot be empty..", ErrorChainEmpty);
+            fio_400_assert(!fioaddress.empty(), "fioaddress", fioaddress, "FIO address cannot be empty..", ErrorDomainAlreadyRegistered);
+            fio_400_assert(!tokencode.empty(), "tokencode", tokencode, "Chain cannot be empty..", ErrorChainEmpty);
 
             // Chain input validation
-            fio_400_assert(!pubaddress.empty(), "pub_address", pubaddress, "Chain address cannot be empty..", ErrorChainAddressEmpty);
-            fio_400_assert(pubaddress.find(" "), "pub_address", pubaddress, "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
+            fio_400_assert(!pubaddress.empty(), "pubaddress", pubaddress, "Chain address cannot be empty..", ErrorChainAddressEmpty);
+            fio_400_assert(pubaddress.find(" "), "pubaddress", pubaddress, "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
 
             string my_chain = tokencode;
 
-            fio_400_assert(isChainNameValid(my_chain), "chain", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
+            fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
 
             // uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
 
@@ -217,7 +217,7 @@ namespace fioio{
             uint32_t present_time = now();
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress, "FIO Address is expired.", ErrorFioNameExpired);
+            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress, "FIO Address is expired.", ErrorFioNameExpired);
 
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
