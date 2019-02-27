@@ -2186,24 +2186,24 @@ void read_write::record_send(const record_send_params& params, chain::plugin_int
 
       dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
 
-      app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-          if (result.contains<fc::exception_ptr>()) {
-             next(result.get<fc::exception_ptr>());
-          } else {
-             auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+       app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+           if (result.contains<fc::exception_ptr>()) {
+               next(result.get<fc::exception_ptr>());
+           } else {
+               auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-             try {
-                chain::transaction_id_type id = trx_trace_ptr->id;
-                fc::variant output;
-                try {
-                   output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
-                } catch( chain::abi_exception& ) {
-                   output = *trx_trace_ptr;
-                }
-                next(read_write::record_send_results{ output});
-             } CATCH_AND_CALL(next);
-          }
-      });
+               try {
+                   chain::transaction_id_type id = trx_trace_ptr->id;
+                   fc::variant output;
+                   try {
+                       output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                   } catch( chain::abi_exception& ) {
+                       output = *trx_trace_ptr;
+                   }
+                   next(read_write::record_send_results{ output});
+               } CATCH_AND_CALL(next);
+           }
+       });
    } catch ( const boost::interprocess::bad_alloc& ) {
       chain_plugin::handle_db_exhaustion();
    } CATCH_AND_CALL(next);

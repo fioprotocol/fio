@@ -44,7 +44,7 @@ namespace fioio {
             return "fio.finance";
         }
         if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()){
-            return "fio.request.obt";
+            return "fio.reqobt";
         }
         return "eosio";
     }

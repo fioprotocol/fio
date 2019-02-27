@@ -55,7 +55,10 @@
       "name": "recordsend",
       "base": "",
       "fields": [{
-          "name": "obtjson",
+          "name": "recordsent",
+          "type": "string"
+          },{
+          "name": "actor",
           "type": "string"
         }
       ]

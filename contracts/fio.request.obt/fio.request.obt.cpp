@@ -82,34 +82,35 @@ namespace fioio {
          * if verification succeeds then status tables will be updated...
          */
         // @abi action
-        void recordsend(const string &obtjson) {
-            string inStr = stripLeadingAndTrailingBraces(obtjson);
+        void recordsend(const string &recordsent, const string &actor) {
+            string inStr = stripLeadingAndTrailingBraces(recordsent);
             std::vector<std::string> myparts = split(inStr,',');
 
             string fromFioAddress = "";
             string toFioAddress = "";
             string fioFundsRequestId = "";
+            
 
             for (std::vector<std::string>::iterator it = myparts.begin() ; it != myparts.end(); ++it)
             {
                 string tmpstr = *it;
                 //look for the from fio address
                 if (fromFioAddress.length() == 0) {
-                    std::size_t found = tmpstr.find("from_fio_address");
+                    std::size_t found = tmpstr.find("fromfioadd");
                     if (found != std::string::npos) {
                         fromFioAddress = getValueAfterColon(tmpstr);
                     }
                 }
                 //look for the to fio address
                 if (toFioAddress.length() == 0) {
-                    std::size_t found = tmpstr.find("to_fio_address");
+                    std::size_t found = tmpstr.find("tofioadd");
                     if (found != std::string::npos) {
                         toFioAddress = getValueAfterColon(tmpstr);
                     }
                 }
                 //look for the funds request id
                 if (fioFundsRequestId.length() == 0) {
-                    std::size_t found = tmpstr.find("fio_funds_request_id");
+                    std::size_t found = tmpstr.find("fioreqid");
                     if (found != std::string::npos) {
                         fioFundsRequestId = getValueAfterColon(tmpstr);
                     }
@@ -129,7 +130,7 @@ namespace fioio {
                 uint64_t currentTime = current_time();
                 uint64_t nameHash = ::eosio::string_to_uint64_t(fioFundsRequestId.c_str());
                 auto fioreqctx_iter = fiorequestContextsTable.find(nameHash);
-                fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_funds_request_id", fioFundsRequestId,"No FIO request was found for the specified id ", ErrorRequestContextNotFound);
+                fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioFundsRequestId,"No FIO request was found for the specified id ", ErrorRequestContextNotFound);
                 //insert a send record into the status table using this id.
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();;
@@ -153,7 +154,7 @@ namespace fioio {
             fio_400_assert(fioname_iter != fionames.end(), "fio_name", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
 
 
-            nlohmann::json json = obtjson;
+            nlohmann::json json = recordsent;
             send_response(json.dump().c_str());
 
         }
