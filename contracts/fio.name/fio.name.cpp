@@ -22,7 +22,6 @@
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
-#include <eosio/chain/fioio/chain_control.hpp>
 #include <climits>
 
 namespace fioio{

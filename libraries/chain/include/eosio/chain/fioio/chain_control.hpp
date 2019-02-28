@@ -9,6 +9,7 @@
 #pragma once
 
 #include <string>
+#include <fc/io/json.hpp>
 
 namespace fioio {
 
@@ -16,6 +17,14 @@ namespace fioio {
 
     const string JSONFILE = "config/bip44chains.json";
     vector<string> chainList;
+
+    inline void chainInit( void ){
+        try {
+            fc::json::from_file(JSONFILE).as<vector<string>>(chainList);
+        } catch (...) {
+            elog ("failed to read ${f}",("f",JSONFILE));
+        }
+    }
 
     inline string getChainFromIndex(int index) {
         string chainName = chainList[index];
@@ -35,14 +44,5 @@ namespace fioio {
         }
 
         return result;
-    }
-
-    inline void chainInit( void ){
-        try {
-            fc::json::from_file(JSONFILE).as<vector<string>>(chainList);
-            /// do what you will with the chain list
-        } catch (...) {
-            fc::elog ("failed to read ${f}",("f",JSONFILE));
-        }
     }
 }

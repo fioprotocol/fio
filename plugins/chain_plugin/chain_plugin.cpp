@@ -24,6 +24,7 @@
 #include <eosio/chain/fioio/signature_validator.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <eosio/chain/fioio/keyops.hpp>
+#include <eosio/chain/fioio/chain_control.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
@@ -180,7 +181,6 @@ public:
    fc::microseconds                 abi_serializer_max_time_ms;
    fc::optional<bfs::path>          snapshot_path;
 
-
    // retained references to channels for easy publication
    channels::pre_accepted_block::channel_type&     pre_accepted_block_channel;
    channels::accepted_block_header::channel_type&  accepted_block_header_channel;
@@ -221,6 +221,7 @@ chain_plugin::~chain_plugin(){}
 
 void chain_plugin::set_program_options(options_description& cli, options_description& cfg)
 {
+   fioio::chainInit();
    cfg.add_options()
          ("blocks-dir", bpo::value<bfs::path>()->default_value("blocks"),
           "the location of the blocks directory (absolute path or relative to application data dir)")
