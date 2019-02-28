@@ -8,7 +8,7 @@
  */
 
 #include <string>
-#include <fio.common/json.hpp>
+//#include <fio.common/json.hpp>
 //#include <fstream>
 #include <boost/algorithm/string.hpp>
 
@@ -44,5 +44,7 @@ namespace fioio {
     inline void chainInit( void ){
         //std::ifstream ifs(JSONFILE.c_str());
         //nlohmann::json j = nlohmann::json::parse(ifs);
+
+        //chainList = j.get<vector<string>>();
     }
 }

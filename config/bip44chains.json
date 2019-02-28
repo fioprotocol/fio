@@ -1,5 +1,6 @@
 { “chains” : [
     { "index": "0", "chain" : "BTC" },
+    { "index": "1", "chain" : "FIOPUBADDRESS" },
     { "index": "2", "chain" : "LTC" },
     { "index": "3", "chain" : "DOGE" },
     { "index": "4", "chain" : "RDD" },
