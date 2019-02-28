@@ -18,32 +18,31 @@ namespace fioio {
 
     using namespace std;
 
-    struct chainpair {
-        uint64_t index;
-        string chain;
-
-        uint64_t primary_key() const { return index; }
-
-        EOSLIB_SERIALIZE(chainpair, (index)(chain))
-    };
-
     const std::string JSONFILE = "config/bip44chains.json";
-    vector<chainpair> chainList;
+    vector<std::string> chainList;
 
-    inline chainpair chainInit(string index) {
-        chainpair na;
+    inline string getChainFromIndex(int index) {
+        string chainName = chainList[index];
 
-        na.index = 0;
-        na.chain = index;
-
-        //std::ifstream ifs(JSONFILE.c_str());
-        //nlohmann::json j = nlohmann::json::parse(ifs);
-
-        return na;
+        return chainName;
     }
 
-    inline int chainReturn( string chainname ){
+    inline int getIndexFromChain( string chainname ){
+        std::vector<string>::iterator it = std::find(chainList.begin(), chainList.end(), chainname);
+        int index = std::distance(chainList.begin(), it);
+        int result = -1;
 
-        return 0;
+        if(it != chainList.end()) {
+            result = distance(chainList.begin(), it);
+        } else {
+            //ASSERT
+        }
+
+        return result;
+    }
+
+    inline void chainInit( void ){
+        //std::ifstream ifs(JSONFILE.c_str());
+        //nlohmann::json j = nlohmann::json::parse(ifs);
     }
 }
