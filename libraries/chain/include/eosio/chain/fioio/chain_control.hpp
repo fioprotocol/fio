@@ -8,6 +8,8 @@
  */
 
 #include <string>
+#include <fio.common/json.hpp>
+//#include <fstream>
 #include <boost/algorithm/string.hpp>
 
 #pragma once
@@ -25,13 +27,23 @@ namespace fioio {
         EOSLIB_SERIALIZE(chainpair, (index)(chain))
     };
 
-    //typedef multi_index<N(chainList), chainpair> chaintable;
+    const std::string JSONFILE = "config/bip44chains.json";
+    vector<chainpair> chainList;
 
     inline chainpair chainInit(string index) {
         chainpair na;
 
+        na.index = 0;
+        na.chain = index;
 
+        //std::ifstream ifs(JSONFILE.c_str());
+        //nlohmann::json j = nlohmann::json::parse(ifs);
 
         return na;
+    }
+
+    inline int chainReturn( string chainname ){
+
+        return 0;
     }
 }

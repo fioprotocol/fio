@@ -186,24 +186,7 @@ namespace fioio{
 
             fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
 
-            // uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
-
-            //auto chain_iter = chainlist.find(chainhash);
-//
-            //uint64_t next_idx = (chainlist.begin() == chainlist.end() ? 0 : (chain_iter--)->index + 1);
-//
-            //if( chain_iter == chainlist.end() ){
-            //    chainlist.emplace(_self, [&](struct chainpair &a){
-            //        a.index = next_idx;
-            //        a.chainname = chain;
-            //        //a.chainhash = chainhash;
-            //    });
-            //}
-
-            //Chain List Size Update w/ size checking
-            //if ( next_idx > chainlistsize ){
-            //    chainlistsize = next_idx;
-            //}
+            // Check to see what index to store the address
 
             // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
@@ -240,7 +223,7 @@ namespace fioio{
 
             // insert/update <chain, address> pair
             //fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-            //    a.addresses[static_cast<size_t>(next_idx)] = fio_address;
+            //    a.addresses[static_cast<size_t>(next_idx)] = fioaddress;
             //});
 
             // insert/update key into key-name table for reverse lookup
@@ -348,9 +331,6 @@ namespace fioio{
     } // addfiopubadd
 
     }; // class FioNameLookup
-
-
-
 
     EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd) )
 }

@@ -2177,8 +2177,8 @@ void read_write::record_send(const record_send_params& params, chain::plugin_int
          const auto& a = db.get_account(new_account);
          dlog("get_account returned ${a}",("a",a));
       } catch (...) {
-         dlog("invoking create_account");
-         create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
+         dlog("invoking add_address");
+         add_address(new_account, pubkey, fioCreator, fioCreatorKey, next);
       }
 
       dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
