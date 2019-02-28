@@ -8,8 +8,10 @@
  */
 
 #pragma once
+
 #include <string>
 #include <fc/reflect/reflect.hpp>
+
 namespace fioio {
 
     using namespace std;

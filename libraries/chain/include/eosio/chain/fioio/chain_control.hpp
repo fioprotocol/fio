@@ -6,20 +6,16 @@
  *
  *  Changes:
  */
+#pragma once
 
 #include <string>
-//#include <fio.common/json.hpp>
-//#include <fstream>
-#include <boost/algorithm/string.hpp>
-
-#pragma once
 
 namespace fioio {
 
     using namespace std;
 
-    const std::string JSONFILE = "config/bip44chains.json";
-    vector<std::string> chainList;
+    const string JSONFILE = "config/bip44chains.json";
+    vector<string> chainList;
 
     inline string getChainFromIndex(int index) {
         string chainName = chainList[index];
@@ -28,8 +24,8 @@ namespace fioio {
     }
 
     inline int getIndexFromChain( string chainname ){
-        std::vector<string>::iterator it = std::find(chainList.begin(), chainList.end(), chainname);
-        int index = std::distance(chainList.begin(), it);
+        vector<string>::iterator it = find(chainList.begin(), chainList.end(), chainname);
+        int index = distance(chainList.begin(), it);
         int result = -1;
 
         if(it != chainList.end()) {
@@ -42,9 +38,11 @@ namespace fioio {
     }
 
     inline void chainInit( void ){
-        //std::ifstream ifs(JSONFILE.c_str());
-        //nlohmann::json j = nlohmann::json::parse(ifs);
-
-        //chainList = j.get<vector<string>>();
+        try {
+            fc::json::from_file(JSONFILE).as<vector<string>>(chainList);
+            /// do what you will with the chain list
+        } catch (...) {
+            fc::elog ("failed to read ${f}",("f",JSONFILE));
+        }
     }
 }
