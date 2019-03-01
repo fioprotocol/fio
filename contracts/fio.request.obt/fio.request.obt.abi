@@ -55,7 +55,7 @@
       "name": "recordsend",
       "base": "",
       "fields": [{
-          "name": "recordsent",
+          "name": "recordsend",
           "type": "string"
           },{
           "name": "actor",

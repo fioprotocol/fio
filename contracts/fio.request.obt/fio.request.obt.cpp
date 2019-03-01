@@ -82,8 +82,8 @@ namespace fioio {
          * if verification succeeds then status tables will be updated...
          */
         // @abi action
-        void recordsend(const string &recordsent, const string &actor) {
-            string inStr = stripLeadingAndTrailingBraces(recordsent);
+        void recordsend(const string &recordsend, const string &actor) {
+            string inStr = stripLeadingAndTrailingBraces(recordsend);
             std::vector<std::string> myparts = split(inStr,',');
 
             string fromFioAddress = "";
@@ -128,13 +128,17 @@ namespace fioio {
             if (fioFundsRequestId.length() > 0)
             {
                 uint64_t currentTime = current_time();
-                uint64_t nameHash = ::eosio::string_to_uint64_t(fioFundsRequestId.c_str());
-                auto fioreqctx_iter = fiorequestContextsTable.find(nameHash);
-                fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioFundsRequestId,"No FIO request was found for the specified id ", ErrorRequestContextNotFound);
+                uint64_t requestId;
+
+                std::istringstream iss(fioFundsRequestId.c_str());
+                iss >> requestId;
+
+                auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
+                fio_403_assert(fioreqctx_iter != fiorequestContextsTable.end(), ErrorRequestContextNotFound);
                 //insert a send record into the status table using this id.
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();;
-                    fr.fioreqid = nameHash;
+                    fr.fioreqid = requestId;
                     fr.status = static_cast<trxstatus >(trxstatus::senttobc);
                     fr.metadata = "";
                     fr.fiotime = currentTime;
@@ -153,9 +157,7 @@ namespace fioio {
             fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "fio_name", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
 
-
-            nlohmann::json json = recordsent;
-            send_response(json.dump().c_str());
+            send_response(recordsend.c_str());
 
         }
     };
