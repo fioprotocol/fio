@@ -343,8 +343,8 @@ void clear_directory_contents( const fc::path& p ) {
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
     ilog("initializing chain plugin");
-    fioio::chainInit();
-    ilog("chaininit started ('${root_key}')", ("root_key", fioio::chainList[0]));
+    fioio::chainControlInit();
+    ilog("chainControlinit started ('${root_key}')", ("root_key", fioio::chainList[0]));
 
     try {
       try {

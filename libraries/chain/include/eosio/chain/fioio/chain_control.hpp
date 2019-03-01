@@ -19,13 +19,14 @@ namespace fioio {
     bs::path JSONFILE("/config/bip44chains.json");
     vector<string> chainList;
 
-    inline void chainInit( void ){
+    inline void chainControlInit( void ){
         bs::path currentpath = bs::current_path();
         string comppath = currentpath.string() + JSONFILE.string();
         currentpath = comppath;
 
         try {
             fc::json::from_file(currentpath).as<vector<string>>(chainList);
+            ilog("chainList: ${t}",("t", chainList[0]));
         } catch (...) {
             elog ("failed to read ${f}",("f",currentpath.string()));
         }
