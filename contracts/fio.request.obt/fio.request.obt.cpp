@@ -118,8 +118,8 @@ namespace fioio {
             }
 
             //check that names were found in the json.
-            fio_400_assert(fromFioAddress.length() > 0, "fio_name", fromFioAddress,"from fio address not found in obt json blob", ErrorInvalidJsonInput);
-            fio_400_assert(toFioAddress.length() > 0, "fio_name", toFioAddress,"to fio address not found in obt json blob", ErrorInvalidJsonInput);
+            fio_400_assert(fromFioAddress.length() > 0, "fromfioadd", fromFioAddress,"from fio address not found in obt json blob", ErrorInvalidJsonInput);
+            fio_400_assert(toFioAddress.length() > 0, "tofioadd", toFioAddress,"to fio address not found in obt json blob", ErrorInvalidJsonInput);
 
 
             //if the request id is specified in the json then look to see if it is present
@@ -134,7 +134,7 @@ namespace fioio {
                 iss >> requestId;
 
                 auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
-                fio_403_assert(fioreqctx_iter != fiorequestContextsTable.end(), ErrorRequestContextNotFound);
+                fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioFundsRequestId,"No FIO request was found for the specified id ", ErrorRequestContextNotFound);
                 //insert a send record into the status table using this id.
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();;
@@ -150,12 +150,12 @@ namespace fioio {
             //check the from address, see that its a valid fio name
             uint64_t nameHash = ::eosio::string_to_uint64_t(fromFioAddress.c_str());
             auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fio_name", fromFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
 
             //check the to address, see that its a valid fio name
             nameHash = ::eosio::string_to_uint64_t(toFioAddress.c_str());
             fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fio_name", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
 
             send_response(recordsend.c_str());
 
