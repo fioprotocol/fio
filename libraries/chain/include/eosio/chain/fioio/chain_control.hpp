@@ -16,19 +16,18 @@ namespace fioio {
     using namespace std;
     namespace bs = boost::filesystem;
 
-    bs::path JSONFILE("/config/bip44chains.json");
+    bs::path JSONFILE("config/bip44chains.json");
     vector<string> chainList;
 
     inline void chainControlInit( void ){
-        bs::path currentpath = bs::current_path();
-        string comppath = currentpath.string() + JSONFILE.string();
-        currentpath = comppath;
+        bs::path cp = bs::current_path();
+        cp /= JSONFILE;
 
         try {
-            fc::json::from_file(currentpath).as<vector<string>>(chainList);
+            fc::json::from_file(cp).as<vector<string>>(chainList);
             ilog("chainList: ${t}",("t", chainList[0]));
         } catch (...) {
-            elog ("failed to read ${f}",("f",currentpath.string()));
+            elog ("failed to read ${f}",("f",cp.string()));
         }
 
         ilog(chainList[0]);

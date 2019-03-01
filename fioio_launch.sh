@@ -220,7 +220,7 @@ elif [ $mChoice == 4 ]; then
 
         nodeos --hard-replay
 
-        echo $'\n\nNUKE COMPLETE - WELCOME TO YOUR NEW BUILD'
+        echo $'\nNUKE COMPLETE - WELCOME TO YOUR NEW BUILD'
     fi
 
     exit 1
