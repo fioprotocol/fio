@@ -34,7 +34,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <fc/io/json.hpp>
 #include <fc/variant.hpp>
 #include <signal.h>
 #include <cstdlib>
@@ -221,7 +220,6 @@ chain_plugin::~chain_plugin(){}
 
 void chain_plugin::set_program_options(options_description& cli, options_description& cfg)
 {
-   fioio::chainInit();
    cfg.add_options()
          ("blocks-dir", bpo::value<bfs::path>()->default_value("blocks"),
           "the location of the blocks directory (absolute path or relative to application data dir)")
@@ -344,9 +342,11 @@ void clear_directory_contents( const fc::path& p ) {
 }
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
-   ilog("initializing chain plugin");
+    ilog("initializing chain plugin");
+    fioio::chainInit();
+    ilog("chaininit started ('${root_key}')", ("root_key", fioio::chainList[0]));
 
-   try {
+    try {
       try {
          genesis_state gs; // Check if EOSIO_ROOT_KEY is bad
       } catch ( const fc::exception& ) {

@@ -6,24 +6,31 @@
  *
  *  Changes:
  */
-#pragma once
 
 #include <string>
 #include <fc/io/json.hpp>
+#include <boost/filesystem.hpp>
 
 namespace fioio {
 
     using namespace std;
+    namespace bs = boost::filesystem;
 
-    const string JSONFILE = "config/bip44chains.json";
+    bs::path JSONFILE("/config/bip44chains.json");
     vector<string> chainList;
 
     inline void chainInit( void ){
+        bs::path currentpath = bs::current_path();
+        string comppath = currentpath.string() + JSONFILE.string();
+        currentpath = comppath;
+
         try {
-            fc::json::from_file(JSONFILE).as<vector<string>>(chainList);
+            fc::json::from_file(currentpath).as<vector<string>>(chainList);
         } catch (...) {
-            elog ("failed to read ${f}",("f",JSONFILE));
+            elog ("failed to read ${f}",("f",currentpath.string()));
         }
+
+        ilog(chainList[0]);
     }
 
     inline string getChainFromIndex(int index) {
