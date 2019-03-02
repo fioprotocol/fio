@@ -343,8 +343,6 @@ void clear_directory_contents( const fc::path& p ) {
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
     ilog("initializing chain plugin");
-    fioio::chainControlInit();
-    ilog("chainControlinit started ('${root_key}')", ("root_key", fioio::chainList[0]));
 
     try {
       try {
@@ -728,6 +726,9 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
             } );
 
       my->chain->add_indices();
+
+      fioio::chainControl approvedTokens;
+      ilog("chainControlinit started ('${root_key}')", ("root_key", approvedTokens.getChainFromIndex(61717561)));
 
    } FC_LOG_AND_RETHROW()
 
