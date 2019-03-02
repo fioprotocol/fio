@@ -728,9 +728,10 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
       my->chain->add_indices();
 
       fioio::chainControl approvedTokens;
-      ilog("chainControlinit started ('${root_key}')", ("root_key", approvedTokens.getChainFromIndex(61717561)));
+      ilog("getChainFromIndex started ('${root_key}')", ("root_key", approvedTokens.getChainFromIndex(61717561)));
+      ilog("getIndexFromChain started ('${root_key}')", ("root_key", approvedTokens.getIndexFromChain("FIO")));
 
-   } FC_LOG_AND_RETHROW()
+    } FC_LOG_AND_RETHROW()
 
 }
 
@@ -2344,7 +2345,6 @@ void read_write::add_pub_address(const read_write::add_pub_address_params& param
         //    dlog("invoking create_account");
         //    create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
         //}
-
         //dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
 
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{

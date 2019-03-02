@@ -48,24 +48,22 @@ namespace fioio {
         }
 
         inline string getChainFromIndex(int index) {
-            string chainName = chainList.chains[index].chain;
-
-            return chainName;
+            for(int it = 0; it < chainList.chains.size(); it++){
+                if(index == chainList.chains[it].index){
+                    return chainList.chains[it].chain;
+                }
+            }
+            return "";
         }
 
-        //inline int getIndexFromChain( string chainname ){
-        //    vector<string>::iterator it = find(chainList.chains.begin(), chainList.chains.end(), chainname);
-        //    int index = distance(chainList.chains.begin(), it);
-        //    int result = -1;
-
-        //    if(it != chainList.chains.end()) {
-        //        result = distance(chainList.chains.begin(), it);
-        //    } else {
-        //        //ASSERT
-        //    }
-
-        //    return result;
-        //}
+        inline int getIndexFromChain( string chainname ){
+            for(int it = 0; it < chainList.chains.size(); it++){
+                if(chainname == chainList.chains[it].chain){
+                    return chainList.chains[it].index;
+                }
+            }
+            return -1;
+        }
     };
 }
 
