@@ -89,7 +89,7 @@ namespace fioio {
             string fromFioAddress = "";
             string toFioAddress = "";
             string fioFundsRequestId = "";
-            
+
 
             for (std::vector<std::string>::iterator it = myparts.begin() ; it != myparts.end(); ++it)
             {
@@ -158,9 +158,65 @@ namespace fioio {
             fio_400_assert(fioname_iter != fionames.end(), "tofioadd", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
 
             send_response(recordsend.c_str());
+        }
 
+        /***
+        * this action will record a send using Obt. the input json will be verified, if verification fails an exception will be thrown.
+        * if verification succeeds then status tables will be updated...
+        */
+        // @abi action
+        void newfundsreq(const string &fromfioadd, const string &tofioadd,const string &topubadd,const string &amount,
+                         const string &tokencode,const string &metadata,const string &actor) {
+
+
+
+            print("call new funds request\n");
+
+            //check that names were found in the json.
+            fio_400_assert(fromfioadd.length() > 0, "fromfioadd", fromfioadd,"from fio address not specified", ErrorInvalidJsonInput);
+            fio_400_assert(tofioadd.length() > 0, "tofioadd", tofioadd,"to fio address not specified", ErrorInvalidJsonInput);
+
+
+
+            auto fionames = fionames_table(N(fio.system),N(fio.system));
+
+            //check the from address, see that its a valid fio name
+            uint64_t nameHash = ::eosio::string_to_uint64_t(fromfioadd.c_str());
+            auto fioname_iter = fionames.find(nameHash);
+            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromfioadd,"FIO name not registered", ErrorFioNameNotRegistered);
+
+            //check the to address, see that its a valid fio name
+            nameHash = ::eosio::string_to_uint64_t(tofioadd.c_str());
+            fioname_iter = fionames.find(nameHash);
+            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", tofioadd,"FIO name not registered", ErrorFioNameNotRegistered);
+
+            //put the thing into the table get the index.
+            uint64_t id = fiorequestContextsTable.available_primary_key();
+
+
+
+            uint64_t currentTime = current_time();
+            uint64_t toHash = ::eosio::string_to_uint64_t(tofioadd.c_str());
+            uint64_t fromHash = ::eosio::string_to_uint64_t(fromfioadd.c_str());
+
+            //insert a send record into the status table using this id.
+            fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
+                frc.fioreqid = id;
+                frc.fromfioaddr = fromHash;
+                frc.tofioaddr = toHash;
+                frc.topubaddr = topubadd;
+                frc.amount = amount;
+                frc.tokencode = tokencode;
+                frc.metadata = "";
+                frc.fiotime = currentTime;
+            });
+
+
+            nlohmann::json json = {{"status","OK"},{"fioreqid",id},{"fromfioadd",fromfioadd},{"tofioadd",tofioadd},{"topubadd",topubadd},{"amount",amount},{"metadata",metadata}};
+            send_response(json.dump().c_str());
         }
     };
-EOSIO_ABI(FioRequestObt, (recordsend))
+EOSIO_ABI(FioRequestObt, (recordsend)(newfundsreq))
+
 }
 

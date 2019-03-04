@@ -661,6 +661,16 @@ public:
     //End added for record send api method.
 
 
+    //Begin Added for new funds request api method
+    using new_funds_request_params = fc::variant_object;
+
+    struct new_funds_request_results {
+        fc::variant                 processed;
+    };
+    void new_funds_request(const new_funds_request_params& params, chain::plugin_interface::next_function<new_funds_request_results> next);
+    //End added for new funds request api method.
+
+
     using push_transactions_params  = vector<push_transaction_params>;
    using push_transactions_results = vector<push_transaction_results>;
    void push_transactions(const push_transactions_params& params, chain::plugin_interface::next_function<push_transactions_results> next);
@@ -813,6 +823,7 @@ FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration) );
 FC_REFLECT( eosio::chain_apis::read_write::register_fio_name_results, (transaction_id)(processed) )
 FC_REFLECT( eosio::chain_apis::read_write::record_send_results, (processed) )
+FC_REFLECT( eosio::chain_apis::read_write::new_funds_request_results, (processed) )
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));

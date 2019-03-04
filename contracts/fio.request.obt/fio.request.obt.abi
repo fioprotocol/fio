@@ -10,10 +10,10 @@
           "type": "uint64"
         },{
           "name": "fromfioaddr",
-          "type": "string"
+          "type": "uint64"
         },{
           "name": "tofioaddr",
-          "type": "string"
+          "type": "uint64"
         },{
           "name": "topubaddr",
           "type": "string"
@@ -62,14 +62,44 @@
           "type": "string"
         }
       ]
-    }
+    },{
+       "name": "newfundsreq",
+           "base": "",
+           "fields": [{
+               "name": "fromfioadd",
+               "type": "string"
+             },{
+               "name": "tofioadd",
+               "type": "string"
+             },{
+               "name": "topubadd",
+               "type": "string"
+             },{
+               "name": "amount",
+               "type": "string"
+             },{
+               "name": "tokencode",
+               "type": "string"
+             },{
+               "name": "metadata",
+               "type": "string"
+             },{
+               "name": "actor",
+               "type": "string"
+             }
+           ]
+         }
     ],
   "actions": [{
       "name": "recordsend",
       "type": "recordsend",
       "ricardian_contract": ""
-    }
-  ],
+    },{
+      "name": "newfundsreq",
+      "type": "newfundsreq",
+      "ricardian_contract": ""
+      }
+      ],
   "tables": [{
       "name": "fioreqctxts",
       "index_type": "i64",
