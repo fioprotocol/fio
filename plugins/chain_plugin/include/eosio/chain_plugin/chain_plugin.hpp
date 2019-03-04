@@ -16,8 +16,6 @@
 #include <eosio/chain/plugin_interface.hpp>
 #include <eosio/chain/types.hpp>
 
-#include <eosio/chain/fioio/chain_control.hpp>
-
 #include <boost/container/flat_set.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -786,9 +784,7 @@ public:
    static void handle_db_exhaustion();
 private:
    void log_guard_exception(const chain::guard_exception& e) const;
-
    unique_ptr<class chain_plugin_impl> my;
-   fioio::chainControl approvedTokens;
 };
 
 }

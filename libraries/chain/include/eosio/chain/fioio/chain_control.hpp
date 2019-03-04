@@ -56,7 +56,7 @@ namespace fioio {
             return "";
         }
 
-        inline int getIndexFromChain( string chainname ){
+        inline int getIndexFromChain(string chainname){
             for(int it = 0; it < chainList.chains.size(); it++){
                 if(chainname == chainList.chains[it].chain){
                     return chainList.chains[it].index;
@@ -64,7 +64,18 @@ namespace fioio {
             }
             return -1;
         }
+
+        inline int getVectorIndex(int chainIndex){
+            for(int it = 0; it < chainList.chains.size(); it++){
+                if(chainIndex == chainList.chains[it].index){
+                    return it;
+                }
+            }
+            return -1;
+        }
     };
+
+    chainControl approvedTokens;
 }
 
 FC_REFLECT(fioio::clentry, (index)(chain));

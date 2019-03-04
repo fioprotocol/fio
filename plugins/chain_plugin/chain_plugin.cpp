@@ -23,6 +23,7 @@
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
+#include <eosio/chain/fioio/chain_control.hpp>
 #include <eosio/chain/fioio/keyops.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
@@ -353,6 +354,8 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
       }
 
       my->chain_config = controller::config();
+
+      ilog("getIndexFromChain started ('${root_key}')", ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
 
       LOAD_VALUE_SET( options, "actor-whitelist", my->chain_config->actor_whitelist );
       LOAD_VALUE_SET( options, "actor-blacklist", my->chain_config->actor_blacklist );
@@ -725,9 +728,6 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
             } );
 
       my->chain->add_indices();
-
-      ilog("getChainFromIndex started ('${root_key}')", ("root_key", approvedTokens.getChainFromIndex(61717561)));
-      ilog("getIndexFromChain started ('${root_key}')", ("root_key", approvedTokens.getIndexFromChain("FIO")));
 
     } FC_LOG_AND_RETHROW()
 
@@ -2304,24 +2304,27 @@ void read_write::add_pub_address(const read_write::add_pub_address_params& param
         auto check = fc::crypto::public_key( tsig[0], digest, false );
 
         //Hash Public Key
-        //auto pubkey = string(check);
-        //std::string new_account;
-        //fioio::key_to_account(pubkey, new_account);
+        auto pubkey = string(check);
+        std::string new_account;
+        fioio::key_to_account(pubkey, new_account);
 
         //Verify is same as tx
-        //FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
+        FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
 
-        //const auto& d = db.db();
-        //try {
-        //    const auto& a = db.get_account(new_account);
-        //    dlog("get_account returned ${a}",("a",a));
-        //} catch (...) {
-        //    dlog("invoking create_account");
-        //    create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
-        //}
-        //dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
+        const auto& d = db.db();
+        try {
+            const auto& a = db.get_account(new_account);
+            dlog("get_account returned ${a}",("a",a));
+        } catch (...) {
+            dlog("invoking create_account");
+            create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
+        }
+        dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
 
-        //approvedTokens.getIndexFromChain("FIO")
+        fioio::approvedTokens.getIndexFromChain("FIO");
+        ilog("getChainFromIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getChainFromIndex(61717561)));
+        ilog("getIndexFromChain started ('${root_key}')", ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
+
 
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {

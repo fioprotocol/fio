@@ -570,7 +570,7 @@ namespace eosio {
          message =  "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly.\"\n}";
       } else {
          rescode = 500;
-         error_results results{500 , "Internal Service Error - fc", error_results::error_info(e, verbose_http_errors)};
+         error_results results{500 , "Internal Service Error - (fc)", error_results::error_info(e, verbose_http_errors)};
          message = fc::json::to_string( results );
       }
       cb(rescode, message);
