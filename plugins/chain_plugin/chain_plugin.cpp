@@ -24,7 +24,6 @@
 #include <eosio/chain/fioio/signature_validator.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <eosio/chain/fioio/keyops.hpp>
-#include <eosio/chain/fioio/chain_control.hpp>
 
 #include <eosio/utilities/key_conversion.hpp>
 #include <eosio/utilities/common.hpp>
@@ -727,7 +726,6 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 
       my->chain->add_indices();
 
-      fioio::chainControl approvedTokens;
       ilog("getChainFromIndex started ('${root_key}')", ("root_key", approvedTokens.getChainFromIndex(61717561)));
       ilog("getIndexFromChain started ('${root_key}')", ("root_key", approvedTokens.getIndexFromChain("FIO")));
 
@@ -1163,25 +1161,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
    EOS_ASSERT( false, chain::contract_table_query_exception, "Table ${table} is not specified in the ABI", ("table",table_name) );
 }
 
-
-// Used by fio_name_lookup
-    enum  class chain_type {
-        FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-    };
-    const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
-
-// Convert of chain to chain type
-    inline chain_type str_to_chain_type(const string &chain) {
-
-        for (int i = 0; i < chain_str.size(); i++) {
-            if (chain == chain_str[i]) {
-                return static_cast<chain_type>(i);
-            }
-        }
-        return chain_type::NONE;
-    }
-
-
     /***
  * Lookup address by FIO name.
  * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -1299,7 +1278,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
     // chain support check
     string my_chain=p.chain;
     transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-    chain_type c_type= str_to_chain_type(my_chain);
+    //chain_type c_type= str_to_chain_type(my_chain);
 
 //   TBD: CHAIN SPECIFIC PUBLIC ADDRESS LOOKUP
 //   // validate keys vector size is expected size.
@@ -1313,7 +1292,6 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    result.expiration = name_result.rows[0]["expiration"].as_string();
    return result;
 } // fioname_lookup
-
 
 /*** v1/chain/get_fio_names
 * Retrieves the fionames associated with the provided public address
@@ -1395,9 +1373,6 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
   result.fio_pub_address = p.fio_pub_address;
   return result;
 } // get_fio_names
-
-
-
 
 /***
  * Checks if a FIO Address or FIO Domain is available for registration.
@@ -1506,8 +1481,8 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    // chain support check
    string my_chain = p.chain;
    transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-   chain_type c_type = str_to_chain_type(my_chain);
-   EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
+   //chain_type c_type = str_to_chain_type(my_chain);
+   //EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
    const name code = ::eosio::string_to_name(fio_system_code.c_str());
    const abi_def abi = eosio::chain_apis::get_abi( db, code );
@@ -1533,25 +1508,24 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    EOS_ASSERT(!table_rows_result.rows.empty(),chain::contract_table_query_exception,"No matches found.");
 
    // iterate through results for key and chain match
-   size_t pos=0;
-   for (; pos < table_rows_result.rows.size(); pos++) {
-       uint64_t a = table_rows_result.rows[pos]["chaintype"].as_int64();
-       uint64_t  b = static_cast<int64_t >(c_type);
-      if (table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type)) {
-         break;
-      }
-   }
+   //size_t pos=0;
+   //for (; pos < table_rows_result.rows.size(); pos++) {
+   //    uint64_t a = table_rows_result.rows[pos]["chaintype"].as_int64();
+   //    uint64_t  b = static_cast<int64_t >(c_type);
+   //   if (table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type)) {
+   //      break;
+   //   }
+   //}
 
-   EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type), chain::contract_table_query_exception,"key not found.");
+   //EOS_ASSERT(table_rows_result.rows[pos]["chaintype"].as_int64() == static_cast<int64_t >(c_type), chain::contract_table_query_exception,"key not found.");
 
-   dlog( "Lookup matched row: '${pos}'.", ("pos", pos) );
+   //dlog( "Lookup matched row: '${pos}'.", ("pos", pos) );
 
    fio_key_lookup_result result;
-   result.name = table_rows_result.rows[pos]["name"].as_string();
-   result.expiration = table_rows_result.rows[pos]["expiration"].as_string();
+   //result.name = table_rows_result.rows[pos]["name"].as_string();
+   //result.expiration = table_rows_result.rows[pos]["expiration"].as_string();
    return result;
 } // fio_key_lookup
-
 
 /*****************End of FIO API******************************/
 /*************************************************************/
@@ -2060,7 +2034,7 @@ void create_account(std::string&  new_account, std::string& new_account_pub_key,
     push_transactions(std::move(trxs), next);
 }
 
-void add_address(std::string&  pub_address, std::string& pub_key, const std::string& init_name, const std::string& init_priv_key, const std::function<void(const fc::exception_ptr&)>& next) {
+void add_address(std::string&  fioaddress, std::string& tokencode, std::string& pubaddress, const std::string& init_name, const std::string& init_priv_key, const std::function<void(const fc::exception_ptr&)>& next) {
     std::vector<signed_transaction> trxs;
     trxs.reserve(1);
 
@@ -2091,9 +2065,9 @@ void add_address(std::string&  pub_address, std::string& pub_key, const std::str
             {
                 action act;
                 act.account = N(fio_system_code);
-                act.name = N(addfiopubadd);
+                act.name = N(addaddress);
                 act.authorization = vector<permission_level>{{principal,config::active_name}};
-                act.data = eosio_system_serializer.variant_to_binary("addfiopubadd", fc::json::from_string("{\"pub_address\":\""+pub_address+"\",\"pub_key\":\""+pub_key+"\"}}"), abi_serializer_max_time);
+                act.data = eosio_system_serializer.variant_to_binary("addaddress", fc::json::from_string("{\"fioaddress\":\""+fioaddress+"\",\"tokencode\":\""+tokencode+"\"\"pubaddress\":\"\""+pubaddress+"\"\"}}"), abi_serializer_max_time);
                 trx.actions.push_back(act);
             }
 
@@ -2180,8 +2154,8 @@ void read_write::record_send(const record_send_params& params, chain::plugin_int
          const auto& a = db.get_account(new_account);
          dlog("get_account returned ${a}",("a",a));
       } catch (...) {
-         dlog("invoking add_address");
-         add_address(new_account, pubkey, fioCreator, fioCreatorKey, next);
+         dlog("invoking create_account");
+         create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
       }
 
       dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
@@ -2330,12 +2304,12 @@ void read_write::add_pub_address(const read_write::add_pub_address_params& param
         auto check = fc::crypto::public_key( tsig[0], digest, false );
 
         //Hash Public Key
-        auto pubkey = string(check);
-        std::string new_account;
-        fioio::key_to_account(pubkey, new_account);
+        //auto pubkey = string(check);
+        //std::string new_account;
+        //fioio::key_to_account(pubkey, new_account);
 
         //Verify is same as tx
-        FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
+        //FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
 
         //const auto& d = db.db();
         //try {
@@ -2346,6 +2320,8 @@ void read_write::add_pub_address(const read_write::add_pub_address_params& param
         //    create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
         //}
         //dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
+
+        //approvedTokens.getIndexFromChain("FIO")
 
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {

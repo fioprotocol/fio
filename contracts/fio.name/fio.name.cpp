@@ -126,7 +126,7 @@ namespace fioio{
                     a.domain = domain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    //a.addresses = vector<string>(chainlistsize , "");
+                    a.addresses[1] = newname;
                 });
 
                 registerFee = fees.nameregister;
@@ -221,9 +221,9 @@ namespace fioio{
             fio_400_assert(present_time <= expiration, "domain", domain, "FIO Domain is expired.", ErrorDomainExpired);
 
             // insert/update <chain, address> pair
-            //fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-            //    a.addresses[static_cast<size_t>(next_idx)] = fioaddress;
-            //});
+            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+                a.addresses[2] = fioaddress;
+            });
 
             // insert/update key into key-name table for reverse lookup
             auto idx = keynames.get_index<N(bykey)>();
@@ -231,9 +231,9 @@ namespace fioio{
             auto matchingItem = idx.lower_bound(keyhash);
 
             // Advance to the first entry matching the specified address and chain
-            //while (matchingItem != idx.end() && matchingItem->keyhash == keyhash  && matchingItem->chaintype != static_cast<uint64_t>(c_type)) {
-            //    matchingItem++;
-            //}
+            while (matchingItem != idx.end() && matchingItem->keyhash == keyhash ) {
+                matchingItem++;
+            }
 
             if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
                 keynames.emplace(_self, [&](struct key_name &k) {
