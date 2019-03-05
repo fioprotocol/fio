@@ -8,17 +8,14 @@
  */
 
 #include <string>
-#include <fc/io/json.hpp>
-#include <boost/filesystem.hpp>
 
 namespace fioio {
 
     using namespace std;
-    namespace bs = boost::filesystem;
 
     struct clentry {
         uint32_t index;
-        fc::string   chain;
+        string chain;
     };
     struct clist {
         vector<clentry> chains;
@@ -26,26 +23,6 @@ namespace fioio {
 
     struct chainControl {
         clist chainList;
-        bs::path JSONFILE;
-
-        chainControl( )
-                :JSONFILE ("config/bip44chains.json")
-        {
-
-            bs::path cp = bs::current_path() / "config" / "bip44chains.json";
-
-            try {
-                fc::json::from_file(cp).as<clist>(chainList);
-            } catch (const fc::exception ex) {
-                elog ("from_file threw ${ex}",("ex",ex));
-            } catch (...) {
-                elog ("failed to read ${f}",("f",cp.string()));
-            }
-            size_t csize = chainList.chains.size();
-            size_t ref = csize > 100 ? 100 : csize - 1;
-            ilog("chainList: size = ${s} chain[0] =  ${t} chain[${r}] = ${h}",
-                 ("s",csize)("t", chainList.chains[0].chain)("r",ref)("h",chainList.chains[ref].chain));
-        }
 
         inline string getChainFromIndex(int index) {
             for(int it = 0; it < chainList.chains.size(); it++){
@@ -77,6 +54,3 @@ namespace fioio {
 
     chainControl approvedTokens;
 }
-
-FC_REFLECT(fioio::clentry, (index)(chain));
-FC_REFLECT(fioio::clist, (chains));

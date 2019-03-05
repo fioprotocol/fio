@@ -21,6 +21,7 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/chain_control.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <climits>
 
@@ -185,7 +186,8 @@ namespace fioio{
             fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
 
             // Check to see what index to store the address
-            int chainIndex = 1;
+            int chainIndex = approvedTokens.getIndexFromChain(my_chain);
+            fio_400_assert(chainIndex == -1, "tokencode", tokencode, "Invalid chain name", ErrorInvalidFioNameFormat);
 
             // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
@@ -221,7 +223,7 @@ namespace fioio{
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[chainIndex] = pubaddress;
+                a.addresses[approvedTokens.getVectorIndex(chainIndex)] = pubaddress;
             });
 
             // insert/update key into key-name table for reverse lookup
