@@ -2094,11 +2094,8 @@ void add_address(std::string&  fioaddress, std::string& tokencode, std::string& 
          * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
          * @return result, result.processed (fc::variant) json blob meeting the api specification.
          */
-        void read_write::new_funds_request(const new_funds_request_params& params, chain::plugin_interface::next_function<new_funds_request_results> next)
-        {
+        void read_write::new_funds_request(const new_funds_request_params& params, chain::plugin_interface::next_function<new_funds_request_results> next) {
             try {
-/***
-
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto unpacked = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
@@ -2184,14 +2181,13 @@ void add_address(std::string&  fioaddress, std::string& tokencode, std::string& 
             } CATCH_AND_CALL(next);
 
         }
-        /***
+ /*
  * record_send - This api method will invoke the fio.request.obt smart contract for recordsend. this api method is
  * intended to add the json passed into this method to the block log so that it can be scraped as necessary.
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.processed (fc::variant) json blob meeting the api specification.
  */
-void read_write::record_send(const record_send_params& params, chain::plugin_interface::next_function<record_send_results> next)
-{
+void read_write::record_send(const record_send_params& params, chain::plugin_interface::next_function<record_send_results> next) {
    try {
 
        auto pretty_input = std::make_shared<packed_transaction>();
@@ -2418,7 +2414,6 @@ void read_write::add_pub_address(const read_write::add_pub_address_params& param
         fioio::approvedTokens.getIndexFromChain("FIO");
         ilog("getChainFromIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getChainFromIndex(61717561)));
         ilog("getIndexFromChain started ('${root_key}')", ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
-
 
         app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
             if (result.contains<fc::exception_ptr>()) {
