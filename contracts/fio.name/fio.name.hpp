@@ -74,7 +74,7 @@ namespace fioio {
         uint64_t id;
         string key = nullptr;       // user key on a chain
         uint64_t keyhash = 0;       // chainkey hash
-        uint64_t chaintype;         // maps to ${FioNameLookup::chain_type}
+        uint64_t chaintype;         // maps to chain_control vector position
         string name = nullptr;      // FIO name
         uint32_t expiration;        //expiration of the fioname.
 

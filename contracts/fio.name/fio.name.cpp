@@ -173,7 +173,6 @@ namespace fioio{
          */
         [[eosio::action]]
         void addaddress(const string &fioaddress, const string &tokencode, const string &pubaddress, const account_name &actor) {
-
             fio_400_assert(!fioaddress.empty(), "fioaddress", fioaddress, "FIO address cannot be empty..", ErrorDomainAlreadyRegistered);
             fio_400_assert(!tokencode.empty(), "tokencode", tokencode, "Chain cannot be empty..", ErrorChainEmpty);
 
@@ -186,6 +185,7 @@ namespace fioio{
             fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
 
             // Check to see what index to store the address
+            int chainIndex = 1;
 
             // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
@@ -212,17 +212,16 @@ namespace fioio{
             }
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
-            //print("Domain: ", domain, ", domainHash: ", domainHash, "..");
 
             auto domains_iter = domains.find(domainHash);
-            fio_404_assert(domains_iter != domains.end(), "FIO Domain not yet registered.", ErrorDomainNotRegistered);
+            fio_404_assert(domains_iter != domains.end(), "FIO Domain not yet register ed.", ErrorDomainNotRegistered);
 
             uint32_t expiration = domains_iter->expiration;
             fio_400_assert(present_time <= expiration, "domain", domain, "FIO Domain is expired.", ErrorDomainExpired);
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[2] = fioaddress;
+                a.addresses[chainIndex] = pubaddress;
             });
 
             // insert/update key into key-name table for reverse lookup
@@ -238,9 +237,9 @@ namespace fioio{
             if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
                 keynames.emplace(_self, [&](struct key_name &k) {
                     k.id = keynames.available_primary_key();        // use next available primary key
-                    k.key = pubaddress;                            // persist key
+                    k.key = pubaddress;                             // persist key
                     k.keyhash = keyhash;                            // persist key hash
-                    //k.chaintype = static_cast<uint64_t>(next_idx);  // specific chain type
+                    k.chaintype = chainIndex;                       // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
                     k.expiration = name_expiration;
                 });
