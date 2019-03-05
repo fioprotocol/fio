@@ -35,11 +35,21 @@ namespace fioio {
         //input json. we can look for a better way to do this later.
         std::vector<std::string> split (const std::string &s, char delim) {
             std::vector<std::string> result;
-            std::stringstream ss (s);
-            std::string item;
+            string pcs = s;
+            size_t pos = 0;
+            size_t start = 0;
 
-            while (getline (ss, item, delim)) {
-                result.push_back (item);
+            //this logic keeps us from having to use the boost libraries string
+            //operations, the boost libraries are very expensive in the smart contract code
+            // and can cauze transaction took too long errors due to boost initializations.
+            while ((pos = pcs.find(delim)) != std::string::npos) {
+                string token = pcs.substr(0, pos);
+                result.push_back(token);
+                pcs.erase(0, pos + 1);
+            }
+            if (pcs.length() > 0)
+            {
+                result.push_back(pcs);
             }
 
             return result;
@@ -84,6 +94,9 @@ namespace fioio {
         // @abi action
         void recordsend(const string &recordsend, const string &actor) {
             string inStr = stripLeadingAndTrailingBraces(recordsend);
+
+            //SPECIAL NOTE-- this way of processing json is primitive and does not handle json within json properly.
+            //the metadata tag will not have the proper value, nor will any value containing json as a string.
             std::vector<std::string> myparts = split(inStr,',');
 
             string fromFioAddress = "";
@@ -94,6 +107,8 @@ namespace fioio {
             for (std::vector<std::string>::iterator it = myparts.begin() ; it != myparts.end(); ++it)
             {
                 string tmpstr = *it;
+
+               
                 //look for the from fio address
                 if (fromFioAddress.length() == 0) {
                     std::size_t found = tmpstr.find("fromfioadd");
@@ -113,6 +128,7 @@ namespace fioio {
                     std::size_t found = tmpstr.find("fioreqid");
                     if (found != std::string::npos) {
                         fioFundsRequestId = getValueAfterColon(tmpstr);
+
                     }
                 }
             }
@@ -130,11 +146,10 @@ namespace fioio {
                 uint64_t currentTime = current_time();
                 uint64_t requestId;
 
-                std::istringstream iss(fioFundsRequestId.c_str());
-                iss >> requestId;
+                requestId = std::atoi(fioFundsRequestId.c_str());
 
                 auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
-                fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioFundsRequestId,"No FIO request was found for the specified id ", ErrorRequestContextNotFound);
+                fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioFundsRequestId,"No such FIO Request ", ErrorRequestContextNotFound);
                 //insert a send record into the status table using this id.
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();;
@@ -143,19 +158,23 @@ namespace fioio {
                     fr.metadata = "";
                     fr.fiotime = currentTime;
                 });
+
             }
 
             auto fionames = fionames_table(N(fio.system),N(fio.system));
 
+
             //check the from address, see that its a valid fio name
             uint64_t nameHash = ::eosio::string_to_uint64_t(fromFioAddress.c_str());
             auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromFioAddress,"No such FIO Address", ErrorFioNameNotRegistered);
 
             //check the to address, see that its a valid fio name
             nameHash = ::eosio::string_to_uint64_t(toFioAddress.c_str());
             fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", toFioAddress,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", toFioAddress,"No such FIO Address", ErrorFioNameNotRegistered);
+
+
 
             send_response(recordsend.c_str());
         }
@@ -168,33 +187,24 @@ namespace fioio {
         void newfundsreq(const string &fromfioadd, const string &tofioadd,const string &topubadd,const string &amount,
                          const string &tokencode,const string &metadata,const string &actor) {
 
-
-
-            print("call new funds request\n");
-
             //check that names were found in the json.
             fio_400_assert(fromfioadd.length() > 0, "fromfioadd", fromfioadd,"from fio address not specified", ErrorInvalidJsonInput);
             fio_400_assert(tofioadd.length() > 0, "tofioadd", tofioadd,"to fio address not specified", ErrorInvalidJsonInput);
-
-
 
             auto fionames = fionames_table(N(fio.system),N(fio.system));
 
             //check the from address, see that its a valid fio name
             uint64_t nameHash = ::eosio::string_to_uint64_t(fromfioadd.c_str());
             auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromfioadd,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromfioadd,"No such FIO Address", ErrorFioNameNotRegistered);
 
             //check the to address, see that its a valid fio name
             nameHash = ::eosio::string_to_uint64_t(tofioadd.c_str());
             fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", tofioadd,"FIO name not registered", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", tofioadd,"No such FIO Address", ErrorFioNameNotRegistered);
 
             //put the thing into the table get the index.
             uint64_t id = fiorequestContextsTable.available_primary_key();
-
-
-
             uint64_t currentTime = current_time();
             uint64_t toHash = ::eosio::string_to_uint64_t(tofioadd.c_str());
             uint64_t fromHash = ::eosio::string_to_uint64_t(fromfioadd.c_str());
@@ -207,7 +217,7 @@ namespace fioio {
                 frc.topubaddr = topubadd;
                 frc.amount = amount;
                 frc.tokencode = tokencode;
-                frc.metadata = "";
+                frc.metadata = metadata;
                 frc.fiotime = currentTime;
             });
 
