@@ -187,7 +187,7 @@ namespace fioio{
 
             // Check to see what index to store the address
             int chainIndex = approvedTokens.getIndexFromChain(my_chain);
-            fio_400_assert(chainIndex == -1, "tokencode", tokencode, "Invalid chain name", ErrorInvalidFioNameFormat);
+            fio_400_assert(chainIndex != -1, "tokencode", tokencode, "Invalid chain name", ErrorInvalidFioNameFormat);
 
             // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
