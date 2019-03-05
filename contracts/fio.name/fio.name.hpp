@@ -68,6 +68,18 @@ namespace fioio {
 
     typedef multi_index<N(domains), domain> domains_table;
 
+    struct chainList {
+        string chainname = nullptr;
+        uint32_t id = 0;
+        uint64_t chainhash = 0;
+
+        uint64_t primary_key() const { return chainhash; }
+        uint64_t by_index() const { return id; }
+
+        EOSLIB_SERIALIZE(chainList, (id)(chainname))
+    };
+    typedef multi_index<N(chains), chainList> chains_table;
+
     // Structures/table for mapping chain key to FIO name
     // @abi table keynames i64
     struct key_name {

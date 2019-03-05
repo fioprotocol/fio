@@ -1,7 +1,7 @@
 /** chain_control definitions file
  *  Description: Sets up the supported chain data structure
  *  @author Casey Gardiner
- *  @file fio_name_validator.hpp
+ *  @file chain_control.hpp
  *  @copyright Dapix
  *
  *  Changes:
@@ -17,6 +17,7 @@ namespace fioio {
         uint32_t index;
         string chain;
     };
+
     struct clist {
         vector<clentry> chains;
     };

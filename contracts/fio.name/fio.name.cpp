@@ -14,6 +14,7 @@
  *  Adam Androulidakis  8-29-2018
  *  Ed Rotthoff 10-26-2018
  *  Phil Mesnier 12-26-2018
+ *  Casey Gardiner 3/5/2019
  */
 
 #include <eosiolib/asset.hpp>
@@ -21,8 +22,8 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
-#include <eosio/chain/fioio/chain_control.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
+#include <eosio/chain/fioio/chain_control.hpp>
 #include <climits>
 
 namespace fioio{
@@ -30,6 +31,7 @@ namespace fioio{
     class FioNameLookup : public contract {
         private:
         domains_table domains;
+        chains_table chains;
         fionames_table fionames;
         keynames_table keynames;
         trxfees_singleton trxfees;
@@ -40,7 +42,7 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), fiopubs(self, self), trxfees(FeeContract,FeeContract)
+        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), fiopubs(self, self), chains(self, self), trxfees(FeeContract,FeeContract)
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
@@ -185,9 +187,23 @@ namespace fioio{
 
             fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
 
+            uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
+            auto chain_iter = chains.find(chainhash);
+
+            uint64_t next_idx = (chains.begin() == chains.end() ? 0 : (chain_iter)->id + 1 );
+
+            if( chain_iter == chains.end() ){
+                chains.emplace(_self, [&](struct chainList &a){
+                    a.id = next_idx;
+                    a.chainname = my_chain;
+                    a.chainhash = chainhash;
+                });
+                chain_iter = chains.find(chainhash);
+            }
+
             // Check to see what index to store the address
-            int chainIndex = approvedTokens.getIndexFromChain(my_chain);
-            fio_400_assert(chainIndex != -1, "tokencode", tokencode, "Invalid chain name", ErrorInvalidFioNameFormat);
+            //int chainIndex = approvedTokens.getIndexFromChain(my_chain);
+            //fio_400_assert(chainIndex != -1, "tokencode", tokencode, "Invalid chain name", ErrorInvalidFioNameFormat);
 
             // validate fio FIO Address exists
             uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
@@ -223,7 +239,7 @@ namespace fioio{
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[approvedTokens.getVectorIndex(chainIndex)] = pubaddress;
+                a.addresses[(chain_iter)->by_index()] = pubaddress;
             });
 
             // insert/update key into key-name table for reverse lookup
@@ -241,7 +257,7 @@ namespace fioio{
                     k.id = keynames.available_primary_key();        // use next available primary key
                     k.key = pubaddress;                             // persist key
                     k.keyhash = keyhash;                            // persist key hash
-                    k.chaintype = chainIndex;                       // specific chain type
+                    k.chaintype = (chain_iter)->by_index();                       // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
                     k.expiration = name_expiration;
                 });

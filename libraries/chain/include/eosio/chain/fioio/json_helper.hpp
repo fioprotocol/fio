@@ -1,7 +1,7 @@
-/** chain_control definitions file
- *  Description: Sets up the supported chain data structure
+/** json_helper definitions file
+ *  Description: loads json data into vector
  *  @author Casey Gardiner
- *  @file fio_name_validator.hpp
+ *  @file json_helper.hpp
  *  @copyright Dapix
  *
  *  Changes:
