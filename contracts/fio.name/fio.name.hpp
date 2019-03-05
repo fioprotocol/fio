@@ -76,7 +76,7 @@ namespace fioio {
         uint64_t primary_key() const { return chainhash; }
         uint64_t by_index() const { return id; }
 
-        EOSLIB_SERIALIZE(chainList, (id)(chainname))
+        EOSLIB_SERIALIZE(chainList, (chainname)(id)(chainhash))
     };
     typedef multi_index<N(chains), chainList> chains_table;
 
