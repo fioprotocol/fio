@@ -36,6 +36,7 @@ namespace fioio {
 
         //fio.request.obt actions
         fioRequestObtActions.push_back("recordsend");
+        fioRequestObtActions.push_back("newfundsreq");
     }
 
     static string map_to_contract( string t ){
@@ -46,7 +47,7 @@ namespace fioio {
             return "fio.finance";
         }
         if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()){
-            return "fio.request.obt";
+            return "fio.reqobt";
         }
         return "eosio";
     }

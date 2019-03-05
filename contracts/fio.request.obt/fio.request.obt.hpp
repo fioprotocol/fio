@@ -32,12 +32,11 @@ namespace fioio {
     };
 
     // Structure for "FIO request" context.
-    // @abi table fioreqctexts i64
+    // @abi table fioreqctxts i64
     struct fioreqctxt {        // FIO funds request context; specific to requests native to FIO platform
-        uint64_t    fioreqid;       // primary key, hash of {fioreqidstr}
-        string      fioreqidstr;    // fio funds request id; genetrated by FIO blockchain e.g. 2f9c49bd83632b756efc5184aacf5b41b5ae436189f45c2591ca89248e161c09
-        pub_addr    fromfioaddr;   // sender FIO address e.g. john.xyz
-        pub_addr    tofioaddr;     // receiver FIO address e.g. jane.xyz
+        uint64_t    fioreqid;       // one up index starting at 0
+        uint64_t    fromfioaddr;   // sender FIO address e.g. john.xyz
+        uint64_t    tofioaddr;     // receiver FIO address e.g. jane.xyz
         string      topubaddr;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
         string      amount;         // token quantity
         string      tokencode;      // token type e.g. BLU
@@ -45,14 +44,14 @@ namespace fioio {
         uint64_t    fiotime;        // FIO blockchain request received timestamp
 
         uint64_t primary_key() const     { return fioreqid; }
-        uint64_t by_sender() const      { return fromfioaddr; }
-        uint64_t by_receiver() const    { return tofioaddr; }
+       uint64_t by_sender() const      { return fromfioaddr; }
+       uint64_t by_receiver() const    { return tofioaddr; }
         uint64_t by_fiotime() const     { return fiotime; }
-        EOSLIB_SERIALIZE(fioreqctxt, (fioreqid)(fioreqidstr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
+        EOSLIB_SERIALIZE(fioreqctxt, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
     };
     // FIO requests contexts table
-    typedef multi_index<N(fioreqctexts), fioreqctxt,
-            indexed_by<N(bysender), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_sender> >,
+    typedef multi_index<N(fioreqctxts), fioreqctxt,
+    indexed_by<N(bysender), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_sender> >,
     indexed_by<N(byreceiver), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver> >,
     indexed_by<N(byfiotime), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_fiotime> >
     > fiorequest_contexts_table;
