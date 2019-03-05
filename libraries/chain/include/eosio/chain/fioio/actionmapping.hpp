@@ -34,6 +34,7 @@ namespace fioio {
 
         //fio.request.obt actions
         fioRequestObtActions.push_back("recordsend");
+        fioRequestObtActions.push_back("newfundsreq");
     }
 
     static string map_to_contract( string t ){
