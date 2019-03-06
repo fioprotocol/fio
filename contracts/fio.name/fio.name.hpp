@@ -100,24 +100,23 @@ namespace fioio {
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
 
-    // @abi table fiopubs i64
-    struct fiopubaddr {
+    // @abi table eosionames i64
+   // The eosio names table maps client wallet generated public keys to EOS user account
+   // names. The table exists to verify that all generated account names are unique. For
+   // that reason this table is indexed by the generated account name so that if a name
+   // is found, the associated key must match the supplied key to ensure there is no
+   // hashing collision.
+    struct eosio_name {
 
-        uint64_t fiopubindex = 0;
-        string fiopub = nullptr;
-        uint64_t pubkeyindex = 0;
-        string pubkey = nullptr;
+       uint64_t account = 0;
+       string clientkey = nullptr;
 
-        // primary_key is required to store structure in multi_index table
-        uint64_t primary_key() const { return fiopubindex; }
-
-        uint64_t by_pubkey() const { return pubkeyindex; }
-
-        EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
+        uint64_t primary_key() const { return account; }
+       EOSLIB_SERIALIZE(eosio_name, (account)(clientkey))
     };
 
-    typedef multi_index<N(fiopubs), fiopubaddr,
-            indexed_by<N(bypubkey), const_mem_fun<fiopubaddr, uint64_t, &fiopubaddr::by_pubkey> > > fiopubs_table;
+   typedef multi_index<N(eosionames), eosio_name> eosio_names_table;
+
 
 //    struct config {
 //        name tokencontr; // owner of the token contract

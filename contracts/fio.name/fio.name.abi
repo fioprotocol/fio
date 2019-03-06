@@ -77,19 +77,13 @@
         }
       ]
     },{
-      "name": "fiopubaddr",
+      "name": "eosio_name",
       "base": "",
       "fields": [{
-          "name": "fiopubindex",
-          "type": "uint64"
+          "name": "account",
+          "type": "name"
         },{
-          "name": "fiopub",
-          "type": "string"
-        },{
-          "name": "pubkeyindex",
-          "type": "uint64"
-        },{
-          "name": "pubkey",
+          "name": "clientkey",
           "type": "string"
         }
       ]
@@ -122,16 +116,16 @@
       "name": "addaddress",
       "base": "",
       "fields": [{
-          "name": "fioaddress",
+          "name": "fio_address",
           "type": "string"
         },{
-          "name": "tokencode",
+          "name": "chain",
           "type": "string"
         },{
-          "name": "pubaddress",
+          "name": "pub_address",
           "type": "string"
         },{
-          "name": "actor",
+          "name": "requestor",
           "type": "name"
         }
       ]
@@ -148,16 +142,18 @@
       "base": "",
       "fields": []
     },{
-      "name": "addfiopubadd",
-      "base": "",
-      "fields": [{
-          "name": "pub_address",
-          "type": "string"
-        },{
-          "name": "pub_key",
-          "type": "string"
-        }
-      ]
+    "name": "bind2eosio",
+    "base": "",
+    "fields": [{
+    "name": "account",
+    "type": "name"
+    },{
+    "name": "client_key",
+    "type": "string"
+    },{
+    "name": "existing",
+    "type": "bool"
+    }]
     }
   ],
   "actions": [{
@@ -181,9 +177,9 @@
       "type": "rmvaddress",
       "ricardian_contract": ""
     },{
-      "name": "addfiopubadd",
-      "type": "addfiopubadd",
-      "ricardian_contract": ""
+    "name": "bind2eosio",
+    "type": "bind2eosio",
+    "ricardian_contract": ""
     }
   ],
   "tables": [{
@@ -227,15 +223,15 @@
       ],
       "type": "key_name"
     },{
-      "name": "fiopubs",
+      "name": "eosionames",
       "index_type": "i64",
       "key_names": [
-        "fiopubindex"
+        "account"
       ],
       "key_types": [
         "uint64"
       ],
-      "type": "fiopubaddr"
+      "type": "eosio_name"
     }
   ],
   "ricardian_clauses": [],

@@ -8,11 +8,14 @@
  */
 
 #include <string>
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp> // *DANGER - don't use! Severe performance side effects may result
 
 #pragma once
 
 namespace fioio {
+
+    constexpr auto maxFioNameLen = 50;
+    constexpr auto maxFioDomainLen = 50;
 
     using namespace std;
 
@@ -27,70 +30,54 @@ namespace fioio {
         return p.empty();
     }
 
-    inline FioAddress getFioAddressStruct( string p ){
+   inline void getFioAddressStruct(const string &p, FioAddress& fa){
         // Split the fio name and domain portions
-        FioAddress fa;
-
         fa.fioname = "";
         fa.fiodomain = "";
 
-        int pos = p.find('.');
-        fa.domainOnly = false;
+        size_t pos = p.find('.');
+        fa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
-        fa.fiopubaddress = boost::algorithm::to_lower_copy(p); //WARNING: Fails for non-ASCII-7
+        fa.fiopubaddress = p;
+        for (auto &c : fa.fiopubaddress) {
+           c = char(::tolower(c));
+        }
 
         if (pos == string::npos) {
             fa.fiodomain = fa.fiopubaddress;
         } else {
-            fa.fioname = fa.fiopubaddress.substr(0, pos);
-            fa.fiodomain = fa.fiopubaddress.substr(pos + 1, string::npos);
-
-            if(fa.fiopubaddress.size() < 1 || ( fa.fiodomain.size() + 1 ) == fa.fiopubaddress.size()){
-                fa.domainOnly = true;
-            }
+           if (!fa.domainOnly)
+              fa.fioname = fa.fiopubaddress.substr(0, pos);
+           fa.fiodomain = fa.fiopubaddress.substr(pos + 1);
         }
-        return fa;
     }
 
-    inline bool isFioNameValid( string name ){
+   inline int isFioNameValid( const string &name ){
         //Name validation.
-        if (name.size() >= 1 && name.size() <= 50){
-            if(name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
-                return false;
-            }
-            else if(name.at(name.size() - 1) == '.' || name.at(name.size() - 1) == '-' ||
-                    boost::algorithm::equals(name, "-") || name.at(0) == '-') {
-                return false;
-            }
-        } else {
-            return false;
-        }
-        return true;
+      if (name.size() < 1 || name.size() > maxFioNameLen) {
+         return 1;
+      }
+      if(name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
+         return 2;
+      }
+      if( name.front() == '-' || name.back() == '-') {
+         return 3;
+      }
+      return 0;
     }
 
-    inline bool isDomainNameValid( string domain, bool singlecheck ){
-        if (( domain.size() >= 1 && domain.size() <= 50 ) && !singlecheck){
-            if(domain.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
-                return false;
-            }
-            else if(boost::algorithm::equals(domain, "-") || domain.at(0) == '-' ||
-                    domain.at(domain.size() - 1) == '-' ) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-        return true;
+    inline int isDomainNameValid( string domain, bool domainOnly ){
+       return domainOnly ? isFioNameValid (domain)*10 : 0;
     }
 
-    inline bool fioNameSizeCheck(string fn, string fd){
-        int totalsize = fn.size() + fd.size();
+    inline int fioNameSizeCheck(string fn, string fd){
+        size_t totalsize = fn.size() + fd.size();
 
-        if( totalsize >= 100){
-            return false;
+        if( totalsize > maxFioNameLen+maxFioDomainLen){
+            return 100;
         }
-        return true;
+        return 0;
     }
 
     inline bool isChainNameValid( string chain ){
@@ -104,11 +91,12 @@ namespace fioio {
         return true;
     }
 
-    inline string chainToUpper( string chain ) {
-        string my_chain = chain;
+   inline string chainToUpper( string chain ) {
+      string my_chain = chain;
 
-        transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+      transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
 
-        return my_chain;
-    }
+      return my_chain;
+   }
+
 }

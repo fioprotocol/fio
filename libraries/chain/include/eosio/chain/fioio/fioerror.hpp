@@ -97,7 +97,7 @@ namespace fioio {
       }
 
       string to_json ( ) const {
-         string json_str = "{ \n  \"type\": \"" + type +
+         string json_str = "{\n  \"type\": \"" + type +
             "\",\n  \"message\": \"" + message + "\",\n  \"fields\": [\n";
          for (auto f = fields.cbegin(); f != fields.cend(); f++ ) {
             if ( f != fields.cbegin() )json_str += ",\n";
@@ -105,7 +105,7 @@ namespace fioio {
                "\",\n    \"value\": \"" + f->value +
                "\",\n    \"error\": \"" + f->error + "\"}";
          }
-         json_str += "]\n}";
+         json_str += "]\n}\n";
          return json_str;
       }
    };
@@ -120,8 +120,8 @@ namespace fioio {
       }
 
       string to_json ( ) const {
-         string json_str = "{ \n  \"type\": \"" + type +
-            "\",\n  \"message\": \"" + message + "\"\n}";
+         string json_str = "{\n  \"type\": \"" + type +
+            "\",\n  \"message\": \"" + message + "\"\n}\n";
          return json_str;
       }
    };
@@ -132,7 +132,7 @@ namespace fioio {
          Http_Result ("", msg) {}
 
       string to_json ( ) const {
-         string json_str = "{ \n  \"message\": \"" + message + "\"\n}";
+         string json_str = "{\n  \"message\": \"" + message + "\"\n}\n";
          return json_str;
       }
    };

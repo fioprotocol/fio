@@ -30,7 +30,7 @@ namespace fioio {
         //fio.system actions
         fiosystemActions.push_back("registername");
         fiosystemActions.push_back("addaddress");
-
+        fiosystemActions.push_back("bind2eosio");
         //fio.finance actions
         fioFinanceActions.push_back("requestfunds");
 

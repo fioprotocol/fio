@@ -15,8 +15,9 @@ fi
 
 echo ------------------------------------------
 
-
-fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
+if [ -z ${fiopubkey} ]; then
+   fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
+fi
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
