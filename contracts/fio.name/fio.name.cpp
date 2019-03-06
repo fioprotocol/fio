@@ -37,7 +37,7 @@ namespace fioio{
         fionames_table fionames;
         keynames_table keynames;
         trxfees_singleton trxfees;
-       eosio_table eosionames;
+        eosio_names_table eosionames;
         config appConfig;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
@@ -127,7 +127,7 @@ namespace fioio{
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses = vector<string>(chainlistsize , "");
+                    a.addresses[1] = fa.fiopubaddress;
                 });
 
                 registerFee = fees.nameregister;

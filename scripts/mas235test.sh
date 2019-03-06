@@ -13,29 +13,33 @@
 #10. add a name with unknown domain
 #11. add a name  by a different actor
 
+npass=0
+nfail=0
 
 expect_pass()
 {
-    echo expect pass...
+    echo expect success...
     echo $result | grep "status\":\"executed"
     if [ $? == 0 ]; then
-        echo Pass
+        echo ***PASS***
+        npass=$(($npass + 1))
     else
-        echo Fail - block info: $blockinfo
-        echo $result
-    fi
+        echo ***FAIL*** - block info: $blockinfo
+        nfail=$(($nfail + 1))
+   fi
 }
 
 expect_fail()
 {
-    echo expect fail...
+    echo expect invalid...
     echo $result | grep "invalid_input"
     if [ $? == 0 ]; then
-        echo Pass
+        echo ***PASS***
+        npass=$(($npass + 1))
     else
-        echo Fail - block info: $blockinfo
-        echo $result
-    fi
+        echo ***FAIL*** - block info: $blockinfo
+        nfail=$(($nfail + 1))
+   fi
 }
 
 get_trx()
@@ -141,4 +145,4 @@ cleos -u ${nodeurl} get table fio.system ${scope} fionames
 pkill nodeos
 pkill keosd
 
-cd $orgdir
+echo \n$npass tests pass, $nfail tests failed

@@ -1422,7 +1422,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
-   if(!fio_name.empty()) {
+   if(!fa.fioname.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
               .code=fio_system_code,
               .scope=fio_system_scope,
