@@ -15,10 +15,12 @@ fi
 
 echo ------------------------------------------
 
-if [ -z ${fiopubkey} ]; then
+if [ -z "${fiopubkey}" ]; then
    fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
+   fioprivatekey="5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
 fi
 
+echo fiopubkey = $fiopubkey
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 echo ------------------------------------------
@@ -94,7 +96,7 @@ expectedSignedRequest='{
 "context_free_data":[]}'
 
 
-cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k 5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
+cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k $fioprivatekey"
 echo CMD: $cmd
 actualSignedResponse=`eval $cmd`
 ret=$?
