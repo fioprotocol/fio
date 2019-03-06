@@ -144,5 +144,5 @@ cleos -u ${nodeurl} get table fio.system ${scope} fionames
 
 pkill nodeos
 pkill keosd
-
-echo \n$npass tests pass, $nfail tests failed
+echo *****************************
+echo $npass tests pass, $nfail tests failed
