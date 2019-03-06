@@ -642,7 +642,15 @@ public:
         fc::variant                 processed;
     };
     void register_fio_name(const register_fio_name_params& params, chain::plugin_interface::next_function<register_fio_name_results> next);
-    //Begin Added for reject request api method
+
+    using add_pub_address_params = fc::variant_object;
+    struct add_pub_address_results {
+        chain::transaction_id_type  transaction_id;
+        fc::variant                 processed;
+    };
+    void add_pub_address(const add_pub_address_params& params, chain::plugin_interface::next_function<add_pub_address_results> next);
+
+   //Begin Added for reject request api method
     using reject_funds_request_params = fc::variant_object;
     struct reject_funds_request_results {
         fc::variant                 processed;
@@ -823,8 +831,8 @@ FC_REFLECT( eosio::chain_apis::read_write::register_fio_name_results, (transacti
 FC_REFLECT( eosio::chain_apis::read_write::reject_funds_request_results, (processed) )
 FC_REFLECT( eosio::chain_apis::read_write::record_send_results, (processed) )
 
+FC_REFLECT( eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed) )
 FC_REFLECT( eosio::chain_apis::read_write::new_funds_request_results, (processed) )
-
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));

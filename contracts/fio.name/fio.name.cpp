@@ -37,6 +37,7 @@ namespace fioio{
         fionames_table fionames;
         keynames_table keynames;
         trxfees_singleton trxfees;
+        fiopubs_table fiopubs;
         eosio_names_table eosionames;
         config appConfig;
 
@@ -44,7 +45,7 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), eosionames(self, self), chains(self, self), trxfees(FeeContract,FeeContract)
+           : contract(self), domains(self, self), fionames(self, self), keynames(self, self), trxfees(FeeContract,FeeContract), fiopubs(self, self), eosionames(self, self), chains(self, self)
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
@@ -297,6 +298,53 @@ namespace fioio{
             print("Begin rmvaddress()");
 		}
 
+    /***
+     * The provided Base58 encoded public address and public key will be listed directly
+     * into the fiopubs table.
+     *
+     * @param pub_address The Base58 Encoded FIO Public Address
+     * @param pub_key The public key to be indexed with the FIO Public Address
+     */
+    [[eosio::action]]
+    void addfiopubadd(const string &pub_address, const string &pub_key) {
+
+      eosio_assert_message_code(!pub_address.empty(), "Public Address field cannot be empty", ErrorPubAddressEmpty);
+      eosio_assert_message_code(!pub_key.empty(), "Public Key field cannot be empty", ErrorPubKeyEmpty);
+
+      // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
+       require_auth(::eosio::string_to_name(FIO_SYSTEM));
+
+       string pub = pub_address;
+       string key = pub_key;
+       //The indexes need to be calculated correctly here.
+       //Public Key and Public Address must be hashed uniquely to 12 characters to represent indexes.
+       uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
+       uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
+
+       ///////////////////////////////////////////////////
+       //To do: Keep emplacing new entries or replace new ?
+
+       auto fiopubadd_iter = fiopubs.find(fiopubindex);
+       if (fiopubadd_iter != fiopubs.end()) {
+          print("Found pub address: pub address: ", fiopubadd_iter->fiopub, ", pub key: ", fiopubadd_iter->pubkey, "\n");
+          print("Found pub address: n pub address hash: ", fiopubindex, ",n pub key hash: ", pubkeyindex, "o pub address hash: ", fiopubadd_iter->fiopubindex, ",o pub key hash: ", fiopubadd_iter->pubkeyindex, "\n");
+       } else {
+         print("No pub address match found.");
+       }
+       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
+
+       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
+                                 f.fiopub = pub_address; // The public address
+                                 f.pubkey = pub_key; // The public Key
+                                 f.fiopubindex = fiopubindex; // The index of the public address
+                                 f.pubkeyindex = pubkeyindex; // The index of the public key
+                              });
+
+       // json response
+       nlohmann::json json = {{"status","OK"},{"pub_address",pub_address},{"pub_key",pub_key}};
+       send_response(json.dump().c_str());
+    } // addfiopubadd
+
    /**
     *
     * Separate out the management of platform-specific identities from the fio names
@@ -329,5 +377,5 @@ namespace fioio{
 
     }; // class FioNameLookup
 
-   EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(bind2eosio))
+   EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd)(bind2eosio))
 }

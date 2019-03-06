@@ -2439,6 +2439,87 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
     } CATCH_AND_CALL(next);
 }
 
+void read_write::add_pub_address(const read_write::add_pub_address_params& params, next_function<read_write::add_pub_address_results> next) {
+    try {
+
+        auto pretty_input = std::make_shared<packed_transaction>();
+        auto unpacked = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction trx;
+        name fiosystem = N(fio.system);
+
+        dlog("add_pub_address called");
+        try {
+            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        // Full received transaction
+        const variant& v = params;
+        const variant_object& vo = v.get_object();
+        FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
+
+        // Unpack the transaction
+        from_variant(vo["packed_trx"], unpacked->packed_trx);
+        trx = unpacked->get_transaction();
+        vector<action> &actions = trx.actions;
+        FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+        name actor = actions[0].authorization[0].actor;
+
+        dlog("got actor ${a}",("a",actor));
+        signed_transaction strx = pretty_input->get_signed_transaction();
+
+        auto tsig = strx.signatures;
+        auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+        auto digest = strx.sig_digest(chainid,strx.context_free_data);
+        auto check = fc::crypto::public_key( tsig[0], digest, false );
+
+        //Hash Public Key
+        auto pubkey = string(check);
+        std::string new_account;
+        fioio::key_to_account(pubkey, new_account);
+
+        //Verify is same as tx
+        FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
+
+        const auto& d = db.db();
+        try {
+            const auto& a = db.get_account(new_account);
+            dlog("get_account returned ${a}",("a",a));
+        } catch (...) {
+            dlog("invoking create_account");
+            create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
+        }
+        dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
+
+        int tChainCode = fioio::approvedTokens.getIndexFromChain("FIO");
+        ilog("getChainFromIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getChainFromIndex(235)));
+        ilog("getIndexFromChain started ('${root_key}')", ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
+        ilog("getVectorIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getVectorIndex(fioio::approvedTokens.getIndexFromChain("FIO"))));
+
+        app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+            if (result.contains<fc::exception_ptr>()) {
+                next(result.get<fc::exception_ptr>());
+            } else {
+                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                try {
+                    chain::transaction_id_type id = trx_trace_ptr->id;
+                    fc::variant output;
+                    try {
+                        output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                    } catch( chain::abi_exception& ) {
+                        output = *trx_trace_ptr;
+                    }
+                    next(read_write::add_pub_address_results{id, output});
+                } CATCH_AND_CALL(next);
+            }
+        });
+    } catch ( const boost::interprocess::bad_alloc& ) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
 static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
    auto wrapped_next = [=](const fc::static_variant<fc::exception_ptr, read_write::push_transaction_results>& result) {
       if (result.contains<fc::exception_ptr>()) {

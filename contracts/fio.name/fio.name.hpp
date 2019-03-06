@@ -100,7 +100,25 @@ namespace fioio {
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
 
-    // @abi table eosionames i64
+    // @abi table fiopubs i64
+    struct fiopubaddr {
+
+        uint64_t fiopubindex = 0;
+        string fiopub = nullptr;
+        uint64_t pubkeyindex = 0;
+        string pubkey = nullptr;
+
+        // primary_key is required to store structure in multi_index table
+        uint64_t primary_key() const { return fiopubindex; }
+
+        uint64_t by_pubkey() const { return pubkeyindex; }
+
+        EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
+    };
+   typedef multi_index<N(fiopubs), fiopubaddr,
+           indexed_by<N(bypubkey), const_mem_fun<fiopubaddr, uint64_t, &fiopubaddr::by_pubkey> > > fiopubs_table;
+
+   // @abi table eosionames i64
    // The eosio names table maps client wallet generated public keys to EOS user account
    // names. The table exists to verify that all generated account names are unique. For
    // that reason this table is indexed by the generated account name so that if a name
