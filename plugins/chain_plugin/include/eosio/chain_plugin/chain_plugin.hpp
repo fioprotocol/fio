@@ -648,13 +648,21 @@ public:
         fc::variant                 processed;
     };
     void register_fio_name(const register_fio_name_params& params, chain::plugin_interface::next_function<register_fio_name_results> next);
-
+    //Begin Added for reject request api method
+    using reject_funds_request_params = fc::variant_object;
+  
     using add_pub_address_params = fc::variant_object;
     struct add_pub_address_results {
         chain::transaction_id_type  transaction_id;
         fc::variant                 processed;
     };
     void add_pub_address(const add_pub_address_params& params, chain::plugin_interface::next_function<add_pub_address_results> next);
+
+    struct reject_funds_request_results {
+        fc::variant                 processed;
+    };
+    void reject_funds_request(const reject_funds_request_params& params, chain::plugin_interface::next_function<reject_funds_request_results> next);
+    //End added for record send api method.
 
     //Begin Added for record send api method
     using record_send_params = fc::variant_object;
@@ -826,6 +834,7 @@ FC_REFLECT( eosio::chain_apis::read_only::avail_check_result, (fio_name)(is_regi
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration) );
 FC_REFLECT( eosio::chain_apis::read_write::register_fio_name_results, (transaction_id)(processed) )
+FC_REFLECT( eosio::chain_apis::read_write::reject_funds_request_results, (processed) )
 FC_REFLECT( eosio::chain_apis::read_write::record_send_results, (processed) )
 
 FC_REFLECT( eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed) )

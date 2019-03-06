@@ -88,7 +88,18 @@
                "type": "string"
              }
            ]
-         }
+       },{
+         "name": "rejectfndreq",
+             "base": "",
+             "fields": [{
+                   "name": "fioreqid",
+                   "type": "string"
+                   },{
+                     "name": "actor",
+                     "type": "string"
+                   }
+               ]
+        }
     ],
   "actions": [{
       "name": "recordsend",
@@ -97,6 +108,10 @@
     },{
       "name": "newfundsreq",
       "type": "newfundsreq",
+      "ricardian_contract": ""
+      },{
+      "name": "rejectfndreq",
+      "type": "rejectfndreq",
       "ricardian_contract": ""
       }
       ],

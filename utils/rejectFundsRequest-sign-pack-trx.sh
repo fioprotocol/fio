@@ -17,9 +17,9 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson='{"fromfioadd":"adam.brd","tofioadd":"casey.brd","topubadd":"0xab5801a7d398351b8be11c439e05c5b3259aec9b","amount":"1","tokencode":"DAI","metadata":"{\"memo\":\"Invoice1234\"}","actor":"${fioactor}"}'
+dataJson='{"fioreqid":"0","actor":"${fioactor}"}'
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.reqobt newfundsreq '$dataJson'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.reqobt rejectfndreq '$dataJson'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -65,7 +65,7 @@ unsignedRequest='{
 "context_free_actions": [],
 "actions": [{
 "account":"fio.reqobt",
-"name": "newfundsreq"
+"name": "rejectfndreq"
 "authorization":[{
 "actor":"'${fioactor}'",
 "permission":"active"
@@ -81,7 +81,7 @@ unsignedRequest='{
 # echo $unsignedRequest
 
 # Sign request
-expectedSignedRequest='{"expiration":"2018-12-13T20:59:50","ref_block_num":141,"ref_block_prefix":3586931320,"max_net_usage_words":0,"max_cpu_usage_ms":0,"delay_sec":0,"context_free_actions":[],"actions":[{"account":"fio.reqobt","name":"newfundsreq","authorization":[{"actor":"fioname11111","permission":"active"},{"actor":"fio.system","permission":"active"}],"data":"036f6369104208414933a95b"}],"transaction_extensions":[],"signatures":["SIG_K1_Kcax7imeZM2nK3di7eZRZ5Y82eyxRHGE4gx7CT1Rky1JTVVmKCwytFLMTjg888B4RiwjhoCwk5pXndywg1pRxj8RCGqKyy","SIG_K1_K5FLUb7y2nq5EJjTRGDr5G2iFpEasX2qmrHbdexJDbYiYmiXo9b1YLTXz73b9VE6ipxs5gRtMooRyFUx9ucKQ8jBjYsR3u"],"context_free_data":[]}'
+expectedSignedRequest='{"expiration":"2018-12-13T20:59:50","ref_block_num":141,"ref_block_prefix":3586931320,"max_net_usage_words":0,"max_cpu_usage_ms":0,"delay_sec":0,"context_free_actions":[],"actions":[{"account":"fio.reqobt","name":"rejectfndreq","authorization":[{"actor":"fioname11111","permission":"active"},{"actor":"fio.system","permission":"active"}],"data":"036f6369104208414933a95b"}],"transaction_extensions":[],"signatures":["SIG_K1_Kcax7imeZM2nK3di7eZRZ5Y82eyxRHGE4gx7CT1Rky1JTVVmKCwytFLMTjg888B4RiwjhoCwk5pXndywg1pRxj8RCGqKyy","SIG_K1_K5FLUb7y2nq5EJjTRGDr5G2iFpEasX2qmrHbdexJDbYiYmiXo9b1YLTXz73b9VE6ipxs5gRtMooRyFUx9ucKQ8jBjYsR3u"],"context_free_data":[]}'
 
 
 cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://$hostname:9899 sign '$unsignedRequest' -k 5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
