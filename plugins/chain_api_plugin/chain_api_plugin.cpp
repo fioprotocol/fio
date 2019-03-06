@@ -12,7 +12,6 @@ namespace eosio {
 static appbase::abstract_plugin& _chain_api_plugin = app().register_plugin<chain_api_plugin>();
 
 using namespace eosio;
-
 class chain_api_plugin_impl {
 public:
    chain_api_plugin_impl(controller& db)
@@ -114,6 +113,7 @@ void chain_api_plugin::plugin_startup() {
         CHAIN_RO_CALL(fio_key_lookup, 200),
         CHAIN_RW_CALL_ASYNC(register_fio_name, chain_apis::read_write::register_fio_name_results, 202),
         CHAIN_RW_CALL_ASYNC(record_send, chain_apis::read_write::record_send_results, 202),
+        CHAIN_RW_CALL_ASYNC(reject_funds_request, chain_apis::read_write::reject_funds_request_results, 202),
         CHAIN_RW_CALL_ASYNC(new_funds_request, chain_apis::read_write::new_funds_request_results, 202)
    });
 }

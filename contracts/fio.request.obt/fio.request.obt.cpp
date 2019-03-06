@@ -225,8 +225,48 @@ namespace fioio {
             nlohmann::json json = {{"status","OK"},{"fioreqid",id},{"fromfioadd",fromfioadd},{"tofioadd",tofioadd},{"topubadd",topubadd},{"amount",amount},{"metadata",metadata}};
             send_response(json.dump().c_str());
         }
+
+        /***
+         * this action will add a rejection status to the specified request id.
+         * the input fiorequest id will be verified to ensure there is a request in the contexts table matching this id
+         * before the status record is added to the index tables.
+         f*/
+        // @abi action
+        void rejectfndreq(const string &fioreqid,const string &actor) {
+
+
+
+            print("call new funds request\n");
+
+
+            fio_400_assert(fioreqid.length() > 0, "fioreqid", fioreqid,"No value specified", ErrorRequestContextNotFound);
+            //if the request id is specified in the json then look to see if it is present
+            //in the table, if so then add the associated update into the status tables.
+            //if the id is present in the json and not inthe table error.
+            uint64_t currentTime = current_time();
+            uint64_t requestId;
+
+            requestId = std::atoi(fioreqid.c_str());
+
+            auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
+            fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioreqid,"No such FIO Request ", ErrorRequestContextNotFound);
+            //insert a send record into the status table using this id.
+            fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
+                fr.id = fiorequestStatusTable.available_primary_key();;
+                fr.fioreqid = requestId;
+                fr.status = static_cast<trxstatus >(trxstatus::rejected);
+                fr.metadata = "";
+                fr.fiotime = currentTime;
+            });
+
+
+            nlohmann::json json = {{"fioreqid",fioreqid},{"status","request_rejected"}};
+            send_response(json.dump().c_str());
+        }
+
+
     };
-EOSIO_ABI(FioRequestObt, (recordsend)(newfundsreq))
+EOSIO_ABI(FioRequestObt, (recordsend)(newfundsreq)(rejectfndreq))
 
 }
 
