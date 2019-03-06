@@ -40,6 +40,8 @@
 
 #include <eosio.system/eosio.system.wast.hpp>
 #include <eosio.system/eosio.system.abi.hpp>
+#include <fio.name/fio.name.wast.hpp>
+#include <fio.name/fio.name.abi.hpp>
 
 namespace eosio {
 
@@ -1162,7 +1164,12 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
    EOS_ASSERT( false, chain::contract_table_query_exception, "Table ${table} is not specified in the ABI", ("table",table_name) );
 }
 
-    /***
+   const name fio_system_code = N(fio.system);    // FIO name contract account, init in the top of this class
+   const string fio_system_scope = "fio.system";   // FIO name contract scope
+   const name fio_address_table = N(fionames); // FIO Address Table
+   const name fio_domains_table = N(domains); // FIO Domains Table
+
+ /***
  * Lookup address by FIO name.
  * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
  * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
@@ -1188,10 +1195,9 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
    dlog( "fio user name: ${name}, fio domain: ${domain}", ("name", fio_user_name)("domain", fio_domain) );
 
    //declare variables.
-   const name code = ::eosio::string_to_name(fio_system_code.c_str());
-   const abi_def abi = eosio::chain_apis::get_abi( db, code );
+   const abi_def abi = eosio::chain_apis::get_abi( db, fio_system_code );
 
-   const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_name.c_str());
+   const uint64_t name_hash = ::eosio::string_to_uint64_t(fio_user_name.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
    dlog( "fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash) );
 
@@ -1208,7 +1214,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 
    //get the domain, check if the domain is expired.
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
-           .code=code,
+           .code=fio_system_code,
            .scope=fio_system_scope,
            .table=fio_domains_table,
            .lower_bound=boost::lexical_cast<string>(domain_hash),
@@ -1239,7 +1245,7 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
     if (!fio_user_name.empty()){
         //query the names table and check if the name is expired
         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                .code=code,
+                .code=fio_system_code,
                 .scope=fio_system_scope,
                 .table=fio_address_table,
                 .lower_bound=boost::lexical_cast<string>(name_hash),
@@ -1309,8 +1315,7 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
 
   string fio_key_lookup_table = "keynames";   // table name
 
-  const name code = ::eosio::string_to_name(fio_system_code.c_str());
-  const abi_def abi = eosio::chain_apis::get_abi( db, code );
+  const abi_def abi = eosio::chain_apis::get_abi( db, fio_system_code );
 
   const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_pub_address.c_str()); // hash of public address
   get_table_rows_result domain_result;
@@ -1319,7 +1324,7 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
   dlog( "Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash) );
   get_table_rows_params table_row_params = get_table_rows_params{
           .json        = true,
-          .code        = code,
+          .code        = fio_system_code,
           .scope       = fio_system_scope,
           .table       = fio_key_lookup_table,
           .lower_bound = boost::lexical_cast<string>(key_hash),
@@ -1355,7 +1360,7 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
     std::cout<<"Domain name:"<<dom<<std::endl;
     const uint64_t domain_hash = ::eosio::string_to_uint64_t(dom.c_str());
     get_table_rows_params domain_table_params = get_table_rows_params{.json=true,
-            .code=code,
+            .code=fio_system_code,
             .scope=fio_system_scope,
             .table=fio_domains_table,
             .lower_bound=boost::lexical_cast<string>(domain_hash),
@@ -1387,39 +1392,28 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    // assert if empty fio name
    FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
-   const fioio::FioAddress fa = fioio::getFioAddressStruct(p.fio_name);
+   fioio::FioAddress fa;
+   fioio::getFioAddressStruct(p.fio_name, fa);
+   int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain)*10 : fioio::isFioNameValid(fa.fioname);
+   dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn",fa.fioname)("fd",fa.fiodomain)("ec",res));
 
-   // Split the fio name and domain portions
-   string fio_address = fa.fiopubaddress;
-   string fio_name = fa.fioname;
-   string fio_domain = fa.fiodomain;
+   string value = fa.fiopubaddress + " error = " + to_string(res);
+   FIO_400_ASSERT(res == 0, "fio_name", value, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
-   bool domainOnly = fa.domainOnly;
-
-   result.fio_name = fio_address;
-
-   //Domain validation.
-   FIO_400_ASSERT(fioio::isDomainNameValid(fio_domain, domainOnly), "fio_name", fio_address, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-   FIO_400_ASSERT(fioio::fioNameSizeCheck(fio_name, fio_domain), "fio_name", fio_address, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-
-   //Name validation.
-   if( !fio_name.empty()){
-       FIO_400_ASSERT(fioio::isFioNameValid(fio_name), "fio_name", fio_address, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
-   }
+   result.fio_name = fa.fiopubaddress;
 
    //declare variables.
-   const name code = ::eosio::string_to_name(fio_system_code.c_str());
-   const abi_def abi = eosio::chain_apis::get_abi( db, code );
+   const abi_def abi = eosio::chain_apis::get_abi( db, fio_system_code );
 
-   const uint64_t name_hash = ::eosio::string_to_uint64_t(fio_name.c_str());
-   const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
+   const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fioname.c_str());
+   const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
 
    get_table_rows_result fioname_result;
    get_table_rows_result name_result;
    get_table_rows_result domain_result;
 
    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
-           .code=code,
+           .code=fio_system_code,
            .scope=fio_system_scope,
            .table=fio_domains_table,
            .lower_bound=boost::lexical_cast<string>(domain_hash),
@@ -1430,7 +1424,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
 
    if(!fio_name.empty()) {
       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-              .code=code,
+              .code=fio_system_code,
               .scope=fio_system_scope,
               .table=fio_address_table,
               .lower_bound=boost::lexical_cast<string>(name_hash),
@@ -1485,8 +1479,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    //chain_type c_type = str_to_chain_type(my_chain);
    //EOS_ASSERT(c_type != chain_type::NONE, chain::contract_table_query_exception,"Supplied chain isn't supported.");
 
-   const name code = ::eosio::string_to_name(fio_system_code.c_str());
-   const abi_def abi = eosio::chain_apis::get_abi( db, code );
+   const abi_def abi = eosio::chain_apis::get_abi( db, fio_system_code );
 
    string fio_key_lookup_table = "keynames";   // table name
    const uint64_t key_hash = ::eosio::string_to_uint64_t(p.key.c_str()); // hash of block key
@@ -1494,7 +1487,7 @@ read_only::fio_key_lookup_result read_only::fio_key_lookup( const read_only::fio
    dlog( "Lookup using key hash: '${key_hash}'", ("key_hash", key_hash) );
    get_table_rows_params table_row_params = get_table_rows_params{
            .json        = true,
-           .code        = code,
+           .code        = fio_system_code,
            .scope       = fio_system_scope,
            .table       = fio_key_lookup_table,
            .lower_bound = boost::lexical_cast<string>(key_hash),
@@ -2326,18 +2319,19 @@ void read_write::record_send(const record_send_params& params, chain::plugin_int
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
-void read_write::register_fio_name(const read_write::register_fio_name_params& params, next_function<read_write::register_fio_name_results> next) {
+void read_write::register_fio_name(const read_write::register_fio_name_params& params,
+        next_function<read_write::register_fio_name_results> next) {
+
     try {
-        auto pretty_input = std::make_shared<packed_transaction>();
+        auto original = std::make_shared<packed_transaction>();
         auto unpacked = std::make_shared<packed_transaction>();
         auto resolver = make_resolver(this, abi_serializer_max_time);
         transaction trx;
-        name fiosystem = N(fio.system);
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(), abi_serializer_max_time};
 
         fioio::registername rn;
-        dlog("register_fio_name called");
         try {
-            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+            abi_serializer::from_variant(params, *original, resolver, abi_serializer_max_time);
         } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
         // Full received transaction
@@ -2353,9 +2347,7 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
         name actor = actions[0].authorization[0].actor;
 
-        dlog("got actor ${a}",("a",actor));
-
-        signed_transaction strx = pretty_input->get_signed_transaction();
+        signed_transaction strx = original->get_signed_transaction();
         auto tsig = strx.signatures;
         auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
         auto digest = strx.sig_digest(chainid,strx.context_free_data);
@@ -2370,118 +2362,80 @@ void read_write::register_fio_name(const read_write::register_fio_name_params& p
         FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
 
         const auto& d = db.db();
+        bool eosio_found = false;
         try {
             const auto& a = db.get_account(new_account);
+            eosio_found = true;
             dlog("get_account returned ${a}",("a",a));
         } catch (...) {
             dlog("invoking create_account");
             create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
         }
-
-        dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
-
-        app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-            if (result.contains<fc::exception_ptr>()) {
-                next(result.get<fc::exception_ptr>());
-            } else {
-                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                try {
-                    chain::transaction_id_type id = trx_trace_ptr->id;
-                    fc::variant output;
-                    try {
-                        output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
-                    } catch( chain::abi_exception& ) {
-                        output = *trx_trace_ptr;
-                    }
-                    next(read_write::register_fio_name_results{id, output});
-                } CATCH_AND_CALL(next);
-            }
-        });
-    } catch ( const boost::interprocess::bad_alloc& ) {
-        chain_plugin::handle_db_exhaustion();
-    } CATCH_AND_CALL(next);
-
-}
-
-void read_write::add_pub_address(const read_write::add_pub_address_params& params, next_function<read_write::add_pub_address_results> next) {
-    try {
-
-        auto pretty_input = std::make_shared<packed_transaction>();
-        auto unpacked = std::make_shared<packed_transaction>();
-        auto resolver = make_resolver(this, abi_serializer_max_time);
-        transaction trx;
-        name fiosystem = N(fio.system);
-
-        dlog("add_pub_address called");
-        try {
-            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
-
-        // Full received transaction
-        const variant& v = params;
-        const variant_object& vo = v.get_object();
-        FIO_403_ASSERT(fioio::is_transaction_packed(vo), fioio::ErrorTransaction);
-
-        // Unpack the transaction
-        from_variant(vo["packed_trx"], unpacked->packed_trx);
-        trx = unpacked->get_transaction();
-        vector<action> &actions = trx.actions;
-        FIO_403_ASSERT(actions.size() > 0, fioio::ErrorTransaction);
-        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-        name actor = actions[0].authorization[0].actor;
-
-        dlog("got actor ${a}",("a",actor));
-        signed_transaction strx = pretty_input->get_signed_transaction();
-
-        auto tsig = strx.signatures;
-        auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
-        auto digest = strx.sig_digest(chainid,strx.context_free_data);
-        auto check = fc::crypto::public_key( tsig[0], digest, false );
-
-        //Hash Public Key
-        auto pubkey = string(check);
-        std::string new_account;
-        fioio::key_to_account(pubkey, new_account);
-
-        //Verify is same as tx
-        FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
-
-        const auto& d = db.db();
-        try {
-            const auto& a = db.get_account(new_account);
-            dlog("get_account returned ${a}",("a",a));
-        } catch (...) {
-            dlog("invoking create_account");
-            create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
+        signed_transaction tosend;
+        //   auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+        fc::crypto::private_key fiosyskey = fc::crypto::private_key(std::string(fioCreatorKey));
+        {
+           action act;
+           act.account = fio_system_code;
+           act.name = N(bind2eosio);
+           act.authorization = vector<permission_level>{{fio_system_code,config::active_name}};
+           string existing = eosio_found? "1" : "0";
+           auto json_payload = fc::json::from_string("{\"account\":\""+new_account+"\",\"client_key\":\""+pubkey+"\",\"existing\":\""+existing+"\"}}");
+           act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload, abi_serializer_max_time);
+           tosend.actions.emplace_back(std::move(act));
         }
-        dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
 
-        int tChainCode = fioio::approvedTokens.getIndexFromChain("FIO");
-        ilog("getChainFromIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getChainFromIndex(235)));
-        ilog("getIndexFromChain started ('${root_key}')", ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
-        ilog("getVectorIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getVectorIndex(fioio::approvedTokens.getIndexFromChain("FIO"))));
+        tosend.expiration = db.head_block_time() + fc::seconds(30);
+        tosend.set_reference_block(db.head_block_id());
+        tosend.sign(fiosyskey, chainid);
 
-        app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-            if (result.contains<fc::exception_ptr>()) {
-                next(result.get<fc::exception_ptr>());
-            } else {
-                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+        packed_transaction pt(std::move(tosend));
+        auto spt = std::make_shared<packed_transaction>(pt);
+        spt->set_fio_transaction(true);
 
-                try {
+        auto &m = app().get_method<incoming::methods::transaction_async>();
+        using restype = fc::static_variant<fc::exception_ptr, transaction_trace_ptr>;
+        m (spt, true,
+           [this, &m, original, next](const restype& result)
+           {
+              if (result.contains<fc::exception_ptr>()) {
+                 next(result.get<fc::exception_ptr>());
+              } else {
+                 auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                 try {
                     chain::transaction_id_type id = trx_trace_ptr->id;
                     fc::variant output;
                     try {
-                        output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                       output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
                     } catch( chain::abi_exception& ) {
-                        output = *trx_trace_ptr;
+                       output = *trx_trace_ptr;
                     }
-                    next(read_write::add_pub_address_results{id, output});
-                } CATCH_AND_CALL(next);
-            }
-        });
+                    m( original, true,
+                       [this, next](const restype &result)
+                       {
+                          if (result.contains<fc::exception_ptr>()) {
+                             next(result.get<fc::exception_ptr>());
+                          } else {
+                             auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                             try {
+                                chain::transaction_id_type id = trx_trace_ptr->id;
+                                fc::variant output;
+                                try {
+                                   output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                                } catch( chain::abi_exception& ) {
+                                   output = *trx_trace_ptr;
+                                }
+                                next(read_write::register_fio_name_results{id, output});
+                             } CATCH_AND_CALL(next);
+                          }
+                       });
+                 } CATCH_AND_CALL(next);
+              }
+           });
     } catch ( const boost::interprocess::bad_alloc& ) {
-        chain_plugin::handle_db_exhaustion();
+       chain_plugin::handle_db_exhaustion();
     } CATCH_AND_CALL(next);
 }
 

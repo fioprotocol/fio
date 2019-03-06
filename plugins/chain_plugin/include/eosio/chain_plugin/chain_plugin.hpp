@@ -312,11 +312,6 @@ public:
    ////////////////
    // FIO COMMON //
 
-   const string fio_system_code = "fio.system";    // FIO name contract account
-   const string fio_system_scope = "fio.system";   // FIO name contract scope
-   const string fio_address_table = "fionames"; // FIO Address Table
-   const string fio_domains_table = "domains"; // FIO Domains Table
-
    struct fio_name_lookup_params {
        string fio_name;  // FIO complete account name e.g. john.fio
        string chain;     // chain name e.g. BTC, ETH, EOS etc.
@@ -331,7 +326,6 @@ public:
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
-
 
   struct get_fio_names_params {
      string fio_pub_address;
@@ -650,14 +644,6 @@ public:
     void register_fio_name(const register_fio_name_params& params, chain::plugin_interface::next_function<register_fio_name_results> next);
     //Begin Added for reject request api method
     using reject_funds_request_params = fc::variant_object;
-  
-    using add_pub_address_params = fc::variant_object;
-    struct add_pub_address_results {
-        chain::transaction_id_type  transaction_id;
-        fc::variant                 processed;
-    };
-    void add_pub_address(const add_pub_address_params& params, chain::plugin_interface::next_function<add_pub_address_results> next);
-
     struct reject_funds_request_results {
         fc::variant                 processed;
     };
@@ -837,7 +823,6 @@ FC_REFLECT( eosio::chain_apis::read_write::register_fio_name_results, (transacti
 FC_REFLECT( eosio::chain_apis::read_write::reject_funds_request_results, (processed) )
 FC_REFLECT( eosio::chain_apis::read_write::record_send_results, (processed) )
 
-FC_REFLECT( eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed) )
 FC_REFLECT( eosio::chain_apis::read_write::new_funds_request_results, (processed) )
 
 
