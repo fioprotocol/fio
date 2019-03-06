@@ -8,8 +8,10 @@
  */
 
 #pragma once
+
 #include <string>
 #include <fc/reflect/reflect.hpp>
+
 namespace fioio {
 
     using namespace std;
@@ -64,6 +66,13 @@ namespace fioio {
       uint64_t requestor;
    };
 
+    //struct addaddress {
+    //    string fioaddress;
+    //    string tokencode;
+    //    string pubaddress;
+    //    uint64_t actor;
+    //};
 }
 
 FC_REFLECT( fioio::registername, (name)(requestor) )
+//FC_REFLECT( fioio::addaddress, (fioaddress)(tokencode)(pubaddress)(actor) )

@@ -557,10 +557,10 @@ class Fio {
                     permission: 'active',
                 }],
                 data: {
-                    fio_address: fioname,
-                    chain: chain,
-                    pub_address: address,
-                    requestor: requestor
+                    fioaddress: fioname,
+                    tokencode: chain,
+                    pubaddress: address,
+                    actor: requestor
                 },
             }]
         }, {

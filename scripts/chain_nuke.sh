@@ -14,4 +14,8 @@ echo $'Deleting Wallet Data...\n'
 if [ -d ~/eosio-wallet ]; then rm -rf ~/eosio-wallet; fi # Mac OS
 rm -rf ../walletkey.ini
 
+echo $'Deleting Logs...\n'
+rm -rf ../node1.txt
+rm -rf ../node2.txt
+
 echo 'Chain Data Delete Complete'

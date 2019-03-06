@@ -40,6 +40,20 @@
         }
       ]
     },{
+      "name": "chainList",
+      "base": "",
+      "fields": [{
+          "name": "name",
+          "type": "string"
+        },{
+          "name": "id",
+          "type": "uint64"
+        },{
+          "name": "chainhash",
+          "type": "uint32"
+        }
+      ]
+    },{
       "name": "key_name",
       "base": "",
       "fields": [{
@@ -108,16 +122,16 @@
       "name": "addaddress",
       "base": "",
       "fields": [{
-          "name": "fio_address",
+          "name": "fioaddress",
           "type": "string"
         },{
-          "name": "chain",
+          "name": "tokencode",
           "type": "string"
         },{
-          "name": "pub_address",
+          "name": "pubaddress",
           "type": "string"
         },{
-          "name": "requestor",
+          "name": "actor",
           "type": "name"
         }
       ]
@@ -192,6 +206,16 @@
         "string"
       ],
       "type": "domain"
+    },{
+      "name": "chains",
+      "index_type": "i64",
+      "key_names": [
+        "name"
+      ],
+      "key_types": [
+        "string"
+      ],
+      "type": "chainList"
     },{
       "name": "keynames",
       "index_type": "i64",

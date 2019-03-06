@@ -95,12 +95,20 @@ namespace fioio {
 
     inline bool isChainNameValid( string chain ){
         if (chain.size() >= 1 && chain.size() <= 10){
-            if(chain.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789") != std::string::npos) {
+            if(chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") != std::string::npos) {
                 return false;
             }
         } else {
             return false;
         }
         return true;
+    }
+
+    inline string chainToUpper( string chain ) {
+        string my_chain = chain;
+
+        transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+
+        return my_chain;
     }
 }
