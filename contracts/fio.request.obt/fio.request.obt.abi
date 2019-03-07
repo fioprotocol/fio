@@ -42,7 +42,7 @@
           "type": "uint64"
         },{
           "name": "status",
-          "type": "string"
+          "type": "uint64"
         },{
           "name": "metadata",
           "type": "string"

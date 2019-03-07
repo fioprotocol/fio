@@ -61,14 +61,14 @@ namespace fioio {
     struct fioreqsts {
         uint64_t    id;             // primary key, auto-increment
         uint64_t    fioreqid;       // FIO request {fioreqctxt.fioreqid} this request status update is related to
-        trxstatus   status;         // request status
+        uint64_t   status;         // request status
         string      metadata;       // JSON formatted meta data e.g. {"obt_hash": "962167B2F99B20"}
         uint64_t    fiotime;        // FIO blockchain status update received timestamp
 
         uint64_t primary_key() const     { return id; }
         uint64_t by_fioreqid() const    { return fioreqid; }
         uint64_t by_fiotime() const     { return fiotime; }
-        EOSLIB_SERIALIZE(fioreqsts, (id)(fioreqid)(status)(fiotime))
+        EOSLIB_SERIALIZE(fioreqsts, (id)(fioreqid)(status)(metadata)(fiotime))
     };
     // FIO requests status table
     typedef multi_index<N(fioreqstss), fioreqsts,

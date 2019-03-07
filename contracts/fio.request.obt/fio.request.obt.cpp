@@ -154,7 +154,7 @@ namespace fioio {
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();;
                     fr.fioreqid = requestId;
-                    fr.status = static_cast<trxstatus >(trxstatus::senttobc);
+                    fr.status = static_cast<int64_t >(trxstatus::senttobc);
                     fr.metadata = "";
                     fr.fiotime = currentTime;
                 });
@@ -254,7 +254,7 @@ namespace fioio {
             fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                 fr.id = fiorequestStatusTable.available_primary_key();;
                 fr.fioreqid = requestId;
-                fr.status = static_cast<trxstatus >(trxstatus::rejected);
+                fr.status = static_cast<int64_t >(trxstatus::rejected);
                 fr.metadata = "";
                 fr.fiotime = currentTime;
             });
