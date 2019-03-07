@@ -76,7 +76,7 @@
           "type": "uint32"
         }
       ]
-    },{
+     },{
       "name": "fiopubaddr",
       "base": "",
       "fields": [{
@@ -90,6 +90,18 @@
           "type": "uint64"
         },{
           "name": "pubkey",
+           "type": "string"
+         }
+       ]
+
+    },{
+      "name": "eosio_name",
+      "base": "",
+      "fields": [{
+          "name": "account",
+          "type": "name"
+        },{
+          "name": "clientkey",
           "type": "string"
         }
       ]
@@ -158,6 +170,19 @@
           "type": "string"
         }
       ]
+  },{
+    "name": "bind2eosio",
+    "base": "",
+    "fields": [{
+    "name": "account",
+    "type": "name"
+    },{
+    "name": "client_key",
+    "type": "string"
+    },{
+    "name": "existing",
+    "type": "bool"
+    }]
     }
   ],
   "actions": [{
@@ -184,6 +209,10 @@
       "name": "addfiopubadd",
       "type": "addfiopubadd",
       "ricardian_contract": ""
+   },{
+    "name": "bind2eosio",
+    "type": "bind2eosio",
+    "ricardian_contract": ""
     }
   ],
   "tables": [{
@@ -227,15 +256,25 @@
       ],
       "type": "key_name"
     },{
-      "name": "fiopubs",
+       "name": "fiopubs",
+       "index_type": "i64",
+       "key_names": [
+         "fiopubindex"
+       ],
+       "key_types": [
+         "uint64"
+       ],
+       "type": "fiopubaddr"
+},{
+      "name": "eosionames",
       "index_type": "i64",
       "key_names": [
-        "fiopubindex"
+        "account"
       ],
       "key_types": [
         "uint64"
       ],
-      "type": "fiopubaddr"
+      "type": "eosio_name"
     }
   ],
   "ricardian_clauses": [],

@@ -23,7 +23,12 @@ if [ -d node2/ ]; then
     restartneeded=1
 fi
 
-read -p $'1. Local Blockchain ( No SDK Support ) 2. AWS Launch\n3. MacOS (Test) Install 4. Nuke All\nChoose(#):' mChoice
+if [ -z "$1" ]; then
+    read -p $'1. Local Blockchain ( No SDK Support ) 2. AWS Launch\n3. MacOS (Test) Install 4. Nuke All\nChoose(#):' mChoice
+else
+    mChoice=$1
+fi
+
 
 #Fio Name Directory Check
 if [ -f /build/contracts/fio.name/fio.name.wasm ]; then
@@ -155,12 +160,6 @@ if [ $mChoice == 1 ]; then
 
     retries=3
     chkdomain "brd"
-    for (( retries=3; $(($retries > 0 && $dom == 1)); retries=$(($retries - 1)) )); do
-        echo creating domain has $retries retries left
-        cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"lamb","actor":"fio.system"}' --permission fio.system@active
-        sleep 1
-        chkdomain "lamb"
-    done
     cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"brd","actor":"fio.system"}' --permission fio.system@active
 
     sleep 1

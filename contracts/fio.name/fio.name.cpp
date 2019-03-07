@@ -15,6 +15,7 @@
  *  Ed Rotthoff 10-26-2018
  *  Phil Mesnier 12-26-2018
  *  Casey Gardiner 3/5/2019
+ *  Phil Mesnier 3/5/2019
  */
 
 #include <eosiolib/asset.hpp>
@@ -25,6 +26,7 @@
 #include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <eosio/chain/fioio/chain_control.hpp>
 #include <climits>
+#include <eosiolib/types.hpp>
 
 namespace fioio{
 
@@ -36,13 +38,14 @@ namespace fioio{
         keynames_table keynames;
         trxfees_singleton trxfees;
         fiopubs_table fiopubs;
+        eosio_names_table eosionames;
         config appConfig;
 
         const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
 
     public:
         FioNameLookup(account_name self)
-        : contract(self), domains(self, self), fionames(self, self), keynames(self, self), fiopubs(self, self), chains(self, self), trxfees(FeeContract,FeeContract)
+           : contract(self), domains(self, self), fionames(self, self), keynames(self, self), trxfees(FeeContract,FeeContract), fiopubs(self, self), eosionames(self, self), chains(self, self)
         {
             configs_singleton configsSingleton(FeeContract,FeeContract);
             appConfig = configsSingleton.get_or_default(config());
@@ -50,35 +53,30 @@ namespace fioio{
 
         [[eosio::action]]
         void registername(const string &fioname, const account_name &actor) {
+
             require_auth(actor); // check for requestor authority; required for fee transfer
 
             // Split the fio name and domain portions
-            FioAddress fa = getFioAddressStruct(fioname);
+            FioAddress fa;
+            getFioAddressStruct(fioname, fa);
 
-            string name = fa.fioname;
-            string domain = fa.fiodomain;
-            string newname = fa.fiopubaddress;
-            bool domainOnly = fa.domainOnly; // used for name syntax validation check.
+            print ("fioname = ", fioname, " fa = ", fa.fiopubaddress, "\n");
+            int res = fa.domainOnly ? isFioNameValid(fa.fiodomain)*10 : isFioNameValid(fa.fioname);
+            print("fioname: ", fa.fioname, ", Domain: ", fa.fiodomain, " error code = ", res, "\n");
 
-            fio_400_assert(isDomainNameValid(domain, domainOnly), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
-            fio_400_assert(fioNameSizeCheck(name, domain), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            string value = fa.fiopubaddress + " error = " + to_string(res);
+            fio_400_assert(res == 0, "fio_name", value, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
-            if(!name.empty()){
-                fio_400_assert(isFioNameValid(name), "fio_name", newname, "Invalid FIO name format", ErrorInvalidFioNameFormat);
-            }
-
-            print("fioname: ", name, ", Domain: ", domain, "\n");
-
-            uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
+            uint64_t domainHash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
             asset registerFee;
             string registerMemo;
             auto fees = trxfees.get_or_default(trxfee());
             uint32_t expiration_time = 0;
 
-            if (name.empty()) { // domain register
+            if (fa.domainOnly) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter == domains.end(), "fio_name", newname, "FIO domain already registered", ErrorDomainAlreadyRegistered);
+                fio_400_assert(domains_iter == domains.end(), "fio_name", fa.fiopubaddress, "FIO domain already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 //get the expiration for this new domain.
@@ -87,7 +85,7 @@ namespace fioio{
                 // Issue, create and transfer nft domain token
                 // Add domain entry in domain table
                 domains.emplace(_self, [&](struct domain &d) {
-                    d.name = domain;
+                    d.name = fa.fiodomain;
                     d.domainhash = domainHash;
                     d.expiration = expiration_time;
                 });
@@ -96,22 +94,23 @@ namespace fioio{
                 registerFee = fees.domregiter;
             } else { // fioname register
 
-				// check if domain exists.
+// check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter != domains.end(), "fio_name", newname, "FIO Domain not registered", ErrorDomainNotRegistered);
+                fio_400_assert(domains_iter != domains.end(), "fio_name", fa.fiopubaddress, "FIO Domain not registered", ErrorDomainNotRegistered);
+
 
                 // TODO check if domain permission is valid.
 
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                fio_400_assert(present_time <= domain_expiration,"fio_name", newname, "FIO Domain expired", ErrorDomainExpired);
+                fio_400_assert(present_time <= domain_expiration,"fio_name", fa.fiopubaddress, "FIO Domain expired", ErrorDomainExpired);
 
                 // check if fioname is available
-                uint64_t nameHash = ::eosio::string_to_uint64_t(newname.c_str());
+                uint64_t nameHash = ::eosio::string_to_uint64_t(fa.fiopubaddress.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                fio_400_assert(fioname_iter == fionames.end(), "fio_name", newname,"FIO name already registered", ErrorFioNameAlreadyRegistered);
+                fio_400_assert(fioname_iter == fionames.end(), "fio_name", fa.fiopubaddress,"FIO name already registered", ErrorFioNameAlreadyRegistered);
 
                 //set the expiration on this new fioname
                 expiration_time = get_now_plus_one_year();
@@ -124,16 +123,18 @@ namespace fioio{
 
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a){
-                    a.name = newname;
+                    a.name = fa.fiopubaddress;
                     a.namehash = nameHash;
-                    a.domain = domain;
+                    a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses[1] = newname;
+                    a.addresses[1] = fa.fiopubaddress;
                 });
 
                 registerFee = fees.nameregister;
             } // else
+
+
 
             if (appConfig.pmtson) {
                 // collect fees
@@ -149,7 +150,7 @@ namespace fioio{
                 print("Payments currently disabled.");
             }
 
-            nlohmann::json json = {{"status","OK"},{"fio_name",newname},{"expiration",expiration_time}};
+            nlohmann::json json = {{"status","OK"},{"fio_name",fa.fiopubaddress},{"expiration",expiration_time}};
             send_response(json.dump().c_str());
         }
 
@@ -311,42 +312,70 @@ namespace fioio{
       eosio_assert_message_code(!pub_key.empty(), "Public Key field cannot be empty", ErrorPubKeyEmpty);
 
       // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
-      require_auth(::eosio::string_to_name(FIO_SYSTEM));
+       require_auth(::eosio::string_to_name(FIO_SYSTEM));
 
-      string pub = pub_address;
-      string key = pub_key;
+       string pub = pub_address;
+       string key = pub_key;
+       //The indexes need to be calculated correctly here.
+       //Public Key and Public Address must be hashed uniquely to 12 characters to represent indexes.
+       uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
+       uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
 
-      //The indexes need to be calculated correctly here.
-      //Public Key and Public Address must be hashed uniquely to 12 characters to represent indexes.
-      uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
-      uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
+       ///////////////////////////////////////////////////
+       //To do: Keep emplacing new entries or replace new ?
 
-      ///////////////////////////////////////////////////
-      //To do: Keep emplacing new entries or replace new ?
-
-      auto fiopubadd_iter = fiopubs.find(fiopubindex);
-      if (fiopubadd_iter != fiopubs.end()) {
+       auto fiopubadd_iter = fiopubs.find(fiopubindex);
+       if (fiopubadd_iter != fiopubs.end()) {
           print("Found pub address: pub address: ", fiopubadd_iter->fiopub, ", pub key: ", fiopubadd_iter->pubkey, "\n");
           print("Found pub address: n pub address hash: ", fiopubindex, ",n pub key hash: ", pubkeyindex, "o pub address hash: ", fiopubadd_iter->fiopubindex, ",o pub key hash: ", fiopubadd_iter->pubkeyindex, "\n");
-      } else {
-          print("No pub address match found.");
-      }
-      eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
+       } else {
+         print("No pub address match found.");
+       }
+       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
 
-      fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
-        f.fiopub = pub_address; // The public address
-        f.pubkey = pub_key; // The public Key
-        f.fiopubindex = fiopubindex; // The index of the public address
-        f.pubkeyindex = pubkeyindex; // The index of the public key
-      });
+       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
+                                 f.fiopub = pub_address; // The public address
+                                 f.pubkey = pub_key; // The public Key
+                                 f.fiopubindex = fiopubindex; // The index of the public address
+                                 f.pubkeyindex = pubkeyindex; // The index of the public key
+                              });
 
-      // json response
-      nlohmann::json json = {{"status","OK"},{"pub_address",pub_address},{"pub_key",pub_key}};
-      send_response(json.dump().c_str());
-
+       // json response
+       nlohmann::json json = {{"status","OK"},{"pub_address",pub_address},{"pub_key",pub_key}};
+       send_response(json.dump().c_str());
     } // addfiopubadd
+
+   /**
+    *
+    * Separate out the management of platform-specific identities from the fio names
+    * and domains. bind2eosio, the space restricted variant of "Bind to EOSIO"
+    * takes a platform-specific account name and a wallet generated public key.
+    *
+    * First it verifie that either tsi is a new account and none othe exists, or this
+    * is an existing eosio account and it is indeed bound to this key. If it is a new,
+    * unbound account name, then bind name to the key and add it to the list.
+    *
+    **/
+
+   [[eosio::action]]
+   void bind2eosio (name account, const string& client_key, bool existing) {
+    // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
+      require_auth(::eosio::string_to_name(FIO_SYSTEM));
+
+      auto other = eosionames.find(account);
+      if (other != eosionames.end()) {
+         eosio_assert_message_code(existing && client_key == other->clientkey, "EOSIO account already bound", ErrorPubAddressExist);
+            // name in the table and it matches
+      } else {
+         eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
+         eosionames.emplace(_self, [&](struct eosio_name &p) {
+                                      p.account = account;
+                                      p.clientkey = client_key;
+                                   });
+      }
+   }
 
     }; // class FioNameLookup
 
-    EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd) )
+   EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd)(bind2eosio))
 }
