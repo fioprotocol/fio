@@ -85,8 +85,6 @@ namespace fioio {
             if(chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") != std::string::npos) {
                 return false;
             }
-        } else {
-            return false;
         }
         return true;
     }
