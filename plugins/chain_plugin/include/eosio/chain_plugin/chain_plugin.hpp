@@ -66,6 +66,17 @@ struct fioaddress_record {
 
 };
 
+struct request_record {
+    uint64_t    fioreqid;       // one up index starting at 0
+    uint64_t    fromfioaddr;   // sender FIO address e.g. john.xyz
+    uint64_t    tofioaddr;     // receiver FIO address e.g. jane.xyz
+    string      topubaddr;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
+    string      amount;         // token quantity
+    string      tokencode;      // token type e.g. BLU
+    string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
+    uint64_t    fiotime;        // FIO blockchain request received timestamp
+};
+
 template<typename>
 struct resolver_factory;
 
@@ -326,6 +337,25 @@ public:
    };
 
    fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
+
+
+   //begin get pending fio requests
+
+
+
+
+
+   struct get_pending_fio_requests_params {
+       string fiopubadd;  // FIO public address to find requests for..
+   };
+
+    struct get_pending_fio_requests_result {
+        vector<request_record> requests;
+    };
+
+    get_pending_fio_requests_result get_pending_fio_requests( const get_pending_fio_requests_params& params) const;
+   //end get pending fio requests
+
 
   struct get_fio_names_params {
      string fio_pub_address;
@@ -812,6 +842,10 @@ FC_REFLECT( eosio::chain_apis::read_write::push_transaction_results, (transactio
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(encode_type) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
+
+FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_params, (fiopubadd) )
+FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests) )
+FC_REFLECT( eosio::chain_apis::request_record, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );

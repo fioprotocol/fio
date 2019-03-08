@@ -49,6 +49,8 @@ namespace fioio {
   constexpr auto ErrorNoFIONames =                ident | httpDataError | 118; // No FIO Names
   constexpr auto ErrorInvalidJsonInput =            ident | httpDataError | 119;   // invalid json sent for json input
    constexpr auto ErrorRequestContextNotFound =            ident | httpDataError | 120;   // the specified request context record was not found
+    constexpr auto ErrorChainAddressNotFound =         ident | httpDataError | 121;   // Chain address not found
+    constexpr auto ErrorNoFioRequestsFound =         ident | httpDataError | 122;   // no fio requests found
    
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
