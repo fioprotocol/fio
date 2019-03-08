@@ -190,12 +190,12 @@ namespace fioio{
          */
         [[eosio::action]]
         void addaddress(const string &fioaddress, const string &tokencode, const string &pubaddress, const account_name &actor) {
-            fio_400_assert(!fioaddress.empty(), "fioaddress", fioaddress, "FIO address cannot be empty..", ErrorDomainAlreadyRegistered);
-            fio_400_assert(!tokencode.empty(), "tokencode", tokencode, "Chain cannot be empty..", ErrorChainEmpty);
+            fio_400_assert(!fioaddress.empty(), "fioaddress", fioaddress, "Invalid public address format", ErrorDomainAlreadyRegistered);
+            fio_400_assert(!tokencode.empty(), "tokencode", tokencode, "Invalid token code format", ErrorChainEmpty);
 
             // Chain input validation
-            fio_400_assert(!pubaddress.empty(), "pubaddress", pubaddress, "Chain address cannot be empty..", ErrorChainAddressEmpty);
-            fio_400_assert(pubaddress.find(" "), "pubaddress", pubaddress, "Chain address cannot contain whitespace..", ErrorChainContainsWhiteSpace);
+            fio_400_assert(!pubaddress.empty(), "pubaddress", pubaddress, "Invalid public address format", ErrorChainAddressEmpty);
+            fio_400_assert(pubaddress.find(" "), "pubaddress", pubaddress, "Invalid public address format", ErrorChainContainsWhiteSpace);
 
             string my_chain = tokencode;
 
@@ -224,14 +224,14 @@ namespace fioio{
             //print("Name: ", fio_address, ", nameHash: ", nameHash, "..");
             auto fioname_iter = fionames.find(nameHash);
 
-            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not registered..", ErrorFioNameNotRegistered);
+            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress, "FIO Address is expired.", ErrorFioNameExpired);
+            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress, "FIO Address or FIO Domain expired", ErrorFioNameExpired);
 
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
@@ -246,10 +246,10 @@ namespace fioio{
             uint64_t domainHash = ::eosio::string_to_uint64_t(domain.c_str());
 
             auto domains_iter = domains.find(domainHash);
-            fio_404_assert(domains_iter != domains.end(), "FIO Domain not yet register ed.", ErrorDomainNotRegistered);
+            fio_404_assert(domains_iter != domains.end(), "FIO Domain not found", ErrorDomainNotRegistered);
 
             uint32_t expiration = domains_iter->expiration;
-            fio_400_assert(present_time <= expiration, "domain", domain, "FIO Domain is expired.", ErrorDomainExpired);
+            fio_400_assert(present_time <= expiration, "domain", domain, "FIO Address or FIO Domain expired", ErrorDomainExpired);
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
