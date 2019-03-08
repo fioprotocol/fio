@@ -60,6 +60,18 @@ namespace fioio{
             FioAddress fa;
             getFioAddressStruct(fioname, fa);
 
+	    string nFio = "FIO";
+            uint64_t chainhash = ::eosio::string_to_uint64_t(nFio.c_str());
+            auto chain_iter = chains.find(chainhash);
+
+            if( chain_iter == chains.end() ){
+                chains.emplace(_self, [&](struct chainList &a){
+                    a.id = 0;
+                    a.chainname = nFio;
+                    a.chainhash = chainhash;
+                });
+            }	
+		
             print ("fioname = ", fioname, " fa = ", fa.fiopubaddress, "\n");
             int res = fa.domainOnly ? isFioNameValid(fa.fiodomain)*10 : isFioNameValid(fa.fioname);
             print("fioname: ", fa.fioname, ", Domain: ", fa.fiodomain, " error code = ", res, "\n");
@@ -124,11 +136,12 @@ namespace fioio{
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a){
                     a.name = fa.fiopubaddress;
+		    a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
                     a.namehash = nameHash;
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses[1] = fa.fiopubaddress;
+                    a.addresses[0] = fa.fiopubaddress;
                 });
 
                 registerFee = fees.nameregister;
@@ -240,7 +253,7 @@ namespace fioio{
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[(chain_iter)->by_index()] = pubaddress;
+                a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
             });
 
             // insert/update key into key-name table for reverse lookup
