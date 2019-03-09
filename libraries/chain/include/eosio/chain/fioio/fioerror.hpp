@@ -36,7 +36,7 @@ namespace fioio {
    constexpr auto ErrorChainAddressEmpty =         ident | httpDataError | 105;   // Chain address is empty
    constexpr auto ErrorChainContainsWhiteSpace =   ident | httpDataError | 106;   // Chain address contains whitespace
    constexpr auto ErrorChainNotSupported =         ident | httpDataError | 107;   // Chain isn't supported
-   constexpr auto ErrorFioNameNotRegistered =      ident | httpDataError | 108;   // Fioname not yet registered
+   constexpr auto ErrorFioNameNotRegistered =      ident | httpLocationError | 108;   // Fioname not yet registered
    constexpr auto ErrorDomainExpired =             ident | httpDataError | 109;   // Fioname not yet registered
    constexpr auto ErrorFioNameExpired =            ident | httpDataError | 110;   // Fioname not yet registered
    constexpr auto ErrorPubAddressEmpty =           ident | httpDataError | 111;   // Public address is empty
