@@ -27,9 +27,9 @@ namespace fioio {
    constexpr uint64_t httpMask = 0xfffLL << httpOffset;
    constexpr uint64_t ecCodeMask = 0xff;
 
-   constexpr auto ErrorDomainAlreadyRegistered =   ident | httpLocationError | 100;   // Domain is already registered
+   constexpr auto ErrorDomainAlreadyRegistered =   ident | httpDataError | 100;   // Domain is already registered
    constexpr auto ErrorDomainNotRegistered =       ident | httpLocationError | 101;   // Domain not yet registered
-   constexpr auto ErrorFioNameAlreadyRegistered =  ident | httpLocationError | 102;   // Fioname is already registered
+   constexpr auto ErrorFioNameAlreadyRegistered =  ident | httpDataError | 102;   // Fioname is already registered
    
    constexpr auto ErrorFioNameEmpty =              ident | httpDataError | 103;   // FIO user name is empty
    constexpr auto ErrorChainEmpty =                ident | httpDataError | 104;   // Chain name is empty
