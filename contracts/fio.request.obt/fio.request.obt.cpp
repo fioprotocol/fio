@@ -196,12 +196,12 @@ namespace fioio {
             //check the from address, see that its a valid fio name
             uint64_t nameHash = ::eosio::string_to_uint64_t(fromfioadd.c_str());
             auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromfioadd,"No such FIO Address", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromfioadd,"No such FIO Address", Error400FioNameNotRegistered);
 
             //check the to address, see that its a valid fio name
             nameHash = ::eosio::string_to_uint64_t(tofioadd.c_str());
             fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", tofioadd,"No such FIO Address", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != fionames.end(), "tofioadd", tofioadd,"No such FIO Address", Error400FioNameNotRegistered);
 
             //put the thing into the table get the index.
             uint64_t id = fiorequestContextsTable.available_primary_key();

@@ -52,6 +52,7 @@ namespace fioio {
    constexpr auto ErrorRequestContextNotFound =            ident | httpDataError | 120;   // the specified request context record was not found
     constexpr auto ErrorChainAddressNotFound =         ident | httpDataError | 121;   // Chain address not found
     constexpr auto ErrorNoFioRequestsFound =         ident | httpLocationError | 122;   // no fio requests found
+    constexpr auto Error400FioNameNotRegistered =      ident | httpDataError | 123;   // Fioname not yet registered
    
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
