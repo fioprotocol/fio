@@ -1183,7 +1183,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         fioio::FioAddress fa;
 
         // assert if empty fio name
-        FIO_400_ASSERT(!p.fiopubadd.empty(), "fiopubadd", "", "Invalid empty fio public address.", fioio::ErrorChainAddressEmpty);
+        FIO_404_ASSERT(!p.fiopubadd.empty() ,"No Pending FIO Requests",fioio::ErrorNoFioRequestsFound);
 
         //get the public address.
         string fio_pubadd = p.fiopubadd;
