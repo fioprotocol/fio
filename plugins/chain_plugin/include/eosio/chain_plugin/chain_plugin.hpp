@@ -345,13 +345,7 @@ namespace eosio {
 
             fio_name_lookup_result fio_name_lookup(const fio_name_lookup_params &params) const;
 
-
             //begin get pending fio requests
-
-
-
-
-
             struct get_pending_fio_requests_params {
                 string fiopubadd;  // FIO public address to find requests for..
             };
@@ -362,8 +356,19 @@ namespace eosio {
 
             get_pending_fio_requests_result
             get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
-            //end get pending fio requests
 
+            //begin get sent fio requests
+            struct get_sent_fio_requests_params {
+                string fiopubadd;  // FIO public address to find requests for..
+            };
+
+            struct get_sent_fio_requests_result {
+                vector<request_record> requests;
+            };
+
+            get_sent_fio_requests_result
+            get_sent_fio_requests(const get_sent_fio_requests_params &params) const;
+            //end get sent fio requests
 
             struct get_fio_names_params {
                 string fio_pub_address;
@@ -380,7 +385,6 @@ namespace eosio {
              * @return
              */
             get_fio_names_result get_fio_names(const get_fio_names_params &params) const;
-
 
             //avail_check - FIO Address or Domain availability check
             struct avail_check_params {
@@ -902,6 +906,8 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_result, (rows)(more));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fiopubadd))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests))
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fiopubadd))
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests))
 FC_REFLECT(eosio::chain_apis::request_record,
            (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
 
