@@ -1511,10 +1511,10 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
 */
 read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_only::pub_address_lookup_params& p )const {
     // assert if empty fio name
-    EOS_ASSERT( !p.fio_address.empty(), chain::contract_table_query_exception,"Invalid empty name");
+    FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
 
-        fioio::FioAddress fa;
-        fioio::getFioAddressStruct(p.fio_address, fa);
+    fioio::FioAddress fa;
+    fioio::getFioAddressStruct(p.fio_address, fa);
 
     dlog( "fio address: ${name}, fio domain: ${domain}", ("address", fa.fiopubaddress)("domain", fa.fiodomain) );
 
@@ -1620,13 +1620,13 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
 
      chains_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
 
-     //   TBD: CHAIN SPECIFIC PUBLIC ADDRESS LOOKUP
-     //   // validate keys vector size is expected size.
-     //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
-     //
+     FIO_404_ASSERT(!chains_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
      //   // Pick out chain specific key and populate result
      uint32_t c_type = (uint32_t)chains_result.rows[0]["id"].as_uint64();
      result.pub_address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+
+     FIO_404_ASSERT(!(result.pub_address == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
 
     return result;
 } // pub_address_lookup
