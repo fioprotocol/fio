@@ -2295,16 +2295,18 @@ void read_write::new_funds_request(const new_funds_request_params& params, chain
         {
            try {
 
-              auto pretty_input = std::make_shared<packed_transaction>();
+              auto original = std::make_shared<packed_transaction>();
               auto unpacked = std::make_shared<packed_transaction>();
               auto resolver = make_resolver(this, abi_serializer_max_time);
-              transaction trx;
+              abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(), abi_serializer_max_time};
+
+               transaction trx;
               name fiosystem = N(fio.reqobtr);
 
 
               dlog("reject_funds_request called");
               try {
-                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 abi_serializer::from_variant(params, *original, resolver, abi_serializer_max_time);
               } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
               // Full received transaction
@@ -2321,7 +2323,7 @@ void read_write::new_funds_request(const new_funds_request_params& params, chain
               name actor = actions[0].authorization[0].actor;
 
               dlog("got actor ${a}",("a",actor));
-              signed_transaction strx = pretty_input->get_signed_transaction();
+              signed_transaction strx = original->get_signed_transaction();
 
               auto tsig = strx.signatures;
               auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
@@ -2336,44 +2338,79 @@ void read_write::new_funds_request(const new_funds_request_params& params, chain
               //Verify is same as tx
               FIO_403_ASSERT(new_account == string(actor), fioio::ErrorTransaction);
 
-              // step 2: create a new eosio account
-              //TBD   TBD   TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD
-              //TBD   TBD   logic needs added here to manage fio accounts, check if the account to pub key mapping exists,
-              //TBD   TBD   if the mapping does not exist then make the new account and add the account to pub key mapping
-              //TBD   TBD   to the table
-              //TBD   TBD   SEE ED FOR DETAILS
-              //TBD   TBD   TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD
+               const auto& d = db.db();
+               bool eosio_found = false;
+               try {
+                   const auto& a = db.get_account(new_account);
+                   eosio_found = true;
+                   dlog("get_account returned ${a}",("a",a));
+               } catch (...) {
+                   dlog("invoking create_account");
+                   create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
+               }
+               signed_transaction tosend;
+               //   auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
+               fc::crypto::private_key fiosyskey = fc::crypto::private_key(std::string(fioCreatorKey));
+               {
+                   action act;
+                   act.account = fio_system_code;
+                   act.name = N(bind2eosio);
+                   act.authorization = vector<permission_level>{{fio_system_code,config::active_name}};
+                   string existing = eosio_found? "1" : "0";
+                   auto json_payload = fc::json::from_string("{\"account\":\""+new_account+"\",\"client_key\":\""+pubkey+"\",\"existing\":\""+existing+"\"}}");
+                   act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload, abi_serializer_max_time);
+                   tosend.actions.emplace_back(std::move(act));
+               }
 
+               tosend.expiration = db.head_block_time() + fc::seconds(30);
+               tosend.set_reference_block(db.head_block_id());
+               tosend.sign(fiosyskey, chainid);
 
-              const auto& d = db.db();
-              try {
-                 const auto& a = db.get_account(new_account);
-                 dlog("get_account returned ${a}",("a",a));
-              } catch (...) {
-                 dlog("invoking create_account");
-                 create_account(new_account, pubkey, fioCreator, fioCreatorKey, next);
-              }
+               packed_transaction pt(std::move(tosend));
+               auto spt = std::make_shared<packed_transaction>(pt);
+               spt->set_fio_transaction(true);
 
-              dlog("new_acnt = ${n}\npi = ${pi}",("n",new_account)("pi",pretty_input));
+               auto &m = app().get_method<incoming::methods::transaction_async>();
+               using restype = fc::static_variant<fc::exception_ptr, transaction_trace_ptr>;
+               m (spt, true,
+                  [this, &m, original, next](const restype& result)
+                  {
+                      if (result.contains<fc::exception_ptr>()) {
+                          next(result.get<fc::exception_ptr>());
+                      } else {
+                          auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-              app().get_method<incoming::methods::transaction_async>()(pretty_input, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-                  if (result.contains<fc::exception_ptr>()) {
-                     next(result.get<fc::exception_ptr>());
-                  } else {
-                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+                          try {
+                              chain::transaction_id_type id = trx_trace_ptr->id;
+                              fc::variant output;
+                              try {
+                                  output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                              } catch( chain::abi_exception& ) {
+                                  output = *trx_trace_ptr;
+                              }
+                              m( original, true,
+                                 [this, next](const restype &result)
+                                 {
+                                     if (result.contains<fc::exception_ptr>()) {
+                                         next(result.get<fc::exception_ptr>());
+                                     } else {
+                                         auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-                     try {
-                        chain::transaction_id_type id = trx_trace_ptr->id;
-                        fc::variant output;
-                        try {
-                           output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
-                        } catch( chain::abi_exception& ) {
-                           output = *trx_trace_ptr;
-                        }
-                        next(read_write::reject_funds_request_results{ output});
-                     } CATCH_AND_CALL(next);
-                  }
-              });
+                                         try {
+                                             chain::transaction_id_type id = trx_trace_ptr->id;
+                                             fc::variant output;
+                                             try {
+                                                 output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                                             } catch( chain::abi_exception& ) {
+                                                 output = *trx_trace_ptr;
+                                             }
+                                             next(read_write::reject_funds_request_results{ output});
+                                         } CATCH_AND_CALL(next);
+                                     }
+                                 });
+                          } CATCH_AND_CALL(next);
+                      }
+                  });
            } catch ( const boost::interprocess::bad_alloc& ) {
               chain_plugin::handle_db_exhaustion();
            } CATCH_AND_CALL(next);
