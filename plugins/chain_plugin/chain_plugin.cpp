@@ -1172,6 +1172,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
    const name fio_address_table = N(fionames); // FIO Address Table
    const name fio_domains_table = N(domains); // FIO Domains Table
+   const name fio_chains_table = N(chains); // FIO Chains Table
 
 
     /***
@@ -1503,6 +1504,133 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
   result.fio_pub_address = p.fio_pub_address;
   return result;
 } // get_fio_names
+
+/***
+* Lookup address by FIO name.
+* @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+* @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+*/
+read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_only::pub_address_lookup_params& p )const {
+    // assert if empty fio name
+    FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
+
+    fioio::FioAddress fa;
+    fioio::getFioAddressStruct(p.fio_address, fa);
+
+    dlog( "fio address: ${name}, fio domain: ${domain}", ("address", fa.fiopubaddress)("domain", fa.fiodomain) );
+
+    //declare variables.
+    const name code = ::eosio::string_to_name("fio.system");
+    const abi_def abi = eosio::chain_apis::get_abi( db, code );
+
+    const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_address.c_str());
+    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
+    const uint64_t chain_hash = ::eosio::string_to_uint64_t( p.token_code.c_str());
+    dlog( "fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash) );
+
+    //these are the results for the table searches for domain ansd fio name
+    get_table_rows_result domain_result;
+    get_table_rows_result fioname_result;
+    get_table_rows_result chains_result;
+    //this is the table rows result to use after domain/fioname specific processing
+    get_table_rows_result name_result;
+    //this is the result returned to the user
+    pub_address_lookup_result result;
+
+    //process the domain first, see if it exists aand then check the expiration.
+    //we return an empty result if the domain is expired.
+
+    //get the domain, check if the domain is expired.
+    get_table_rows_params table_row_params = get_table_rows_params{.json=true,
+            .code=code,
+            .scope=fio_system_scope,
+            .table=fio_domains_table,
+            .lower_bound=boost::lexical_cast<string>(domain_hash),
+            .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
+            .encode_type="dec"};
+
+    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+
+    // If no matches, then domain not found, return empty result
+    dlog( "Domain matched: ${matched}", ("matched", !domain_result.rows.empty()) );
+    if (domain_result.rows.empty()) {
+        return result;
+    }
+
+    uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
+    //This is not the local computer time, it is in fact the block time.
+    uint32_t present_time = (uint32_t)time(0);
+
+    //if the domain is expired then return an empty result.
+    dlog( "Domain expired: ${expired}", ("expired", present_time > domain_expiration) );
+    if (present_time > domain_expiration) {
+        return result;
+    }
+
+    //set name result to be the domain results.
+    name_result = domain_result;
+    result.fio_address = p.fio_address;
+    result.token_code = p.token_code;
+
+    if (!fa.fioname.empty()){
+        //query the names table and check if the name is expired
+        get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                .code=code,
+                .scope=fio_system_scope,
+                .table=fio_address_table,
+                .lower_bound=boost::lexical_cast<string>(name_hash),
+                .upper_bound=boost::lexical_cast<string>(name_hash + 1),
+                .encode_type="dec",
+                .index_position ="1"};
+
+        fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+
+        // If no matches, the name does not exist, return empty result
+        dlog( "FIO address matched: ${matched}", ("matched", !fioname_result.rows.empty()) );
+        if (fioname_result.rows.empty()) {
+            return result;
+        }
+
+        uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
+
+        //if the name is expired then return an empty result.
+        dlog( "FIO name expired: ${expired}", ("expired", present_time > domain_expiration) );
+        if (present_time > domain_expiration) {
+            return result;
+        }
+
+        //set the result to the name results
+        name_result = fioname_result;
+    }else {
+        result.pub_address = "";
+        return result;
+    }
+
+     // chain support check
+     string my_chain = p.token_code;
+     //chain_type c_type= str_to_chain_type(my_chain);
+
+     //Get Chains Table
+     get_table_rows_params chain_table_row_params = get_table_rows_params{.json=true,
+             .code=code,
+             .scope=fio_system_scope,
+             .table=fio_chains_table,
+             .lower_bound=boost::lexical_cast<string>(chain_hash),
+             .upper_bound=boost::lexical_cast<string>(chain_hash + 1),
+             .encode_type="dec"};
+
+     chains_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+
+     FIO_404_ASSERT(!chains_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+     //   // Pick out chain specific key and populate result
+     uint32_t c_type = (uint32_t)chains_result.rows[0]["id"].as_uint64();
+     result.pub_address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+
+     FIO_404_ASSERT(!(result.pub_address == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+    return result;
+} // pub_address_lookup
 
 /***
  * Checks if a FIO Address or FIO Domain is available for registration.

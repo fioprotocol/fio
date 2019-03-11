@@ -47,13 +47,14 @@ namespace fioio {
    constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
    constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
    constexpr auto ErrorTransaction =               ident | httpInvalidError | 117;   // Public address exists
-  constexpr auto ErrorNoFIONames =                ident | httpDataError | 118; // No FIO Names
-  constexpr auto ErrorInvalidJsonInput =            ident | httpDataError | 119;   // invalid json sent for json input
+   constexpr auto ErrorNoFIONames =                ident | httpDataError | 118; // No FIO Names
+   constexpr auto ErrorInvalidJsonInput =            ident | httpDataError | 119;   // invalid json sent for json input
    constexpr auto ErrorRequestContextNotFound =            ident | httpDataError | 120;   // the specified request context record was not found
-    constexpr auto ErrorChainAddressNotFound =         ident | httpDataError | 121;   // Chain address not found
-    constexpr auto ErrorNoFioRequestsFound =         ident | httpLocationError | 122;   // no fio requests found
-    constexpr auto Error400FioNameNotRegistered =      ident | httpDataError | 123;   // Fioname not yet registered
-   
+   constexpr auto ErrorChainAddressNotFound =         ident | httpDataError | 121;   // Chain address not found
+   constexpr auto ErrorNoFioRequestsFound =         ident | httpLocationError | 122;   // no fio requests found
+   constexpr auto Error400FioNameNotRegistered =      ident | httpDataError | 123;   // Fioname not yet registered
+   constexpr auto ErrorPubAddressNotFound =        ident | httpLocationError | 124; //Pub Address not found
+
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */
