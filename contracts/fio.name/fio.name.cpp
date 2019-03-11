@@ -60,7 +60,7 @@ namespace fioio{
             FioAddress fa;
             getFioAddressStruct(fioname, fa);
 
-	    string nFio = "FIO";
+            string nFio = "FIO";
             uint64_t chainhash = ::eosio::string_to_uint64_t(nFio.c_str());
             auto chain_iter = chains.find(chainhash);
 

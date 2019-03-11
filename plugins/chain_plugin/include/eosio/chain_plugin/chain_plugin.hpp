@@ -366,6 +366,18 @@ public:
     vector<fioaddress_record>  fio_addresses;
     };
 
+    struct pub_address_lookup_params {
+        fc::string fio_address;
+        fc::string token_code;
+    };
+
+    struct pub_address_lookup_result {
+        fc::string fio_address;
+        fc::string token_code;
+        fc::string pub_address;
+    };
+
+    pub_address_lookup_result pub_address_lookup(const pub_address_lookup_params& params) const;
      /**
       * Lookup FIO domains and addresses based upon public address
       * @param params
@@ -849,6 +861,9 @@ FC_REFLECT( eosio::chain_apis::request_record, (fioreqid)(fromfioaddr)(tofioaddr
 
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
 FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );
+
+FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code) )
+FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_result, (fio_address)(token_code)(pub_address));
 
 FC_REFLECT( eosio::chain_apis::fiodomain_record, (fio_domain)(expiration))
 FC_REFLECT( eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
