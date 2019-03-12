@@ -47,7 +47,40 @@ namespace eosio {
 
       for( uint32_t i = 0; i <= 12; ++i ) {
          uint64_t c = 0;
-         if( i < len && i <= 12 ) c = uint64_t(char_to_symbol( str[i] ));
+		 if( i < len && i <= 12 ) c = uint64_t(char_to_symbol( str[i] ));
+         if( i < 12 ) {
+            c &= 0x1f;
+            c <<= 64-5*(i+1);
+         }
+         else {
+            c &= 0x0f;
+         }
+
+         value |= c;
+      }
+
+      return value;
+   }
+	
+	   /**
+    *  Converts a string to a uint64_t. This is a constexpr so that
+    *  this method can be used in template arguments as well.
+    *
+    *  @brief Converts a string to a uint64_t.
+    *  @param str - String representation of the name
+    *  @return constexpr uint64_t - 64-bit unsigned integer form of the string for hashing 
+    *  @ingroup types
+    */
+   static constexpr uint64_t string_to_uint64_t( const char* str ) {
+
+      uint32_t len = 0;
+      while( str[len] ) ++len;
+
+      uint64_t value = 0;
+
+      for( uint32_t i = 0; i <= 12; ++i ) {
+         uint64_t c = 0;
+         if( i < len && i <= 12 ) c = uint64_t(str[i]);
 
          if( i < 12 ) {
             c &= 0x1f;
@@ -62,6 +95,8 @@ namespace eosio {
 
       return value;
    }
+	
+
 
    /**
     * Used to generate a compile time uint64_t from the base32 encoded string interpretation of X
@@ -72,7 +107,6 @@ namespace eosio {
     * @ingroup types
     */
    #define N(X) ::eosio::string_to_name(#X)
-
 
    static constexpr uint64_t name_suffix( uint64_t n ) {
       uint32_t remaining_bits_after_last_actual_dot = 0;

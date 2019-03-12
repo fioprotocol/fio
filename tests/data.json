@@ -1,0 +1,18 @@
+{
+  "threshold": 1,
+  "keys": [
+    {
+      "key": "EOS8ApHc48DpXehLznVqMJgMGPAaJoyMbFJbfDLyGQ5QjF7nDPuvJ",
+      "weight": 1
+    }
+  ],
+  "accounts": [
+    {
+      "permission": {
+        "actor": "fio.system",
+        "permission": "eosio.code"
+      },
+      "weight": 1
+    }
+  ]
+}
