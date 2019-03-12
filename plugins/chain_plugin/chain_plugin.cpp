@@ -1557,7 +1557,7 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
 
     // If no matches, then domain not found, return empty result
     dlog( "Domain matched: ${matched}", ("matched", !domain_result.rows.empty()) );
-    FIO_400_ASSERT(!domain_result.rows.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
+    FIO_404_ASSERT(!domain_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
 
     uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
     //This is not the local computer time, it is in fact the block time.
@@ -1585,7 +1585,7 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
 
         // If no matches, the name does not exist, return empty result
         dlog( "FIO address matched: ${matched}", ("matched", !fioname_result.rows.empty()) );
-        FIO_400_ASSERT(!fioname_result.rows.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
+        FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
 
         uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
 
@@ -1596,7 +1596,7 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
         //set the result to the name results
         name_result = fioname_result;
     }else {
-        FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
+        FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
     }
 
      // chain support check
