@@ -82,7 +82,7 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
   
 ##### Add FIO Address  
   
-    cleos -u http://localhost:8889 push action -j fio.system addaddress '{"fio_user_name":"name.brd","chain":"FIO","address":"FIOADDRESS","actor":"fioname11111"}' --permission fioname11111@active  
+    cleos -u http://localhost:8889 push action -j fio.system addaddress '{"fioaddress":"name.brd","tokencode":"FIO","pubaddress":"FIOADDRESS.FIO","actor":"fioname11111"}' --permission fioname11111@active  
   
 ##### Get Registered FIO Names  
   
@@ -91,7 +91,11 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
 ##### Get Registered FIO Domains  
   
     cleos -u http://localhost:8889 get table fio.system fio.system domains  
+
+##### Get Registered FIO Chains  
   
+    cleos -u http://localhost:8889 get table fio.system fio.system chains  
+    
 ##### Test API Endpoints  
   
     curl --request POST  http://localhost:8889/v1/chain/avail_check --data '{"fio_name":"test.brd"}'
@@ -99,3 +103,7 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
 ##### API Call for register_fio_name
 
     curl --request POST --url http://localhost:8889/v1/chain/register_fio_name  --data '<packed signed transaction>'
+
+##### API Call for add_pub_address
+
+    curl --request POST --url http://localhost:8889/v1/chain/add_pub_address  --data '<packed signed transaction>'
