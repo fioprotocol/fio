@@ -52,7 +52,7 @@ namespace fioio{
         }
 
         [[eosio::action]]
-        void registername(const string &fioname, const account_name &actor) {
+        void registername(const string &fioname, const name &actor) {
 
             require_auth(actor); // check for requestor authority; required for fee transfer
 
@@ -70,8 +70,8 @@ namespace fioio{
                     a.chainname = nFio;
                     a.chainhash = chainhash;
                 });
-            }	
-		
+            }
+
             print ("fioname = ", fioname, " fa = ", fa.fiopubaddress, "\n");
             int res = fa.domainOnly ? isFioNameValid(fa.fiodomain)*10 : isFioNameValid(fa.fioname);
             print("fioname: ", fa.fioname, ", Domain: ", fa.fiodomain, " error code = ", res, "\n");
@@ -141,9 +141,9 @@ namespace fioio{
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses[0] = fa.fiopubaddress;
+                    a.addresses[0] = actor.to_string();
                 });
-
+                addaddress(fa.fiopubaddress,"FIO",actor.to_string(),actor);
                 registerFee = fees.nameregister;
             } // else
 
