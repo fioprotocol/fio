@@ -75,6 +75,12 @@ namespace eosio { namespace chain {
 
    };
 
+    /**
+     *  A transaction consits of a set of messages which must all be applied or
+     *  all are rejected. These messages have access to data within the given
+     *  read and write scopes.
+     */
+
    struct signed_transaction : public transaction
    {
       signed_transaction() = default;
@@ -129,6 +135,7 @@ namespace eosio { namespace chain {
       fc::enum_type<uint8_t,compression_type> compression;
       bytes                                   packed_context_free_data;
       bytes                                   packed_trx;
+      bool                                    is_fio_trx = false;
 
       time_point_sec     expiration()const;
       transaction_id_type id()const;
@@ -139,13 +146,16 @@ namespace eosio { namespace chain {
       signed_transaction get_signed_transaction()const;
       void               set_transaction(const transaction& t, compression_type _compression = none);
       void               set_transaction(const transaction& t, const vector<bytes>& cfd, compression_type _compression = none);
+      bool               is_fio_transaction() const { return is_fio_trx; }
+      void               set_fio_transaction(const bool fio_trx) { this->is_fio_trx = fio_trx; }
 
    private:
       mutable optional<transaction>           unpacked_trx; // <-- intermediate buffer used to retrieve values
       void local_unpack()const;
    };
 
-   using packed_transaction_ptr = std::shared_ptr<packed_transaction>;
+
+        using packed_transaction_ptr = std::shared_ptr<packed_transaction>;
 
    /**
     *  When a transaction is generated it can be scheduled to occur

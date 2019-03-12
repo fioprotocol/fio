@@ -12,7 +12,6 @@ namespace eosio {
 static appbase::abstract_plugin& _chain_api_plugin = app().register_plugin<chain_api_plugin>();
 
 using namespace eosio;
-
 class chain_api_plugin_impl {
 public:
    chain_api_plugin_impl(controller& db)
@@ -83,31 +82,42 @@ void chain_api_plugin::plugin_startup() {
    ro_api.set_shorten_abi_errors( !_http_plugin.verbose_errors() );
 
    _http_plugin.add_api({
-      CHAIN_RO_CALL(get_info, 200l),
-      CHAIN_RO_CALL(get_block, 200),
-      CHAIN_RO_CALL(get_block_header_state, 200),
-      CHAIN_RO_CALL(get_account, 200),
-      CHAIN_RO_CALL(get_code, 200),
-      CHAIN_RO_CALL(get_code_hash, 200),
-      CHAIN_RO_CALL(get_abi, 200),
-      CHAIN_RO_CALL(get_raw_code_and_abi, 200),
-      CHAIN_RO_CALL(get_raw_abi, 200),
-      CHAIN_RO_CALL(get_table_rows, 200),
-      CHAIN_RO_CALL(fio_name_lookup, 200),
-      CHAIN_RO_CALL(fio_key_lookup, 200),
-      CHAIN_RO_CALL(get_table_by_scope, 200),
-      CHAIN_RO_CALL(get_currency_balance, 200),
-      CHAIN_RO_CALL(get_currency_stats, 200),
-      CHAIN_RO_CALL(get_producers, 200),
-      CHAIN_RO_CALL(get_producer_schedule, 200),
-      CHAIN_RO_CALL(get_scheduled_transactions, 200),
-      CHAIN_RO_CALL(abi_json_to_bin, 200),
-      CHAIN_RO_CALL(abi_bin_to_json, 200),
-      CHAIN_RO_CALL(get_required_keys, 200),
-      CHAIN_RO_CALL(get_transaction_id, 200),
-      CHAIN_RW_CALL_ASYNC(push_block, chain_apis::read_write::push_block_results, 202),
-      CHAIN_RW_CALL_ASYNC(push_transaction, chain_apis::read_write::push_transaction_results, 202),
-      CHAIN_RW_CALL_ASYNC(push_transactions, chain_apis::read_write::push_transactions_results, 202)
+      	CHAIN_RO_CALL(get_info, 200l),
+      	CHAIN_RO_CALL(get_block, 200),
+      	CHAIN_RO_CALL(get_block_header_state, 200),
+      	CHAIN_RO_CALL(get_account, 200),
+      	CHAIN_RO_CALL(get_code, 200),
+      	CHAIN_RO_CALL(get_code_hash, 200),
+      	CHAIN_RO_CALL(get_abi, 200),
+      	CHAIN_RO_CALL(get_raw_code_and_abi, 200),
+      	CHAIN_RO_CALL(get_raw_abi, 200),
+      	CHAIN_RO_CALL(get_table_rows, 200),
+        CHAIN_RO_CALL(get_fio_names, 200),
+      	CHAIN_RO_CALL(avail_check, 200),
+      	CHAIN_RO_CALL(get_table_by_scope, 200),
+      	CHAIN_RO_CALL(get_currency_balance, 200),
+      	CHAIN_RO_CALL(get_currency_stats, 200),
+      	CHAIN_RO_CALL(get_producers, 200),
+      	CHAIN_RO_CALL(get_producer_schedule, 200),
+      	CHAIN_RO_CALL(get_scheduled_transactions, 200),
+      	CHAIN_RO_CALL(abi_json_to_bin, 200),
+      	CHAIN_RO_CALL(abi_bin_to_json, 200),
+	    CHAIN_RO_CALL(serialize_json, 200),
+      	CHAIN_RO_CALL(get_required_keys, 200),
+      	CHAIN_RO_CALL(get_transaction_id, 200),
+      	CHAIN_RW_CALL_ASYNC(push_block, chain_apis::read_write::push_block_results, 202),
+      	CHAIN_RW_CALL_ASYNC(push_transaction, chain_apis::read_write::push_transaction_results, 202),
+      	CHAIN_RW_CALL_ASYNC(push_transactions, chain_apis::read_write::push_transactions_results, 202),
+        CHAIN_RO_CALL(fio_name_lookup, 200),
+        CHAIN_RO_CALL(pub_address_lookup, 200),
+        CHAIN_RO_CALL(get_pending_fio_requests, 200),
+        CHAIN_RO_CALL(get_sent_fio_requests, 200),
+        CHAIN_RO_CALL(fio_key_lookup, 200),
+        CHAIN_RW_CALL_ASYNC(register_fio_name, chain_apis::read_write::register_fio_name_results, 202),
+        CHAIN_RW_CALL_ASYNC(add_pub_address, chain_apis::read_write::add_pub_address_results, 202),
+        CHAIN_RW_CALL_ASYNC(record_send, chain_apis::read_write::record_send_results, 202),
+        CHAIN_RW_CALL_ASYNC(reject_funds_request, chain_apis::read_write::reject_funds_request_results, 202),
+        CHAIN_RW_CALL_ASYNC(new_funds_request, chain_apis::read_write::new_funds_request_results, 202)
    });
 }
 

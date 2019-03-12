@@ -89,7 +89,6 @@ flat_set<public_key_type> transaction::get_signature_keys( const vector<signatur
    constexpr size_t recovery_cache_size = 1000;
    static recovery_cache_type recovery_cache;
    const digest_type digest = sig_digest(chain_id, cfd);
-
    flat_set<public_key_type> recovered_pub_keys;
    for(const signature_type& sig : signatures) {
       public_key_type recov;
@@ -346,6 +345,7 @@ signed_transaction packed_transaction::get_signed_transaction() const
 void packed_transaction::set_transaction(const transaction& t, packed_transaction::compression_type _compression)
 {
    try {
+      unpacked_trx.reset();
       switch(_compression) {
          case none:
             packed_trx = pack_transaction(t);
@@ -364,6 +364,7 @@ void packed_transaction::set_transaction(const transaction& t, packed_transactio
 void packed_transaction::set_transaction(const transaction& t, const vector<bytes>& cfd, packed_transaction::compression_type _compression)
 {
    try {
+      unpacked_trx.reset();
       switch(_compression) {
          case none:
             packed_trx = pack_transaction(t);
@@ -379,6 +380,5 @@ void packed_transaction::set_transaction(const transaction& t, const vector<byte
    } FC_CAPTURE_AND_RETHROW((_compression)(t))
    compression = _compression;
 }
-
 
 } } // eosio::chain

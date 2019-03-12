@@ -16,18 +16,26 @@
 #define TOKEN_CONTRACT "eosio.token"
 #endif
 
+#ifndef FIO_SYSTEM
+#define FIO_SYSTEM "fio.system"
+#endif
+
+#ifndef NAME_CONTRACT
+#define NAME_CONTRACT "fio.name"
+#endif
+
+#ifndef FINANCE_CONTRACT
+#define FINANCE_CONTRACT "fio.finance"
+#endif
+
+#ifndef DAYTOSECONDS
+#define DAYTOSECONDS 31561920
+#endif
+
 namespace fioio {
 
     using namespace eosio;
     using namespace std;
-
-    // Currently supported blockchains
-    enum  class chain_type {
-        FIO=0, EOS=1, BTC=2, ETH=3, XMR=4, BRD=5, BCH=6, NONE=7
-    }; // enum  class chain_type
-
-    // Three letter acronyms for individual blockchains. The entries are matched to ${chain_type} positions.
-    static const std::vector<std::string> chain_str {"FIO", "EOS", "BTC", "ETH", "XMR", "BRD", "BCH"};
 
     struct trxfee {
 
@@ -36,14 +44,14 @@ namespace fioio {
         time        expiration = now(); // current election expiration
 
         // wallet names associated fees
-        asset  domregiter = asset(140000, S(4, FIO));   // Fee paid upon the original domain registration/renewal by the user registering. Allows the owner to retain ownership
+        asset  domregiter   = asset(140000, S(4, FIO));   // Fee paid upon the original domain registration/renewal by the user registering. Allows the owner to retain ownership
         // of the wallet domain for a period of 1 year or until transfer
         asset  nameregister = asset(10000, S(4, FIO));  // Fee paid upon the original name registration/renewal by the user registering. Allows the owner to retain ownership
         // of the wallet name for a period of 1 year or until the expiration date of wallet domain. Re-sets the counter for Fee-free Transaction.
-        asset  domtransfer = asset(140000, S(4, FIO));  // Fee paid upon wallet domain transfer of ownership by the transferring user.
+        asset  domtransfer  = asset(140000, S(4, FIO));  // Fee paid upon wallet domain transfer of ownership by the transferring user.
         asset  nametransfer = asset(1000, S(4, FIO));   // Fee paid upon wallet name transfer of ownership by the transferring user.
-        asset  namelookup = asset(1000, S(4, FIO));     // Fee paid for looking up a public address for a given wallet name and coin.
-        asset  upaddress = asset(1000, S(4, FIO));      // Fees paid when wallet name to public address mapping is updated.
+        asset  namelookup   = asset(1000, S(4, FIO));     // Fee paid for looking up a public address for a given wallet name and coin.
+        asset  upaddress    = asset(1000, S(4, FIO));      // Fees paid when wallet name to public address mapping is updated.
 
         // taken associated fees
         asset  transfer = asset(1000, S(4, FIO));   // Fee paid when FIO token is transferred.

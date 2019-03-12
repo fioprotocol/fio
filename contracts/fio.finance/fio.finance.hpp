@@ -45,18 +45,6 @@ namespace fioio {
         REQ_REJECT=      4
     };
 
-    // Supported chains
-    enum  class chain_type {
-        FIO=    0,
-        EOS=    1,
-        BTC=    2,
-        ETH=    3,
-        XMR=    4,
-        BRD=    5,
-        BCH=    6,
-        NONE=   7
-    };
-
     // Structure for "FIO transaction chain" context.
     // A single object per FIO transaction chain.
     // FIO transaction chain is a series of linked individual blockchain transactions.

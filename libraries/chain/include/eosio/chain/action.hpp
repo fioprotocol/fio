@@ -57,11 +57,11 @@ namespace eosio { namespace chain {
     *  application code. An application code will check to see if the required authorization
     *  were properly declared when it executes.
     */
-   struct action {
-      account_name               account;
-      action_name                name;
-      vector<permission_level>   authorization;
-      bytes                      data;
+    struct action {
+        account_name               account;
+        action_name                name;
+        vector<permission_level>   authorization;
+        bytes                      data;
 
       action(){}
 
@@ -92,6 +92,7 @@ namespace eosio { namespace chain {
          return fc::raw::unpack<T>(data);
       }
    };
+
 
    struct action_notice : public action {
       account_name receiver;

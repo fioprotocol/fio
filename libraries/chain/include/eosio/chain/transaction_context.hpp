@@ -56,6 +56,9 @@ namespace eosio { namespace chain {
 
          std::tuple<int64_t, int64_t, bool, bool> max_bandwidth_billed_accounts_can_pay( bool force_elastic_limits = false )const;
 
+         void set_fio_trx(bool fio_trx) { this->_is_fio_trx = fio_trx; }
+         bool is_fio_trx () const { return this->_is_fio_trx; }
+
       private:
 
          friend struct controller_impl;
@@ -124,6 +127,7 @@ namespace eosio { namespace chain {
          fc::microseconds              billing_timer_duration_limit;
 
          deadline_timer                _deadline_timer;
+         bool                          _is_fio_trx = false;
    };
 
 } }

@@ -16,18 +16,25 @@ const exec = util.promisify(require('child_process').exec);
 class Config {
 }
 Config.MaxAccountCreationAttempts=  3;
-Config.EosUrl =                     'http://localhost:8888';
+Config.EosUrl =                     'http://localhost:8889';
 Config.KeosdUrl =                   'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
+Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount} system account active key
 Config.TokenAccount =               "eosio.token"
-Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount}
-Config.NewAccountBuyRamQuantity=    "100.0000 FIO";
-Config.NewAccountStakeNetQuantity=  "100.0000 FIO";
-Config.NewAccountStakeCpuQuantity=  "100.0000 FIO";
+Config.NewAccountBuyRamQuantity=    "1000.0000 FIO";
+Config.NewAccountStakeNetQuantity=  "1000.0000 FIO";
+Config.NewAccountStakeCpuQuantity=  "1000.0000 FIO";
 Config.NewAccountTransfer=          false;
+Config.NameRegisterExpiration=      31561920; // 1 year in seconds
 // Config.TestAccount=              "fioname11111";
 Config.FioFinanceAccount=           "fio.finance";
-Config.LogLevel=                    3; // Log levels 0 - 5 with increasing verbosity.
+Config.FioFinanceAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
+Config.LogLevelTrace = 5
+Config.LogLevelDebug = 4
+Config.LogLevelInfo = 3
+Config.LogLevelWarn = 2
+Config.LogLevelError = 1
+Config.LogLevel=                    Config.LogLevelInfo;
 Config.FinalizationTime=            20;     // time in milliseconds to transaction finalization
 Config.pmtson=                      false;
 
@@ -63,7 +70,7 @@ class Helper {
         if (Config.LogLevel > 4) console.log("Enter execute()");
         if (Config.LogLevel > 4) console.log("Start exec " + command);
 
-        const { stdout, stderr } = await exec(command);
+        const { stdout, stderr } = await exec(command, {maxBuffer: 1024 * 500}); // maximum buffer size is increased to 500KB
         if (Config.LogLevel > 4) console.log("End exec");
         if (debug) {
             console.log('stdout: ' + stdout);
@@ -140,6 +147,37 @@ class Helper {
             });
 
         return [true, result];
+    }
+
+    static async startup() {
+        if (Config.LogLevel > 4) console.log("Enter startup().");
+
+        let result = await Helper.execute("tests/startupNodeos.py", false)
+            .catch(rej => {
+                console.error(`Helper.execute() promise rejection handler.`);
+                throw rej;
+            });
+
+        if (Config.LogLevel > 4) console.log("Exit startup()");
+        return [true, result];
+    }
+
+    static async shutdown() {
+        try {
+            console.log("Shutting down blockchain and wallet.");
+            let result = await Helper.execute("/usr/bin/pkill -9 nodeos", false);
+            result = await Helper.execute("/usr/bin/pkill -9 keosd", false);
+            return [true, result];
+        } catch (e) {
+            console.error("Helper.execute() threw exception");
+            throw e;
+        }
+    }
+
+    static Log(logSwitch, ...restArgs) {
+        if (logSwitch) {
+            console.log(restArgs.toString());
+        }
     }
 
 }

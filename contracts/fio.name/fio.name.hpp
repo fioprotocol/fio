@@ -5,6 +5,7 @@
  *  @copyright Dapix
  *
  *  Changes:
+ *  Adam Androulidakis 12-10-2018 - MAS-114
  *  Adam Androulidakis 9-18-2018
  *  Adam Androulidakis 9-6-2018
  *  Ciju John 9-5-2018
@@ -13,14 +14,12 @@
  *  Adam Androulidakis  8-29-2019
  */
 
-
 #pragma once
 
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 #include <string>
-
 
 using std::string;
 
@@ -37,21 +36,20 @@ namespace fioio {
         uint64_t domainhash = 0;
         //EXPIRATION this is the expiration for this fio name, this is a number of seconds since 1970
         uint32_t expiration;
-                
-                
+
         // Chain specific keys
         vector<string> addresses;
         // std::map<string, string> fionames;
-                
+
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
 
         uint64_t by_domain() const { return domainhash; }
-                
+
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
     };
 
-        //Where fioname tokens are stored
+    //Where fioname tokens are stored
     typedef multi_index<N(fionames), fioname,
             indexed_by<N(bydomain), const_mem_fun<fioname, uint64_t, &fioname::by_domain> > > fionames_table;
 
@@ -59,14 +57,28 @@ namespace fioio {
     struct domain {
         string name;
         uint64_t domainhash;
+
         //EXPIRATION this is the expiration for this fio domain, this is a number of seconds since 1970
         uint32_t expiration;
 
         uint64_t primary_key() const { return domainhash; }
+
         EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration))
     };
 
     typedef multi_index<N(domains), domain> domains_table;
+
+    struct chainList {
+        string chainname = nullptr;
+        uint32_t id = 0;
+        uint64_t chainhash = 0;
+
+        uint64_t primary_key() const { return chainhash; }
+        uint64_t by_index() const { return id; }
+
+        EOSLIB_SERIALIZE(chainList, (chainname)(id)(chainhash))
+    };
+    typedef multi_index<N(chains), chainList> chains_table;
 
     // Structures/table for mapping chain key to FIO name
     // @abi table keynames i64
@@ -74,16 +86,55 @@ namespace fioio {
         uint64_t id;
         string key = nullptr;       // user key on a chain
         uint64_t keyhash = 0;       // chainkey hash
-        uint64_t chaintype;         // maps to ${FioNameLookup::chain_type}
+        uint64_t chaintype;         // maps to chain_control vector position
         string name = nullptr;      // FIO name
         uint32_t expiration;        //expiration of the fioname.
 
         uint64_t primary_key() const { return id; }
+
         uint64_t by_keyhash() const { return keyhash; }
+
         EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(expiration))
     };
+
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
+
+    // @abi table fiopubs i64
+    struct fiopubaddr {
+
+        uint64_t fiopubindex = 0;
+        string fiopub = nullptr;
+        uint64_t pubkeyindex = 0;
+        string pubkey = nullptr;
+
+        // primary_key is required to store structure in multi_index table
+        uint64_t primary_key() const { return fiopubindex; }
+
+        uint64_t by_pubkey() const { return pubkeyindex; }
+
+        EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
+    };
+   typedef multi_index<N(fiopubs), fiopubaddr,
+           indexed_by<N(bypubkey), const_mem_fun<fiopubaddr, uint64_t, &fiopubaddr::by_pubkey> > > fiopubs_table;
+
+   // @abi table eosionames i64
+   // The eosio names table maps client wallet generated public keys to EOS user account
+   // names. The table exists to verify that all generated account names are unique. For
+   // that reason this table is indexed by the generated account name so that if a name
+   // is found, the associated key must match the supplied key to ensure there is no
+   // hashing collision.
+    struct eosio_name {
+
+       uint64_t account = 0;
+       string clientkey = nullptr;
+
+        uint64_t primary_key() const { return account; }
+       EOSLIB_SERIALIZE(eosio_name, (account)(clientkey))
+    };
+
+   typedef multi_index<N(eosionames), eosio_name> eosio_names_table;
+
 
 //    struct config {
 //        name tokencontr; // owner of the token contract
@@ -94,9 +145,10 @@ namespace fioio {
 //    typedef singleton<N(configs), config> configs;
 
     struct account {
-        asset    balance;
+        asset balance;
 
-        uint64_t primary_key()const { return balance.symbol.name(); }
+        uint64_t primary_key() const { return balance.symbol.name(); }
     };
+
     typedef eosio::multi_index<N(accounts), account> accounts;
 }

@@ -80,7 +80,7 @@ class Fio {
         return [true, fiocommon.Helper.randomString(12, '12345abcdefghijklmnopqrstuvwxyz')];
     }
 
-    // Will create a give username on the EOS chain.
+    // Will create a given username on the EOS chain.
     // Returns tuple [status, eos response]
     async activateAccount(creator, accountName, ownerPublicKey, ownerPrivateKey, activePublicKey, activePrivateKey, buyRamQuantity, stakeNetQuantity, stakeCpuQuantity, transfer) {
         fiocommon.Helper.checkTypes( arguments, ['string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'boolean'] );
@@ -89,6 +89,10 @@ class Fio {
             console.log(`Owner private key: ${ownerPrivateKey}, Owner public key : ${ownerPublicKey}`);
             console.log(`Active private key: ${activePrivateKey}, Active public key : ${activePublicKey}`);
         }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, { fetch });
+        const signatureProvider = new eosjs2.SignatureProvider([fiocommon.Config.SystemAccountKey]);
+        let myApi = new eosjs2.Api({ rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder });
 
         // Execute newaccount transactions
         const result = await this.api.transact({
@@ -284,7 +288,7 @@ class Fio {
                 data: {
                     name: name,
                     requestor: requestor
-                },
+               },
             }]
         }, {
             blocksBehind: 3,
@@ -294,6 +298,42 @@ class Fio {
             throw rej;
         });
         //console.log(JSON.stringify(result, null, 2));
+        return [true, result];
+    }
+
+    async availCheck(name) {
+        fiocommon.Helper.checkTypes(arguments, ['string']);
+
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Check name : ${name}`);
+        }
+
+        const Url=fiocommon.Config.EosUrl + '/v1/chain/avail_check';
+        const Data=`{"fio_name": "${name}"}`;
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`url: ${Url}`);
+            console.log(`data: ${Data}`);
+        }
+
+        //optional parameters
+        const otherParams={
+            headers:{"content-type":"application/json; charset=UTF-8"},
+            body:Data,
+            method:"POST"
+        };
+
+        let result = await fetch(Url, otherParams)
+            .then(res => {
+                if (!res.ok){
+                    throw new fiocommon.FioError(res.json(),'Network response was not ok.');
+                }
+                return res.json()
+            })
+            .catch(rej => {
+                console.log(`fetch rejection handler.`)
+                throw rej;
+            });
+
         return [true, result];
     }
 
@@ -517,10 +557,10 @@ class Fio {
                     permission: 'active',
                 }],
                 data: {
-                    fio_user_name: fioname,
-                    chain: chain,
-                    address: address,
-                    requestor: requestor
+                    fioaddress: fioname,
+                    tokencode: chain,
+                    pubaddress: address,
+                    actor: requestor
                 },
             }]
         }, {
@@ -534,6 +574,40 @@ class Fio {
         return [true, result];
     } //addaddress
 
+    async addfiopubadd(pub_address, pub_key, requestor, requestorActivePrivateKey, owner=fiocommon.Config.SystemAccount) {
+        fiocommon.Helper.checkTypes(arguments, ['string', 'string', 'string', 'string']);
+
+        if (fiocommon.Config.LogLevel > 3) {
+            console.log(`Requestor ${requestor} associating pub address ${pub_address} with public key ${pub_key}`);
+        }
+
+        const rpc = new eosjs2.Rpc.JsonRpc(fiocommon.Config.EosUrl, {fetch});
+        // include keys for both system and requestor active
+        const signatureProvider = new eosjs2.SignatureProvider([requestorActivePrivateKey]);
+        let api = new eosjs2.Api({rpc, signatureProvider, textDecoder: new TextDecoder, textEncoder: new TextEncoder});
+
+        const result = await this.api.transact({
+            actions: [{
+                account: owner,
+                name: 'addfiopubadd',
+                authorization: [{
+                    actor: requestor,
+                    permission: 'active',
+                }],
+                data: {
+                    pub_address: pub_address.trim(),
+                    pub_key: pub_key.trim()
+                },
+            }]
+        }, {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        }).catch(rej => {
+            console.log(`api.transact promise rejection handler.`)
+            throw rej;
+        });
+        return [true, result];
+    } //addfiopubadd
 
 } //Fio class
 

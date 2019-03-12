@@ -166,5 +166,18 @@ extern "C" {
     *  @return the account which specifies the current receiver of the action
     */
    account_name current_receiver();
+
+   /**
+    *  Returns data string back to action callee.
+    *  @brief Returns data string back to action callee.
+    *  @param cstr - a null terminated string
+    *
+    *  Example:
+   *
+    *  @code
+    *  send_response("{"status":"1"}");
+    *  @endcode
+    */
+   void send_response( const char* cstr );
    ///@ } actioncapi
 }

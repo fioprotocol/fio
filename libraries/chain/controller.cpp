@@ -726,7 +726,7 @@ struct controller_impl {
       // Deliver onerror action containing the failed deferred transaction directly back to the sender.
       etrx.actions.emplace_back( vector<permission_level>{{gtrx.sender, config::active_name}},
                                  onerror( gtrx.sender_id, gtrx.packed_trx.data(), gtrx.packed_trx.size() ) );
-      etrx.expiration = self.pending_block_time() + fc::microseconds(999'999); // Round up to avoid appearing expired
+      etrx.expiration = self.pending_block_time() + fc::microseconds(999'999); //' Round up to avoid appearing expired
       etrx.set_reference_block( self.head_block_id() );
 
       transaction_context trx_context( self, etrx, etrx.id(), start );
@@ -973,6 +973,7 @@ struct controller_impl {
       transaction_trace_ptr trace;
       try {
          transaction_context trx_context(self, trx->trx, trx->id);
+         trx_context.set_fio_trx(trx->packed_trx.is_fio_transaction());
          if ((bool)subjective_cpu_leeway && pending->_block_status == controller::block_status::incomplete) {
             trx_context.leeway = *subjective_cpu_leeway;
          }
@@ -1008,7 +1009,8 @@ struct controller_impl {
                        [](){}
                        /*std::bind(&transaction_context::add_cpu_usage_and_check_time, &trx_context,
                                  std::placeholders::_1)*/,
-                       false
+                                 trx->packed_trx.is_fio_transaction()
+//                       false
                );
             }
             trx_context.exec();
@@ -1546,7 +1548,7 @@ struct controller_impl {
       signed_transaction trx;
       trx.actions.emplace_back(std::move(on_block_act));
       trx.set_reference_block(self.head_block_id());
-      trx.expiration = self.pending_block_time() + fc::microseconds(999'999); // Round up to nearest second to avoid appearing expired
+      trx.expiration = self.pending_block_time() + fc::microseconds(999'999); //' Round up to nearest second to avoid appearing expired
       return trx;
    }
 

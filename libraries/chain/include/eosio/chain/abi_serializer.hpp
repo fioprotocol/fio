@@ -606,7 +606,6 @@ namespace impl {
          }
       }
    };
-
    /**
     * Reflection visitor that uses a resolver to resolve ABIs for nested types
     * this will degrade to the common fc::from_variant as soon as the type no longer contains
