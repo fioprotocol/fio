@@ -1400,7 +1400,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             //if there are no statuses for this record then add it to the results
             if (!request_status_rows_result.rows.empty()) {
-                uint64_t fiostatusid  = requests_rows_result.rows[pos][“trxstatus”].as_uint64();
+                uint64_t fiostatusid  = requests_rows_result.rows[pos]["trxstatus"].as_uint64();
 
                 if(fiostatusid == 2){
                     result.requests.push_back(rr);
