@@ -1536,6 +1536,10 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
     //this is the result returned to the user
     pub_address_lookup_result result;
 
+    result.fio_address = p.fio_address;
+    result.token_code = p.token_code;
+    result.pub_address = "";
+
     //process the domain first, see if it exists aand then check the expiration.
     //we return an empty result if the domain is expired.
 
@@ -1552,9 +1556,7 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
 
     // If no matches, then domain not found, return empty result
     dlog( "Domain matched: ${matched}", ("matched", !domain_result.rows.empty()) );
-    if (domain_result.rows.empty()) {
-        return result;
-    }
+    FIO_400_ASSERT(!domain_result.rows.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
 
     uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
     //This is not the local computer time, it is in fact the block time.
@@ -1562,14 +1564,11 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
 
     //if the domain is expired then return an empty result.
     dlog( "Domain expired: ${expired}", ("expired", present_time > domain_expiration) );
-    if (present_time > domain_expiration) {
-        return result;
-    }
+    FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
+
 
     //set name result to be the domain results.
     name_result = domain_result;
-    result.fio_address = p.fio_address;
-    result.token_code = p.token_code;
 
     if (!fa.fioname.empty()){
         //query the names table and check if the name is expired
@@ -1586,23 +1585,18 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
 
         // If no matches, the name does not exist, return empty result
         dlog( "FIO address matched: ${matched}", ("matched", !fioname_result.rows.empty()) );
-        if (fioname_result.rows.empty()) {
-            return result;
-        }
+        FIO_400_ASSERT(!fioname_result.rows.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
 
         uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
 
         //if the name is expired then return an empty result.
         dlog( "FIO name expired: ${expired}", ("expired", present_time > domain_expiration) );
-        if (present_time > domain_expiration) {
-            return result;
-        }
+        FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
 
         //set the result to the name results
         name_result = fioname_result;
     }else {
-        result.pub_address = "";
-        return result;
+        FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
     }
 
      // chain support check
