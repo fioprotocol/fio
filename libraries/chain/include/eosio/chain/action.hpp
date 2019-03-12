@@ -59,7 +59,6 @@ namespace eosio { namespace chain {
     */
     struct action {
         account_name               account;
-        fc::string                 fio_pub_key;
         action_name                name;
         vector<permission_level>   authorization;
         bytes                      data;
