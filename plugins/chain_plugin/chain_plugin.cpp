@@ -1540,9 +1540,6 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
     result.token_code = p.token_code;
     result.pub_address = "";
 
-    //process the domain first, see if it exists aand then check the expiration.
-    //we return an empty result if the domain is expired.
-
     //get the domain, check if the domain is expired.
     get_table_rows_params table_row_params = get_table_rows_params{.json=true,
             .code=code,
@@ -1565,7 +1562,6 @@ read_only::pub_address_lookup_result read_only::pub_address_lookup( const read_o
     //if the domain is expired then return an empty result.
     dlog( "Domain expired: ${expired}", ("expired", present_time > domain_expiration) );
     FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid fio_address", fioio::ErrorFioNameEmpty);
-
 
     //set name result to be the domain results.
     name_result = domain_result;
