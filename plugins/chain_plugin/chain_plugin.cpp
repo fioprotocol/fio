@@ -1433,10 +1433,8 @@ read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::f
 read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_fio_names_params& p )const {
   // assert if empty chain key
   get_fio_names_result result;
-  if(p.fio_pub_address.empty()) {
-    EOS_ASSERT( !p.fio_pub_address.empty(), chain::contract_table_query_exception,"Empty fio_pub_address string");
-    return result;
-  }
+    FIO_404_ASSERT(!p.fio_pub_address.empty(), "No FIO names", fioio::ErrorNoFIONames);
+
 
   string fio_key_lookup_table = "keynames";   // table name
 
@@ -1497,9 +1495,12 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
 
    fiodomain_record d{dom,domexpiration};
 
+
+
+/********************** Domain pushback currently disabled until future story completed ******/
      //only want one domain object pushed in vector per iteration
-   if (result.fio_domains.empty())
-     result.fio_domains.push_back(d);    //pushback results in domain
+  /* if (result.fio_domains.empty()) */
+  /*   result.fio_domains.push_back(d); */   //pushback results in domain
 
   } // Get FIO domains and push
 
