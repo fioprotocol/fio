@@ -30,7 +30,7 @@ namespace fioio {
    constexpr auto ErrorDomainAlreadyRegistered =   ident | httpDataError | 100;   // Domain is already registered
    constexpr auto ErrorDomainNotRegistered =       ident | httpLocationError | 101;   // Domain not yet registered
    constexpr auto ErrorFioNameAlreadyRegistered =  ident | httpDataError | 102;   // Fioname is already registered
-   
+
    constexpr auto ErrorFioNameEmpty =              ident | httpDataError | 103;   // FIO user name is empty
    constexpr auto ErrorChainEmpty =                ident | httpDataError | 104;   // Chain name is empty
    constexpr auto ErrorChainAddressEmpty =         ident | httpDataError | 105;   // Chain address is empty
@@ -47,7 +47,7 @@ namespace fioio {
    constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
    constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
    constexpr auto ErrorTransaction =               ident | httpInvalidError | 117;   // Public address exists
-   constexpr auto ErrorNoFIONames =                ident | httpDataError | 118; // No FIO Names
+   constexpr auto ErrorNoFIONames =                ident | httpLocationError | 118; // No FIO Names
    constexpr auto ErrorInvalidJsonInput =            ident | httpDataError | 119;   // invalid json sent for json input
    constexpr auto ErrorRequestContextNotFound =            ident | httpDataError | 120;   // the specified request context record was not found
    constexpr auto ErrorChainAddressNotFound =         ident | httpDataError | 121;   // Chain address not found
