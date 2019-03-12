@@ -1493,11 +1493,13 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
             .encode_type="dec"};
    get_table_rows_result domain_result = get_table_rows_ex<key_value_index>(domain_table_params, abi);
 
-
    domexpiration = domain_result.rows[0]["expiration"].as_string();
+
    fiodomain_record d{dom,domexpiration};
-     //pushback results
-    result.fio_domains.push_back(d);
+
+     //only want one domain object pushed in vector per iteration
+   if (result.fio_domains.empty())
+     result.fio_domains.push_back(d);    //pushback results in domain
 
   } // Get FIO domains and push
 

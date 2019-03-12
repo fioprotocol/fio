@@ -136,12 +136,11 @@ namespace fioio{
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a){
                     a.name = fa.fiopubaddress;
-		    a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
+		                a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
                     a.namehash = nameHash;
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
-                    a.addresses[0] = actor.to_string();
                 });
                 addaddress(fa.fiopubaddress,"FIO",actor.to_string(),actor);
                 registerFee = fees.nameregister;
