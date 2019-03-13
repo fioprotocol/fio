@@ -44,13 +44,15 @@ namespace fioio {
         uint64_t    fiotime;        // FIO blockchain request received timestamp
 
         uint64_t primary_key() const     { return fioreqid; }
-       uint64_t by_receiver() const    { return fromfioaddr; }
+        uint64_t by_receiver() const    { return fromfioaddr; }
+        uint64_t by_originator() const    { return tofioaddr; }
         EOSLIB_SERIALIZE(fioreqctxt, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
     };
     // FIO requests contexts table
     typedef multi_index<N(fioreqctxts), fioreqctxt,
-    indexed_by<N(byreceiver), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver> >
-    > fiorequest_contexts_table;
+    indexed_by<N(byreceiver), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver>>,
+    indexed_by<N(byoriginator), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_originator>
+    >> fiorequest_contexts_table;
 
     // Structure for "FIO request status" updates.
     // @abi table fioreqstss i64
