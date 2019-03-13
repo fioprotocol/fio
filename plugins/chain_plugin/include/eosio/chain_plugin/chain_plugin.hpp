@@ -323,22 +323,6 @@ public:
    ////////////////
    // FIO COMMON //
 
-   struct fio_name_lookup_params {
-       string fio_name;  // FIO complete account name e.g. john.fio
-       string chain;     // chain name e.g. BTC, ETH, EOS etc.
-   };
-
-   struct fio_name_lookup_result {
-       string is_registered = "false";
-       string is_domain = "false";
-       string address ="";
-       //the expiration is an epoch date, number of seconds since midnight 1970.
-       string expiration="";
-   };
-
-   fio_name_lookup_result fio_name_lookup( const fio_name_lookup_params& params) const;
-
-
    //begin get pending fio requests
    struct get_pending_fio_requests_params {
        string fiopubadd;  // FIO public address to find requests for..
@@ -866,9 +850,6 @@ FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_result, (requ
   FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fiopubadd))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests))
 FC_REFLECT( eosio::chain_apis::request_record, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
-
-FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_params, (fio_name)(chain) )
-FC_REFLECT( eosio::chain_apis::read_only::fio_name_lookup_result, (is_registered)(is_domain)(address)(expiration) );
 
 FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code) )
 FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_result, (fio_address)(token_code)(pub_address));
