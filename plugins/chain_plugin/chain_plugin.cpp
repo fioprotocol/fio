@@ -1216,7 +1216,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         dlog( "key names row count, this should be 1 : '${size}'", ("size", keynames_rows_result.rows.size()) );
         FIO_400_ASSERT(!keynames_rows_result.rows.empty(), "fiopubadd", fio_pubadd, "No matches found for public address.", fioio::ErrorChainAddressNotFound);
 
-
         //get the fio address associated with this public address
         string fio_address = (string)keynames_rows_result.rows[0]["name"].as_string();
         uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
@@ -1233,15 +1232,13 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 .lower_bound = boost::lexical_cast<string>(address_hash),
                 .upper_bound = boost::lexical_cast<string>(address_hash + 1),
                 .key_type       = "i64",
-                .index_position ="1"};
+                .index_position = "2"};
         // Do secondary key lookup
         get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(requests_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
             return v;
         });
 
         dlog( "fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()) );
-
-
 
         //for each request look to see if there are associated statuses
         //query the fioreqstss table by the fioreqid, if there is a match then take these
@@ -1274,7 +1271,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound = boost::lexical_cast<string>(fioreqid),
                     .upper_bound = boost::lexical_cast<string>(fioreqid + 1),
                     .key_type       = "i64",
-                    .index_position ="1"};
+                    .index_position = "2"};
             // Do secondary key lookup
             get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(request_status_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
                 return v;
@@ -1283,8 +1280,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             dlog( "request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()) );
 
             //if there are no statuses for this record then add it to the results
-            if (request_status_rows_result.rows.empty())
-            {
+            if (request_status_rows_result.rows.empty()) {
                 result.requests.push_back(rr);
             }
         } // Get request statuses

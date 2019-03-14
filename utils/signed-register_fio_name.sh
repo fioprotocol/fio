@@ -22,14 +22,12 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 echo ------------------------------------------
 dataJson="{
-  \"fioaddress\": \"${domain}\",
-  \"tokencode\": \"DAI\",
-  \"pubaddress\": \"eddie2\",
+  \"fioname\": \"${domain}\",
   \"actor\": \"${fioactor}\"
 }"
 
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system addaddress '${dataJson}'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system registername '${dataJson}'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -73,7 +71,7 @@ unsignedRequest='{
     "context_free_actions": [],
     "actions": [{
         "account":"fio.system",
-        "name": "addaddress"
+        "name": "registername"
         "authorization":[{
              "actor":"'${fioactor}'",
              "permission":"active"
