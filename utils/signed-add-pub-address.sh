@@ -23,8 +23,8 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 dataJson="{
   \"fioaddress\": \"${domain}\",
-  \"tokencode\": \"BTC\",
-  \"pubaddress\": \"1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs\",
+  \"tokencode\": \"DAI\",
+  \"pubaddress\": \"0xab5801a7d398351b8be11c439e05c5b3259aec9b\",
   \"actor\": \"${fioactor}\"
 }"
 

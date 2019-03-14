@@ -44,7 +44,7 @@ namespace fioio {
         uint64_t    fiotime;        // FIO blockchain request received timestamp
 
         uint64_t primary_key() const     { return fioreqid; }
-        uint64_t by_receiver() const    { return fromfioaddr; }
+        uint64_t by_receiver() const     { return fromfioaddr; }
         uint64_t by_originator() const    { return tofioaddr; }
         EOSLIB_SERIALIZE(fioreqctxt, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
     };

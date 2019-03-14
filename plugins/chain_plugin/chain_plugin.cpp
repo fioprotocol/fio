@@ -1351,7 +1351,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 .lower_bound = boost::lexical_cast<string>(address_hash),
                 .upper_bound = boost::lexical_cast<string>(address_hash + 1),
                 .key_type       = "i64",
-                .index_position = "2"};
+                .index_position = "3"};
         // Do secondary key lookup
         get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(requests_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
             return v;
