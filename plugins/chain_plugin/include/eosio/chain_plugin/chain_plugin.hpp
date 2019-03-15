@@ -849,7 +849,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_params, (fiop
 FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests) )
   FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fiopubadd))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests))
-FC_REFLECT( eosio::chain_apis::request_record, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(fiotime))
+FC_REFLECT( eosio::chain_apis::request_record, (fioreqid)(fromfioaddr)(tofioaddr)(topubaddr)(amount)(tokencode)(metadata)(timestamp))
 
 FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code) )
 FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_result, (fio_address)(token_code)(pub_address));
