@@ -89,6 +89,13 @@ namespace fioio {
         return true;
     }
 
+    inline bool isPubAddressValid(string address){
+        if (address.empty() || address.find(" ")){
+            return false;
+        }
+        return true;
+    }
+
    inline string chainToUpper( string chain ) {
       string my_chain = chain;
 
