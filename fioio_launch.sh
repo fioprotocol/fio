@@ -159,15 +159,15 @@ if [ $mChoice == 1 ]; then
     }
 
     retries=3
-    chkdomain "brd"
+    chkdomain "dapix"
     cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"dapix","actor":"fio.system"}' --permission fio.system@active
 
     sleep 1
-    chkdomain "brd"
+    chkdomain "dapix"
     if [ $dom -eq 0 ]; then
-        echo brd exists
+        echo dapix exists
     else
-        echo failed to register brd
+        echo failed to register dapix
     fi
 
     #Create Account Name

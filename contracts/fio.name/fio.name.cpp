@@ -136,7 +136,6 @@ namespace fioio {
                                    {"expiration", expiration_time}};
             send_response(json.dump().c_str());
         }
-
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
@@ -260,6 +259,11 @@ namespace fioio {
             }
         }
 
+        /***
+         * This method will return now plus one year.
+         * the result is the present block time, which is number of seconds since 1970
+         * incremented by secondss per year.
+         */
         inline uint32_t get_now_plus_one_year() {
             uint32_t present_time = now();
             uint32_t incremented_time = present_time + DAYTOSECONDS;

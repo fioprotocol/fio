@@ -2199,7 +2199,6 @@ if( options.count(name) ) { \
 
         void read_write::push_transaction(const read_write::push_transaction_params &params,
                                           next_function<read_write::push_transaction_results> next) {
-
             try {
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);

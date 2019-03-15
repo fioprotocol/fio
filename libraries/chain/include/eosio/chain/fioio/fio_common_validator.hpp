@@ -91,9 +91,9 @@ namespace fioio {
 
     inline bool isPubAddressValid(string address){
         if (address.empty() || address.find(" ")){
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
    inline string chainToUpper( string chain ) {
