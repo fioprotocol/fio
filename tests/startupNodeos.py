@@ -110,7 +110,7 @@ def getAccounts(count):
         account.activePublicKey = keys[i].activePublic
         accounts.append(account)
         if Utils.Debug: print("name: %s, key(owner): ['%s', '%s], key(active): ['%s', '%s']" % (
-        keys[i].name, keys[i].ownerPublic, keys[i].ownerPrivate, keys[i].activePublic, keys[i].activePrivate))
+            keys[i].name, keys[i].ownerPublic, keys[i].ownerPrivate, keys[i].activePublic, keys[i].activePrivate))
 
     return accounts
 
@@ -152,7 +152,7 @@ def createAccounts(count):
             account.activePublicKey = activePublic
             accounts.append(account)
             if Utils.Debug: print("name: %s, key(owner): ['%s', '%s], key(active): ['%s', '%s']" % (
-            name, ownerPublic, ownerPrivate, activePublic, activePrivate))
+                name, ownerPublic, ownerPrivate, activePublic, activePrivate))
 
         except subprocess.CalledProcessError as ex:
             msg = ex.output.decode("utf-8")
