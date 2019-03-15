@@ -34,19 +34,17 @@ namespace fioio {
     // Structure for "FIO request" context.
     // @abi table fioreqctxts i64
     struct fioreqctxt {        // FIO funds request context; specific to requests native to FIO platform
-        uint64_t fioreqid;       // one up index starting at 0
-        uint64_t fromfioaddr;   // requestee fio address of fio request
-        uint64_t tofioaddr;     // requestor fio address of the fio request
+        uint64_t fioreqid;     // one up index starting at 0
+        uint64_t fromfioaddr;  // requestee fio address of fio request
+        uint64_t tofioaddr;    // requestor fio address of the fio request
         string topubaddr;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
         string amount;         // token quantity
         string tokencode;      // token type e.g. BLU
         string metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
-        uint64_t fiotime;        // FIO blockchain request received timestamp
+        uint64_t fiotime;      // FIO blockchain request received timestamp
 
         uint64_t primary_key() const { return fioreqid; }
-
         uint64_t by_receiver() const { return fromfioaddr; }
-
         uint64_t by_originator() const { return tofioaddr; }
 
         EOSLIB_SERIALIZE(fioreqctxt,
@@ -69,7 +67,6 @@ namespace fioio {
         uint64_t fiotime;        // FIO blockchain status update received timestamp
 
         uint64_t primary_key() const { return id; }
-
         uint64_t by_fioreqid() const { return fioreqid; }
 
         EOSLIB_SERIALIZE(fioreqsts, (id)(fioreqid)(status)(metadata)(fiotime))

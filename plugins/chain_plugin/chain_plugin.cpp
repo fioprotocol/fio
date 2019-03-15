@@ -151,7 +151,6 @@ namespace eosio {
       NEXT(e.dynamic_copy_exception());\
    }
 
-
     class chain_plugin_impl {
     public:
         chain_plugin_impl()
@@ -276,7 +275,7 @@ namespace eosio {
                 ("fio-proxy-key-file", bpo::value<bfs::path>(),
                  "File containing the private key for FIO proxy signing");
 
-// TODO: rate limiting
+        // TODO: rate limiting
         /*("per-authorized-account-transaction-msg-rate-limit-time-frame-sec", bpo::value<uint32_t>()->default_value(default_per_auth_account_time_frame_seconds),
           "The time frame, in seconds, that the per-authorized-account-transaction-msg-rate-limit is imposed over.")
          ("per-authorized-account-transaction-msg-rate-limit", bpo::value<uint32_t>()->default_value(default_per_auth_account),

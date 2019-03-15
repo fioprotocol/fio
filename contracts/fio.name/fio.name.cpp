@@ -105,11 +105,10 @@ namespace fioio {
                 registerFee = fees.domregiter;
             } else { // fioname register
 
-// check if domain exists.
+                // check if domain exists.
                 auto domains_iter = domains.find(domainHash);
                 fio_400_assert(domains_iter != domains.end(), "fio_name", fa.fiopubaddress, "FIO Domain not registered",
                                ErrorDomainNotRegistered);
-
 
                 // TODO check if domain permission is valid.
 
@@ -147,8 +146,6 @@ namespace fioio {
                 addaddress(fa.fiopubaddress, "FIO", actor.to_string(), actor);
                 registerFee = fees.nameregister;
             } // else
-
-
 
             if (appConfig.pmtson) {
                 // collect fees

@@ -69,14 +69,14 @@ namespace eosio {
         };
 
         struct request_record {
-            uint64_t fioreqid;       // one up index starting at 0
+            uint64_t fioreqid;     // one up index starting at 0
             uint64_t fromfioadd;   // sender FIO address e.g. john.xyz
             uint64_t tofioadd;     // receiver FIO address e.g. jane.xyz
-            string topubadd;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
+            string topubadd;       // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
             string amount;         // token quantity
             string tokencode;      // token type e.g. BLU
             string metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
-            uint64_t timestamp;        // FIO blockchain request received timestamp
+            uint64_t timestamp;    // FIO blockchain request received timestamp
         };
 
         template<typename>
@@ -132,8 +132,8 @@ namespace eosio {
 
                 uint64_t block_cpu_limit = 0;
                 uint64_t block_net_limit = 0;
-                //string                  recent_slots;
-                //double                  participation_rate = 0;
+                //string recent_slots;
+                //double participation_rate = 0;
                 optional<string> server_version_string;
             };
 
