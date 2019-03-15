@@ -74,7 +74,7 @@ struct request_record {
     string      amount;         // token quantity
     string      tokencode;      // token type e.g. BLU
     string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
-    uint64_t    timestamp;
+    uint64_t    timestamp;        // FIO blockchain request received timestamp
 };
 
 template<typename>
