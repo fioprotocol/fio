@@ -210,7 +210,7 @@ namespace fioio {
 
             //put the thing into the table get the index.
             uint64_t id = fiorequestContextsTable.available_primary_key();
-            uint64_t currentTime = current_time();
+            uint64_t currentTime = now();
             uint64_t toHash = ::eosio::string_to_uint64_t(tofioadd.c_str());
             uint64_t fromHash = ::eosio::string_to_uint64_t(fromfioadd.c_str());
 
