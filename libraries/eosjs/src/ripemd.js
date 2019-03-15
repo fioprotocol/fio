@@ -473,4 +473,4 @@ Method #2
 
 module.exports = {
 	RIPEMD160
-}
+};

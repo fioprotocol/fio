@@ -1,21 +1,8 @@
 /** FioName Token implementation file
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
- *  @author Adam Androulidakis
+ *  @author Adam Androulidakis, Casey Gardiner, Ciju John, Ed Rotthoff, Phil Mesnier
  *  @file fio.name.hpp
  *  @copyright Dapix
- *
- *  Changes:
- *  Adam Androulidakis 12-10-2018 - MAS-114
- *  Adam Androulidakis 9-18-2018
- *  Adam Androulidakis 9-6-2018
- *  Ciju John 9-5-2018
- *  Adam Androulidakis  8-31-2018
- *  Ciju John  8-30-2018
- *  Adam Androulidakis  8-29-2018
- *  Ed Rotthoff 10-26-2018
- *  Phil Mesnier 12-26-2018
- *  Casey Gardiner 3/5/2019
- *  Phil Mesnier 3/5/2019
  */
 
 #include <eosiolib/asset.hpp>
@@ -25,13 +12,11 @@
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <eosio/chain/fioio/chain_control.hpp>
-#include <climits>
-#include <eosiolib/types.hpp>
 
-namespace fioio{
+namespace fioio {
 
     class FioNameLookup : public contract {
-        private:
+    private:
         domains_table domains;
         chains_table chains;
         fionames_table fionames;
@@ -45,9 +30,9 @@ namespace fioio{
 
     public:
         FioNameLookup(account_name self)
-           : contract(self), domains(self, self), fionames(self, self), keynames(self, self), trxfees(FeeContract,FeeContract), fiopubs(self, self), eosionames(self, self), chains(self, self)
-        {
-            configs_singleton configsSingleton(FeeContract,FeeContract);
+                : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
+                  trxfees(FeeContract, FeeContract), fiopubs(self, self), eosionames(self, self), chains(self, self) {
+            configs_singleton configsSingleton(FeeContract, FeeContract);
             appConfig = configsSingleton.get_or_default(config());
         }
 
@@ -64,16 +49,16 @@ namespace fioio{
             uint64_t chainhash = ::eosio::string_to_uint64_t(nFio.c_str());
             auto chain_iter = chains.find(chainhash);
 
-            if( chain_iter == chains.end() ){
-                chains.emplace(_self, [&](struct chainList &a){
+            if (chain_iter == chains.end()) {
+                chains.emplace(_self, [&](struct chainList &a) {
                     a.id = 0;
                     a.chainname = nFio;
                     a.chainhash = chainhash;
                 });
             }
 
-            print ("fioname = ", fioname, " fa = ", fa.fiopubaddress, "\n");
-            int res = fa.domainOnly ? isFioNameValid(fa.fiodomain)*10 : isFioNameValid(fa.fioname);
+            print("fioname = ", fioname, " fa = ", fa.fiopubaddress, "\n");
+            int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
             print("fioname: ", fa.fioname, ", Domain: ", fa.fiodomain, " error code = ", res, "\n");
 
             string value = fa.fiopubaddress + " error = " + to_string(res);
@@ -88,7 +73,8 @@ namespace fioio{
             if (fa.domainOnly) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter == domains.end(), "fio_name", fa.fiopubaddress, "FIO domain already registered", ErrorDomainAlreadyRegistered);
+                fio_400_assert(domains_iter == domains.end(), "fio_name", fa.fiopubaddress,
+                               "FIO domain already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds.
 
                 //get the expiration for this new domain.
@@ -106,23 +92,25 @@ namespace fioio{
                 registerFee = fees.domregiter;
             } else { // fioname register
 
-// check if domain exists.
+                // check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter != domains.end(), "fio_name", fa.fiopubaddress, "FIO Domain not registered", ErrorDomainNotRegistered);
-
+                fio_400_assert(domains_iter != domains.end(), "fio_name", fa.fiopubaddress, "FIO Domain not registered",
+                               ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
 
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                fio_400_assert(present_time <= domain_expiration,"fio_name", fa.fiopubaddress, "FIO Domain expired", ErrorDomainExpired);
+                fio_400_assert(present_time <= domain_expiration, "fio_name", fa.fiopubaddress, "FIO Domain expired",
+                               ErrorDomainExpired);
 
                 // check if fioname is available
                 uint64_t nameHash = ::eosio::string_to_uint64_t(fa.fiopubaddress.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                fio_400_assert(fioname_iter == fionames.end(), "fio_name", fa.fiopubaddress,"FIO name already registered", ErrorFioNameAlreadyRegistered);
+                fio_400_assert(fioname_iter == fionames.end(), "fio_name", fa.fiopubaddress,
+                               "FIO name already registered", ErrorFioNameAlreadyRegistered);
 
                 //set the expiration on this new fioname
                 expiration_time = get_now_plus_one_year();
@@ -134,19 +122,17 @@ namespace fioio{
                 // DO SOMETHING
 
                 // Add fioname entry in fionames table
-                fionames.emplace(_self, [&](struct fioname &a){
+                fionames.emplace(_self, [&](struct fioname &a) {
                     a.name = fa.fiopubaddress;
-		                a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
+                    a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
                     a.namehash = nameHash;
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
                 });
-                addaddress(fa.fiopubaddress,"FIO",actor.to_string(),actor);
+                addaddress(fa.fiopubaddress, "FIO", actor.to_string(), actor);
                 registerFee = fees.nameregister;
             } // else
-
-
 
             if (appConfig.pmtson) {
                 // collect fees
@@ -157,12 +143,13 @@ namespace fioio{
                        make_tuple(actor, _self, registerFee,
                                   string("Registration fees. Thank you."))
                 ).send();
-            }
-            else {
+            } else {
                 print("Payments currently disabled.");
             }
 
-            nlohmann::json json = {{"status","OK"},{"fio_name",fa.fiopubaddress},{"expiration",expiration_time}};
+            nlohmann::json json = {{"status",     "OK"},
+                                   {"fio_name",   fa.fiopubaddress},
+                                   {"expiration", expiration_time}};
             send_response(json.dump().c_str());
         }
 
@@ -188,25 +175,30 @@ namespace fioio{
          * @param pubaddress The chain specific user address
          */
         [[eosio::action]]
-        void addaddress(const string &fioaddress, const string &tokencode, const string &pubaddress, const account_name &actor) {
-            fio_400_assert(!fioaddress.empty(), "fioaddress", fioaddress, "Invalid public address format", ErrorDomainAlreadyRegistered);
+        void addaddress(const string &fioaddress, const string &tokencode, const string &pubaddress,
+                        const account_name &actor) {
+            fio_400_assert(!fioaddress.empty(), "fioaddress", fioaddress, "Invalid public address format",
+                           ErrorDomainAlreadyRegistered);
             fio_400_assert(!tokencode.empty(), "tokencode", tokencode, "Invalid token code format", ErrorChainEmpty);
 
             // Chain input validation
-            fio_400_assert(!pubaddress.empty(), "pubaddress", pubaddress, "Invalid public address format", ErrorChainAddressEmpty);
-            fio_400_assert(pubaddress.find(" "), "pubaddress", pubaddress, "Invalid public address format", ErrorChainContainsWhiteSpace);
+            fio_400_assert(!pubaddress.empty(), "pubaddress", pubaddress, "Invalid public address format",
+                           ErrorChainAddressEmpty);
+            fio_400_assert(pubaddress.find(" "), "pubaddress", pubaddress, "Invalid public address format",
+                           ErrorChainContainsWhiteSpace);
 
             string my_chain = tokencode;
 
-            fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format", ErrorInvalidFioNameFormat);
+            fio_400_assert(isChainNameValid(my_chain), "tokencode", tokencode, "Invalid chain format",
+                           ErrorInvalidFioNameFormat);
 
             uint64_t chainhash = ::eosio::string_to_uint64_t(my_chain.c_str());
             auto chain_iter = chains.find(chainhash);
 
-            uint64_t next_idx = (chains.begin() == chains.end() ? 0 : (chain_iter)->id + 1 );
+            uint64_t next_idx = (chains.begin() == chains.end() ? 0 : (chain_iter)->id + 1);
 
-            if( chain_iter == chains.end() ){
-                chains.emplace(_self, [&](struct chainList &a){
+            if (chain_iter == chains.end()) {
+                chains.emplace(_self, [&](struct chainList &a) {
                     a.id = next_idx;
                     a.chainname = my_chain;
                     a.chainhash = chainhash;
@@ -230,14 +222,15 @@ namespace fioio{
             uint32_t present_time = now();
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress, "FIO Address or FIO Domain expired", ErrorFioNameExpired);
+            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress,
+                           "FIO Address or FIO Domain expired", ErrorFioNameExpired);
 
             //parse the domain and check that the domain is not expired.
             string domain = nullptr;
             size_t pos = fioaddress.find('.');
 
             if (pos == string::npos) {                                          // TODO Refactor since its used so much
-                eosio_assert(true,"could not find domain name in fio name.");
+                eosio_assert(true, "could not find domain name in fio name.");
             } else {
                 domain = fioaddress.substr(pos + 1, string::npos);
             }
@@ -248,7 +241,8 @@ namespace fioio{
             fio_404_assert(domains_iter != domains.end(), "FIO Domain not found", ErrorDomainNotRegistered);
 
             uint32_t expiration = domains_iter->expiration;
-            fio_400_assert(present_time <= expiration, "domain", domain, "FIO Address or FIO Domain expired", ErrorDomainExpired);
+            fio_400_assert(present_time <= expiration, "domain", domain, "FIO Address or FIO Domain expired",
+                           ErrorDomainExpired);
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
@@ -261,7 +255,7 @@ namespace fioio{
             auto matchingItem = idx.lower_bound(keyhash);
 
             // Advance to the first entry matching the specified address and chain
-            while (matchingItem != idx.end() && matchingItem->keyhash == keyhash ) {
+            while (matchingItem != idx.end() && matchingItem->keyhash == keyhash) {
                 matchingItem++;
             }
 
@@ -294,100 +288,112 @@ namespace fioio{
             //else {
             //print("Payments currently disabled.");
             //}
-            nlohmann::json json = {{"status","OK"},{"fioaddress",fioaddress},{"tokencode",tokencode},{"pubaddress",pubaddress},{"actor",actor}};
+            nlohmann::json json = {{"status",     "OK"},
+                                   {"fioaddress", fioaddress},
+                                   {"tokencode",  tokencode},
+                                   {"pubaddress", pubaddress},
+                                   {"actor",      actor}};
             send_response(json.dump().c_str());
         }
 
-		void removename() {
+        void removename() {
             print("Begin removename()");
-		}
+        }
 
-		void removedomain() {
+        void removedomain() {
             print("Begin removedomain()");
-		}
+        }
 
-		void rmvaddress() {
+        void rmvaddress() {
             print("Begin rmvaddress()");
-		}
+        }
 
-    /***
-     * The provided Base58 encoded public address and public key will be listed directly
-     * into the fiopubs table.
-     *
-     * @param pub_address The Base58 Encoded FIO Public Address
-     * @param pub_key The public key to be indexed with the FIO Public Address
-     */
-    [[eosio::action]]
-    void addfiopubadd(const string &pub_address, const string &pub_key) {
+        /***
+         * The provided Base58 encoded public address and public key will be listed directly
+         * into the fiopubs table.
+         *
+         * @param pub_address The Base58 Encoded FIO Public Address
+         * @param pub_key The public key to be indexed with the FIO Public Address
+         */
+        [[eosio::action]]
+        void addfiopubadd(const string &pub_address, const string &pub_key) {
 
-      eosio_assert_message_code(!pub_address.empty(), "Public Address field cannot be empty", ErrorPubAddressEmpty);
-      eosio_assert_message_code(!pub_key.empty(), "Public Key field cannot be empty", ErrorPubKeyEmpty);
+            eosio_assert_message_code(!pub_address.empty(), "Public Address field cannot be empty",
+                                      ErrorPubAddressEmpty);
+            eosio_assert_message_code(!pub_key.empty(), "Public Key field cannot be empty", ErrorPubKeyEmpty);
 
-      // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
-       require_auth(::eosio::string_to_name(FIO_SYSTEM));
+            // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
+            require_auth(::eosio::string_to_name(FIO_SYSTEM));
 
-       string pub = pub_address;
-       string key = pub_key;
-       //The indexes need to be calculated correctly here.
-       //Public Key and Public Address must be hashed uniquely to 12 characters to represent indexes.
-       uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
-       uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
+            string pub = pub_address;
+            string key = pub_key;
+            //The indexes need to be calculated correctly here.
+            //Public Key and Public Address must be hashed uniquely to 12 characters to represent indexes.
+            uint64_t fiopubindex = string_to_uint64_t(pub.c_str());
+            uint64_t pubkeyindex = string_to_uint64_t(key.c_str());
 
-       ///////////////////////////////////////////////////
-       //To do: Keep emplacing new entries or replace new ?
+            ///////////////////////////////////////////////////
+            //To do: Keep emplacing new entries or replace new ?
 
-       auto fiopubadd_iter = fiopubs.find(fiopubindex);
-       if (fiopubadd_iter != fiopubs.end()) {
-          print("Found pub address: pub address: ", fiopubadd_iter->fiopub, ", pub key: ", fiopubadd_iter->pubkey, "\n");
-          print("Found pub address: n pub address hash: ", fiopubindex, ",n pub key hash: ", pubkeyindex, "o pub address hash: ", fiopubadd_iter->fiopubindex, ",o pub key hash: ", fiopubadd_iter->pubkeyindex, "\n");
-       } else {
-         print("No pub address match found.");
-       }
-       eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.", ErrorPubAddressExist);
+            auto fiopubadd_iter = fiopubs.find(fiopubindex);
+            if (fiopubadd_iter != fiopubs.end()) {
+                print("Found pub address: pub address: ", fiopubadd_iter->fiopub, ", pub key: ", fiopubadd_iter->pubkey,
+                      "\n");
+                print("Found pub address: n pub address hash: ", fiopubindex, ",n pub key hash: ", pubkeyindex,
+                      "o pub address hash: ", fiopubadd_iter->fiopubindex, ",o pub key hash: ",
+                      fiopubadd_iter->pubkeyindex, "\n");
+            } else {
+                print("No pub address match found.");
+            }
+            eosio_assert_message_code(fiopubadd_iter == fiopubs.end(), "FIO Public address exists.",
+                                      ErrorPubAddressExist);
 
-       fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
-                                 f.fiopub = pub_address; // The public address
-                                 f.pubkey = pub_key; // The public Key
-                                 f.fiopubindex = fiopubindex; // The index of the public address
-                                 f.pubkeyindex = pubkeyindex; // The index of the public key
-                              });
+            fiopubs.emplace(_self, [&](struct fiopubaddr &f) {
+                f.fiopub = pub_address; // The public address
+                f.pubkey = pub_key; // The public Key
+                f.fiopubindex = fiopubindex; // The index of the public address
+                f.pubkeyindex = pubkeyindex; // The index of the public key
+            });
 
-       // json response
-       nlohmann::json json = {{"status","OK"},{"pub_address",pub_address},{"pub_key",pub_key}};
-       send_response(json.dump().c_str());
-    } // addfiopubadd
+            // json response
+            nlohmann::json json = {{"status",      "OK"},
+                                   {"pub_address", pub_address},
+                                   {"pub_key",     pub_key}};
+            send_response(json.dump().c_str());
+        } // addfiopubadd
 
-   /**
-    *
-    * Separate out the management of platform-specific identities from the fio names
-    * and domains. bind2eosio, the space restricted variant of "Bind to EOSIO"
-    * takes a platform-specific account name and a wallet generated public key.
-    *
-    * First it verifie that either tsi is a new account and none othe exists, or this
-    * is an existing eosio account and it is indeed bound to this key. If it is a new,
-    * unbound account name, then bind name to the key and add it to the list.
-    *
-    **/
+        /**
+         *
+         * Separate out the management of platform-specific identities from the fio names
+         * and domains. bind2eosio, the space restricted variant of "Bind to EOSIO"
+         * takes a platform-specific account name and a wallet generated public key.
+         *
+         * First it verifie that either tsi is a new account and none othe exists, or this
+         * is an existing eosio account and it is indeed bound to this key. If it is a new,
+         * unbound account name, then bind name to the key and add it to the list.
+         *
+         **/
 
-   [[eosio::action]]
-   void bind2eosio (name account, const string& client_key, bool existing) {
-    // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
-      require_auth(::eosio::string_to_name(FIO_SYSTEM));
+        [[eosio::action]]
+        void bind2eosio(name account, const string &client_key, bool existing) {
+            // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
+            require_auth(::eosio::string_to_name(FIO_SYSTEM));
 
-      auto other = eosionames.find(account);
-      if (other != eosionames.end()) {
-         eosio_assert_message_code(existing && client_key == other->clientkey, "EOSIO account already bound", ErrorPubAddressExist);
-            // name in the table and it matches
-      } else {
-         eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
-         eosionames.emplace(_self, [&](struct eosio_name &p) {
-                                      p.account = account;
-                                      p.clientkey = client_key;
-                                   });
-      }
-   }
+            auto other = eosionames.find(account);
+            if (other != eosionames.end()) {
+                eosio_assert_message_code(existing && client_key == other->clientkey, "EOSIO account already bound",
+                                          ErrorPubAddressExist);
+                // name in the table and it matches
+            } else {
+                eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
+                eosionames.emplace(_self, [&](struct eosio_name &p) {
+                    p.account = account;
+                    p.clientkey = client_key;
+                });
+            }
+        }
 
     }; // class FioNameLookup
 
-   EOSIO_ABI( FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd)(bind2eosio))
+    EOSIO_ABI(FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd)(bind2eosio))
 }

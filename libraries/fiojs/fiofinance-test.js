@@ -28,14 +28,14 @@ async function test_requestfunds(testContext) {
 
     let requestid = testContext["requestid"];
     let requestor = testContext["requestor"];
-    let requestee = testContext["requestee"]
+    let requestee = testContext["requestee"];
     let requestorKey = testContext["requestorKey"];
     let logLevel = testContext["logLevel"];
     let chain = testContext["chain"];
     let asset = testContext["asset"];
     let quantity = testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_requestfunds ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_requestfunds ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -91,7 +91,7 @@ async function test_rejectrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -99,7 +99,7 @@ async function test_rejectrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_rejectrqst ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_rejectrqst ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -188,7 +188,7 @@ async function test_invalidId_rejectrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -196,7 +196,7 @@ async function test_invalidId_rejectrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidId_rejectrqst ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidId_rejectrqst ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -230,11 +230,11 @@ async function test_invalidId_rejectrqst(testContext) {
     // retrieve fioappid of latest pending request
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelTrace, `Pending request: ${JSON.stringify(pendingRequest, null, 2)}`);
     let fioAppId = pendingRequest["fioappid"];
-    fioAppId += 10 // invalid FIO App Id
+    fioAppId += 10; // invalid FIO App Id
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelDebug, `Rejecting invalid pending request FIO app id: ${fioAppId}`);
 
-    rejectrqstSuccess=false
+    rejectrqstSuccess=false;
     result = await fio.rejectrqst(fioAppId, requestee, memo, requesteeKey)
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelTrace, rej);
@@ -259,7 +259,7 @@ async function test_invalidRequestee_rejectrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -267,7 +267,7 @@ async function test_invalidRequestee_rejectrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidRequestee_rejectrqst ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidRequestee_rejectrqst ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -304,7 +304,7 @@ async function test_invalidRequestee_rejectrqst(testContext) {
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelDebug, `Rejecting invalid pending request FIO app id: ${fioAppId}`);
 
-    rejectrqstSuccess=false
+    rejectrqstSuccess=false;
     result = await fio.rejectrqst(fioAppId, requestor, memo, requestorKey)
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelTrace, rej);
@@ -330,7 +330,7 @@ async function test_reportrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -338,7 +338,7 @@ async function test_reportrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_reportrqst. Create request, report request. ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_reportrqst. Create request, report request. ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -418,7 +418,7 @@ async function test_invalidId_reportrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -426,7 +426,7 @@ async function test_invalidId_reportrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidId_reportrqst ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidId_reportrqst ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -460,11 +460,11 @@ async function test_invalidId_reportrqst(testContext) {
     // retrieve fioappid of latest pending request
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelTrace, `Pending request: ${JSON.stringify(pendingRequest, null, 2)}`);
     let fioAppId = pendingRequest["fioappid"];
-    fioAppId += 10 // invalid FIO App Id
+    fioAppId += 10; // invalid FIO App Id
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelDebug, `Reporting invalid pending request FIO app id: ${fioAppId}`);
 
-    reportrqstSuccess=false
+    reportrqstSuccess=false;
     //approve the request
     memo = "approved";
     let obtid = "0x123456789";
@@ -492,7 +492,7 @@ async function test_invalidRequestee_reportrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -500,7 +500,7 @@ async function test_invalidRequestee_reportrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidRequestee_reportrqst ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidRequestee_reportrqst ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -537,7 +537,7 @@ async function test_invalidRequestee_reportrqst(testContext) {
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelDebug, `Rejecting invalid pending request FIO app id: ${fioAppId}`);
 
-    reportrqstSuccess=false
+    reportrqstSuccess=false;
     //approve the request
     memo = "approved";
     let obtid = "0x123456789";
@@ -566,7 +566,7 @@ async function test_cancelrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -574,7 +574,7 @@ async function test_cancelrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_cancelrqst. Create request, cancel request. ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_cancelrqst. Create request, cancel request. ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -656,7 +656,7 @@ async function test_invalidId_cancelrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -664,7 +664,7 @@ async function test_invalidId_cancelrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidId_cancelrqst. Create request, cancel request. ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidId_cancelrqst. Create request, cancel request. ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -700,7 +700,7 @@ async function test_invalidId_cancelrqst(testContext) {
     // Cancel the request
     memo = "cancelled";
     let invalid_requestid=requestid + 100;
-    cancelrqstSuccess=false
+    cancelrqstSuccess=false;
     result = await fio.cancelrqst(invalid_requestid, requestor, memo, requestorKey)
         .catch(rej => {
             // console.log(rej)
@@ -738,7 +738,7 @@ async function test_invalidRequestee_cancelrqst(testContext) {
 
     let requestid   = testContext["requestid"];
     let requestor   = testContext["requestor"];
-    let requestee   = testContext["requestee"]
+    let requestee   = testContext["requestee"];
     let requestorKey    = testContext["requestorKey"];
     let requesteeKey    = testContext["requesteeKey"];
     let logLevel    = testContext["logLevel"];
@@ -746,7 +746,7 @@ async function test_invalidRequestee_cancelrqst(testContext) {
     let asset   = testContext["asset"];
     let quantity    =  testContext["quantity"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidRequestee_cancelrqst. Create request, cancel request. ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_invalidRequestee_cancelrqst. Create request, cancel request. ***");
 
     fio = new fiofinance.FioFinance();
 
@@ -781,7 +781,7 @@ async function test_invalidRequestee_cancelrqst(testContext) {
 
     // Cancel the request
     memo = "cancelled";
-    cancelrqstSuccess=false
+    cancelrqstSuccess=false;
     result = await fio.cancelrqst(requestid, requestee, memo, requesteeKey)
         .catch(rej => {
             // console.log(rej)
@@ -828,34 +828,34 @@ async function testFunction(testContext) {
 
     await test_requestfunds(testContext);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
+    testContext_1["requestid"] += testContext_1["requestid"];
     await test_rejectrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
+    testContext_1["requestid"] += testContext_1["requestid"];
     await test_invalidId_rejectrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
+    testContext_1["requestid"] += testContext_1["requestid"];
     await test_invalidRequestee_rejectrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
+    testContext_1["requestid"] += testContext_1["requestid"];
     // requestee = [requestor, requestor = requestee][0];  // swap values
     // requesteeKey = [requestorKey, requestorKey = requesteeKey][0];  // swap values
     await test_reportrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
-    await test_invalidId_reportrqst(testContext_1)
+    testContext_1["requestid"] += testContext_1["requestid"];
+    await test_invalidId_reportrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
-    await test_invalidRequestee_reportrqst(testContext_1)
+    testContext_1["requestid"] += testContext_1["requestid"];
+    await test_invalidRequestee_reportrqst(testContext_1);
     //
-    testContext_1["requestid"] += testContext_1["requestid"]
+    testContext_1["requestid"] += testContext_1["requestid"];
     await test_cancelrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
-    await test_invalidId_cancelrqst(testContext_1)
+    testContext_1["requestid"] += testContext_1["requestid"];
+    await test_invalidId_cancelrqst(testContext_1);
 
-    testContext_1["requestid"] += testContext_1["requestid"]
-    await test_invalidRequestee_cancelrqst(testContext_1)
+    testContext_1["requestid"] += testContext_1["requestid"];
+    await test_invalidRequestee_cancelrqst(testContext_1);
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** END tests ***")
 }
@@ -863,7 +863,7 @@ async function testFunction(testContext) {
 async function setContract(testContext) {
     fiocommon.Helper.checkTypes( arguments, ['object'] );
 
-    let logLevel    = testContext["logLevel"]
+    let logLevel    = testContext["logLevel"];
 
     let contract="fio.finance";
     let contractDir=contract;
@@ -883,11 +883,11 @@ async function setContract(testContext) {
 }
 
 async function main() {
-    let requestid=9000
-    let requestor='fioname11111'
-    let requestee='fioname22222'
-    let requestorKey="5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
-    let requesteeKey="5JA5zQkg1S59swPzY6d29gsfNhNPVCb7XhiGJAakGFa7tEKSMjT"
+    let requestid=9000;
+    let requestor='fioname11111';
+    let requestee='fioname22222';
+    let requestorKey="5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF";
+    let requesteeKey="5JA5zQkg1S59swPzY6d29gsfNhNPVCb7XhiGJAakGFa7tEKSMjT";
     let args = minimist(process.argv.slice(2), {
         alias: {
             h: 'help',
@@ -924,7 +924,7 @@ async function main() {
         return 0;
     }
 
-    let logLevel = args.debug
+    let logLevel = args.debug;
     fiocommon.Config.LogLevel = logLevel;
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Owner account ${args.creator}`);

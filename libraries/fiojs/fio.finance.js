@@ -112,7 +112,7 @@ class FioFinance {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -154,7 +154,7 @@ class FioFinance {
                     return res.json()
                 })
                 .catch(rej => {
-                    console.log(`fetch rejection handler.`)
+                    console.log(`fetch rejection handler.`);
                     throw rej;
                 });
 
@@ -199,7 +199,7 @@ class FioFinance {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -244,7 +244,7 @@ class FioFinance {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler (cancelrqst). `)
+            console.log(`api.transact promise rejection handler (cancelrqst). `);
             throw rej;
         });
 
@@ -291,7 +291,7 @@ class FioFinance {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler (reportrqst).`)
+            console.log(`api.transact promise rejection handler (reportrqst).`);
             throw rej;
         });
 
@@ -336,7 +336,7 @@ class FioFinance {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler (rejectrqst).`)
+            console.log(`api.transact promise rejection handler (rejectrqst).`);
             throw rej;
         });
 

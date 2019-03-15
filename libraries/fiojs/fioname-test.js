@@ -46,7 +46,7 @@ async function test_registerName(testContext) {
     let creator = testContext["creator"];
     let logLevel = testContext["logLevel"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_registerName ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_registerName ***");
 
     fio = new fioname.Fio();
 
@@ -105,20 +105,20 @@ async function test_registerName(testContext) {
     assert(getAccountResult[1].expiration, "Expiration should not be empty.");
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START MAS 111 tests ***");
-    let actionResponseStr = registerNameResult[1].processed.action_traces[0].receipt.response
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "Validate registername response.")
-    assert(actionResponseStr, "registername action response cannot be empty.")
-    let actionResponseJson = JSON.parse(actionResponseStr)
-    assert(actionResponseJson.status == "OK", "registername action response status should be 'OK'.")
-    assert(actionResponseJson.fio_name == domain, `registername action response 'fio_name' should be ${domain}.`)
+    let actionResponseStr = registerNameResult[1].processed.action_traces[0].receipt.response;
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "Validate registername response.");
+    assert(actionResponseStr, "registername action response cannot be empty.");
+    let actionResponseJson = JSON.parse(actionResponseStr);
+    assert(actionResponseJson.status == "OK", "registername action response status should be 'OK'.");
+    assert(actionResponseJson.fio_name == domain, `registername action response 'fio_name' should be ${domain}.`);
 
-    let actualExipration = actionResponseJson.expiration
+    let actualExipration = actionResponseJson.expiration;
     let expectedExpiration = Math.floor(Date.now() / 1000) + fiocommon.Config.NameRegisterExpiration;
     // check if the expected and actul expiration are within a 5 minute range
     assert(Math.abs(expectedExpiration - actualExipration) <= 300, `Invalid registername expiration. Expected: ${expectedExpiration}, Actual: ${actualExipration}`);
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** END MAS 111 tests ***");
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Get currency balance after register domain for account "${account}".`)
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Get currency balance after register domain for account "${account}".`);
     getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelError, rej.stack);
@@ -141,7 +141,7 @@ async function test_registerName(testContext) {
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelError, rej.stack);
             assert(false, "EXCEPTION: lookupByName() "+ invalidDomain);
-        })
+        });
     assert(getAccountResult[0], "FAIL lookupByName() " + invalidDomain);
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelTrace, JSON.stringify(getAccountResult[1], null, 2));
 
@@ -185,20 +185,20 @@ async function test_registerName(testContext) {
     assert(getAccountResult[1].expiration, "Expiration should not be empty.");
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START MAS 111 tests ***");
-    actionResponseStr = registerNameResult[1].processed.action_traces[0].receipt.response
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "Validate registername response.")
-    assert(actionResponseStr, "registername action response cannot be empty.")
-    actionResponseJson = JSON.parse(actionResponseStr)
-    assert(actionResponseJson.status == "OK", "registername action response status should be 'OK'.")
-    assert(actionResponseJson.fio_name == name, `registername action response 'fio_name' should be ${name}.`)
+    actionResponseStr = registerNameResult[1].processed.action_traces[0].receipt.response;
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "Validate registername response.");
+    assert(actionResponseStr, "registername action response cannot be empty.");
+    actionResponseJson = JSON.parse(actionResponseStr);
+    assert(actionResponseJson.status == "OK", "registername action response status should be 'OK'.");
+    assert(actionResponseJson.fio_name == name, `registername action response 'fio_name' should be ${name}.`);
 
-    actualExipration = actionResponseJson.expiration
+    actualExipration = actionResponseJson.expiration;
     expectedExpiration = Math.floor(Date.now() / 1000) + fiocommon.Config.NameRegisterExpiration;
     // check if the expected and actul expiration are within a 5 minute range
     assert(Math.abs(expectedExpiration - actualExipration) <= 300, `Invalid registername expiration. Expected: ${expectedExpiration}, Actual: ${actualExipration}`);
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** END MAS 111 tests ***");
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Get currency balance after register name for account "${account}".`)
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Get currency balance after register name for account "${account}".`);
     getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelError, rej.stack);
@@ -240,7 +240,7 @@ async function test_addAddress(testContext) {
     let creator = testContext["creator"];
     let logLevel = testContext["logLevel"];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_addAddress ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_addAddress ***");
 
     fio = new fioname.Fio();
 
@@ -315,7 +315,7 @@ async function test_addAddress(testContext) {
     // assert(getAccountResult[1].address == address, "Address expected to be "+ address);
     assert(getAccountResult[1].expiration, "Expiration should not be empty.");
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Get currency balance after add address for account "${account}".`)
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Get currency balance after add address for account "${account}".`);
     getCurrencyBalanceResult = await fio.getCurrencyBalance(account)
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelError, rej.stack);
@@ -323,14 +323,14 @@ async function test_addAddress(testContext) {
         });
     assert(getCurrencyBalanceResult[0], "FAIL getCurrencyBalance(), account: "+ account);
     let newBalance =  parseFloat(getCurrencyBalanceResult[1][0].split(" "));
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelDebug, `New balance: ${newBalance}`)
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelDebug, `New balance: ${newBalance}`);
 
     let actualPayment = originalBalance - newBalance;
     let expectedPayment = (fiocommon.Config.pmtson ? fiocommon.TrxFee.upaddress : 0.0);
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Add address payment validation. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
     assert(Math.abs(actualPayment - expectedPayment) <= 0.01, `Invalid add address payment. Expected: ${expectedPayment}, Actual: ${actualPayment}`);
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** END MAS 54 test ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** END MAS 54 test ***");
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** END test_addAddress ***")
 }
 
@@ -342,11 +342,11 @@ async function test_addfiopubadd(testContext) {
 
     fio = new fioname.Fio();
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_addfiopubadd ***")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "*** START test_addfiopubadd ***");
     let pubAddress ="";
     let pub_key ="";
     let addfiopubaddResult;
-    let addfiopubaddTestSuccess=false
+    let addfiopubaddTestSuccess=false;
 
     // TBD: 400 error response handling is broken correctly, commenting the test
     // console.log("addfiopubadd: Testing addfiopubadd action with empty public address parameter (expect 400 error response)")
@@ -407,10 +407,10 @@ async function test_addfiopubadd(testContext) {
     let account =                   createAccountResult[2];
     let accountActivePrivateKey =   createAccountResult[4][0];
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "addfiopubadd: Testing addfiopubadd action invocation with wrong account permission (expect 401 error response)")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "addfiopubadd: Testing addfiopubadd action invocation with wrong account permission (expect 401 error response)");
     pubAddress ="abc";
     pub_key ="xyz";
-    addfiopubaddTestSuccess=false
+    addfiopubaddTestSuccess=false;
     addfiopubaddResult = await fio.addfiopubadd(pubAddress, pub_key, account, accountActivePrivateKey)
         .catch(rej => {
             fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelError, rej);
@@ -420,8 +420,8 @@ async function test_addfiopubadd(testContext) {
             let expectedResponseCode="401";
             let expectedResponseMessage="UnAuthorized";
 
-            addfiopubaddStr = JSON.stringify(addfiopubaddStr)
-            let addfiopubaddJson = JSON.parse(addfiopubaddStr)
+            addfiopubaddStr = JSON.stringify(addfiopubaddStr);
+            let addfiopubaddJson = JSON.parse(addfiopubaddStr);
             // console.log(JSONify(addfiopubaddJson));
 
             assert(addfiopubaddJson.code == expectedResponseCode, "addfiopubadd action response invalid code.");
@@ -430,7 +430,7 @@ async function test_addfiopubadd(testContext) {
         });
     assert(addfiopubaddTestSuccess, "addfiopubadd() with wrong signature should have failed.");
 
-    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "addfiopubadd: Testing action invocation happy path.")
+    fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, "addfiopubadd: Testing action invocation happy path.");
     pubAddress ="abc";
     pub_key ="xyz";
     addfiopubaddResult = await fio.addfiopubadd(pubAddress, pub_key, fiocommon.Config.SystemAccount, fiocommon.Config.SystemAccountKey)
@@ -442,11 +442,11 @@ async function test_addfiopubadd(testContext) {
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelTrace, JSON.stringify(addfiopubaddResult[1], null, 2));
 
     assert(addfiopubaddResult[1]["processed"]["action_traces"][0]["receipt"]["response"], "FAIL addfiopubadd(), expected response");
-    let responseStr=addfiopubaddResult[1]["processed"]["action_traces"][0]["receipt"]["response"]
+    let responseStr=addfiopubaddResult[1]["processed"]["action_traces"][0]["receipt"]["response"];
     response=JSON.parse(responseStr);
-    let expectedResponseStatus="OK"
-    let expectedResponsePubKey=pub_key
-    let expectedResponsePubAddress=pubAddress
+    let expectedResponseStatus="OK";
+    let expectedResponsePubKey=pub_key;
+    let expectedResponsePubAddress=pubAddress;
     assert(response["status"] == expectedResponseStatus, "FAIL addfiopubadd(), expected response status: "+ expectedResponseStatus);
     assert(response["pub_key"] == expectedResponsePubKey, "FAIL addfiopubadd(), expected response public key: "+ expectedResponsePubKey + ".");
     assert(response["pub_address"] == expectedResponsePubAddress, "FAIL addfiopubadd(), expected response public address: "+ expectedResponsePubKey + ".");
@@ -503,7 +503,7 @@ async function testFunction(testContext) {
 async function setContract(testContext) {
     fiocommon.Helper.checkTypes( arguments, ['object'] );
 
-    let logLevel    = testContext["logLevel"]
+    let logLevel    = testContext["logLevel"];
 
     let contract="fio.name";
     let contractDir=contract;
@@ -551,7 +551,7 @@ async function main() {
         return 0;
     }
 
-    let logLevel = args.debug
+    let logLevel = args.debug;
     fiocommon.Config.LogLevel = logLevel;
 
     fiocommon.Helper.Log(logLevel >= fiocommon.Config.LogLevelInfo, `Owner account ${args.creator}`);

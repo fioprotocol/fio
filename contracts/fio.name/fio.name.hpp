@@ -1,17 +1,8 @@
 /** FioName Token header file
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
- *  @author Adam Androulidakis
+ *  @author Adam Androulidakis, Ciju John, Casey Gardiner, Ed Rotthoff
  *  @file fio.name.hpp
  *  @copyright Dapix
- *
- *  Changes:
- *  Adam Androulidakis 12-10-2018 - MAS-114
- *  Adam Androulidakis 9-18-2018
- *  Adam Androulidakis 9-6-2018
- *  Ciju John 9-5-2018
- *  Adam Androulidakis  8-31-2018
- *  Ciju John  8-30-2018
- *  Adam Androulidakis  8-29-2019
  */
 
 #pragma once
@@ -34,15 +25,14 @@ namespace fioio {
         uint64_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
-        //EXPIRATION this is the expiration for this fio name, this is a number of seconds since 1970
         uint32_t expiration;
 
         // Chain specific keys
         vector<string> addresses;
-        // std::map<string, string> fionames;
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
+
         uint64_t by_domain() const { return domainhash; }
 
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
@@ -56,8 +46,6 @@ namespace fioio {
     struct domain {
         string name;
         uint64_t domainhash;
-
-        //EXPIRATION this is the expiration for this fio domain, this is a number of seconds since 1970
         uint32_t expiration;
 
         uint64_t primary_key() const { return domainhash; }
@@ -77,6 +65,7 @@ namespace fioio {
 
         EOSLIB_SERIALIZE(chainList, (chainname)(id)(chainhash))
     };
+
     typedef multi_index<N(chains), chainList> chains_table;
 
     // Structures/table for mapping chain key to FIO name
@@ -112,25 +101,27 @@ namespace fioio {
 
         EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
     };
-   typedef multi_index<N(fiopubs), fiopubaddr,
-           indexed_by<N(bypubkey), const_mem_fun<fiopubaddr, uint64_t, &fiopubaddr::by_pubkey> > > fiopubs_table;
 
-   // @abi table eosionames i64
-   // The eosio names table maps client wallet generated public keys to EOS user account
-   // names. The table exists to verify that all generated account names are unique. For
-   // that reason this table is indexed by the generated account name so that if a name
-   // is found, the associated key must match the supplied key to ensure there is no
-   // hashing collision.
+    typedef multi_index<N(fiopubs), fiopubaddr,
+            indexed_by<N(bypubkey), const_mem_fun<fiopubaddr, uint64_t, &fiopubaddr::by_pubkey> > > fiopubs_table;
+
+    // @abi table eosionames i64
+    // The eosio names table maps client wallet generated public keys to EOS user account
+    // names. The table exists to verify that all generated account names are unique. For
+    // that reason this table is indexed by the generated account name so that if a name
+    // is found, the associated key must match the supplied key to ensure there is no
+    // hashing collision.
     struct eosio_name {
 
-       uint64_t account = 0;
-       string clientkey = nullptr;
+        uint64_t account = 0;
+        string clientkey = nullptr;
 
         uint64_t primary_key() const { return account; }
-       EOSLIB_SERIALIZE(eosio_name, (account)(clientkey))
+
+        EOSLIB_SERIALIZE(eosio_name, (account)(clientkey))
     };
 
-   typedef multi_index<N(eosionames), eosio_name> eosio_names_table;
+    typedef multi_index<N(eosionames), eosio_name> eosio_names_table;
 
 
 //    struct config {
