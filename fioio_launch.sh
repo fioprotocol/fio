@@ -172,7 +172,6 @@ if [ $mChoice == 1 ]; then
 
     #Create Account Name
     cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"casey.brd","actor":"fioname11111"}' --permission fioname11111@active
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"adam.brd","actor":"fioname11111"}' --permission fioname11111@active
 
 elif [ $mChoice == 2 ]; then
     cd tests

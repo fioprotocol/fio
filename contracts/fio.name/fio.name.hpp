@@ -43,7 +43,6 @@ namespace fioio {
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
-
         uint64_t by_domain() const { return domainhash; }
 
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
@@ -91,7 +90,6 @@ namespace fioio {
         uint32_t expiration;        //expiration of the fioname.
 
         uint64_t primary_key() const { return id; }
-
         uint64_t by_keyhash() const { return keyhash; }
 
         EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(expiration))
@@ -110,7 +108,6 @@ namespace fioio {
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return fiopubindex; }
-
         uint64_t by_pubkey() const { return pubkeyindex; }
 
         EOSLIB_SERIALIZE(fiopubaddr, (fiopubindex)(fiopub)(pubkeyindex)(pubkey))
