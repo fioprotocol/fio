@@ -160,7 +160,7 @@ if [ $mChoice == 1 ]; then
 
     retries=3
     chkdomain "brd"
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"brd","actor":"fio.system"}' --permission fio.system@active
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"dapix","actor":"fio.system"}' --permission fio.system@active
 
     sleep 1
     chkdomain "brd"
@@ -171,7 +171,8 @@ if [ $mChoice == 1 ]; then
     fi
 
     #Create Account Name
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"casey.brd","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"casey.dapix","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"adam.dapix","actor":"fioname22222"}' --permission fioname22222@active
 
 elif [ $mChoice == 2 ]; then
     cd tests
@@ -190,7 +191,7 @@ elif [ $mChoice == 2 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"fioname":"brd","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"fioname":"dapix","actor":"fioname11111"}' --permission fioname11111@active
 
 elif [ $mChoice == 3 ]; then
     cd build
@@ -207,7 +208,7 @@ elif [ $mChoice == 3 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
     #Create Domain
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"fioname":"brd","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"fioname":"dapix","actor":"fioname11111"}' --permission fioname11111@active
 
 elif [ $mChoice == 4 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice

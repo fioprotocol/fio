@@ -24,8 +24,8 @@ Default Environment Settings:
 |    Name    | Data     |
 | :---------|:--------:|
 | Node Port  | 8889 |  
-| Domain     | brd |
-| FIO Names  | casey |
+| Domain     | dapix |
+| FIO Names  | casey, adam |
 
 #### Chain Management
 ###### Shutdown Local Test Node
