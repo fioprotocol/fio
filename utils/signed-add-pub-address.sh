@@ -8,7 +8,7 @@ wPort=9899
 hostname="localhost"
 
 if [ -z "$1" ]; then
-    domain="adam.brd"
+    domain="adam.dapix"
 else
     domain=$1
 fi

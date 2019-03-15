@@ -15,7 +15,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 
 echo ------------------------------------------
-dataJson='{"actor":"${fioactor}","recordsend":"{\"fromfioadd\": \"adam.brd\",\"tofioadd\": \"casey.brd\",\"from_pub_address\": \"0xab5801a7d398351b8be11c439e05c5b3259aec9b\",\"to_pub_address\": \"0xC8a5bA5868A5E9849962167B2F99B2040Cee2031\",\"amount\": \"1\",\"token_code\": \"DAI\",\"chain_code\": \"ETH\",\"status\": \"sent_to_blockchain\",\"obt_id\": \"0xf6eaddd3851923f6f9653838d3021c02ab123a4a6e4485e83f5063b3711e000b\",\"metadata\": \"{\"test\":\"val1\",\"test2\":\"val2\"}\",\"fioreqid\":\"0\"}"}'
+dataJson='{"actor":"${fioactor}","recordsend":"{\"fromfioadd\": \"adam.dapix\",\"tofioadd\": \"casey.dapix\",\"from_pub_address\": \"0xab5801a7d398351b8be11c439e05c5b3259aec9b\",\"to_pub_address\": \"0xC8a5bA5868A5E9849962167B2F99B2040Cee2031\",\"amount\": \"1\",\"token_code\": \"DAI\",\"chain_code\": \"ETH\",\"status\": \"sent_to_blockchain\",\"obt_id\": \"0xf6eaddd3851923f6f9653838d3021c02ab123a4a6e4485e83f5063b3711e000b\",\"metadata\": \"{\"test\":\"val1\",\"test2\":\"val2\"}\",\"fioreqid\":\"0\"}"}'
 
 
 expectedPackedData=056461706978104208414933a95b
