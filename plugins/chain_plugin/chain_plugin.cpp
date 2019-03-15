@@ -1213,12 +1213,12 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, system_abi, [](uint64_t v)->uint64_t {
             return v;
         });
-        dlog( "key names row count, this should be 1 : '${size}'", ("size", keynames_rows_result.rows.size()) );
+        dlog( "key names row count : '${size}'", ("size", keynames_rows_result.rows.size()) );
         FIO_400_ASSERT(!keynames_rows_result.rows.empty(), "fiopubadd", fio_pubadd, "No matches found for public address.", fioio::ErrorChainAddressNotFound);
 
-
+        for (size_t knpos=0; knpos < keynames_rows_result.rows.size(); knpos++) {
         //get the fio address associated with this public address
-        string fio_address = (string)keynames_rows_result.rows[0]["name"].as_string();
+        string fio_address = (string)keynames_rows_result.rows[knpos]["name"].as_string();
         uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
         //look up the requests for this fio name (look for matches in the tofioadd
@@ -1233,15 +1233,13 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 .lower_bound = boost::lexical_cast<string>(address_hash),
                 .upper_bound = boost::lexical_cast<string>(address_hash + 1),
                 .key_type       = "i64",
-                .index_position ="1"};
+                .index_position = "2"};
         // Do secondary key lookup
         get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(requests_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
             return v;
         });
 
         dlog( "fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()) );
-
-
 
         //for each request look to see if there are associated statuses
         //query the fioreqstss table by the fioreqid, if there is a match then take these
@@ -1250,22 +1248,22 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         for (size_t pos=0; pos < requests_rows_result.rows.size(); pos++) {
 
             //get all the attributes of the fio request
-            uint64_t fioreqid  = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
-            uint64_t fromfioaddr  = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
-            uint64_t tofioaddr  = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
-            string topubaddr  = requests_rows_result.rows[pos]["topubaddr"].as_string();
-            string amount  = requests_rows_result.rows[pos]["amount"].as_string();
-            string tokencode  = requests_rows_result.rows[pos]["tokencode"].as_string();
-            string metadata  = requests_rows_result.rows[pos]["metadata"].as_string();
-            uint64_t fiotime  = requests_rows_result.rows[pos]["fiotime"].as_uint64();
+            uint64_t fioreqid = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
+            uint64_t fromfioaddr = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
+            uint64_t tofioaddr = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
+            string topubaddr = requests_rows_result.rows[pos]["topubaddr"].as_string();
+            string amount = requests_rows_result.rows[pos]["amount"].as_string();
+            string tokencode = requests_rows_result.rows[pos]["tokencode"].as_string();
+            string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+            uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
 
-            request_record rr{fioreqid,fromfioaddr,tofioaddr,topubaddr,amount,tokencode,metadata,fiotime};
+            request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
 
             //use this id and query the fioreqstss table for status updates to this fioreqid
             //look up the requests for this fio name (look for matches in the tofioadd
             string fio_request_status_lookup_table = "fioreqstss";   // table name
 
-            dlog( "Lookup request statuses in fioreqstss using id: '${fio_reqid}'", ("fio_reqid", fioreqid) );
+            dlog("Lookup request statuses in fioreqstss using id: '${fio_reqid}'", ("fio_reqid", fioreqid));
             get_table_rows_params request_status_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_reqobt_code,
@@ -1274,19 +1272,21 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound = boost::lexical_cast<string>(fioreqid),
                     .upper_bound = boost::lexical_cast<string>(fioreqid + 1),
                     .key_type       = "i64",
-                    .index_position ="1"};
+                    .index_position = "2"};
             // Do secondary key lookup
-            get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(request_status_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
-                return v;
-            });
+            get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
-            dlog( "request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()) );
+            dlog("request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()));
 
             //if there are no statuses for this record then add it to the results
-            if (request_status_rows_result.rows.empty())
-            {
+            if (request_status_rows_result.rows.empty()) {
                 result.requests.push_back(rr);
             }
+        }
+
         } // Get request statuses
 
         FIO_404_ASSERT(!(result.requests.size() == 0) ,"No Pending FIO Requests",fioio::ErrorNoFioRequestsFound);
@@ -1326,222 +1326,64 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 .lower_bound = boost::lexical_cast<string>(key_hash),
                 .upper_bound = boost::lexical_cast<string>(key_hash + 1),
                 .key_type       = "i64",
-                .index_position ="2"};
+                .index_position = "2"};
         // Do secondary key lookup
         get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, system_abi, [](uint64_t v)->uint64_t {
             return v;
         });
 
-        dlog( "key names row count, this should be 1 : '${size}'", ("size", keynames_rows_result.rows.size()) );
+        dlog( "key names row count : '${size}'", ("size", keynames_rows_result.rows.size()) );
         FIO_400_ASSERT(!keynames_rows_result.rows.empty(), "fiopubadd", fio_pubadd, "No matches found for public address.", fioio::ErrorChainAddressNotFound);
 
-        //get the fio address associated with this public address
-        string fio_address = (string)keynames_rows_result.rows[0]["name"].as_string();
-        uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
-        //look up the requests for this fio name (look for matches in the tofioadd
-        string fio_requests_lookup_table = "fioreqctxts";   // table name
+        for (size_t knpos=0; knpos < keynames_rows_result.rows.size(); knpos++) {
+            //get the fio address associated with this public address
+            string fio_address = (string) keynames_rows_result.rows[knpos]["name"].as_string();
+            uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
-        dlog( "Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'", ("add_hash", address_hash) );
-        get_table_rows_params requests_row_params = get_table_rows_params{
-                .json        = true,
-                .code        = fio_reqobt_code,
-                .scope       = fio_reqobt_scope,
-                .table       = fio_requests_lookup_table,
-                .lower_bound = boost::lexical_cast<string>(address_hash),
-                .upper_bound = boost::lexical_cast<string>(address_hash + 1),
-                .key_type       = "i64",
-                .index_position ="1"};
-        // Do secondary key lookup
-        get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(requests_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
-            return v;
-        });
 
-        dlog( "fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()) );
-
-        //for each request look to see if there are associated statuses
-        //query the fioreqstss table by the fioreqid, if there is a match then take these
-        //out of the results, otherwise include in the results.
-        // Look through the keynames lookup results and push the fio_addresses into results
-        for (size_t pos=0; pos < requests_rows_result.rows.size(); pos++) {
-
-            //get all the attributes of the fio request
-            uint64_t fioreqid  = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
-            uint64_t fromfioaddr  = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
-            uint64_t tofioaddr  = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
-            string topubaddr  = requests_rows_result.rows[pos]["topubaddr"].as_string();
-            string amount  = requests_rows_result.rows[pos]["amount"].as_string();
-            string tokencode  = requests_rows_result.rows[pos]["tokencode"].as_string();
-            string metadata  = requests_rows_result.rows[pos]["metadata"].as_string();
-            uint64_t fiotime  = requests_rows_result.rows[pos]["fiotime"].as_uint64();
-
-            request_record rr{fioreqid,fromfioaddr,tofioaddr,topubaddr,amount,tokencode,metadata,fiotime};
-
-            //use this id and query the fioreqstss table for status updates to this fioreqid
             //look up the requests for this fio name (look for matches in the tofioadd
-            string fio_request_status_lookup_table = "fioreqstss";   // table name
+            string fio_requests_lookup_table = "fioreqctxts";   // table name
 
-            dlog( "Lookup request statuses in fioreqstss using id: '${fio_reqid}'", ("fio_reqid", fioreqid) );
-            get_table_rows_params request_status_row_params = get_table_rows_params{
+            dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
+                 ("add_hash", address_hash));
+            get_table_rows_params requests_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_reqobt_code,
                     .scope       = fio_reqobt_scope,
-                    .table       = fio_request_status_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(fioreqid),
-                    .upper_bound = boost::lexical_cast<string>(fioreqid + 1),
+                    .table       = fio_requests_lookup_table,
+                    .lower_bound = boost::lexical_cast<string>(address_hash),
+                    .upper_bound = boost::lexical_cast<string>(address_hash + 1),
                     .key_type       = "i64",
-                    .index_position ="1"};
+                    .index_position = "3"};
             // Do secondary key lookup
-            get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(request_status_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
-                return v;
-            });
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    requests_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
-            dlog( "request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()) );
+            dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
-            //if there are no statuses for this record then add it to the results
-            if (!request_status_rows_result.rows.empty()) {
-                uint64_t fiostatusid  = requests_rows_result.rows[pos]["trxstatus"].as_uint64();
+            // Look through the keynames lookup results and push the fio_addresses into results
+            for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
+                //get all the attributes of the fio request
+                uint64_t fioreqid = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
+                uint64_t fromfioaddr = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
+                uint64_t tofioaddr = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
+                string topubaddr = requests_rows_result.rows[pos]["topubaddr"].as_string();
+                string amount = requests_rows_result.rows[pos]["amount"].as_string();
+                string tokencode = requests_rows_result.rows[pos]["tokencode"].as_string();
+                string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
 
-                if(fiostatusid == 2){
-                    result.requests.push_back(rr);
-                }
-            }
-        } // Get request statuses
+                request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
+                result.requests.push_back(rr);
+            } // Get request statuses
+        }
 
-        FIO_404_ASSERT(!(result.requests.size() == 0) ,"No Pending FIO Requests",fioio::ErrorNoFioRequestsFound);
+        FIO_404_ASSERT(!(result.requests.size() == 0) ,"No Sent FIO Requests",fioio::ErrorNoFioRequestsFound);
         return result;
     } // get_sent_fio_requests
-
-    /***
- * Lookup address by FIO name.
- * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
- * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
- */
-read_only::fio_name_lookup_result read_only::fio_name_lookup( const read_only::fio_name_lookup_params& p )const {
-
-   fioio::FioAddress fa;
-
-   // assert if empty fio name
-   EOS_ASSERT( !p.fio_name.empty(), chain::contract_table_query_exception,"Invalid empty name");
-
-   // Split the fio name and domain portions
-   string fio_domain = "";
-   string fio_user_name = "";
-
-   int pos = p.fio_name.find('.');
-   if (pos == string::npos) {
-      fio_domain = p.fio_name;
-   } else {
-      fio_user_name = p.fio_name.substr(0, pos);
-      fio_domain = p.fio_name.substr(pos + 1, string::npos);
-   }
-   dlog( "fio user name: ${name}, fio domain: ${domain}", ("name", fio_user_name)("domain", fio_domain) );
-
-   //declare variables.
-   const abi_def abi = eosio::chain_apis::get_abi( db, fio_system_code );
-
-   const uint64_t name_hash = ::eosio::string_to_uint64_t(fio_user_name.c_str());
-   const uint64_t domain_hash = ::eosio::string_to_uint64_t(fio_domain.c_str());
-   dlog( "fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash) );
-
-   //these are the results for the table searches for domain ansd fio name
-   get_table_rows_result domain_result;
-   get_table_rows_result fioname_result;
-   //this is the table rows result to use after domain/fioname specific processing
-   get_table_rows_result name_result;
-   //this is the result returned to the user
-   fio_name_lookup_result result;
-
-   //process the domain first, see if it exists aand then check the expiration.
-   //we return an empty result if the domain is expired.
-
-   //get the domain, check if the domain is expired.
-   get_table_rows_params table_row_params = get_table_rows_params{.json=true,
-           .code=fio_system_code,
-           .scope=fio_system_scope,
-           .table=fio_domains_table,
-           .lower_bound=boost::lexical_cast<string>(domain_hash),
-           .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
-           .encode_type="dec"};
-
-   domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
-
-   // If no matches, then domain not found, return empty result
-   dlog( "Domain matched: ${matched}", ("matched", !domain_result.rows.empty()) );
-   if (domain_result.rows.empty()) {
-      return result;
-   }
-
-   uint32_t domain_expiration = (uint32_t)(domain_result.rows[0]["expiration"].as_uint64());
-   //This is not the local computer time, it is in fact the block time.
-   uint32_t present_time = (uint32_t)time(0);
-
-   //if the domain is expired then return an empty result.
-   dlog( "Domain expired: ${expired}", ("expired", present_time > domain_expiration) );
-   if (present_time > domain_expiration) {
-     return result;
-   }
-
-   //set name result to be the domain results.
-   name_result = domain_result;
-
-    if (!fio_user_name.empty()){
-        //query the names table and check if the name is expired
-        get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                .code=fio_system_code,
-                .scope=fio_system_scope,
-                .table=fio_address_table,
-                .lower_bound=boost::lexical_cast<string>(name_hash),
-                .upper_bound=boost::lexical_cast<string>(name_hash + 1),
-                .encode_type="dec"};
-
-        fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
-
-        // If no matches, the name does not exist, return empty result
-       dlog( "FIO name matched: ${matched}", ("matched", !fioname_result.rows.empty()) );
-        if (fioname_result.rows.empty()) {
-            return result;
-        }
-
-        uint32_t name_expiration = (uint32_t)fioname_result.rows[0]["expiration"].as_uint64();
-
-        //if the name is expired then return an empty result.
-       dlog( "FIO name expired: ${expired}", ("expired", present_time > domain_expiration) );
-        if (present_time > domain_expiration) {
-            return result;
-        }
-
-        //set the result to the name results
-        name_result = fioname_result;
-    }
-
-   //if we get this far then the name is registered, so set this in the result
-   result.is_registered = "true";
-
-   // If we found match and fio_name was a domain, indicate "domain found" in result
-   if (fio_user_name.empty()) {
-      result.is_domain="true";
-      result.expiration = name_result.rows[0]["expiration"].as_string();
-      return result;
-   }
-
-    // chain support check
-    string my_chain=p.chain;
-    transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-    //chain_type c_type= str_to_chain_type(my_chain);
-
-//   TBD: CHAIN SPECIFIC PUBLIC ADDRESS LOOKUP
-//   // validate keys vector size is expected size.
-//   get_table_rows_result chainlist_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
-//   //EOS_ASSERT(chain_str.size() == name_result.rows[0]["addresses"].size(), chain::contract_table_query_exception,"Invalid keys container size.");
-//
-//   // Pick out chain specific key and populate result
-//   uint32_t c_type = (uint32_t)chainlist_result.rows[0]["index"].as_uint64();
-//   result.address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
-
-   result.expiration = name_result.rows[0]["expiration"].as_string();
-   return result;
-} // fioname_lookup
 
 /*** v1/chain/get_fio_names
 * Retrieves the fionames associated with the provided public address
@@ -1578,7 +1420,6 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
       return v;
   });
 
-
   dlog( "Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()) );
 
   FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
@@ -1612,8 +1453,6 @@ read_only::get_fio_names_result read_only::get_fio_names( const read_only::get_f
    domexpiration = domain_result.rows[0]["expiration"].as_string();
 
    fiodomain_record d{dom,domexpiration};
-
-
 
 /********************** Domain pushback currently disabled until future story completed ******/
      //only want one domain object pushed in vector per iteration
@@ -1760,7 +1599,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain)*10 : fioio::isFioNameValid(fa.fioname);
    dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn",fa.fioname)("fd",fa.fiodomain)("ec",res));
 
-   string value = fa.fiopubaddress + " error = " + to_string(res);
+   string value = fa.fiopubaddress + " error = " + to_string(res); // fix
    FIO_400_ASSERT(res == 0, "fio_name", value, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
    result.fio_name = fa.fiopubaddress;
@@ -1768,7 +1607,7 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    //declare variables.
    const abi_def abi = eosio::chain_apis::get_abi( db, fio_system_code );
 
-   const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fioname.c_str());
+   const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fiopubaddress.c_str());
    const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
 
    get_table_rows_result fioname_result;
@@ -1786,20 +1625,22 @@ read_only::avail_check_result read_only::avail_check( const read_only::avail_che
    domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
    if(!fa.fioname.empty()) {
-      get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-              .code=fio_system_code,
-              .scope=fio_system_scope,
-              .table=fio_address_table,
-              .lower_bound=boost::lexical_cast<string>(name_hash),
-              .upper_bound=boost::lexical_cast<string>(name_hash + 1),
-              .encode_type="dec"};
+       get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+               .code=fio_system_code,
+               .scope=fio_system_scope,
+               .table=fio_address_table,
+               .lower_bound=boost::lexical_cast<string>(name_hash),
+               .upper_bound=boost::lexical_cast<string>(name_hash + 1),
+               .encode_type="dec",
+               .index_position ="1"};
 
-      fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+       fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
 
       // Not Registered
       if (fioname_result.rows.empty()) {
           return result;
       }
+
       uint32_t name_expiration = (uint32_t)(fioname_result.rows[0]["expiration"].as_uint64());
       //This is not the local computer time, it is in fact the block time.
       uint32_t present_time = (uint32_t) time(0);
