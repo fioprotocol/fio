@@ -354,7 +354,7 @@ if( options.count(name) ) { \
 
     void chain_plugin::plugin_initialize(const variables_map &options) {
         ilog("initializing chain plugin");
-        fioio::chain();
+        //fioio::chain();
 
         try {
             try {
@@ -367,8 +367,8 @@ if( options.count(name) ) { \
 
             my->chain_config = controller::config();
 
-            ilog("getIndexFromChain started ('${root_key}')",
-                 ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
+            //ilog("getIndexFromChain started ('${root_key}')",
+            //     ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
 
             LOAD_VALUE_SET(options, "actor-whitelist", my->chain_config->actor_whitelist);
             LOAD_VALUE_SET(options, "actor-blacklist", my->chain_config->actor_blacklist);
@@ -1533,7 +1533,7 @@ if( options.count(name) ) { \
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_address, fa);
 
-            dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fiopubaddress)("domain", fa.fiodomain));
+            dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fioaddress)("domain", fa.fiodomain));
 
             //declare variables.
             const name code = ::eosio::string_to_name("fio.system");
@@ -1659,15 +1659,15 @@ if( options.count(name) ) { \
             int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
             dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
 
-            string value = fa.fiopubaddress + " error = " + to_string(res); // fix
+            string value = fa.fioaddress + " error = " + to_string(res); // fix
             FIO_400_ASSERT(res == 0, "fio_name", value, "Invalid fio_name", fioio::ErrorInvalidFioNameFormat);
 
-            result.fio_name = fa.fiopubaddress;
+            result.fio_name = fa.fioaddress;
 
             //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
-            const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fiopubaddress.c_str());
+            const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fioaddress.c_str());
             const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
 
             get_table_rows_result fioname_result;
@@ -2923,13 +2923,13 @@ if( options.count(name) ) { \
                 }
                 dlog("new_acnt = ${n}\npi = ${pi}", ("n", new_account)("pi", original));
 
-                int tChainCode = fioio::approvedTokens.getIndexFromChain("FIO");
-                ilog("getChainFromIndex started ('${root_key}')",
-                     ("root_key", fioio::approvedTokens.getChainFromIndex(235)));
-                ilog("getIndexFromChain started ('${root_key}')",
-                     ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
-                ilog("getVectorIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getVectorIndex(
-                        fioio::approvedTokens.getIndexFromChain("FIO"))));
+                //int tChainCode = fioio::approvedTokens.getIndexFromChain("FIO");
+                //ilog("getChainFromIndex started ('${root_key}')",
+                //     ("root_key", fioio::approvedTokens.getChainFromIndex(235)));
+                //ilog("getIndexFromChain started ('${root_key}')",
+                //     ("root_key", fioio::approvedTokens.getIndexFromChain("FIO")));
+                //ilog("getVectorIndex started ('${root_key}')", ("root_key", fioio::approvedTokens.getVectorIndex(
+                //        fioio::approvedTokens.getIndexFromChain("FIO"))));
 
                 signed_transaction tosend;
                 //   auto chainid = app().get_plugin<chain_plugin>().get_chain_id();

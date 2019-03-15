@@ -20,7 +20,7 @@ namespace fioio {
     using namespace std;
 
     struct FioAddress{
-        string fiopubaddress;
+        string fioaddress;
         string fioname;
         string fiodomain;
         bool domainOnly;
@@ -39,17 +39,17 @@ namespace fioio {
         fa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
-        fa.fiopubaddress = p;
-        for (auto &c : fa.fiopubaddress) {
+       fa.fioaddress = p;
+       for (auto &c : fa.fioaddress) {
            c = char(::tolower(c));
         }
 
         if (pos == string::npos) {
-            fa.fiodomain = fa.fiopubaddress;
+            fa.fiodomain = fa.fioaddress;
         } else {
            if (!fa.domainOnly)
-              fa.fioname = fa.fiopubaddress.substr(0, pos);
-           fa.fiodomain = fa.fiopubaddress.substr(pos + 1);
+               fa.fioname = fa.fioaddress.substr(0, pos);
+            fa.fiodomain = fa.fioaddress.substr(pos + 1);
         }
     }
 

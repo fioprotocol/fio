@@ -23,7 +23,6 @@ namespace fioio {
         fionames_table fionames;
         keynames_table keynames;
         trxfees_singleton trxfees;
-        fiopubs_table fiopubs;
         eosio_names_table eosionames;
         config appConfig;
 
@@ -32,14 +31,13 @@ namespace fioio {
     public:
         FioNameLookup(account_name self)
                 : contract(self), domains(self, self), fionames(self, self), keynames(self, self),
-                  trxfees(FeeContract, FeeContract), fiopubs(self, self), eosionames(self, self), chains(self, self) {
+                  trxfees(FeeContract, FeeContract), eosionames(self, self), chains(self, self) {
             configs_singleton configsSingleton(FeeContract, FeeContract);
             appConfig = configsSingleton.get_or_default(config());
         }
 
         [[eosio::action]]
         void registername(const string &fioname, const name &actor) {
-
             require_auth(actor); // check for requestor authority; required for fee transfer
 
             // Split the fio name and domain portions
@@ -58,11 +56,11 @@ namespace fioio {
                 });
             }
 
-            print("fioname = ", fioname, " fa = ", fa.fiopubaddress, "\n");
+            print("fioname = ", fioname, " fa = ", fa.fioaddress, "\n");
             int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
             print("fioname: ", fa.fioname, ", Domain: ", fa.fiodomain, " error code = ", res, "\n");
 
-            string value = fa.fiopubaddress + " error = " + to_string(res);
+            string value = fa.fioaddress + " error = " + to_string(res);
             fio_400_assert(res == 0, "fio_name", value, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
@@ -72,7 +70,7 @@ namespace fioio {
             if (fa.domainOnly) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter == domains.end(), "fio_name", fa.fiopubaddress,
+                fio_400_assert(domains_iter == domains.end(), "fio_name", fa.fioaddress,
                                "FIO domain already registered", ErrorDomainAlreadyRegistered);
                 // check if callee has requisite dapix funds. Also update to domain fees
 
@@ -90,7 +88,7 @@ namespace fioio {
 
                 // check if domain exists.
                 auto domains_iter = domains.find(domainHash);
-                fio_400_assert(domains_iter != domains.end(), "fio_name", fa.fiopubaddress, "FIO Domain not registered",
+                fio_400_assert(domains_iter != domains.end(), "fio_name", fa.fioaddress, "FIO Domain not registered",
                                ErrorDomainNotRegistered);
 
                 // TODO check if domain permission is valid.
@@ -98,14 +96,14 @@ namespace fioio {
                 //check if the domain is expired.
                 uint32_t domain_expiration = domains_iter->expiration;
                 uint32_t present_time = now();
-                fio_400_assert(present_time <= domain_expiration, "fio_name", fa.fiopubaddress, "FIO Domain expired",
+                fio_400_assert(present_time <= domain_expiration, "fio_name", fa.fioaddress, "FIO Domain expired",
                                ErrorDomainExpired);
 
                 // check if fioname is available
-                uint64_t nameHash = ::eosio::string_to_uint64_t(fa.fiopubaddress.c_str());
+                uint64_t nameHash = ::eosio::string_to_uint64_t(fa.fioaddress.c_str());
                 print("Name hash: ", nameHash, ", Domain has: ", domainHash, "\n");
                 auto fioname_iter = fionames.find(nameHash);
-                fio_400_assert(fioname_iter == fionames.end(), "fio_name", fa.fiopubaddress,
+                fio_400_assert(fioname_iter == fionames.end(), "fio_name", fa.fioaddress,
                                "FIO name already registered", ErrorFioNameAlreadyRegistered);
 
                 //set the expiration on this new fioname
@@ -119,36 +117,24 @@ namespace fioio {
 
                 // Add fioname entry in fionames table
                 fionames.emplace(_self, [&](struct fioname &a) {
-                    a.name = fa.fiopubaddress;
+                    a.name = fa.fioaddress;
                     a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
                     a.namehash = nameHash;
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
                 });
-                addaddress(fa.fiopubaddress, "FIO", actor.to_string(), actor);
+                addaddress(fa.fioaddress, "FIO", actor.to_string(), actor);
             } // else
 
-            fiofees(actor);
+            const auto fees = trxfees.get_or_default(trxfee());
+            asset registerFee = fees.upaddress;
+            fiofees(actor, registerFee);
 
             nlohmann::json json = {{"status",     "OK"},
-                                   {"fio_name",   fa.fiopubaddress},
+                                   {"fio_name",   fa.fioaddress},
                                    {"expiration", expiration_time}};
             send_response(json.dump().c_str());
-        }
-
-        /***
-         * This method will return now plus one year.
-         * the result is the present block time, which is number of seconds since 1970
-         * incremented by secondss per year.
-         */
-        inline uint32_t get_now_plus_one_year() {
-            //set the expiration for this domain.
-            //get the blockchain now time, time in seconds since 1970
-            //add number of seconds in a year to this to get the expiration.
-            uint32_t present_time = now();
-            uint32_t incremented_time = present_time + DAYTOSECONDS;
-            return incremented_time;
         }
 
         /***
@@ -246,7 +232,10 @@ namespace fioio {
                     k.name = fioname_iter->name;    // FIO name
                 });
             }
-            fiofees(actor);
+
+            const auto fees = trxfees.get_or_default(trxfee());
+            asset registerFee = fees.upaddress;
+            fiofees(actor, registerFee);
 
             nlohmann::json json = {{"status",     "OK"},
                                    {"fioaddress", fioaddress},
@@ -256,11 +245,10 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        void fiofees(const account_name &actor) const {
-            auto fees = trxfees.get_or_default(trxfee());
-            asset registerFee = fees.upaddress;
-
+        inline void fiofees(const account_name &actor, const asset &registerFee) const {
             if (appConfig.pmtson) {
+                // collect fees
+                // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting registration fees: ", registerFee);
                 action(permission_level{actor, N(active)},
                        TokenContract, N(transfer),
@@ -270,6 +258,12 @@ namespace fioio {
             } else {
                 print("Payments currently disabled.");
             }
+        }
+
+        inline uint32_t get_now_plus_one_year() {
+            uint32_t present_time = now();
+            uint32_t incremented_time = present_time + DAYTOSECONDS;
+            return incremented_time;
         }
 
         void removename() {
@@ -317,5 +311,5 @@ namespace fioio {
 
     }; // class FioNameLookup
 
-    EOSIO_ABI(FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(addfiopubadd)(bind2eosio))
+    EOSIO_ABI(FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(bind2eosio))
 }

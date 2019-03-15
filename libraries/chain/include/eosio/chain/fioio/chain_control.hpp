@@ -52,6 +52,4 @@ namespace fioio {
             return -1;
         }
     };
-
-    chainControl approvedTokens;
 }
