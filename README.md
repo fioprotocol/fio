@@ -25,15 +25,12 @@ Default Environment Settings:
 | :---------|:--------:|
 | Node Port  | 8889 |  
 | Domain     | brd |
-| FIO Names  | adam , casey |
+| FIO Names  | casey |
 
 #### Chain Management
 ###### Shutdown Local Test Node
-Run: `./scripts/nodeos_kill.sh`
+Run: `pkill nodeos`
 
-###### Hard Restart:
-
-Run: `./scripts/chain_nuke.sh`
 
 ###### Signed Transaction
 
@@ -48,14 +45,6 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
 ---  
   
 ### Useful Commands
-
-##### Unlock Wallet
-
-    cleos wallet unlock  
-
-##### Import Wallet Private Key
-
-    cleos wallet import --private-key [privatekey]
     
 ##### Start Nodes
 ###### Block Producer: 
@@ -94,7 +83,15 @@ Mac OS: `~/Library/Application Support/eosio/nodeos/`<br><br> `~../fio/build/pro
 
 ##### Get Registered FIO Chains  
   
-    cleos -u http://localhost:8889 get table fio.system fio.system chains  
+    cleos -u http://localhost:8889 get table fio.system fio.system chains
+    
+##### Get Key Names Table
+      
+    cleos -u http://localhost:8889 get table fio.system fio.system keynames
+
+##### Get Fio Requests
+    
+    cleos -u http://localhost:8889 get table fio.reqobt fio.reqobt fioreqctxts
     
 ##### Test API Endpoints  
   
