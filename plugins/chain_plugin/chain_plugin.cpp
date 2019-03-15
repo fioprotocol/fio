@@ -1213,11 +1213,12 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, system_abi, [](uint64_t v)->uint64_t {
             return v;
         });
-        dlog( "key names row count, this should be 1 : '${size}'", ("size", keynames_rows_result.rows.size()) );
+        dlog( "key names row count : '${size}'", ("size", keynames_rows_result.rows.size()) );
         FIO_400_ASSERT(!keynames_rows_result.rows.empty(), "fiopubadd", fio_pubadd, "No matches found for public address.", fioio::ErrorChainAddressNotFound);
 
+        for (size_t knpos=0; knpos < keynames_rows_result.rows.size(); knpos++) {
         //get the fio address associated with this public address
-        string fio_address = (string)keynames_rows_result.rows[0]["name"].as_string();
+        string fio_address = (string)keynames_rows_result.rows[knpos]["name"].as_string();
         uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
         //look up the requests for this fio name (look for matches in the tofioadd
@@ -1247,22 +1248,22 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         for (size_t pos=0; pos < requests_rows_result.rows.size(); pos++) {
 
             //get all the attributes of the fio request
-            uint64_t fioreqid  = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
-            uint64_t fromfioaddr  = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
-            uint64_t tofioaddr  = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
-            string topubaddr  = requests_rows_result.rows[pos]["topubaddr"].as_string();
-            string amount  = requests_rows_result.rows[pos]["amount"].as_string();
-            string tokencode  = requests_rows_result.rows[pos]["tokencode"].as_string();
-            string metadata  = requests_rows_result.rows[pos]["metadata"].as_string();
-            uint64_t fiotime  = requests_rows_result.rows[pos]["fiotime"].as_uint64();
+            uint64_t fioreqid = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
+            uint64_t fromfioaddr = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
+            uint64_t tofioaddr = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
+            string topubaddr = requests_rows_result.rows[pos]["topubaddr"].as_string();
+            string amount = requests_rows_result.rows[pos]["amount"].as_string();
+            string tokencode = requests_rows_result.rows[pos]["tokencode"].as_string();
+            string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+            uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
 
-            request_record rr{fioreqid,fromfioaddr,tofioaddr,topubaddr,amount,tokencode,metadata,fiotime};
+            request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
 
             //use this id and query the fioreqstss table for status updates to this fioreqid
             //look up the requests for this fio name (look for matches in the tofioadd
             string fio_request_status_lookup_table = "fioreqstss";   // table name
 
-            dlog( "Lookup request statuses in fioreqstss using id: '${fio_reqid}'", ("fio_reqid", fioreqid) );
+            dlog("Lookup request statuses in fioreqstss using id: '${fio_reqid}'", ("fio_reqid", fioreqid));
             get_table_rows_params request_status_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_reqobt_code,
@@ -1273,16 +1274,19 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .key_type       = "i64",
                     .index_position = "2"};
             // Do secondary key lookup
-            get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(request_status_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
-                return v;
-            });
+            get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
-            dlog( "request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()) );
+            dlog("request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()));
 
             //if there are no statuses for this record then add it to the results
             if (request_status_rows_result.rows.empty()) {
                 result.requests.push_back(rr);
             }
+        }
+
         } // Get request statuses
 
         FIO_404_ASSERT(!(result.requests.size() == 0) ,"No Pending FIO Requests",fioio::ErrorNoFioRequestsFound);
@@ -1328,48 +1332,54 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             return v;
         });
 
-        dlog( "key names row count, this should be 1 : '${size}'", ("size", keynames_rows_result.rows.size()) );
+        dlog( "key names row count : '${size}'", ("size", keynames_rows_result.rows.size()) );
         FIO_400_ASSERT(!keynames_rows_result.rows.empty(), "fiopubadd", fio_pubadd, "No matches found for public address.", fioio::ErrorChainAddressNotFound);
 
-        //get the fio address associated with this public address
-        string fio_address = (string)keynames_rows_result.rows[0]["name"].as_string();
-        uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
-        //look up the requests for this fio name (look for matches in the tofioadd
-        string fio_requests_lookup_table = "fioreqctxts";   // table name
+        for (size_t knpos=0; knpos < keynames_rows_result.rows.size(); knpos++) {
+            //get the fio address associated with this public address
+            string fio_address = (string) keynames_rows_result.rows[knpos]["name"].as_string();
+            uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
-        dlog( "Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'", ("add_hash", address_hash) );
-        get_table_rows_params requests_row_params = get_table_rows_params{
-                .json        = true,
-                .code        = fio_reqobt_code,
-                .scope       = fio_reqobt_scope,
-                .table       = fio_requests_lookup_table,
-                .lower_bound = boost::lexical_cast<string>(address_hash),
-                .upper_bound = boost::lexical_cast<string>(address_hash + 1),
-                .key_type       = "i64",
-                .index_position = "3"};
-        // Do secondary key lookup
-        get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(requests_row_params, reqobt_abi, [](uint64_t v)->uint64_t {
-            return v;
-        });
 
-        dlog( "fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()) );
-        
-        // Look through the keynames lookup results and push the fio_addresses into results
-        for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
-            //get all the attributes of the fio request
-            uint64_t fioreqid  = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
-            uint64_t fromfioaddr  = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
-            uint64_t tofioaddr  = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
-            string topubaddr  = requests_rows_result.rows[pos]["topubaddr"].as_string();
-            string amount  = requests_rows_result.rows[pos]["amount"].as_string();
-            string tokencode  = requests_rows_result.rows[pos]["tokencode"].as_string();
-            string metadata  = requests_rows_result.rows[pos]["metadata"].as_string();
-            uint64_t fiotime  = requests_rows_result.rows[pos]["fiotime"].as_uint64();
+            //look up the requests for this fio name (look for matches in the tofioadd
+            string fio_requests_lookup_table = "fioreqctxts";   // table name
 
-            request_record rr{fioreqid,fromfioaddr,tofioaddr,topubaddr,amount,tokencode,metadata,fiotime};
-            result.requests.push_back(rr);
-        } // Get request statuses
+            dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
+                 ("add_hash", address_hash));
+            get_table_rows_params requests_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_reqobt_code,
+                    .scope       = fio_reqobt_scope,
+                    .table       = fio_requests_lookup_table,
+                    .lower_bound = boost::lexical_cast<string>(address_hash),
+                    .upper_bound = boost::lexical_cast<string>(address_hash + 1),
+                    .key_type       = "i64",
+                    .index_position = "3"};
+            // Do secondary key lookup
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    requests_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
+
+            // Look through the keynames lookup results and push the fio_addresses into results
+            for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
+                //get all the attributes of the fio request
+                uint64_t fioreqid = requests_rows_result.rows[pos]["fioreqid"].as_uint64();
+                uint64_t fromfioaddr = requests_rows_result.rows[pos]["fromfioaddr"].as_uint64();
+                uint64_t tofioaddr = requests_rows_result.rows[pos]["tofioaddr"].as_uint64();
+                string topubaddr = requests_rows_result.rows[pos]["topubaddr"].as_string();
+                string amount = requests_rows_result.rows[pos]["amount"].as_string();
+                string tokencode = requests_rows_result.rows[pos]["tokencode"].as_string();
+                string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
+
+                request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
+                result.requests.push_back(rr);
+            } // Get request statuses
+        }
 
         FIO_404_ASSERT(!(result.requests.size() == 0) ,"No Sent FIO Requests",fioio::ErrorNoFioRequestsFound);
         return result;
