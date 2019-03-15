@@ -1376,6 +1376,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
                 uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
 
+
                 request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
                 result.requests.push_back(rr);
             } // Get request statuses
