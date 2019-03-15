@@ -14,7 +14,6 @@
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
-#include <climits>
 
 
 namespace fioio {

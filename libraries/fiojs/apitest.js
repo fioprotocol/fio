@@ -8,7 +8,7 @@ const assert = require('assert');
 
 async function main() {
     
-        console.log(`Creating the default brd domain, adam.brd address.`)
+        console.log(`Creating the default brd domain, adam.brd address.`);
         const test = registertest("brd");
         const test2 = registertest("adam.brd");
       //  const test3 = registertest("vulture.brd");
@@ -50,7 +50,7 @@ async function registertest(name)
                 blocksBehind: 3,
                 expireSeconds: 30,
             }).catch(rej => {
-                console.log(`Failed to create name.`)
+                console.log(`Failed to create name.`);
                 throw rej;
             });
 
@@ -78,7 +78,7 @@ async function avail_test(name) {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
