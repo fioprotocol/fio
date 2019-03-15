@@ -1,17 +1,8 @@
 /** FioName Token header file
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
- *  @author Adam Androulidakis
+ *  @author Adam Androulidakis, Ciju John, Casey Gardiner, Ed Rotthoff
  *  @file fio.name.hpp
  *  @copyright Dapix
- *
- *  Changes:
- *  Adam Androulidakis 12-10-2018 - MAS-114
- *  Adam Androulidakis 9-18-2018
- *  Adam Androulidakis 9-6-2018
- *  Ciju John 9-5-2018
- *  Adam Androulidakis  8-31-2018
- *  Ciju John  8-30-2018
- *  Adam Androulidakis  8-29-2019
  */
 
 #pragma once

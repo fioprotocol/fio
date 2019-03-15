@@ -1,6 +1,6 @@
 /** Fio Request Obt implementation file
  *  Description: FioRequestObt smart contract supports funds request and other block chain transaction recording.
- *  @author Ed Rotthoff
+ *  @author Ed Rotthoff, Casey Gardiner
  *  @file fio.request.obt.cpp
  *  @copyright Dapix
  *
@@ -14,7 +14,6 @@
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
-
 
 namespace fioio {
 

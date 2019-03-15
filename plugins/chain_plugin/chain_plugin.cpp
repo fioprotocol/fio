@@ -46,7 +46,6 @@
 
 namespace eosio {
 
-//declare operator<< and validate funciton for read_mode in the same namespace as read_mode itself
     namespace chain {
 
         std::ostream &operator<<(std::ostream &osm, eosio::chain::db_read_mode m) {
@@ -1727,7 +1726,7 @@ if( options.count(name) ) { \
             return result;
         }
 
-        ***
+        /***
         * Lookup the fio address by public address
         * @param p
         * @return

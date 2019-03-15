@@ -10,10 +10,9 @@
 #include <eosiolib/asset.hpp>
 #include "fio.finance.hpp"
 
-#include <climits>
 #include <sstream>
 
-namespace fioio{
+namespace fioio {
 
 
     class FioFinance : public contract {
@@ -25,22 +24,20 @@ namespace fioio{
         processed_requests_table processed_requests;
 
         // data format of transactions, tail numeral indicates number of operands
-        const string trx_type_dta_NO_REQ_RPRT=  R"({"obtid":"%s"})";                  // ${trx_type::NO_REQ_RPRT}: obtid
-        const string trx_type_dta_REQ=          R"({"reqid":"%lld","memo":"%s"})";    // ${trx_type::REQ}: requestid, memo
-        const string trx_type_dta_REQ_CANCEL=   R"({"memo":"%s"})";                   // ${trx_type::REQ_CANCEL}
-        const string trx_type_dta_REQ_RPRT=     R"({"obtid":"%s","memo":"%s"})";      // ${trx_type::REQ_RPRT}: obtid, memo
-        const string trx_type_dta_RCPT_VRFY=    R"({"memo":"%s"})";                   // ${trx_type::RCPT_VRFY}
-        const string trx_type_dta_REQ_REJECT=   R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
+        const string trx_type_dta_NO_REQ_RPRT = R"({"obtid":"%s"})";                  // ${trx_type::NO_REQ_RPRT}: obtid
+        const string trx_type_dta_REQ = R"({"reqid":"%lld","memo":"%s"})";    // ${trx_type::REQ}: requestid, memo
+        const string trx_type_dta_REQ_CANCEL = R"({"memo":"%s"})";                   // ${trx_type::REQ_CANCEL}
+        const string trx_type_dta_REQ_RPRT = R"({"obtid":"%s","memo":"%s"})";      // ${trx_type::REQ_RPRT}: obtid, memo
+        const string trx_type_dta_RCPT_VRFY = R"({"memo":"%s"})";                   // ${trx_type::RCPT_VRFY}
+        const string trx_type_dta_REQ_REJECT = R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
 
     public:
         explicit FioFinance(account_name self)
-                : contract(self), contract_state(self,self), transaction_contexts(self, self),
-                transaction_logs(self,self), pending_requests(self, self), processed_requests(self,self)
-        {}
+                : contract(self), contract_state(self, self), transaction_contexts(self, self),
+                  transaction_logs(self, self), pending_requests(self, self), processed_requests(self, self) {}
 
         // generic function to construct Fio log data string.
-        inline static std::string trxlogformat(const std::string format, ...)
-        {
+        inline static std::string trxlogformat(const std::string format, ...) {
             va_list args;
             va_start (args, format);
             size_t len = static_cast<size_t>(std::vsnprintf(NULL, 0, format.c_str(), args));
@@ -56,8 +53,8 @@ namespace fioio{
          * Requestor initiates funds request.
          */
         // @abi action
-        void requestfunds(uint64_t requestid, const name& requestor, const name& requestee, const string &chain,
-                const string& asset, const string quantity, const string &memo) {
+        void requestfunds(uint64_t requestid, const name &requestor, const name &requestee, const string &chain,
+                          const string &asset, const string quantity, const string &memo) {
             print("..Validating authority ", requestor);
             require_auth(requestor); // we need requesters authorization
             is_account(requestee); // ensure requestee exists
@@ -92,12 +89,12 @@ namespace fioio{
 
             print("..Adding transaction context record");
             transaction_contexts.emplace(_self, [&](struct trxcontext &ctx) {
-               ctx.fioappid = currentState.current_fioappid;
-               ctx.originator = requestor;
-               ctx.receiver = requestee;
-               ctx.chain = chain;
-               ctx.asset = asset;
-               ctx.quantity = quantity;
+                ctx.fioappid = currentState.current_fioappid;
+                ctx.originator = requestor;
+                ctx.receiver = requestee;
+                ctx.chain = chain;
+                ctx.asset = asset;
+                ctx.quantity = quantity;
             });
 
             print("..Adding transaction log");
@@ -111,7 +108,7 @@ namespace fioio{
 
                 print("..Log requestid: ", requestid, ", memo: ", memo);
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ, requestid, memo.c_str());
-                log.data=data;
+                log.data = data;
             });
 
             print("..Adding pending request id: ", requestid);
@@ -131,7 +128,7 @@ namespace fioio{
          * Requestor cancel pending funds request
          */
         // @abi action
-        void cancelrqst(uint64_t requestid, const name& requestor, const string memo) {
+        void cancelrqst(uint64_t requestid, const name &requestor, const string memo) {
             print("..Validating authority ", requestor);
             require_auth(requestor); // we need requesters authorization
 
@@ -159,12 +156,12 @@ namespace fioio{
                 log.time = now();
 
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ_CANCEL, memo.c_str());
-                log.data=data;
+                log.data = data;
             });
 
             print("..Moving request to processed requests table.");
             processed_requests.emplace(_self, [&](struct fundsrequest &req) {
-                req=*matchingItem;
+                req = *matchingItem;
             });
 
             // drop pending request
@@ -176,7 +173,7 @@ namespace fioio{
          * Requestee reports(approve) pending funds request
          */
         // @abi action
-        void reportrqst(const uint64_t fioappid, const name& requestee, const string& obtid, const string memo) {
+        void reportrqst(const uint64_t fioappid, const name &requestee, const string &obtid, const string memo) {
             print("..Validating authority ", requestee);
             require_auth(requestee); // we need requesters authorization
 
@@ -195,12 +192,12 @@ namespace fioio{
                 log.time = now();
 
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ_RPRT, obtid.c_str(), memo.c_str());
-                log.data=data;
+                log.data = data;
             });
 
             print("..Moving request to processed requests table.");
             processed_requests.emplace(_self, [&](struct fundsrequest &req) {
-                req=*matchingItem;
+                req = *matchingItem;
             });
 
             // drop pending request
@@ -212,7 +209,7 @@ namespace fioio{
          * Requestee reject pending funds request
          */
         // @abi action
-        void rejectrqst(uint64_t fioappid, const name& requestee, const string& memo) {
+        void rejectrqst(uint64_t fioappid, const name &requestee, const string &memo) {
             print("..Validating authority ", requestee);
             require_auth(requestee); // we need requesters authorization
 
@@ -231,12 +228,12 @@ namespace fioio{
                 log.time = now();
 
                 string data = FioFinance::trxlogformat(trx_type_dta_REQ_REJECT, memo.c_str());
-                log.data=data;
+                log.data = data;
             });
 
             print("..Moving request to processed requests table.");
             processed_requests.emplace(_self, [&](struct fundsrequest &req) {
-                req=*matchingItem;
+                req = *matchingItem;
             });
 
             // drop pending request
@@ -246,5 +243,5 @@ namespace fioio{
 
     }; // class FioFinance
 
-    EOSIO_ABI( FioFinance, (requestfunds)(cancelrqst)(reportrqst)(rejectrqst) )
+    EOSIO_ABI(FioFinance, (requestfunds)(cancelrqst)(reportrqst)(rejectrqst))
 }

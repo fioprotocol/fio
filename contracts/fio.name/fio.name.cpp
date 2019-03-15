@@ -1,21 +1,8 @@
 /** FioName Token implementation file
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
- *  @author Adam Androulidakis
+ *  @author Adam Androulidakis, Casey Gardiner, Ciju John, Ed Rotthoff, Phil Mesnier
  *  @file fio.name.hpp
  *  @copyright Dapix
- *
- *  Changes:
- *  Adam Androulidakis 12-10-2018 - MAS-114
- *  Adam Androulidakis 9-18-2018
- *  Adam Androulidakis 9-6-2018
- *  Ciju John 9-5-2018
- *  Adam Androulidakis  8-31-2018
- *  Ciju John  8-30-2018
- *  Adam Androulidakis  8-29-2018
- *  Ed Rotthoff 10-26-2018
- *  Phil Mesnier 12-26-2018
- *  Casey Gardiner 3/5/2019
- *  Phil Mesnier 3/5/2019
  */
 
 #include <eosiolib/asset.hpp>

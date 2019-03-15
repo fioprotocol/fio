@@ -1,11 +1,8 @@
 /** FIO Request OBT header file
  *  Description: Smart contract to track requests and OBT.
- *  @author Ciju John
+ *  @author Ciju John, Ed Rotthoff, Casey Gardiner
  *  @file fio.request.obt.hpp
  *  @copyright Dapix
- *
- *  Changes:
- *  Ed Rotthoff 2/13/2019   modified the includes so they will build properly when used.
  */
 
 
@@ -16,7 +13,6 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/fio/types.hpp>
-
 
 using std::string;
 
