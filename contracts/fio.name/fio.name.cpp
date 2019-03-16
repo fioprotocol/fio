@@ -48,7 +48,7 @@ namespace fioio {
             fio_400_assert(res == 0, "fio_name", fa.fioaddress, "Invalid FIO name format", ErrorInvalidFioNameFormat);
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
-            uint32_t expiration_time = fioaddress_table_update(actor, fa, domainHash, expiration_time);
+            uint32_t expiration_time = fio_table_update(actor, fa, domainHash);
 
             const auto fees = trxfees.get_or_default(trxfee());
             asset registerFee = fees.upaddress;
@@ -72,7 +72,7 @@ namespace fioio {
             FioAddress fa;
             getFioAddressStruct(fioaddress, fa);
 
-            fio_400_assert(isFioNameValid(fa.fioaddress), "fioaddress", fioaddress, "Invalid public address format",
+            fio_400_assert(isFioNameValid(fa.fioaddress), "fioaddress", fa.fioaddress, "Invalid public address format",
                            ErrorDomainAlreadyRegistered);
             // Chain input validation
             fio_400_assert(isChainNameValid(tokencode), "tokencode", tokencode, "Invalid token code format",
@@ -80,22 +80,8 @@ namespace fioio {
             fio_400_assert(isPubAddressValid(pubaddress), "pubaddress", pubaddress, "Invalid public address format",
                            ErrorChainAddressEmpty);
 
-            uint64_t chainhash = ::eosio::string_to_uint64_t(tokencode.c_str());
-            auto chain_iter = chains.find(chainhash);
-
-            uint64_t next_idx = (chains.begin() == chains.end() ? 0 : (chain_iter)->id + 1);
-
-            if (chain_iter == chains.end()) {
-                chains.emplace(_self, [&](struct chainList &a) {
-                    a.id = next_idx;
-                    a.chainname = tokencode;
-                    a.chainhash = chainhash;
-                });
-                chain_iter = chains.find(chainhash);
-            }
-
             // validate fio FIO Address exists
-            uint64_t nameHash = ::eosio::string_to_uint64_t(fioaddress.c_str());
+            uint64_t nameHash = ::eosio::string_to_uint64_t(fa.fioaddress.c_str());
             uint64_t domainHash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
             auto fioname_iter = fionames.find(nameHash);
             fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
@@ -114,6 +100,20 @@ namespace fioio {
             uint32_t expiration = domains_iter->expiration;
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Address or FIO Domain expired",
                            ErrorDomainExpired);
+
+            uint64_t chainhash = ::eosio::string_to_uint64_t(tokencode.c_str());
+            auto chain_iter = chains.find(chainhash);
+
+            uint64_t next_idx = ( chains.begin() == chains.end() ? 0 : ( chain_iter )->id + 1 );
+
+            if ( chain_iter == chains.end()) {
+                chains.emplace(_self, [&] (struct chainList &a) {
+                    a.id = next_idx;
+                    a.chainname = tokencode;
+                    a.chainhash = chainhash;
+                });
+                chain_iter = chains.find(chainhash);
+            }
 
             // insert/update <chain, address> pair
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
@@ -214,8 +214,9 @@ namespace fioio {
             }
         }
 
-        uint32_t fioaddress_table_update (const name &actor, const FioAddress &fa, uint64_t domainHash,
-                                          uint32_t expiration_time) {
+        uint32_t fio_table_update (const name &actor, const FioAddress &fa, uint64_t domainHash) {
+            uint32_t expiration_time = 0;
+
             if ( fa.domainOnly ) { // domain register
                 // check for domain availability
                 auto domains_iter = domains.find(domainHash);
