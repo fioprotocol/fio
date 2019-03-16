@@ -755,6 +755,9 @@ namespace eosio {
                                    chain::plugin_interface::next_function<push_transactions_results> next);
 
             friend resolver_factory<read_write>;
+
+            void verify_signed_transaction (const reject_funds_request_params &params,
+                                            const chain::plugin_interface::next_function<eosio::chain_apis::read_write::reject_funds_request_results> &next) const;
         };
 
         //support for --key_types [sha256,ripemd160] and --encoding [dec/hex]
