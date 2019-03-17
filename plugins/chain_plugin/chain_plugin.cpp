@@ -2326,8 +2326,8 @@ if( options.count(name) ) { \
                                                            const plugin_interface::next_function<eosio::chain_apis::read_write::reject_funds_request_results> &next) const {
             try {
 
-                auto original = std::__1::make_shared<packed_transaction>();
-                auto unpacked = std::__1::make_shared<packed_transaction>();
+                auto original = std::make_shared<packed_transaction>();
+                auto unpacked = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 abi_serializer fio_name_serializer{json::from_string(fio_name_abi).as<abi_def>(),
                                                    abi_serializer_max_time};
@@ -2379,7 +2379,7 @@ if( options.count(name) ) { \
                 }
                 signed_transaction tosend;
                 //   auto chainid = app().get_plugin<chain_plugin>().get_chain_id();
-                crypto::private_key fiosyskey = crypto::private_key(std::__1::string(fioCreatorKey));
+                crypto::private_key fiosyskey = crypto::private_key(std::string(fioCreatorKey));
                 {
                     action act;
                     act.account = fio_system_code;
@@ -2399,7 +2399,7 @@ if( options.count(name) ) { \
                 tosend.sign(fiosyskey, chainid);
 
                 packed_transaction pt(move(tosend));
-                auto spt = std::__1::make_shared<packed_transaction>(pt);
+                auto spt = std::make_shared<packed_transaction>(pt);
                 spt->set_fio_transaction(true);
 
                 auto &m = app().get_method<incoming::methods::transaction_async>();
