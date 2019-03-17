@@ -1192,6 +1192,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         uint64_t key_hash = ::eosio::string_to_uint64_t(fio_pubadd.c_str());
 
         get_pending_fio_requests_result result;
+        result.fiopubadd = fio_pubadd;
 
         const abi_def system_abi = eosio::chain_apis::get_abi( db, fio_system_code );
         const abi_def reqobt_abi = eosio::chain_apis::get_abi( db, fio_reqobt_code );
@@ -1219,6 +1220,9 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         for (size_t knpos=0; knpos < keynames_rows_result.rows.size(); knpos++) {
         //get the fio address associated with this public address
         string fio_address = (string)keynames_rows_result.rows[knpos]["name"].as_string();
+        //get the name of the from associated with the request without looking up the
+        //hashed value. tricky.
+        string from_fioadd = fio_address;
         uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
         //look up the requests for this fio name (look for matches in the tofioadd
@@ -1257,7 +1261,24 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
             uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
 
-            request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
+            //find the tofioaddress
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_address_table,
+                    .lower_bound=boost::lexical_cast<string>(tofioaddr),
+                    .upper_bound=boost::lexical_cast<string>(tofioaddr + 1),
+                    .encode_type="dec",
+                    .index_position ="1"};
+
+            get_table_rows_result fioname_result =
+                    get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
+
+            FIO_400_ASSERT(!fioname_result.rows.empty(), "tofioaddr", std::to_string(tofioaddr), "No matches found for hash.", fioio::ErrorChainAddressNotFound);
+
+
+            string to_fioadd = fioname_result.rows[0]["name"].as_string();
+            request_record rr{fioreqid, from_fioadd, to_fioadd, topubaddr, amount, tokencode, metadata, fiotime};
 
             //use this id and query the fioreqstss table for status updates to this fioreqid
             //look up the requests for this fio name (look for matches in the tofioadd
@@ -1310,6 +1331,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         uint64_t key_hash = ::eosio::string_to_uint64_t(fio_pubadd.c_str());
 
         get_sent_fio_requests_result result;
+        result.fiopubadd = fio_pubadd;
 
         const abi_def system_abi = eosio::chain_apis::get_abi( db, fio_system_code );
         const abi_def reqobt_abi = eosio::chain_apis::get_abi( db, fio_reqobt_code );
@@ -1339,6 +1361,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         for (size_t knpos=0; knpos < keynames_rows_result.rows.size(); knpos++) {
             //get the fio address associated with this public address
             string fio_address = (string) keynames_rows_result.rows[knpos]["name"].as_string();
+            string to_fioadd =fio_address;
             uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
 
@@ -1376,11 +1399,68 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
                 uint64_t fiotime = requests_rows_result.rows[pos]["fiotime"].as_uint64();
 
+                //find the fromfioaddress
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=fio_system_code,
+                        .scope=fio_system_scope,
+                        .table=fio_address_table,
+                        .lower_bound=boost::lexical_cast<string>(fromfioaddr),
+                        .upper_bound=boost::lexical_cast<string>(fromfioaddr + 1),
+                        .encode_type="dec",
+                        .index_position ="1"};
 
-                request_record rr{fioreqid, fromfioaddr, tofioaddr, topubaddr, amount, tokencode, metadata, fiotime};
+                get_table_rows_result fioname_result =
+                        get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
+
+                FIO_400_ASSERT(!fioname_result.rows.empty(), "fromfioaddr", std::to_string(fromfioaddr), "No matches found for hash.", fioio::ErrorChainAddressNotFound);
+
+
+                string from_fioadd = fioname_result.rows[0]["name"].as_string();
+
+
+                //query the statuses
+                //use this id and query the fioreqstss table for status updates to this fioreqid
+                //look up the requests for this fio name (look for matches in the tofioadd
+                string fio_request_status_lookup_table = "fioreqstss";   // table name
+
+                dlog("Lookup request statuses in fioreqstss using id: '${fio_reqid}'", ("fio_reqid", fioreqid));
+                get_table_rows_params request_status_row_params = get_table_rows_params{
+                        .json        = true,
+                        .code        = fio_reqobt_code,
+                        .scope       = fio_reqobt_scope,
+                        .table       = fio_request_status_lookup_table,
+                        .lower_bound = boost::lexical_cast<string>(fioreqid),
+                        .upper_bound = boost::lexical_cast<string>(fioreqid + 1),
+                        .key_type       = "i64",
+                        .index_position = "2"};
+                // Do secondary key lookup
+                get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                        request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                            return v;
+                        });
+
+                dlog("request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()));
+
+                string status = "sent";
+
+                if (!(request_status_rows_result.rows.empty())) {
+                    uint64_t statusintV = request_status_rows_result.rows[0]["status"].as_uint64();
+
+
+                    if (statusintV == 0) {
+                        status = "sent";
+                    } else if (statusintV == 1) {
+                        status = "rejected";
+                    } else if (statusintV == 2) {
+                        status = "senttobc";
+                    }
+                }
+
+                request_status_record rr{fioreqid, from_fioadd, to_fioadd, topubaddr, amount, tokencode, metadata, fiotime,status};
                 result.requests.push_back(rr);
             } // Get request statuses
         }
+
 
         FIO_404_ASSERT(!(result.requests.size() == 0) ,"No Sent FIO Requests",fioio::ErrorNoFioRequestsFound);
         return result;

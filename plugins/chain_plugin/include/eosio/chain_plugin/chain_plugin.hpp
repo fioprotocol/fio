@@ -68,14 +68,28 @@ struct fioaddress_record {
 
 struct request_record {
     uint64_t    fioreqid;       // one up index starting at 0
-    uint64_t    fromfioadd;   // sender FIO address e.g. john.xyz
-    uint64_t    tofioadd;     // receiver FIO address e.g. jane.xyz
+    string    fromfioadd;   // sender FIO address e.g. john.xyz
+    string    tofioadd;     // receiver FIO address e.g. jane.xyz
     string      topubadd;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
     string      amount;         // token quantity
     string      tokencode;      // token type e.g. BLU
     string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
     uint64_t    timestamp;        // FIO blockchain request received timestamp
 };
+
+    struct request_status_record {
+        uint64_t    fioreqid;       // one up index starting at 0
+        string    fromfioadd;   // sender FIO address e.g. john.xyz
+        string    tofioadd;     // receiver FIO address e.g. jane.xyz
+        string      topubadd;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
+        string      amount;         // token quantity
+        string      tokencode;      // token type e.g. BLU
+        string      metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
+        uint64_t    timestamp;        // FIO blockchain request received timestamp
+        string      status;          //the status of the request.
+    };
+
+
 
 template<typename>
 struct resolver_factory;
@@ -329,6 +343,7 @@ public:
    };
 
     struct get_pending_fio_requests_result {
+        string    fiopubadd;     //the fiopubadd from the request.
         vector<request_record> requests;
     };
 
@@ -340,7 +355,8 @@ public:
    };
 
    struct get_sent_fio_requests_result {
-       vector<request_record> requests;
+       string    fiopubadd;     //the fiopubadd from the request.
+       vector<request_status_record> requests;
    };
 
    get_sent_fio_requests_result
@@ -846,10 +862,11 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(sc
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_params, (fiopubadd) )
-FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests) )
+FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_result, (fiopubadd)(requests) )
   FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fiopubadd))
-FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests))
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result,(fiopubadd) (requests))
 FC_REFLECT( eosio::chain_apis::request_record, (fioreqid)(fromfioadd)(tofioadd)(topubadd)(amount)(tokencode)(metadata)(timestamp))
+FC_REFLECT( eosio::chain_apis::request_status_record, (fioreqid)(fromfioadd)(tofioadd)(topubadd)(amount)(tokencode)(metadata)(timestamp)(status))
 
 FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code) )
 FC_REFLECT( eosio::chain_apis::read_only::pub_address_lookup_result, (fio_address)(token_code)(pub_address));
