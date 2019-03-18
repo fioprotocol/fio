@@ -1855,6 +1855,18 @@ if( options.count(name) ) { \
             return results;
         } //get_currency_balance
 
+      vector<asset> read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
+            FIO_404_ASSERT(!p.fio_pub_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            get_currency_balance_params balance_params;
+            balance_params.code =  ::eosio::string_to_name("fio.token");
+            balance_params.account= ::eosio::string_to_name(p.fio_pub_address.c_str());
+
+
+
+            return get_currency_balance(balance_params);
+        } //get_fio_balance
+
         fc::variant read_only::get_currency_stats(const read_only::get_currency_stats_params &p) const {
             fc::mutable_variant_object results;
 

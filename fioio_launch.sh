@@ -146,7 +146,12 @@ if [ $mChoice == 1 ]; then
 
     #Bind EOSIO.Token Contract to Chain
     cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
-    cleos -u http://localhost:8889 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+    cleos -u http://localhost:8889 set contract fio.token $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+    cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.0000 FIO"]' -p fio.token@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["fioname11111","1000.0000 FIO","memo"]' -p eosio@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["fioname22222","1000.0000 FIO","memo"]' -p eosio@active
+    #cleos -u http://localhost:8889 push action -j fio.token transfer {"from":"fio.token","to":"fio.system","quantity":"200000000.0000 FIO","memo":"init transfer"} --permission fio.token@active
+
 
     echo setting accounts
     sleep 1
