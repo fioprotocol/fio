@@ -464,7 +464,13 @@ namespace eosio {
                 fc::string fio_pub_address;
             };
 
-            vector<asset> get_fio_balance(const get_fio_balance_params &params) const;
+            struct get_fio_balance_result {
+                fc::string balance;
+            };
+
+            get_fio_balance_result  get_fio_balance(const get_fio_balance_params &params) const;
+
+
 
 
             struct get_currency_stats_params {
@@ -961,6 +967,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_result, (rows)(more)
 
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_pub_address));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
 

@@ -1933,16 +1933,29 @@ if( options.count(name) ) { \
             return results;
         } //get_currency_balance
 
-      vector<asset> read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
+        read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             FIO_404_ASSERT(!p.fio_pub_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            get_account_results actor_lookup_results;
+            get_account_params actor_lookup_params;
+            actor_lookup_params.account_name = p.fio_pub_address.c_str();
+            try{
+              actor_lookup_results = get_account(actor_lookup_params);
+            }
+            catch(...) {
+                FIO_404_ASSERT(false, "Public address not found", fioio::ErrorPubAddressNotFound);
+            }
 
             get_currency_balance_params balance_params;
             balance_params.code =  ::eosio::string_to_name("fio.token");
-            balance_params.account= ::eosio::string_to_name(p.fio_pub_address.c_str());
+            balance_params.account = ::eosio::string_to_name(p.fio_pub_address.c_str());
 
+            vector<asset> cursor = get_currency_balance(balance_params);
+            get_fio_balance_result result;
+            size_t pos = cursor[0].to_string().find(' ');
+            result.balance = cursor[0].to_string().substr(0,pos);
 
-
-            return get_currency_balance(balance_params);
+            return result;
         } //get_fio_balance
 
         fc::variant read_only::get_currency_stats(const read_only::get_currency_stats_params &p) const {
