@@ -115,7 +115,6 @@ namespace eosio {
                                      CHAIN_RO_CALL(pub_address_lookup, 200),
                                      CHAIN_RO_CALL(get_pending_fio_requests, 200),
                                      CHAIN_RO_CALL(get_sent_fio_requests, 200),
-                                     CHAIN_RO_CALL(fio_key_lookup, 200),
                                      CHAIN_RW_CALL_ASYNC(register_fio_name,
                                                          chain_apis::read_write::register_fio_name_results, 202),
                                      CHAIN_RW_CALL_ASYNC(add_pub_address,

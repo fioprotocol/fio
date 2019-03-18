@@ -21,7 +21,7 @@ namespace fioio {
         bs::path cp = bs::current_path() / "config" / "bip44chains.json";
 
         try {
-            fc::json::from_file(cp).as<clist>(approvedTokens.chainList);
+            //fc::json::from_file(cp).as<clist>(approvedTokens.chainList);
         } catch (const fc::exception ex) {
             elog ("from_file threw ${ex}", ("ex", ex));
         } catch (...) {

@@ -12,12 +12,10 @@ fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
-
-
 echo ------------------------------------------
 
 
-dataJson='{"fromfioadd":"casey.brd","tofioadd":"adam.brd","topubadd":"0xab5801a7d398351b8be11c439e05c5b3259aec9b","amount":"1","tokencode":"DAI","metadata":"{\"memo\":\"Invoice1234\"}","actor":"${fioactor}"}'
+dataJson='{"fromfioadd":"casey.dapix","tofioadd":"adam.dapix","topubadd":"0xab5801a7d398351b8be11c439e05c5b3259aec9b","amount":"1","tokencode":"DAI","metadata":"{\"memo\":\"Invoice1234\"}","actor":"${fioactor}"}'
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.reqobt newfundsreq '$dataJson'"
 echo CMD: $cmd
