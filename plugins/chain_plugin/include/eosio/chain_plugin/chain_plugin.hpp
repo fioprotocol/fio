@@ -735,7 +735,6 @@ namespace eosio {
                              chain::plugin_interface::next_function<record_send_results> next);
             //End added for record send api method.
 
-
             //Begin Added for new funds request api method
             using new_funds_request_params = fc::variant_object;
 
@@ -747,7 +746,6 @@ namespace eosio {
                                    chain::plugin_interface::next_function<new_funds_request_results> next);
             //End added for new funds request api method.
 
-
             using push_transactions_params  = vector<push_transaction_params>;
             using push_transactions_results = vector<push_transaction_results>;
 
@@ -755,9 +753,6 @@ namespace eosio {
                                    chain::plugin_interface::next_function<push_transactions_results> next);
 
             friend resolver_factory<read_write>;
-
-            void verify_signed_transaction (const reject_funds_request_params &params,
-                                            const chain::plugin_interface::next_function<eosio::chain_apis::read_write::reject_funds_request_results> &next) const;
         };
 
         //support for --key_types [sha256,ripemd160] and --encoding [dec/hex]
