@@ -1938,6 +1938,9 @@ if( options.count(name) ) { \
 
             get_account_results actor_lookup_results;
             get_account_params actor_lookup_params;
+            get_fio_balance_result result;
+            vector<asset> cursor;
+            result.balance = "0";
             actor_lookup_params.account_name = p.fio_pub_address.c_str();
             try{
               actor_lookup_results = get_account(actor_lookup_params);
@@ -1950,10 +1953,14 @@ if( options.count(name) ) { \
             balance_params.code =  ::eosio::string_to_name("fio.token");
             balance_params.account = ::eosio::string_to_name(p.fio_pub_address.c_str());
 
-            vector<asset> cursor = get_currency_balance(balance_params);
-            get_fio_balance_result result;
-            size_t pos = cursor[0].to_string().find(' ');
-            result.balance = cursor[0].to_string().substr(0,pos);
+
+            cursor = get_currency_balance(balance_params);
+
+            if(!cursor.empty())
+            {
+                size_t pos = cursor[0].to_string().find(' ');
+                result.balance = cursor[0].to_string().substr(0, pos);
+            }
 
             return result;
         } //get_fio_balance
