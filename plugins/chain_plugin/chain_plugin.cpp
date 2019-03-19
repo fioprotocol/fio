@@ -217,61 +217,61 @@ namespace eosio {
 
     void chain_plugin::set_program_options(options_description &cli, options_description &cfg) {
         cfg.add_options()
-                ("blocks-dir", bpo::value<bfs::path>()->default_value("blocks"),
-                 "the location of the blocks directory (absolute path or relative to application data dir)")
-                ("checkpoint", bpo::value<vector<string>>()->composing(),
-                 "Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.")
-                ("wasm-runtime", bpo::value<eosio::chain::wasm_interface::vm_type>()->value_name("wavm/wabt"),
-                 "Override default WASM runtime")
-                ("abi-serializer-max-time-ms",
-                 bpo::value<uint32_t>()->default_value(config::default_abi_serializer_max_time_ms),
-                 "Override default maximum ABI serialization time allowed in ms")
-                ("chain-state-db-size-mb",
-                 bpo::value<uint64_t>()->default_value(config::default_state_size / (1024 * 1024)),
-                 "Maximum size (in MiB) of the chain state database")
-                ("chain-state-db-guard-size-mb",
-                 bpo::value<uint64_t>()->default_value(config::default_state_guard_size / (1024 * 1024)),
-                 "Safely shut down node when free space remaining in the chain state database drops below this size (in MiB).")
-                ("reversible-blocks-db-size-mb",
-                 bpo::value<uint64_t>()->default_value(config::default_reversible_cache_size / (1024 * 1024)),
-                 "Maximum size (in MiB) of the reversible blocks database")
-                ("reversible-blocks-db-guard-size-mb",
-                 bpo::value<uint64_t>()->default_value(config::default_reversible_guard_size / (1024 * 1024)),
-                 "Safely shut down node when free space remaining in the reverseible blocks database drops below this size (in MiB).")
-                ("contracts-console", bpo::bool_switch()->default_value(false),
-                 "print contract's output to console")
-                ("actor-whitelist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
-                 "Account added to actor whitelist (may specify multiple times)")
-                ("actor-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
-                 "Account added to actor blacklist (may specify multiple times)")
-                ("contract-whitelist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
-                 "Contract account added to contract whitelist (may specify multiple times)")
-                ("contract-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
-                 "Contract account added to contract blacklist (may specify multiple times)")
-                ("action-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
-                 "Action (in the form code::action) added to action blacklist (may specify multiple times)")
-                ("key-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
-                 "Public key added to blacklist of keys that should not be included in authorities (may specify multiple times)")
-                ("read-mode", boost::program_options::value<eosio::chain::db_read_mode>()->default_value(
-                        eosio::chain::db_read_mode::SPECULATIVE),
-                 "Database read mode (\"speculative\", \"head\", or \"read-only\").\n"// or \"irreversible\").\n"
-                 "In \"speculative\" mode database contains changes done up to the head block plus changes made by transactions not yet included to the blockchain.\n"
-                 "In \"head\" mode database contains changes done up to the current head block.\n"
-                 "In \"read-only\" mode database contains incoming block changes but no speculative transaction processing.\n"
-                )
-                //"In \"irreversible\" mode database contains changes done up the current irreversible block.\n")
-                ("validation-mode", boost::program_options::value<eosio::chain::validation_mode>()->default_value(
-                        eosio::chain::validation_mode::FULL),
-                 "Chain validation mode (\"full\" or \"light\").\n"
-                 "In \"full\" mode all incoming blocks will be fully validated.\n"
-                 "In \"light\" mode all incoming blocks headers will be fully validated; transactions in those validated blocks will be trusted \n")
-                ("disable-ram-billing-notify-checks", bpo::bool_switch()->default_value(false),
-                 "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
-                ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),
-                 "Account to serve as a procy for FIO name creation actions")
-                ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
-                ("fio-proxy-key-file", bpo::value<bfs::path>(),
-                 "File containing the private key for FIO proxy signing");
+                   ("blocks-dir", bpo::value<bfs::path>()->default_value("blocks"),
+                    "the location of the blocks directory (absolute path or relative to application data dir)")
+                   ("checkpoint", bpo::value<vector<string>>()->composing(),
+                    "Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.")
+                   ("wasm-runtime", bpo::value<eosio::chain::wasm_interface::vm_type>()->value_name("wavm/wabt"),
+                    "Override default WASM runtime")
+                   ("abi-serializer-max-time-ms",
+                    bpo::value<uint32_t>()->default_value(config::default_abi_serializer_max_time_ms),
+                    "Override default maximum ABI serialization time allowed in ms")
+                   ("chain-state-db-size-mb",
+                    bpo::value<uint64_t>()->default_value(config::default_state_size / (1024 * 1024)),
+                    "Maximum size (in MiB) of the chain state database")
+                   ("chain-state-db-guard-size-mb",
+                    bpo::value<uint64_t>()->default_value(config::default_state_guard_size / (1024 * 1024)),
+                    "Safely shut down node when free space remaining in the chain state database drops below this size (in MiB).")
+                   ("reversible-blocks-db-size-mb",
+                    bpo::value<uint64_t>()->default_value(config::default_reversible_cache_size / (1024 * 1024)),
+                    "Maximum size (in MiB) of the reversible blocks database")
+                   ("reversible-blocks-db-guard-size-mb",
+                    bpo::value<uint64_t>()->default_value(config::default_reversible_guard_size / (1024 * 1024)),
+                    "Safely shut down node when free space remaining in the reverseible blocks database drops below this size (in MiB).")
+                   ("contracts-console", bpo::bool_switch()->default_value(false),
+                    "print contract's output to console")
+                   ("actor-whitelist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
+                    "Account added to actor whitelist (may specify multiple times)")
+                   ("actor-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
+                    "Account added to actor blacklist (may specify multiple times)")
+                   ("contract-whitelist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
+                    "Contract account added to contract whitelist (may specify multiple times)")
+                   ("contract-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
+                    "Contract account added to contract blacklist (may specify multiple times)")
+                   ("action-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
+                    "Action (in the form code::action) added to action blacklist (may specify multiple times)")
+                   ("key-blacklist", boost::program_options::value<vector<string>>()->composing()->multitoken(),
+                    "Public key added to blacklist of keys that should not be included in authorities (may specify multiple times)")
+                   ("read-mode", boost::program_options::value<eosio::chain::db_read_mode>()->default_value(
+                           eosio::chain::db_read_mode::SPECULATIVE),
+                    "Database read mode (\"speculative\", \"head\", or \"read-only\").\n"// or \"irreversible\").\n"
+                    "In \"speculative\" mode database contains changes done up to the head block plus changes made by transactions not yet included to the blockchain.\n"
+                    "In \"head\" mode database contains changes done up to the current head block.\n"
+                    "In \"read-only\" mode database contains incoming block changes but no speculative transaction processing.\n"
+                   )
+                   //"In \"irreversible\" mode database contains changes done up the current irreversible block.\n")
+                   ("validation-mode", boost::program_options::value<eosio::chain::validation_mode>()->default_value(
+                           eosio::chain::validation_mode::FULL),
+                    "Chain validation mode (\"full\" or \"light\").\n"
+                    "In \"full\" mode all incoming blocks will be fully validated.\n"
+                    "In \"light\" mode all incoming blocks headers will be fully validated; transactions in those validated blocks will be trusted \n")
+                   ("disable-ram-billing-notify-checks", bpo::bool_switch()->default_value(false),
+                    "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
+                   ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),
+                    "Account to serve as a procy for FIO name creation actions")
+                   ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
+                   ("fio-proxy-key-file", bpo::value<bfs::path>(),
+                    "File containing the private key for FIO proxy signing");
 
         // TODO: rate limiting
         /*("per-authorized-account-transaction-msg-rate-limit-time-frame-sec", bpo::value<uint32_t>()->default_value(default_per_auth_account_time_frame_seconds),
@@ -284,33 +284,34 @@ namespace eosio {
            "Limits the maximum rate of transaction messages that an account's code is allowed each per-code-account-transaction-msg-rate-limit-time-frame-sec.")*/
 
         cli.add_options()
-                ("genesis-json", bpo::value<bfs::path>(), "File to read Genesis State from")
-                ("genesis-timestamp", bpo::value<string>(), "override the initial timestamp in the Genesis State file")
-                ("print-genesis-json", bpo::bool_switch()->default_value(false),
-                 "extract genesis_state from blocks.log as JSON, print to console, and exit")
-                ("extract-genesis-json", bpo::value<bfs::path>(),
-                 "extract genesis_state from blocks.log as JSON, write into specified file, and exit")
-                ("fix-reversible-blocks", bpo::bool_switch()->default_value(false),
-                 "recovers reversible block database if that database is in a bad state")
-                ("force-all-checks", bpo::bool_switch()->default_value(false),
-                 "do not skip any checks that can be skipped while replaying irreversible blocks")
-                ("disable-replay-opts", bpo::bool_switch()->default_value(false),
-                 "disable optimizations that specifically target replay")
-                ("replay-blockchain", bpo::bool_switch()->default_value(false),
-                 "clear chain state database and replay all blocks")
-                ("hard-replay-blockchain", bpo::bool_switch()->default_value(false),
-                 "clear chain state database, recover as many blocks as possible from the block log, and then replay those blocks")
-                ("delete-all-blocks", bpo::bool_switch()->default_value(false),
-                 "clear chain state database and block log")
-                ("truncate-at-block", bpo::value<uint32_t>()->default_value(0),
-                 "stop hard replay / block log recovery at this block number (if set to non-zero number)")
-                ("import-reversible-blocks", bpo::value<bfs::path>(),
-                 "replace reversible block database with blocks imported from specified file and then exit")
-                ("export-reversible-blocks", bpo::value<bfs::path>(),
-                 "export reversible block database in portable format into specified file and then exit")
-                ("trusted-producer", bpo::value<vector<string>>()->composing(),
-                 "Indicate a producer whose blocks headers signed by it will be fully validated, but transactions in those validated blocks will be trusted.")
-                ("snapshot", bpo::value<bfs::path>(), "File to read Snapshot State from");
+                   ("genesis-json", bpo::value<bfs::path>(), "File to read Genesis State from")
+                   ("genesis-timestamp", bpo::value<string>(),
+                    "override the initial timestamp in the Genesis State file")
+                   ("print-genesis-json", bpo::bool_switch()->default_value(false),
+                    "extract genesis_state from blocks.log as JSON, print to console, and exit")
+                   ("extract-genesis-json", bpo::value<bfs::path>(),
+                    "extract genesis_state from blocks.log as JSON, write into specified file, and exit")
+                   ("fix-reversible-blocks", bpo::bool_switch()->default_value(false),
+                    "recovers reversible block database if that database is in a bad state")
+                   ("force-all-checks", bpo::bool_switch()->default_value(false),
+                    "do not skip any checks that can be skipped while replaying irreversible blocks")
+                   ("disable-replay-opts", bpo::bool_switch()->default_value(false),
+                    "disable optimizations that specifically target replay")
+                   ("replay-blockchain", bpo::bool_switch()->default_value(false),
+                    "clear chain state database and replay all blocks")
+                   ("hard-replay-blockchain", bpo::bool_switch()->default_value(false),
+                    "clear chain state database, recover as many blocks as possible from the block log, and then replay those blocks")
+                   ("delete-all-blocks", bpo::bool_switch()->default_value(false),
+                    "clear chain state database and block log")
+                   ("truncate-at-block", bpo::value<uint32_t>()->default_value(0),
+                    "stop hard replay / block log recovery at this block number (if set to non-zero number)")
+                   ("import-reversible-blocks", bpo::value<bfs::path>(),
+                    "replace reversible block database with blocks imported from specified file and then exit")
+                   ("export-reversible-blocks", bpo::value<bfs::path>(),
+                    "export reversible block database in portable format into specified file and then exit")
+                   ("trusted-producer", bpo::value<vector<string>>()->composing(),
+                    "Indicate a producer whose blocks headers signed by it will be fully validated, but transactions in those validated blocks will be trusted.")
+                   ("snapshot", bpo::value<bfs::path>(), "File to read Snapshot State from");
 
     }
 
@@ -513,7 +514,7 @@ if( options.count(name) ) { \
                 clear_directory_contents(my->chain_config->state_dir);
                 auto backup_dir = block_log::repair_log(my->blocks_dir, options.at("truncate-at-block").as<uint32_t>());
                 if (fc::exists(backup_dir / config::reversible_blocks_dir_name) ||
-                    options.at("fix-reversible-blocks").as<bool>()) {
+                        options.at("fix-reversible-blocks").as<bool>()) {
                     // Do not try to recover reversible blocks if the directory does not exist, unless the option was explicitly provided.
                     if (!recover_reversible_blocks(backup_dir / config::reversible_blocks_dir_name,
                                                    my->chain_config->reversible_cache_size,
@@ -524,10 +525,10 @@ if( options.count(name) ) { \
                                  my->chain_config->blocks_dir / config::reversible_blocks_dir_name);
                         fc::copy(backup_dir / config::reversible_blocks_dir_name / "shared_memory.bin",
                                  my->chain_config->blocks_dir / config::reversible_blocks_dir_name /
-                                 "shared_memory.bin");
+                                         "shared_memory.bin");
                         fc::copy(backup_dir / config::reversible_blocks_dir_name / "shared_memory.meta",
                                  my->chain_config->blocks_dir / config::reversible_blocks_dir_name /
-                                 "shared_memory.meta");
+                                         "shared_memory.meta");
                     }
                 }
             } else if (options.at("replay-blockchain").as<bool>()) {
@@ -890,7 +891,7 @@ if( options.count(name) ) { \
         chainbase::database new_reversible(reversible_dir, database::read_write, cache_size);
         std::fstream reversible_blocks;
         reversible_blocks.open((reversible_dir.parent_path() /
-                                std::string("portable-reversible-blocks-").append(now)).generic_string().c_str(),
+                                       std::string("portable-reversible-blocks-").append(now)).generic_string().c_str(),
                                std::ios::out | std::ios::binary);
 
         uint32_t num = 0;
@@ -1116,11 +1117,11 @@ if( options.count(name) ) { \
             primary = false;
             uint64_t pos = 0;
             if (p.index_position.empty() || p.index_position == "first" || p.index_position == "primary" ||
-                p.index_position == "one") {
+                    p.index_position == "one") {
                 primary = true;
             } else if (starts_with(p.index_position, "sec") || p.index_position == "two") { // second, secondary
             } else if (starts_with(p.index_position, "ter") ||
-                       starts_with(p.index_position, "th")) { // tertiary, ternary, third, three
+                    starts_with(p.index_position, "th")) { // tertiary, ternary, third, three
                 pos = 1;
             } else if (starts_with(p.index_position, "fou")) { // four, fourth
                 pos = 2;
@@ -1943,7 +1944,7 @@ if( options.count(name) ) { \
             result.balance = "0";
             actor_lookup_params.account_name = p.fio_pub_address.c_str();
             try{
-              actor_lookup_results = get_account(actor_lookup_params);
+                actor_lookup_results = get_account(actor_lookup_params);
             }
             catch(...) {
                 FIO_404_ASSERT(false, "Public address not found", fioio::ErrorPubAddressNotFound);
@@ -2346,7 +2347,7 @@ if( options.count(name) ) { \
                         act.authorization = vector<permission_level>{{creator, config::active_name}};
                         act.data = eosio_system_serializer.variant_to_binary("buyram", fc::json::from_string(
                                 "{\"payer\":\"" + init_name + "\",\"receiver\":\"" + new_account +
-                                "\",\"quant\":\"10000.0000 FIO\"}}"), abi_serializer_max_time);
+                                        "\",\"quant\":\"10000.0000 FIO\"}}"), abi_serializer_max_time);
                         trx.actions.push_back(act);
                     }
                     {
@@ -2356,7 +2357,7 @@ if( options.count(name) ) { \
                         act.authorization = vector<permission_level>{{creator, config::active_name}};
                         act.data = eosio_system_serializer.variant_to_binary("delegatebw", fc::json::from_string(
                                 "{\"from\":\"" + init_name + "\",\"receiver\":\"" + new_account +
-                                "\",\"quant\":\"10000.0000 FIO\",\"stake_net_quantity\":\"10000.0000 FIO\",\"stake_cpu_quantity\":\"10000.0000 FIO\",\"transfer\":\"1\"}}"),
+                                        "\",\"quant\":\"10000.0000 FIO\",\"stake_net_quantity\":\"10000.0000 FIO\",\"stake_cpu_quantity\":\"10000.0000 FIO\",\"transfer\":\"1\"}}"),
                                                                              abi_serializer_max_time);
                         trx.actions.push_back(act);
                     }
@@ -2453,7 +2454,7 @@ if( options.count(name) ) { \
                     string existing = eosio_found ? "1" : "0";
                     auto json_payload = fc::json::from_string(
                             "{\"account\":\"" + new_account + "\",\"client_key\":\"" + pubkey + "\",\"existing\":\"" +
-                            existing + "\"}}");
+                                    existing + "\"}}");
                     act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload,
                                                                      abi_serializer_max_time);
                     tosend.actions.emplace_back(std::move(act));
@@ -2587,7 +2588,7 @@ if( options.count(name) ) { \
                     string existing = eosio_found ? "1" : "0";
                     auto json_payload = fc::json::from_string(
                             "{\"account\":\"" + new_account + "\",\"client_key\":\"" + pubkey + "\",\"existing\":\"" +
-                            existing + "\"}}");
+                                    existing + "\"}}");
                     act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload,
                                                                      abi_serializer_max_time);
                     tosend.actions.emplace_back(std::move(act));
@@ -2721,7 +2722,7 @@ if( options.count(name) ) { \
                     string existing = eosio_found ? "1" : "0";
                     auto json_payload = fc::json::from_string(
                             "{\"account\":\"" + new_account + "\",\"client_key\":\"" + pubkey + "\",\"existing\":\"" +
-                            existing + "\"}}");
+                                    existing + "\"}}");
                     act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload,
                                                                      abi_serializer_max_time);
                     tosend.actions.emplace_back(std::move(act));
@@ -2848,7 +2849,7 @@ if( options.count(name) ) { \
                     string existing = eosio_found ? "1" : "0";
                     auto json_payload = fc::json::from_string(
                             "{\"account\":\"" + new_account + "\",\"client_key\":\"" + pubkey + "\",\"existing\":\"" +
-                            existing + "\"}}");
+                                    existing + "\"}}");
                     act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload,
                                                                      abi_serializer_max_time);
                     tosend.actions.emplace_back(std::move(act));
@@ -2982,7 +2983,7 @@ if( options.count(name) ) { \
                     string existing = eosio_found ? "1" : "0";
                     auto json_payload = fc::json::from_string(
                             "{\"account\":\"" + new_account + "\",\"client_key\":\"" + pubkey + "\",\"existing\":\"" +
-                            existing + "\"}}");
+                                    existing + "\"}}");
                     act.data = fio_name_serializer.variant_to_binary("bind2eosio", json_payload,
                                                                      abi_serializer_max_time);
                     tosend.actions.emplace_back(std::move(act));

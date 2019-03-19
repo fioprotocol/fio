@@ -43,22 +43,21 @@ namespace fioio {
             // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fioname, fa);
-
-            int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
-            fio_400_assert(res == 0, "fio_name", fa.fioaddress, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+            register_errors(fa);
 
             uint64_t domainHash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
             uint32_t expiration_time = fio_table_update(actor, fa, domainHash);
 
             const auto fees = trxfees.get_or_default(trxfee());
             asset registerFee = fees.upaddress;
-            fiofees(actor, registerFee);
+            fio_fees(actor, registerFee);
 
             nlohmann::json json = {{"status",     "OK"},
                                    {"fio_name",   fa.fioaddress},
                                    {"expiration", expiration_time}};
             send_response(json.dump().c_str());
         }
+
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
@@ -71,83 +70,13 @@ namespace fioio {
                         const account_name &actor) {
             FioAddress fa;
             getFioAddressStruct(fioaddress, fa);
+            addaddress_errors(tokencode, pubaddress, fa);
 
-            fio_400_assert(isFioNameValid(fa.fioaddress), "fioaddress", fa.fioaddress, "Invalid public address format",
-                           ErrorDomainAlreadyRegistered);
-            // Chain input validation
-            fio_400_assert(isChainNameValid(tokencode), "tokencode", tokencode, "Invalid token code format",
-                           ErrorInvalidFioNameFormat);
-            fio_400_assert(isPubAddressValid(pubaddress), "pubaddress", pubaddress, "Invalid public address format",
-                           ErrorChainAddressEmpty);
-
-            // validate fio FIO Address exists
-            uint64_t nameHash = ::eosio::string_to_uint64_t(fa.fioaddress.c_str());
-            uint64_t domainHash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
-            auto fioname_iter = fionames.find(nameHash);
-            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
-
-            //check that the name is not expired
-            uint32_t name_expiration = fioname_iter->expiration;
-            uint32_t present_time = now();
-
-            //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress,
-                           "FIO Address or FIO Domain expired", ErrorFioNameExpired);
-
-            auto domains_iter = domains.find(domainHash);
-            fio_404_assert(domains_iter != domains.end(), "FIO Domain not found", ErrorDomainNotRegistered);
-
-            uint32_t expiration = domains_iter->expiration;
-            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Address or FIO Domain expired",
-                           ErrorDomainExpired);
-
-            uint64_t chainhash = ::eosio::string_to_uint64_t(tokencode.c_str());
-            auto chain_iter = chains.find(chainhash);
-
-            uint64_t next_idx = ( chains.begin() == chains.end() ? 0 : ( chain_iter )->id + 1 );
-
-            if ( chain_iter == chains.end()) {
-                chains.emplace(_self, [&] (struct chainList &a) {
-                    a.id = next_idx;
-                    a.chainname = tokencode;
-                    a.chainhash = chainhash;
-                });
-                chain_iter = chains.find(chainhash);
-            }
-
-            // insert/update <chain, address> pair
-            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
-            });
-
-            // insert/update key into key-name table for reverse lookup
-            auto idx = keynames.get_index<N(bykey)>();
-            auto keyhash = ::eosio::string_to_uint64_t(pubaddress.c_str());
-            auto matchingItem = idx.lower_bound(keyhash);
-
-            // Advance to the first entry matching the specified address and chain
-            while ( matchingItem != idx.end() && matchingItem->keyhash == keyhash ) {
-                matchingItem++;
-            }
-
-            if ( matchingItem == idx.end() || matchingItem->keyhash != keyhash ) {
-                keynames.emplace(_self, [&] (struct key_name &k) {
-                    k.id = keynames.available_primary_key();        // use next available primary key
-                    k.key = pubaddress;                             // persist key
-                    k.keyhash = keyhash;                            // persist key hash
-                    k.chaintype = ( chain_iter )->by_index();                       // specific chain type
-                    k.name = fioname_iter->name;                    // FIO name
-                    k.expiration = name_expiration;
-                });
-            } else {
-                idx.modify(matchingItem, _self, [&] (struct key_name &k) {
-                    k.name = fioname_iter->name;    // FIO name
-                });
-            }
+            chain_data_update(fioaddress, tokencode, pubaddress, fa);
 
             const auto fees = trxfees.get_or_default(trxfee());
             asset registerFee = fees.upaddress;
-            fiofees(actor, registerFee);
+            fio_fees(actor, registerFee);
 
             nlohmann::json json = {{"status",     "OK"},
                                    {"fioaddress", fioaddress},
@@ -170,7 +99,7 @@ namespace fioio {
          **/
 
         [[eosio::action]]
-        void bind2eosio (name account, const string &client_key, bool existing) {
+        void bind2eosio(name account, const string &client_key, bool existing) {
             // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
             require_auth(::eosio::string_to_name(FIO_SYSTEM));
 
@@ -200,8 +129,8 @@ namespace fioio {
             print("Begin rmvaddress()");
         }
 
-        inline void fiofees(const account_name &actor, const asset &registerFee) const {
-            if (appConfig.pmtson) {
+        inline void fio_fees(const account_name &actor, const asset &registerFee) const {
+            if(appConfig.pmtson) {
                 // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting registration fees: ", registerFee);
                 action(permission_level{actor, N(active)},
@@ -212,6 +141,21 @@ namespace fioio {
             } else {
                 print("Payments currently disabled.");
             }
+        }
+
+        inline void register_errors(const FioAddress &fa) const {
+            int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
+            fio_400_assert(res == 0, "fio_name", fa.fioaddress, "Invalid FIO name format", ErrorInvalidFioNameFormat);
+        }
+
+        inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa) const {
+            fio_400_assert(isFioNameValid(fa.fioaddress), "fioaddress", fa.fioaddress, "Invalid public address format",
+                           ErrorDomainAlreadyRegistered);
+            // Chain input validation
+            fio_400_assert(isChainNameValid(tokencode), "tokencode", tokencode, "Invalid token code format",
+                           ErrorInvalidFioNameFormat);
+            fio_400_assert(isPubAddressValid(pubaddress), "pubaddress", pubaddress, "Invalid public address format",
+                           ErrorChainAddressEmpty);
         }
 
         uint32_t fio_table_update (const name &actor, const FioAddress &fa, uint64_t domainHash) {
@@ -279,6 +223,74 @@ namespace fioio {
 
             return expiration_time;
         }
+
+        void chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress,
+                               const FioAddress &fa) {
+            uint64_t nameHash = string_to_uint64_t(fa.fioaddress.c_str());
+            uint64_t domainHash = string_to_uint64_t(fa.fiodomain.c_str());
+
+            auto fioname_iter = fionames.find(nameHash);
+            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+
+            //check that the name is not expired
+            uint32_t name_expiration = fioname_iter->expiration;
+            uint32_t present_time = now();
+
+            //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
+            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress,
+                           "FIO Address or FIO Domain expired", ErrorFioNameExpired);
+
+            auto domains_iter = domains.find(domainHash);
+            fio_404_assert(domains_iter != domains.end(), "FIO Domain not found", ErrorDomainNotRegistered);
+
+            uint32_t expiration = domains_iter->expiration;
+            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Address or FIO Domain expired",
+                           ErrorDomainExpired);
+
+            uint64_t chainhash = string_to_uint64_t(tokencode.c_str());
+            auto size = distance(chains.cbegin(), chains.cend());
+            auto chain_iter = chains.find(chainhash);
+
+            if(chain_iter == chains.end()) {
+                chains.emplace(_self, [&](struct chainList &a) {
+                    a.id = size;
+                    a.chainname = tokencode;
+                    a.chainhash = chainhash;
+                });
+                chain_iter = chains.find(chainhash);
+            }
+
+            // insert/update <chain, address> pair
+            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+                a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
+            });
+
+            // insert/update key into key-name table for reverse lookup
+            auto idx = keynames.get_index<N(bykey)>();
+            auto keyhash = string_to_uint64_t(pubaddress.c_str());
+            auto matchingItem = idx.lower_bound(keyhash);
+
+            // Advance to the first entry matching the specified address and chain
+            while(matchingItem != idx.end() && matchingItem->keyhash == keyhash) {
+                matchingItem++;
+            }
+
+            if(matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
+                keynames.emplace(_self, [&](struct key_name &k) {
+                    k.id = keynames.available_primary_key();        // use next available primary key
+                    k.key = pubaddress;                             // persist key
+                    k.keyhash = keyhash;                            // persist key hash
+                    k.chaintype = (chain_iter)->by_index();                       // specific chain type
+                    k.name = fioname_iter->name;                    // FIO name
+                    k.expiration = name_expiration;
+                });
+            } else {
+                idx.modify(matchingItem, _self, [&](struct key_name &k) {
+                    k.name = fioname_iter->name;    // FIO name
+                });
+            }
+        }
+
         /***
          * This method will return now plus one year.
          * the result is the present block time, which is number of seconds since 1970

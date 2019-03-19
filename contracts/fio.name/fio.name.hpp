@@ -55,6 +55,7 @@ namespace fioio {
 
     typedef multi_index<N(domains), domain> domains_table;
 
+    // @abi table chains i64
     struct chainList {
         string chainname = nullptr;
         uint32_t id = 0;
@@ -87,12 +88,8 @@ namespace fioio {
     typedef multi_index<N(keynames), key_name,
             indexed_by<N(bykey), const_mem_fun<key_name, uint64_t, &key_name::by_keyhash> > > keynames_table;
 
+    // Maps client wallet generated public keys to EOS user account names.
     // @abi table eosionames i64
-    // The eosio names table maps client wallet generated public keys to EOS user account
-    // names. The table exists to verify that all generated account names are unique. For
-    // that reason this table is indexed by the generated account name so that if a name
-    // is found, the associated key must match the supplied key to ensure there is no
-    // hashing collision.
     struct eosio_name {
 
         uint64_t account = 0;
@@ -106,13 +103,13 @@ namespace fioio {
     typedef multi_index<N(eosionames), eosio_name> eosio_names_table;
 
 
-//    struct config {
-//        name tokencontr; // owner of the token contract
-//
-//        EOSLIB_SERIALIZE(config, (tokencontr))
-//    };
-//
-//    typedef singleton<N(configs), config> configs;
+    //    struct config {
+    //        name tokencontr; // owner of the token contract
+
+    //        EOSLIB_SERIALIZE(config, (tokencontr))
+    //    };
+
+    //    typedef singleton<N(configs), config> configs;
 
     struct account {
         asset balance;
