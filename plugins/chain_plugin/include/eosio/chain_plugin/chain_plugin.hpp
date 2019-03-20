@@ -743,6 +743,18 @@ namespace eosio {
             void add_pub_address(const add_pub_address_params &params,
                                  chain::plugin_interface::next_function<add_pub_address_results> next);
 
+
+            using transfer_tokens_params = fc::variant_object;
+            struct transfer_tokens_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void transfer_tokens(const transfer_tokens_params &params,
+                                 chain::plugin_interface::next_function<transfer_tokens_results> next);
+
+
+
             //Begin Added for reject request api method
             using reject_funds_request_params = fc::variant_object;
             struct reject_funds_request_results {
@@ -959,6 +971,7 @@ FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (process
 FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (processed))
 
 FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed))
+FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_results, (transaction_id)(processed))
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed))
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit))

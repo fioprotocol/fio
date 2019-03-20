@@ -120,6 +120,8 @@ namespace eosio {
                                                          chain_apis::read_write::register_fio_name_results, 202),
                                      CHAIN_RW_CALL_ASYNC(add_pub_address,
                                                          chain_apis::read_write::add_pub_address_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(transfer_tokens,
+                                                         chain_apis::read_write::transfer_tokens_results, 202),
                                      CHAIN_RW_CALL_ASYNC(record_send, chain_apis::read_write::record_send_results, 202),
                                      CHAIN_RW_CALL_ASYNC(reject_funds_request,
                                                          chain_apis::read_write::reject_funds_request_results, 202),

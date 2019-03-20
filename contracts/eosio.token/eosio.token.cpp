@@ -84,6 +84,30 @@ void token::transfer( account_name from,
     add_balance( to, quantity, from );
 }
 
+void token::transferfio( name      tofiopubadd,
+                      asset        amount,
+                      name         actor )
+{
+    eosio_assert( actor != tofiopubadd, "Invalid FIO Public Address" );
+    require_auth( actor );
+    eosio_assert( is_account( tofiopubadd ), "Invalid FIO Public Address");
+    auto sym = amount.symbol.name();
+    stats statstable( _self, sym );
+    const auto& st = statstable.get( sym );
+
+    require_recipient( actor );
+    require_recipient( tofiopubadd );
+
+    eosio_assert( amount.is_valid(), "invalid quantity" );
+    eosio_assert( amount.amount > 0, "must transfer positive quantity" );
+    eosio_assert( amount.symbol == st.supply.symbol, "symbol precision mismatch" );
+  //  eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
+
+    sub_balance( actor, amount );
+    add_balance( tofiopubadd, amount, actor );
+}
+
+
 void token::sub_balance( account_name owner, asset value ) {
    accounts from_acnts( _self, owner );
 
@@ -117,4 +141,4 @@ void token::add_balance( account_name owner, asset value, account_name ram_payer
 
 } /// namespace eosio
 
-EOSIO_ABI( eosio::token, (create)(issue)(transfer) )
+EOSIO_ABI( eosio::token, (create)(issue)(transfer)(transferfio) )

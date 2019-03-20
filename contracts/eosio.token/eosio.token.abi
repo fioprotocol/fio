@@ -14,6 +14,14 @@
         {"name":"memo", "type":"string"}
       ]
     },{
+      "name": "transferfio",
+      "base": "",
+      "fields": [
+        {"name":"tofiopubadd", "type":"name"},
+        {"name":"amount", "type":"asset"},
+        {"name":"actor", "type":"name"},
+        ]
+      },{
      "name": "create",
      "base": "",
      "fields": [
@@ -49,10 +57,14 @@
       "type": "transfer",
       "ricardian_contract": ""
     },{
+      "name": "transferfio",
+      "type": "transferfio",
+      "ricardian_contract": ""
+    },{
       "name": "issue",
       "type": "issue",
       "ricardian_contract": ""
-    }, {
+    },{
       "name": "create",
       "type": "create",
       "ricardian_contract": ""
