@@ -31,7 +31,7 @@ namespace eosio {
                         asset        quantity,
                         string       memo );
          void transferfio( name tofiopubadd,
-                        asset amount,
+                        string amount,
                         name actor);
 
 

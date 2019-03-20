@@ -17,7 +17,7 @@ namespace fioio {
      * error code definition. Error codes are bitfielded uint64_t values.
      * The fields are: An itentifier, 'FIO\0', then http error code and finally a FIO specific error number.
      */
-  
+
    constexpr auto identOffset = 48;
    constexpr uint64_t ident = uint64_t((('F' << 4) | 'I' << 4) | 'O') << identOffset; // to distinguish the error codes generically
    constexpr auto httpOffset = 32;
@@ -54,7 +54,8 @@ namespace fioio {
    constexpr auto ErrorNoFioRequestsFound =         ident | httpLocationError | 122;   // no fio requests found
    constexpr auto Error400FioNameNotRegistered =      ident | httpDataError | 123;   // Fioname not yet registered
    constexpr auto ErrorPubAddressNotFound =        ident | httpLocationError | 124; //Pub Address not found
-  
+   constexpr auto ErrorLowFunds =                   ident | httpDataError | 125; // Insufficient balance
+
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */

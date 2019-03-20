@@ -18,7 +18,7 @@
       "base": "",
       "fields": [
         {"name":"tofiopubadd", "type":"name"},
-        {"name":"amount", "type":"asset"},
+        {"name":"amount", "type":"string"},
         {"name":"actor", "type":"name"},
         ]
       },{

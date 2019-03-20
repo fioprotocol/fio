@@ -4,7 +4,8 @@
  */
 
 #include "eosio.token.hpp"
-
+#include <eosio/chain/fioio/fioerror.hpp>
+using namespace fioio;
 namespace eosio {
 
 void token::create( account_name issuer,
@@ -85,26 +86,30 @@ void token::transfer( account_name from,
 }
 
 void token::transferfio( name      tofiopubadd,
-                      asset        amount,
-                      name         actor )
+                         string       amount,
+                         name         actor )
 {
-    eosio_assert( actor != tofiopubadd, "Invalid FIO Public Address" );
+    fio_400_assert(actor != tofiopubadd, "tofiopubadd", tofiopubadd.to_string(), "Invalid FIO Public Address", ErrorPubAddressEmpty);
     require_auth( actor );
-    eosio_assert( is_account( tofiopubadd ), "Invalid FIO Public Address");
-    auto sym = amount.symbol.name();
+    fio_400_assert(is_account( tofiopubadd ),"tofiopubadd", tofiopubadd.to_string(), "Invalid FIO Public Address", ErrorPubAddressExist);
+    asset qty;
+    qty.symbol = ::eosio::string_to_symbol(4,"FIO");
+    qty.amount = ((int)amount.c_str());
+    dlog
+    auto sym = qty.symbol.name();
     stats statstable( _self, sym );
     const auto& st = statstable.get( sym );
 
     require_recipient( actor );
     require_recipient( tofiopubadd );
 
-    eosio_assert( amount.is_valid(), "invalid quantity" );
-    eosio_assert( amount.amount > 0, "must transfer positive quantity" );
-    eosio_assert( amount.symbol == st.supply.symbol, "symbol precision mismatch" );
+    fio_400_assert(qty.is_valid(),"amount", amount.c_str(), "Invalid quantity", ErrorLowFunds);
+    eosio_assert( qty.amount > 0, "must transfer positive quantity" );
+    eosio_assert( qty.symbol == st.supply.symbol, "symbol precision mismatch" );
   //  eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
 
-    sub_balance( actor, amount );
-    add_balance( tofiopubadd, amount, actor );
+    sub_balance( actor, qty );
+    add_balance( tofiopubadd, qty, actor );
 }
 
 
@@ -112,7 +117,7 @@ void token::sub_balance( account_name owner, asset value ) {
    accounts from_acnts( _self, owner );
 
    const auto& from = from_acnts.get( value.symbol.name(), "Insufficient balance" );
-   eosio_assert( from.balance.amount >= value.amount, "overdrawn balance" );
+   fio_400_assert(from.balance.amount >= value.amount,"amount", "", "Insufficient balance", ErrorLowFunds);
 
 
    if( from.balance.amount == value.amount ) {
