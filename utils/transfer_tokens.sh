@@ -6,20 +6,29 @@
 nPort=8889
 wPort=9899
 hostname="localhost"
-#34.214.170.140 Eds test AWS server for UAT
+
+if [ -z "$1" ]; then
+    domain="adam.dapix"
+else
+    domain=$1
+fi
+
+echo ------------------------------------------
+
 
 fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
-
-
 echo ------------------------------------------
+dataJson="{
+  \"tofiopubadd\": \"fioname22222\",
+  \"amount\": \"100.0000 FIO\",
+  \"actor\": \"${fioactor}\"
+}"
 
-
-dataJson='{"fioreqid":"0","actor":"${fioactor}"}'
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.reqobt rejectfndreq '$dataJson'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.token transferfio '${dataJson}'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -32,7 +41,7 @@ echo HEAD BLOCK TIME: $headBlockTime
 
 cmd="date -d \"+1 hour $headBlockTime\" \"+%FT\"%T"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-cmd="date -j -v+1H -f \"%Y-%m-%dT%H:%M:%S.\" \"$headBlockTime\" \"+%FT\"%T"
+    cmd="date -j -v+1H -f \"%Y-%m-%dT%H:%M:%S.\" \"$headBlockTime\" \"+%FT\"%T"
 fi
 echo CMD: $cmd
 expirationStr=`eval $cmd`
@@ -51,40 +60,41 @@ refBlockPrefix=`eval $cmd`
 echo REF BLOCK PREFIX: $refBlockPrefix
 echo ------------------------------------------
 
-
-
 # Unsigned request
 unsignedRequest='{
-"chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
-"expiration": "'${expirationStr}'",
-"ref_block_num": '${lastIrreversibleBlockNum}',
-"ref_block_prefix": '${refBlockPrefix}',
-"max_net_usage_words": 0,
-"max_cpu_usage_ms": 0,
-"delay_sec": 0,
-"context_free_actions": [],
-"actions": [{
-"account":"fio.reqobt",
-"name": "rejectfndreq"
-"authorization":[{
-"actor":"'${fioactor}'",
-"permission":"active"
-}]
-"data": "'${actualPackedData}'"
-}
-],
-"transaction_extensions": [],
-"signatures": [],
-"context_free_data": []
-}
+    "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
+    "expiration": "'${expirationStr}'",
+    "ref_block_num": '${lastIrreversibleBlockNum}',
+    "ref_block_prefix": '${refBlockPrefix}',
+    "max_net_usage_words": 0,
+    "max_cpu_usage_ms": 0,
+    "delay_sec": 0,
+    "context_free_actions": [],
+    "actions": [{
+        "account":"fio.token",
+        "name": "transferfio"
+        "authorization":[{
+             "actor":"'${fioactor}'",
+             "permission":"active"
+        }]
+    "data": "'${actualPackedData}'"
+      }
+    ],
+    "transaction_extensions": [],
+    "signatures": [],
+    "context_free_data": []
+  }
 '
 # echo $unsignedRequest
 
 # Sign request
-expectedSignedRequest='{"expiration":"2018-12-13T20:59:50","ref_block_num":141,"ref_block_prefix":3586931320,"max_net_usage_words":0,"max_cpu_usage_ms":0,"delay_sec":0,"context_free_actions":[],"actions":[{"account":"fio.reqobt","name":"rejectfndreq","authorization":[{"actor":"r41zuwovtn44","permission":"active"},{"actor":"fio.system","permission":"active"}],"data":"036f6369104208414933a95b"}],"transaction_extensions":[],"signatures":["SIG_K1_Kcax7imeZM2nK3di7eZRZ5Y82eyxRHGE4gx7CT1Rky1JTVVmKCwytFLMTjg888B4RiwjhoCwk5pXndywg1pRxj8RCGqKyy","SIG_K1_K5FLUb7y2nq5EJjTRGDr5G2iFpEasX2qmrHbdexJDbYiYmiXo9b1YLTXz73b9VE6ipxs5gRtMooRyFUx9ucKQ8jBjYsR3u"],"context_free_data":[]}'
+expectedSignedRequest='{
+    "signatures":["SIG_K1_Kcax7imeZM2nK3di7eZRZ5Y82eyxRHGE4gx7CT1Rky1JTVVmKCwytFLMTjg888B4RiwjhoCwk5pXndywg1pRxj8RCGqKyy",
+                    "SIG_K1_K5FLUb7y2nq5EJjTRGDr5G2iFpEasX2qmrHbdexJDbYiYmiXo9b1YLTXz73b9VE6ipxs5gRtMooRyFUx9ucKQ8jBjYsR3u"],
+"context_free_data":[]}'
 
 
-cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://$hostname:9899 sign '$unsignedRequest' -k 5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
+cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k 5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
 echo CMD: $cmd
 actualSignedResponse=`eval $cmd`
 ret=$?
@@ -93,7 +103,15 @@ if [[ $ret != 0 ]]; then  exit $ret; fi
 echo ------------------------------------------
 
 # Pack request
-expectedPackedResponse='{ "signatures": [ "SIG_K1_K5C3qWUzKJ3ciWQSe98vJF5jK5enmaFguaac5FYZn5sMSgk5shu86xSsELAqePvEquTjm1JsoaeKWFjEP4hT2sJyZRA8G3", "SIG_K1_K3d5zYXdsatBW5GZCrSV5c8TrwghGiv5xJR7RJ2XMiZBagDr5njgYrEMCVnLm4aNV9oFSWcCMUQfeaSWL2yZveJdpBsme4" ], "compression": "none", "packed_context_free_data": "", "packed_trx": "46c8125c8d00783accd500000000010000000000000000a0a4995765ec98ba000c036f6369104208414933a95b00" }'
+expectedPackedResponse='{
+    "signatures": [
+      "SIG_K1_K5C3qWUzKJ3ciWQSe98vJF5jK5enmaFguaac5FYZn5sMSgk5shu86xSsELAqePvEquTjm1JsoaeKWFjEP4hT2sJyZRA8G3",
+      "SIG_K1_K3d5zYXdsatBW5GZCrSV5c8TrwghGiv5xJR7RJ2XMiZBagDr5njgYrEMCVnLm4aNV9oFSWcCMUQfeaSWL2yZveJdpBsme4" ],
+    "compression": "none",
+    "packed_context_free_data": "",
+    "packed_trx": "46c8125c8d00783accd500000000010000000000000000a0a4995765ec98ba000c036f6369104208414933a95b00" }'
+
+
 cmd="programs/cleos/cleos --no-auto-keosd --verbose --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort convert pack_transaction '$actualSignedResponse'"
 echo CMD: $cmd
 actualPackedResponse=`eval $cmd`
