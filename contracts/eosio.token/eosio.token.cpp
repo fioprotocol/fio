@@ -64,9 +64,9 @@ void token::transfer( account_name from,
                       asset        quantity,
                       string       memo )
 {
-    eosio_assert( from != to, "cannot transfer to self" );
+    eosio_assert( from != to, "Invalid FIO Public Address" );
     require_auth( from );
-    eosio_assert( is_account( to ), "to account does not exist");
+    eosio_assert( is_account( to ), "Invalid FIO Public Address");
     auto sym = quantity.symbol.name();
     stats statstable( _self, sym );
     const auto& st = statstable.get( sym );
@@ -87,7 +87,7 @@ void token::transfer( account_name from,
 void token::sub_balance( account_name owner, asset value ) {
    accounts from_acnts( _self, owner );
 
-   const auto& from = from_acnts.get( value.symbol.name(), "no balance object found" );
+   const auto& from = from_acnts.get( value.symbol.name(), "Insufficient balance" );
    eosio_assert( from.balance.amount >= value.amount, "overdrawn balance" );
 
 
