@@ -22,7 +22,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 echo ------------------------------------------
 dataJson="{
-  \"tofiopubadd\": \"fioname22222\",
+  \"tofiopubadd\": \"r41zuwovtn44\",
   \"amount\": \"100.0000 FIO\",
   \"actor\": \"${fioactor}\"
 }"
