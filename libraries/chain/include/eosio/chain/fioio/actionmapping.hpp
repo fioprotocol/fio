@@ -21,7 +21,7 @@ namespace fioio {
     vector<string> fiosystemActions;
     vector<string> fioFinanceActions;
     vector<string> fioRequestObtActions;
-
+    vector<string> fioTokenActions;
 
     static void Set_map(void){
         //eosio actions
@@ -31,6 +31,8 @@ namespace fioio {
         fiosystemActions.push_back("registername");
         fiosystemActions.push_back("addaddress");
         fiosystemActions.push_back("bind2eosio");
+        //fio.token actions
+        fioTokenActions.push_back("transferfio");
         //fio.finance actions
         fioFinanceActions.push_back("requestfunds");
 
@@ -49,6 +51,9 @@ namespace fioio {
         }
         if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()){
             return "fio.reqobt";
+        }
+        if (find(fioTokenActions.begin(), fioTokenActions.end(), t) != fioTokenActions.end()) {
+            return "fio.token";
         }
         return "eosio";
     }
