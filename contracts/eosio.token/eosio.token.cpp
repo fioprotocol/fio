@@ -92,10 +92,15 @@ void token::transferfio( name      tofiopubadd,
     fio_400_assert(actor != tofiopubadd, "tofiopubadd", tofiopubadd.to_string(), "Invalid FIO Public Address", ErrorPubAddressEmpty);
     require_auth( actor );
     fio_400_assert(is_account( tofiopubadd ),"tofiopubadd", tofiopubadd.to_string(), "Invalid FIO Public Address", ErrorPubAddressExist);
+    string whole;
+    string precision;
+    size_t pos = amount.find('.');
+    whole = amount.substr(0,pos);
+    precision = amount.substr(pos,amount.size());
     asset qty;
+    qty.amount = ((int64_t)atoi(whole.c_str()) + (int64_t)atoi(precision.c_str()))*10000;
     qty.symbol = ::eosio::string_to_symbol(4,"FIO");
-    qty.amount = ((int)amount.c_str());
-    dlog
+
     auto sym = qty.symbol.name();
     stats statstable( _self, sym );
     const auto& st = statstable.get( sym );
