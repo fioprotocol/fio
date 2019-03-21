@@ -14,6 +14,7 @@
 #include <fio.common/json.hpp>
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/fio_common_validator.hpp>
+#include <eosio/chain/fioio/chain_control.hpp>
 
 namespace fioio {
 
@@ -22,6 +23,7 @@ namespace fioio {
     private:
         fiorequest_contexts_table fiorequestContextsTable;
         fiorequest_status_table fiorequestStatusTable;
+
     public:
         explicit FioRequestObt(account_name self)
                 : contract(self), fiorequestContextsTable(self, self), fiorequestStatusTable(self, self) {}
@@ -110,6 +112,7 @@ namespace fioio {
             for (std::vector<std::string>::iterator it = myparts.begin(); it != myparts.end(); ++it) {
                 string tmpstr = *it;
 
+
                 //look for the from fio address
                 if (fromFioAddress.length() == 0) {
                     std::size_t found = tmpstr.find("fromfioadd");
@@ -168,12 +171,19 @@ namespace fioio {
             auto fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "fromfioadd", fromFioAddress, "No such FIO Address",
                            ErrorFioNameNotRegistered);
+            uint64_t account = fioname_iter->account;
 
             //check the to address, see that its a valid fio name
             nameHash = ::eosio::string_to_uint64_t(toFioAddress.c_str());
             fioname_iter = fionames.find(nameHash);
+
             fio_400_assert(fioname_iter != fionames.end(), "tofioadd", toFioAddress, "No such FIO Address",
                            ErrorFioNameNotRegistered);
+
+            account_name aactor = eosio::string_to_name(actor.c_str());
+            print("account: ",account," actor: ",aactor,"\n");
+            fio_403_assert(account == aactor,ErrorSignature);
+
 
             send_response(recordsend.c_str());
         }
@@ -205,6 +215,11 @@ namespace fioio {
             fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "tofioadd", tofioadd, "No such FIO Address",
                            Error400FioNameNotRegistered);
+            uint64_t account = fioname_iter->account;
+
+            account_name aactor = eosio::string_to_name(actor.c_str());
+            print("account: ",account," actor: ",aactor,"\n");
+            fio_403_assert(account == aactor,ErrorSignature);
 
             //put the thing into the table get the index.
             uint64_t id = fiorequestContextsTable.available_primary_key();
@@ -256,6 +271,23 @@ namespace fioio {
             auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
             fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fioreqid", fioreqid,
                            "No such FIO Request ", ErrorRequestContextNotFound);
+
+            uint64_t fromFioAdd = fioreqctx_iter->fromfioaddr;
+
+            //lookup the tofioaddr get the account and verify
+            auto fionames = fionames_table(N(fio.system), N(fio.system));
+
+            //check the from address, see that its a valid fio name
+            auto fioname_iter = fionames.find(fromFioAdd);
+
+            fio_403_assert(fioname_iter != fionames.end(),ErrorSignature);
+
+            uint64_t account = fioname_iter->account;
+
+            account_name aactor = eosio::string_to_name(actor.c_str());
+            print("account: ",account," actor: ",aactor,"\n");
+            fio_403_assert(account == aactor,ErrorSignature);
+
             //insert a send record into the status table using this id.
             fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                 fr.id = fiorequestStatusTable.available_primary_key();;

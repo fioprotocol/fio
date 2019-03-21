@@ -26,6 +26,7 @@ namespace fioio {
         string domain = nullptr;
         uint64_t domainhash = 0;
         uint32_t expiration;
+        uint64_t account;
 
         // Chain specific keys
         vector<string> addresses;
@@ -35,7 +36,7 @@ namespace fioio {
 
         uint64_t by_domain() const { return domainhash; }
 
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(addresses))
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(account)(addresses))
     };
 
     //Where fioname tokens are stored
@@ -47,10 +48,11 @@ namespace fioio {
         string name;
         uint64_t domainhash;
         uint32_t expiration;
+        uint64_t account;
 
         uint64_t primary_key() const { return domainhash; }
 
-        EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration))
+        EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration)(account))
     };
 
     typedef multi_index<N(domains), domain> domains_table;

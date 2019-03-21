@@ -72,7 +72,7 @@ namespace fioio {
             getFioAddressStruct(fioaddress, fa);
             addaddress_errors(tokencode, pubaddress, fa);
 
-            chain_data_update(fioaddress, tokencode, pubaddress, fa);
+            chain_data_update(fioaddress, tokencode, pubaddress, fa,actor);
 
             const auto fees = trxfees.get_or_default(trxfee());
             asset registerFee = fees.upaddress;
@@ -156,6 +156,7 @@ namespace fioio {
                            ErrorInvalidFioNameFormat);
             fio_400_assert(isPubAddressValid(pubaddress), "pubaddress", pubaddress, "Invalid public address format",
                            ErrorChainAddressEmpty);
+
         }
 
         uint32_t fio_table_update (const name &actor, const FioAddress &fa, uint64_t domainHash) {
@@ -177,6 +178,7 @@ namespace fioio {
                     d.name = fa.fiodomain;
                     d.domainhash = domainHash;
                     d.expiration = expiration_time;
+                    d.account = actor;
                 });
             } else { // fioname register
 
@@ -217,6 +219,7 @@ namespace fioio {
                     a.domain = fa.fiodomain;
                     a.domainhash = domainHash;
                     a.expiration = expiration_time;
+                    a.account = actor;
                 });
                 addaddress(fa.fioaddress, "FIO", actor.to_string(), actor);
             } // else
@@ -225,7 +228,7 @@ namespace fioio {
         }
 
         void chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress,
-                               const FioAddress &fa) {
+                               const FioAddress &fa, const account_name &actor) {
             uint64_t nameHash = string_to_uint64_t(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_t(fa.fiodomain.c_str());
 
@@ -235,6 +238,10 @@ namespace fioio {
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
+
+            uint64_t account = fioname_iter->account;
+            print("account: ",account," actor: ",actor,"\n");
+            fio_403_assert(account == actor,ErrorSignature);
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
             fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress,

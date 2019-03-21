@@ -21,6 +21,9 @@
           "name": "expiration",
           "type": "uint32"
         },{
+          "name": "account",
+          "type": "uint64"
+        },{
           "name": "addresses",
           "type": "string[]"
         }
@@ -37,7 +40,10 @@
         },{
           "name": "expiration",
           "type": "uint32"
-        }
+        },{
+          "name": "account",
+          "type": "uint64"
+         }
       ]
     },{
       "name": "chainList",

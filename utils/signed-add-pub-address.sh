@@ -2,6 +2,16 @@
 
 # Script to sign and pack a transaction.
 
+#ACCOUNT r41zuwovtn44   --casey.dapix
+#OWNER KEYS
+#PUBLIC EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
+#PRIVATE 5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF
+
+#ACCOUNT htjonrkf1lgs    -- adam.dapix
+#OWNER KEYS
+#PUBLIC EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
+#PRIVATE 5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz
+
 
 nPort=8889
 wPort=9899
@@ -16,7 +26,8 @@ fi
 echo ------------------------------------------
 
 
-fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
+fiopubkey="EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
+fioprivatekey='5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz'
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
@@ -95,7 +106,7 @@ expectedSignedRequest='{
 "context_free_data":[]}'
 
 
-cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k 5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
+cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k ${fioprivatekey}"
 echo CMD: $cmd
 actualSignedResponse=`eval $cmd`
 ret=$?
