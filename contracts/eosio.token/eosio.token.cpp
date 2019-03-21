@@ -5,6 +5,8 @@
 
 #include "eosio.token.hpp"
 #include <eosio/chain/fioio/fioerror.hpp>
+#include <fio.common/fio.common.hpp>
+#include <fio.common/json.hpp>
 using namespace fioio;
 namespace eosio {
 
@@ -115,6 +117,10 @@ void token::transferfio( name      tofiopubadd,
 
     sub_balance( actor, qty );
     add_balance( tofiopubadd, qty, actor );
+
+
+    nlohmann::json json = {{"status",     "OK"}};
+    send_response(json.dump().c_str());
 }
 
 
