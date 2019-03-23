@@ -1543,6 +1543,7 @@ if( options.count(name) ) { \
                     .table       = fio_key_lookup_table,
                     .lower_bound = boost::lexical_cast<string>(key_hash),
                     .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .limit = 100000000,
                     .key_type       = "i64",
                     .index_position ="2"};
 
@@ -1577,6 +1578,7 @@ if( options.count(name) ) { \
                         .code=fio_system_code,
                         .scope=fio_system_scope,
                         .table=fio_domains_table,
+                        .limit = 100000000,
                         .lower_bound=boost::lexical_cast<string>(domain_hash),
                         .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
                         .encode_type="dec"};
