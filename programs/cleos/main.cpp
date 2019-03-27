@@ -970,6 +970,7 @@ struct create_account_subcommand {
 
             std::string hashed_name;
             fioio::key_to_account(active_key_str, hashed_name);
+
             if (hashed_name == account_name) {
                 try{
                   fc::variant json;
@@ -978,9 +979,8 @@ struct create_account_subcommand {
                 catch(boost::tuples::null_type){
                   std::cout<<"Required fio.system account does not exist"<<std::endl;
                 }
-
-                  auto bind = create_bind2eosio(active_key_str,hashed_name);
-                  send_actions({bind});
+                auto bind = create_bind2eosio(active_key_str,hashed_name);
+                send_actions({bind});
           }
       });
    }

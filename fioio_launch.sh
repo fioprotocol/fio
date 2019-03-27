@@ -156,16 +156,12 @@ if [ $mChoice == 1 ]; then
 
     cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.0000 FIO"]' -p fio.token@active
     cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000.0000 FIO","memo"]' -p eosio@active
-    #cleos -u http://localhost:8889 push action -j fio.system bind2eosio '{"account":"r41zuwovtn44","client_key":"EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82","existing":false}' --permission fio.system@active
 
     cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.0000 FIO","memo"]' -p eosio@active
-    #cleos -u http://localhost:8889 push action -j fio.system bind2eosio '{"account":"htjonrkf1lgs","client_key":"EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN","existing":false}' --permission fio.system@active
 
     cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.0000 FIO","memo"]' -p eosio@active
-    #cleos -u http://localhost:8889 push action -j fio.system bind2eosio '{"account":"euwdcp13zlrj","client_key":"EOS8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB","existing":false}' --permission fio.system@active
 
     cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.0000 FIO","memo"]' -p eosio@active
-    #cleos -u http://localhost:8889 push action -j fio.system bind2eosio '{"account":"mnvcf4v1flnn","client_key":"EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY","existing":false}' --permission fio.system@active
 
 
     echo setting accounts
