@@ -525,6 +525,17 @@ chain::action create_action(const vector<permission_level>& authorization, const
    return chain::action{authorization, code, act, variant_to_bin(code, act, args)};
 }
 
+chain::action create_bind2eosio(const string& fiopubkey, const string& new_account)
+{
+
+  fc::variant act_payload = fc::mutable_variant_object()
+        ("account", new_account.c_str())
+        ("client_key", fiopubkey.c_str())
+        ("existing", false);
+  return create_action(vector<permission_level>{{N(fio.system),"active"}}, N(fio.system), N(bind2eosio), act_payload);
+
+}
+
 chain::action create_buyram(const name& creator, const name& newaccount, const asset& quantity) {
    fc::variant act_payload = fc::mutable_variant_object()
          ("payer", creator.to_string())
@@ -938,6 +949,7 @@ struct create_account_subcommand {
                active_key = public_key_type(active_key_str);
             } EOS_RETHROW_EXCEPTIONS(public_key_type_exception, "Invalid active public key: ${public_key}", ("public_key", active_key_str));
             auto create = create_newaccount(creator, account_name, owner_key, active_key);
+
             if (!simple) {
                EOSC_ASSERT( buy_ram_eos.size() || buy_ram_bytes_in_kbytes || buy_ram_bytes, "ERROR: One of --buy-ram, --buy-ram-kbytes or --buy-ram-bytes should have non-zero value" );
                EOSC_ASSERT( !buy_ram_bytes_in_kbytes || !buy_ram_bytes, "ERROR: --buy-ram-kbytes and --buy-ram-bytes cannot be set at the same time" );
@@ -948,12 +960,28 @@ struct create_account_subcommand {
                if ( net.get_amount() != 0 || cpu.get_amount() != 0 ) {
                   action delegate = create_delegate( creator, account_name, net, cpu, transfer);
                   send_actions( { create, buyram, delegate } );
+
                } else {
                   send_actions( { create, buyram } );
                }
             } else {
                send_actions( { create } );
             }
+
+            std::string hashed_name;
+            fioio::key_to_account(active_key_str, hashed_name);
+            if (hashed_name == account_name) {
+                try{
+                  fc::variant json;
+                  json = call(get_account_func, fc::mutable_variant_object("account_name", "fio.system"));
+                }
+                catch(boost::tuples::null_type){
+                  std::cout<<"Required fio.system account does not exist"<<std::endl;
+                }
+
+                  auto bind = create_bind2eosio(active_key_str,hashed_name);
+                  send_actions({bind});
+          }
       });
    }
 };
