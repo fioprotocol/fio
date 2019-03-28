@@ -968,18 +968,22 @@ struct create_account_subcommand {
                send_actions( { create } );
             }
 
+            //Check if the account being created is a hashed_version from the public key
             std::string hashed_name;
             fioio::key_to_account(active_key_str, hashed_name);
 
             if (hashed_name == account_name) {
                 try{
+                  //Check if fio.system account exists first. Cannot make call to bind2eosio without this
                   fc::variant json;
                   json = call(get_account_func, fc::mutable_variant_object("account_name", "fio.system"));
                 }
                 catch(boost::tuples::null_type){
                   std::cout<<"Required fio.system account does not exist"<<std::endl;
                 }
+                //Create bind2eosio action
                 auto bind = create_bind2eosio(active_key_str,hashed_name);
+                //Attach this action for bind2eosio to the transaction call for createaccount
                 send_actions({bind});
           }
       });
