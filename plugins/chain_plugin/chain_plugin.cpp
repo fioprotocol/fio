@@ -1524,6 +1524,7 @@ if( options.count(name) ) { \
         read_only::get_fio_names_result read_only::get_fio_names(const read_only::get_fio_names_params &p) const {
             // assert if empty chain key
             get_fio_names_result result;
+            get_table_rows_result table_rows_result;
             FIO_404_ASSERT(!p.fio_pub_address.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
 
@@ -1532,8 +1533,6 @@ if( options.count(name) ) { \
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
             const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_pub_address.c_str()); // hash of public address
-            get_table_rows_result domain_result;
-            get_table_rows_result table_rows_result;
 
             dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash));
             get_table_rows_params table_row_params = get_table_rows_params{
@@ -1556,46 +1555,45 @@ if( options.count(name) ) { \
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
             FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
-
             std::string nam, namexpiration, dom, domexpiration;
 
             // Look through the keynames lookup results and push the fio_addresses into results
             for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
 
                 nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
-
-                fioaddress_record fa{nam, namexpiration};
-                //pushback results
-                result.fio_addresses.push_back(fa);
-
-                //Get the domain
-                int domlook = nam.find('.');
-                dom = nam.substr(domlook + 1, string::npos);
-                std::cout << "Domain name:" << dom << std::endl;
-                const uint64_t domain_hash = ::eosio::string_to_uint64_t(dom.c_str());
-                get_table_rows_params domain_table_params = get_table_rows_params{.json=true,
-                        .code=fio_system_code,
-                        .scope=fio_system_scope,
-                        .table=fio_domains_table,
-                        .limit = 100000000,
-                        .lower_bound=boost::lexical_cast<string>(domain_hash),
-                        .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
-                        .encode_type="dec"};
-                get_table_rows_result domain_result = get_table_rows_ex<key_value_index>(domain_table_params, abi);
-
-                domexpiration = domain_result.rows[0]["expiration"].as_string();
-
-                fiodomain_record d{dom, domexpiration};
-
-                /********************** Domain pushback currently disabled until future story completed ******/
-                //only want one domain object pushed in vector per iteration
-                /* if (result.fio_domains.empty()) */
-                /*   result.fio_domains.push_back(d); */   //pushback results in domain
+                if (nam.find('.') != std::string::npos)  { //if it's not a domain record in the keynames table (no '.'),
+                  namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
+                  fioaddress_record fa{nam, namexpiration};
+                  //then push the address record result
+                  result.fio_addresses.push_back(fa);
+                }
 
             } // Get FIO domains and push
 
             result.fio_pub_address = p.fio_pub_address;
+
+            size_t domlook = nam.find('.');
+            dom = nam.substr(domlook + 1, string::npos);
+
+              //Get the domain record
+            const uint64_t domain_hash = ::eosio::string_to_uint64_t(dom.c_str());
+            get_table_rows_params domain_lookup_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=boost::lexical_cast<string>(domain_hash),
+                    .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
+                    .encode_type="dec"};
+            get_table_rows_result domain_lookup_result = get_table_rows_ex<key_value_index>(domain_lookup_params, abi);
+
+            const uint64_t domowner = ((uint64_t)domain_lookup_result.rows[0]["account"].as_uint64());
+            const uint64_t pubaddhash = ::eosio::string_to_name(p.fio_pub_address.c_str());
+            if (domowner == pubaddhash) {
+              domexpiration = domain_lookup_result.rows[0]["expiration"].as_string();
+              fiodomain_record d{dom, domexpiration};
+              result.fio_domains.push_back(d);    //pushback results in domain
+            }
+
             return result;
         } // get_fio_names
 
