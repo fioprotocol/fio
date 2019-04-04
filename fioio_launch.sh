@@ -121,8 +121,6 @@ if [ $mChoice == 1 ]; then
     sh scripts/node2_start.sh &
     sleep 6s
 
-
-
     if [ $restartneeded == 0 ]; then
         #Create Accounts
         echo $'Creating Accounts...\n'
@@ -156,13 +154,9 @@ if [ $mChoice == 1 ]; then
 
     cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.0000 FIO"]' -p fio.token@active
     cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000.0000 FIO","memo"]' -p eosio@active
-
     cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.0000 FIO","memo"]' -p eosio@active
-
     cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.0000 FIO","memo"]' -p eosio@active
-
     cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.0000 FIO","memo"]' -p eosio@active
-
 
     echo setting accounts
     sleep 1
