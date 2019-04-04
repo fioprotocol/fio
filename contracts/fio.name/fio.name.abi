@@ -136,6 +136,20 @@
         }
       ]
     },{
+    "name": "adddomain",
+    "base": "",
+    "fields": [{
+        "name": "domain",
+        "type": "string"
+      },{
+        "name": "pubaddress",
+        "type": "string"
+      },{
+        "name": "actor",
+        "type": "name"
+      }
+    ]
+  },{
       "name": "removename",
       "base": "",
       "fields": []

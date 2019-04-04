@@ -58,6 +58,7 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
+
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
@@ -84,7 +85,51 @@ namespace fioio {
                                    {"pubaddress", pubaddress},
                                    {"actor",      actor}};
             send_response(json.dump().c_str());
-        }
+        } //addaddress
+
+
+        [[eosio::action]]
+        void adddomain(const string &domain, const string &pubaddress, const account_name &actor)
+        {
+          // insert/update key into key-name table for reverse lookup
+          auto idx = keynames.get_index<N(bykey)>();
+          auto keyhash = string_to_uint64_t(pubaddress.c_str());
+          auto matchingItem = idx.lower_bound(keyhash);
+          uint64_t domainHash = string_to_uint64_t(domain.c_str());
+          auto domain_iter = domains.find(domainHash);
+
+          uint32_t domain_expiration = domain_iter->expiration;
+          // TODO: Is there a fee for adding a domain ?
+
+          // Advance to the first entry matching the specified address and chain
+          while(matchingItem != idx.end() && matchingItem->keyhash == keyhash) {
+              matchingItem++;
+          }
+
+          if(matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
+              keynames.emplace(_self, [&](struct key_name &k) {
+                  k.id = keynames.available_primary_key();        // use next available primary key
+                  k.key = pubaddress;                             // persist key
+                  k.keyhash = keyhash;                            // persist key hash
+                  k.chaintype = 0;                       // specific chain type
+                  k.name = domain_iter->name;                    // FIO name
+                  k.expiration = domain_expiration;
+              });
+          } else {
+              idx.modify(matchingItem, _self, [&](struct key_name &k) {
+                  k.name = domain_iter->name;    // FIO name
+              });
+          }
+
+          nlohmann::json json = {{"status",     "OK"},
+                                 {"domain", domain},
+                                 {"tokencode",  0},
+                                 {"pubaddress", pubaddress},
+                                 {"actor",      actor}};
+
+          send_response(json.dump().c_str());
+
+        } //adddomain
 
         /**
          *
@@ -180,6 +225,7 @@ namespace fioio {
                     d.expiration = expiration_time;
                     d.account = actor;
                 });
+               adddomain(fa.fiodomain, actor.to_string(), actor);
             } else { // fioname register
 
                 // check if domain exists.
@@ -310,5 +356,5 @@ namespace fioio {
         }
     }; // class FioNameLookup
 
-    EOSIO_ABI(FioNameLookup, (registername)(addaddress)(removename)(removedomain)(rmvaddress)(bind2eosio))
+    EOSIO_ABI(FioNameLookup, (registername)(addaddress)(adddomain)(removename)(removedomain)(rmvaddress)(bind2eosio))
 }
