@@ -33,7 +33,6 @@ namespace fioio {
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
-
         uint64_t by_domain() const { return domainhash; }
 
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(account)(addresses))
@@ -51,11 +50,13 @@ namespace fioio {
         uint64_t account;
 
         uint64_t primary_key() const { return domainhash; }
+        uint64_t by_account() const { return account; }
 
         EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration)(account))
     };
 
-    typedef multi_index<N(domains), domain> domains_table;
+    typedef multi_index<N(domains), domain,
+            indexed_by<N(byaccount), const_mem_fun<domain, uint64_t, &domain::by_account> > > domains_table;
 
     // @abi table chains i64
     struct chainList {
