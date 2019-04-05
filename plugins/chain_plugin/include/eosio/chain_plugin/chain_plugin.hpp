@@ -327,7 +327,7 @@ namespace eosio {
                 string table_key;
                 string lower_bound;
                 string upper_bound;
-                uint32_t limit = 100;
+                uint32_t limit = 1000000000; //set this to a large number to mitigate issue with querying index tables with lots of rows 04042019
                 string key_type;  // type of key specified by index_position
                 string index_position; // 1 - primary (first), 2 - secondary index (in order defined by multi_index), 3 - third index, etc
                 string encode_type{"dec"}; //dec, hex , default=dec

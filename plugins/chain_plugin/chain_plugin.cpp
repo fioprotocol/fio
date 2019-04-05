@@ -1542,7 +1542,6 @@ if( options.count(name) ) { \
                     .table       = fio_key_lookup_table,
                     .lower_bound = boost::lexical_cast<string>(key_hash),
                     .upper_bound = boost::lexical_cast<string>(key_hash + 1),
-                    .limit = 100000000,
                     .key_type       = "i64",
                     .index_position ="2"};
 
