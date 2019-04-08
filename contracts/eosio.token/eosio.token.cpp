@@ -98,9 +98,9 @@ void token::transferfio( name      tofiopubadd,
     string precision;
     size_t pos = amount.find('.');
     whole = amount.substr(0,pos);
-    precision = amount.substr(pos,amount.size());
+    precision = amount.substr(pos+1,amount.size());
     asset qty;
-    qty.amount = ((int64_t)atoi(whole.c_str()) + (int64_t)atoi(precision.c_str()))*10000;
+    qty.amount = ((int64_t)atoi(whole.c_str())*10000) + ((int64_t)atoi(precision.c_str()));
     qty.symbol = ::eosio::string_to_symbol(4,"FIO");
 
     auto sym = qty.symbol.name();
