@@ -153,7 +153,7 @@ if [ $mChoice == 1 ]; then
     fi
 
     cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.0000 FIO"]' -p fio.token@active
-    cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000.0000 FIO","memo"]' -p eosio@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000000.0000 FIO","memo"]' -p eosio@active
     cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.0000 FIO","memo"]' -p eosio@active
     cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.0000 FIO","memo"]' -p eosio@active
     cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.0000 FIO","memo"]' -p eosio@active
