@@ -46,7 +46,7 @@ class Fio {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
+            console.log(`api.transact promise rejection handler.`);
             throw rej;
         });
         //console.log(JSON.stringify(result, null, 2));
@@ -57,9 +57,9 @@ class Fio {
     // Generates a random private-public key pair.
     // Returns an promise array. arr[0] is private key, arr[1] is public key
     async generateKeys () {
-        let {PrivateKey, PublicKey, Signature, Aes, key_utils, config} = require('eosjs-ecc')
+        let {PrivateKey, PublicKey, Signature, Aes, key_utils, config} = require('eosjs-ecc');
         let privateKey = await PrivateKey.randomKey().catch(rej => {
-            console.log(`PrivateKey.randomKey() promise rejection handler.`)
+            console.log(`PrivateKey.randomKey() promise rejection handler.`);
             throw rej;
         });
 
@@ -160,7 +160,7 @@ class Fio {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
+            console.log(`api.transact promise rejection handler.`);
             throw rej;
         });
 
@@ -191,7 +191,7 @@ class Fio {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -250,7 +250,7 @@ class Fio {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
+            console.log(`api.transact promise rejection handler.`);
             throw rej;
         });
         //console.log(JSON.stringify(result, null, 2));
@@ -294,7 +294,7 @@ class Fio {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
+            console.log(`api.transact promise rejection handler.`);
             throw rej;
         });
         //console.log(JSON.stringify(result, null, 2));
@@ -330,7 +330,7 @@ class Fio {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -366,7 +366,7 @@ class Fio {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -402,7 +402,7 @@ class Fio {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -424,7 +424,7 @@ class Fio {
             try {
                 // Generate owner keys
                 let ownerKey = await this.generateKeys().catch(rej => {
-                    console.log(`Owner key generateKeys promise rejection handler.`)
+                    console.log(`Owner key generateKeys promise rejection handler.`);
                     throw rej;
                 });
                 if (!ownerKey[0]) {
@@ -433,7 +433,7 @@ class Fio {
 
                 // Generate active keys
                 let activeKey = await this.generateKeys().catch(rej => {
-                    console.log(`Active key generateKeys promise rejection handler.`)
+                    console.log(`Active key generateKeys promise rejection handler.`);
                     throw rej;
                 });
                 if (!activeKey[0]) {
@@ -459,7 +459,7 @@ class Fio {
                 let stakeCpuQuantity=fiocommon.Config.NewAccountStakeCpuQuantity;
                 let transfer=fiocommon.Config.NewAccountTransfer;
                 let activateAccountResult = await this.activateAccount(creator, username[1], ownerKey[2], ownerKey[1], activeKey[2], activeKey[1], buyRamQuantity, stakeNetQuantity, stakeCpuQuantity, transfer).catch(rej => {
-                    console.log(`activateAccount promise rejection handler.`)
+                    console.log(`activateAccount promise rejection handler.`);
                     throw rej;
                 });
                 if (!activateAccountResult[0]) {
@@ -468,7 +468,7 @@ class Fio {
 
                 // Validate new account exists on EOS chain
                 let getAccountResult = await this.getAccount(username[1]).catch(rej => {
-                    console.log(`getAccount promise rejection handler.`)
+                    console.log(`getAccount promise rejection handler.`);
                     throw rej;
                 });
                 if (!getAccountResult[0]) {
@@ -476,7 +476,7 @@ class Fio {
                 }
 
                 let grantCodeTransferPermission = await this.grantCodeTransferPermission(username[1], activeKey[1], activeKey[2], fiocommon.Config.SystemAccount).catch(rej => {
-                    console.log(`grantCodePermission promise rejection handler.`)
+                    console.log(`grantCodePermission promise rejection handler.`);
                     throw rej;
                 });
 
@@ -524,7 +524,7 @@ class Fio {
                 return res.json()
             })
             .catch(rej => {
-                console.log(`fetch rejection handler.`)
+                console.log(`fetch rejection handler.`);
                 throw rej;
             });
 
@@ -567,7 +567,7 @@ class Fio {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
+            console.log(`api.transact promise rejection handler.`);
             throw rej;
         });
         //console.log(JSON.stringify(result, null, 2));
@@ -603,7 +603,7 @@ class Fio {
             blocksBehind: 3,
             expireSeconds: 30,
         }).catch(rej => {
-            console.log(`api.transact promise rejection handler.`)
+            console.log(`api.transact promise rejection handler.`);
             throw rej;
         });
         return [true, result];

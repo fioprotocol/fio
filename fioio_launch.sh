@@ -124,9 +124,6 @@ if [ $mChoice == 1 ]; then
     if [ $restartneeded == 0 ]; then
         #Create Accounts
         echo $'Creating Accounts...\n'
-        cleos -u http://localhost:8889 create account eosio fioname11111 EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
-        cleos -u http://localhost:8889 create account eosio fioname22222 EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN EOS8ApHc48DpXehLznVqMJgMGPAaJoyMbFJbfDLyGQ5QjF7nDPuvJ
-        cleos -u http://localhost:8889 create account eosio fioname33333 EOS8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB EOS8JzoVTmdFCnjs7x2qEq7A4cKgfRatvnohgngUPnZs8XfeFknjL
         cleos -u http://localhost:8889 create account eosio fio.token EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         cleos -u http://localhost:8889 create account eosio fio.system EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         cleos -u http://localhost:8889 create account eosio fio.fee EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
@@ -137,16 +134,29 @@ if [ $mChoice == 1 ]; then
 
     #Bind FIO.NAME Contract to Chain
     cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
-
     #Bind fio.finance Contract to Chain
     cleos -u http://localhost:8889 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
-
     #Bind fio.request.obt Contract to Chain
-        cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_request_obt_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
-
+    cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_request_obt_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
     #Bind EOSIO.Token Contract to Chain
     cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
-    cleos -u http://localhost:8889 set contract eosio $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+    cleos -u http://localhost:8889 set contract fio.token $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+
+    #Create the hashed accounts
+    if [ $restartneeded == 0 ]; then
+
+      cleos -u http://localhost:8889 create account eosio r41zuwovtn44 EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
+      cleos -u http://localhost:8889 create account eosio htjonrkf1lgs EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
+      cleos -u http://localhost:8889 create account eosio euwdcp13zlrj EOS8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB EOS8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB
+      cleos -u http://localhost:8889 create account eosio mnvcf4v1flnn EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
+
+    fi
+
+    cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.0000 FIO"]' -p fio.token@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000000.0000 FIO","memo"]' -p eosio@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.0000 FIO","memo"]' -p eosio@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.0000 FIO","memo"]' -p eosio@active
+    cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.0000 FIO","memo"]' -p eosio@active
 
     echo setting accounts
     sleep 1
@@ -159,19 +169,20 @@ if [ $mChoice == 1 ]; then
     }
 
     retries=3
-    chkdomain "brd"
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"brd","actor":"fio.system"}' --permission fio.system@active
+    chkdomain "dapix"
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"dapix","actor":"fio.system"}' --permission fio.system@active
 
     sleep 1
-    chkdomain "brd"
+    chkdomain "dapix"
     if [ $dom -eq 0 ]; then
-        echo brd exists
+        echo dapix exists
     else
-        echo failed to register brd
+        echo failed to register dapix
     fi
 
     #Create Account Name
-    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"casey.brd","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"casey.dapix","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
+    cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"adam.dapix","actor":"htjonrkf1lgs"}' --permission htjonrkf1lgs@active
 
 elif [ $mChoice == 2 ]; then
     cd tests
@@ -190,7 +201,7 @@ elif [ $mChoice == 2 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
-    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"fioname":"brd","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://0.0.0.0:8889 --wallet-url http://0.0.0.0:9899 push action -j fio.system registername '{"fioname":"dapix","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
 
 elif [ $mChoice == 3 ]; then
     cd build
@@ -207,7 +218,7 @@ elif [ $mChoice == 3 ]; then
     cleos -u http://localhost:8889 --wallet-url http://localhost:9899 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
 
     #Create Domain
-    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"fioname":"brd","actor":"fioname11111"}' --permission fioname11111@active
+    cleos -u http://localhost:8889 --wallet-url http://localhost:9899 push action -j fio.system registername '{"fioname":"dapix","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
 
 elif [ $mChoice == 4 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice

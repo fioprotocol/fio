@@ -32,11 +32,11 @@ namespace fioio {
 
     public:
         FioFee(account_name self)
-        : contract(self), trxfees(self, self) {
+                : contract(self), trxfees(self, self) {
             initialize();
         }
 
     }; // class FioFee
 
-    EOSIO_ABI( FioFee,  )
+    EOSIO_ABI(FioFee,)
 } // namespace fioio

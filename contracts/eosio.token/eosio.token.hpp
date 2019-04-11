@@ -30,10 +30,13 @@ namespace eosio {
                         account_name to,
                         asset        quantity,
                         string       memo );
-      
-      
+         void transferfio( name tofiopubadd,
+                        string amount,
+                        name actor);
+
+
          inline asset get_supply( symbol_name sym )const;
-         
+
          inline asset get_balance( account_name owner, symbol_name sym )const;
 
       private:

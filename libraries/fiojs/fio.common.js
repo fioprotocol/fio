@@ -20,7 +20,7 @@ Config.EosUrl =                     'http://localhost:8889';
 Config.KeosdUrl =                   'http://localhost:9899';
 Config.SystemAccount =              "fio.system";
 Config.SystemAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; // ${Config.SystemAccount} system account active key
-Config.TokenAccount =               "eosio.token"
+Config.TokenAccount =               "eosio.token";
 Config.NewAccountBuyRamQuantity=    "1000.0000 FIO";
 Config.NewAccountStakeNetQuantity=  "1000.0000 FIO";
 Config.NewAccountStakeCpuQuantity=  "1000.0000 FIO";
@@ -29,11 +29,11 @@ Config.NameRegisterExpiration=      31561920; // 1 year in seconds
 // Config.TestAccount=              "fioname11111";
 Config.FioFinanceAccount=           "fio.finance";
 Config.FioFinanceAccountKey =           "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
-Config.LogLevelTrace = 5
-Config.LogLevelDebug = 4
-Config.LogLevelInfo = 3
-Config.LogLevelWarn = 2
-Config.LogLevelError = 1
+Config.LogLevelTrace = 5;
+Config.LogLevelDebug = 4;
+Config.LogLevelInfo = 3;
+Config.LogLevelWarn = 2;
+Config.LogLevelError = 1;
 Config.LogLevel=                    Config.LogLevelInfo;
 Config.FinalizationTime=            20;     // time in milliseconds to transaction finalization
 Config.pmtson=                      false;
@@ -128,7 +128,7 @@ class Helper {
                 return res.json()
             })
             .catch(rej => {
-                console.error(`fetch rejection handler.`)
+                console.error(`fetch rejection handler.`);
                 throw rej;
             });
 

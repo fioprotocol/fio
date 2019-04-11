@@ -1,24 +1,24 @@
 steps:
   - command: |
-        echo "--- :hammer: Building with Undefined Sanitizer" && \
-        /usr/bin/cmake -GNinja \
-        -DCMAKE_BUILD_TYPE=Debug \
-        -DCMAKE_CXX_COMPILER=clang++-4.0 \
-        -DCMAKE_C_COMPILER=clang-4.0 \
-        -DBOOST_ROOT="${BOOST_ROOT}" \
-        -DWASM_ROOT="${WASM_ROOT}" \
-        -DOPENSSL_ROOT_DIR="${OPENSSL_ROOT_DIR}" \
-        -DBUILD_MONGO_DB_PLUGIN=true \
-        -DENABLE_COVERAGE_TESTING=true\
-        -DBUILD_DOXYGEN=false -DCMAKE_CXX_FLAGS="-fsanitize=undefined -fsanitize-recover=all -g -fno-omit-frame-pointer" \
-        -DCMAKE_C_FLAGS="-fsanitize=undefined -fsanitize-recover=all -g -fno-omit-frame-pointer" \
-        -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined -fsanitize-recover=all -rtlib=compiler-rt -lgcc_s -pthread" \
-        -DCMAKE_MODULE_LINKER_FLAGS="-fsanitize=undefined -fsanitize-recover=all -rtlib=compiler-rt -lgcc_s -pthread" && \
-        echo "--- :shinto_shrine: Running ninja" && \
-        /usr/bin/ninja | tee ninja.log && \
-        echo "--- :compression: Compressing build directory" && \
-        tar -pczf build.tar.gz *
-        echo "--- :beers: Done"
+      echo "--- :hammer: Building with Undefined Sanitizer" && \
+      /usr/bin/cmake -GNinja \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DCMAKE_CXX_COMPILER=clang++-4.0 \
+      -DCMAKE_C_COMPILER=clang-4.0 \
+      -DBOOST_ROOT="${BOOST_ROOT}" \
+      -DWASM_ROOT="${WASM_ROOT}" \
+      -DOPENSSL_ROOT_DIR="${OPENSSL_ROOT_DIR}" \
+      -DBUILD_MONGO_DB_PLUGIN=true \
+      -DENABLE_COVERAGE_TESTING=true\
+      -DBUILD_DOXYGEN=false -DCMAKE_CXX_FLAGS="-fsanitize=undefined -fsanitize-recover=all -g -fno-omit-frame-pointer" \
+      -DCMAKE_C_FLAGS="-fsanitize=undefined -fsanitize-recover=all -g -fno-omit-frame-pointer" \
+      -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined -fsanitize-recover=all -rtlib=compiler-rt -lgcc_s -pthread" \
+      -DCMAKE_MODULE_LINKER_FLAGS="-fsanitize=undefined -fsanitize-recover=all -rtlib=compiler-rt -lgcc_s -pthread" && \
+      echo "--- :shinto_shrine: Running ninja" && \
+      /usr/bin/ninja | tee ninja.log && \
+      echo "--- :compression: Compressing build directory" && \
+      tar -pczf build.tar.gz *
+      echo "--- :beers: Done"
     label: ":_: Undefined Sanitizer"
     agents:
       - "role=automation-builder-large"
@@ -44,13 +44,13 @@ steps:
   - wait
 
   - command: |
-        echo "--- :arrow_down: Downloading build directory" && \
-        buildkite-agent artifact download "build.tar.gz" . --step ":_: Undefined Sanitizer" && \
-        tar -zxf build.tar.gz --no-same-owner && \
-        echo "--- :m: Starting MongoDB" && \
-        $(which mongod) --fork --logpath "$(pwd)"/mongod.log && \
-        echo "+++ :microscope: Running tests" && \
-        ctest -j8 -LE _tests -V -O sanitizer.log
+      echo "--- :arrow_down: Downloading build directory" && \
+      buildkite-agent artifact download "build.tar.gz" . --step ":_: Undefined Sanitizer" && \
+      tar -zxf build.tar.gz --no-same-owner && \
+      echo "--- :m: Starting MongoDB" && \
+      $(which mongod) --fork --logpath "$(pwd)"/mongod.log && \
+      echo "+++ :microscope: Running tests" && \
+      ctest -j8 -LE _tests -V -O sanitizer.log
     label: ":_: Undefined Sanitizer Tests"
     agents:
       - "role=automation-builder-large"

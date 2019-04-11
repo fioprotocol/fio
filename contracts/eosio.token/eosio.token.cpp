@@ -4,7 +4,10 @@
  */
 
 #include "eosio.token.hpp"
-
+#include <eosio/chain/fioio/fioerror.hpp>
+#include <fio.common/fio.common.hpp>
+#include <fio.common/json.hpp>
+using namespace fioio;
 namespace eosio {
 
 void token::create( account_name issuer,
@@ -64,9 +67,9 @@ void token::transfer( account_name from,
                       asset        quantity,
                       string       memo )
 {
-    eosio_assert( from != to, "cannot transfer to self" );
+    eosio_assert( from != to, "Invalid FIO Public Address" );
     require_auth( from );
-    eosio_assert( is_account( to ), "to account does not exist");
+    eosio_assert( is_account( to ), "Invalid FIO Public Address");
     auto sym = quantity.symbol.name();
     stats statstable( _self, sym );
     const auto& st = statstable.get( sym );
@@ -84,11 +87,48 @@ void token::transfer( account_name from,
     add_balance( to, quantity, from );
 }
 
+void token::transferfio( name      tofiopubadd,
+                         string       amount,
+                         name         actor )
+{
+    fio_400_assert(actor != tofiopubadd, "tofiopubadd", tofiopubadd.to_string(), "Invalid FIO Public Address", ErrorPubAddressEmpty);
+    require_auth( actor );
+    fio_400_assert(is_account( tofiopubadd ),"tofiopubadd", tofiopubadd.to_string(), "Invalid FIO Public Address", ErrorPubAddressExist);
+    string whole;
+    string precision;
+    size_t pos = amount.find('.');
+    whole = amount.substr(0,pos);
+    precision = amount.substr(pos+1,amount.size());
+    asset qty;
+    qty.amount = ((int64_t)atoi(whole.c_str())*10000) + ((int64_t)atoi(precision.c_str()));
+    qty.symbol = ::eosio::string_to_symbol(4,"FIO");
+
+    auto sym = qty.symbol.name();
+    stats statstable( _self, sym );
+    const auto& st = statstable.get( sym );
+
+    require_recipient( actor );
+    require_recipient( tofiopubadd );
+
+    fio_400_assert(qty.is_valid(),"amount", amount.c_str(), "Invalid quantity", ErrorLowFunds);
+    eosio_assert( qty.amount > 0, "must transfer positive quantity" );
+    eosio_assert( qty.symbol == st.supply.symbol, "symbol precision mismatch" );
+  //  eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
+
+    sub_balance( actor, qty );
+    add_balance( tofiopubadd, qty, actor );
+
+
+    nlohmann::json json = {{"status",     "OK"}};
+    send_response(json.dump().c_str());
+}
+
+
 void token::sub_balance( account_name owner, asset value ) {
    accounts from_acnts( _self, owner );
 
-   const auto& from = from_acnts.get( value.symbol.name(), "no balance object found" );
-   eosio_assert( from.balance.amount >= value.amount, "overdrawn balance" );
+   const auto& from = from_acnts.get( value.symbol.name(), "Insufficient balance" );
+   fio_400_assert(from.balance.amount >= value.amount,"amount", "", "Insufficient balance", ErrorLowFunds);
 
 
    if( from.balance.amount == value.amount ) {
@@ -117,4 +157,4 @@ void token::add_balance( account_name owner, asset value, account_name ram_payer
 
 } /// namespace eosio
 
-EOSIO_ABI( eosio::token, (create)(issue)(transfer) )
+EOSIO_ABI( eosio::token, (create)(issue)(transfer)(transferfio) )
