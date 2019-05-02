@@ -3381,7 +3381,7 @@ void read_write::record_send (const record_send_params &params,
                   auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
                   try {
-                      chain::transaction_id_type id = trx_trace_ptr->id;
+
                       fc::variant output;
                       try {
                           output = db.to_variant_with_abi(*trx_trace_ptr,
