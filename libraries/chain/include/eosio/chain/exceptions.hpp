@@ -519,4 +519,17 @@ namespace eosio { namespace chain {
                                  3240000, "Snapshot exception" )
       FC_DECLARE_DERIVED_EXCEPTION( snapshot_validation_exception,   snapshot_exception,
                                     3240001, "Snapshot Validation Exception" )
+
+FC_DECLARE_DERIVED_EXCEPTION( fio_exception, chain_exception,
+                              5010000, "FIO exception")
+FC_DECLARE_DERIVED_EXCEPTION( fio_data_exception, fio_exception,
+                              5010001, "FIO Data Exception")
+FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_sig_exception, fio_exception,
+                              5010002, "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}")
+FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_trans_exception, fio_exception,
+                              5010003, "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly\"\n}")
+   FC_DECLARE_DERIVED_EXCEPTION( fio_location_exception, fio_exception,
+                              5010004, "FIO Location Exception")
+
+
 } } // eosio::chain

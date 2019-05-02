@@ -5,6 +5,7 @@
 #include <eosio/http_plugin/http_plugin.hpp>
 #include <eosio/http_plugin/local_endpoint.hpp>
 #include <eosio/chain/exceptions.hpp>
+#include <eosio/chain/fioio/fioerror.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/log/logger_config.hpp>
@@ -623,10 +624,37 @@ namespace eosio {
       my->url_handlers.insert(std::make_pair(url,handler));
    }
 
+   void http_plugin::httpify_exception(const fc::exception &e, url_response_callback cb) {
+       uint32_t rescode = e.code();
+       string message = "";
+       if (rescode == chain::unsatisfied_authorization().code() ||
+           rescode == chain::fio_invalid_sig_exception().code()) {
+           rescode = 403;
+           message = "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}";
+       } else if (rescode == chain::fio_invalid_trans_exception().code()) {
+           rescode = 403;
+           message = "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly.\"\n}";
+       } else {
+           rescode = 500;
+           error_results results{500, "Internal Service Error - (fc)",
+                                 error_results::error_info(e, verbose_http_errors)};
+           message = fc::json::to_string(results);
+       }
+       cb(rescode, message);
+   }
+
    void http_plugin::handle_exception( const char *api_name, const char *call_name, const string& body, url_response_callback cb ) {
       try {
          try {
             throw;
+         } catch (const chain::fio_data_exception &e) {
+            cb(400, e.what());
+         } catch (const chain::fio_invalid_sig_exception &e) {
+            cb(403, e.what());
+         } catch (const chain::fio_invalid_trans_exception &e) {
+            cb(403, e.what());
+         } catch (const chain::fio_location_exception &e) {
+            cb(404, e.what());
          } catch (chain::unknown_block_exception& e) {
             error_results results{400, "Unknown Block", error_results::error_info(e, verbose_http_errors)};
             cb( 400, fc::json::to_string( results ));
@@ -642,13 +670,20 @@ namespace eosio {
             elog( "Unable to parse arguments to ${api}.${call}", ("api", api_name)( "call", call_name ));
             dlog("Bad arguments: ${args}", ("args", body));
          } catch (fc::exception& e) {
-            error_results results{500, "Internal Service Error", error_results::error_info(e, verbose_http_errors)};
-            cb( 500, fc::json::to_string( results ));
-            if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
-               elog( "FC Exception encountered while processing ${api}.${call}",
-                     ("api", api_name)( "call", call_name ));
-               dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
-            }
+           if (fioio::is_fio_error(e.code())) {
+                auto rescode = fioio::get_http_result(e.code());
+                elog ("got FIO error code ${f}", ("f", rescode));
+                cb(rescode, e.what());
+            } else {
+          error_results results{500, "Internal Service Error", error_results::error_info(e, verbose_http_errors)};
+          cb( 500, fc::json::to_string( results ));
+          if (e.code() != chain::greylist_net_usage_exceeded::code_value && e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
+             elog( "FC Exception encountered while processing ${api}.${call}",
+                   ("api", api_name)( "call", call_name ));
+             dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));
+           }
+             httpify_exception(e, cb);
+          }
          } catch (std::exception& e) {
             error_results results{500, "Internal Service Error", error_results::error_info(fc::exception( FC_LOG_MESSAGE( error, e.what())), verbose_http_errors)};
             cb( 500, fc::json::to_string( results ));

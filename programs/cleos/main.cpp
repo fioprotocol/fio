@@ -92,6 +92,7 @@ Options:
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
 #include <eosio/chain/contract_types.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
 
 #pragma push_macro("N")
 #undef N
@@ -539,6 +540,16 @@ chain::action create_newaccount(const name& creator, const name& newaccount, aut
 
 chain::action create_action(const vector<permission_level>& authorization, const account_name& code, const action_name& act, const fc::variant& args) {
    return chain::action{authorization, code, act, variant_to_bin(code, act, args)};
+}
+
+chain::action create_bind2eosio(const string& fiopubkey, const string& new_account)
+{
+  fc::variant act_payload = fc::mutable_variant_object()
+        ("account", new_account.c_str())
+        ("client_key", fiopubkey.c_str())
+        ("existing", false);
+  return create_action(vector<permission_level>{{N(fio.system),"active"}}, N(fio.system), N(bind2eosio), act_payload);
+
 }
 
 chain::action create_buyram(const name& creator, const name& newaccount, const asset& quantity) {
@@ -1061,6 +1072,26 @@ struct create_account_subcommand {
             } else {
                send_actions( { create } );
             }
+            
+            //Check if the account being created is a hashed_version from the public key
+            std::string hashed_name;
+            fioio::key_to_account(active_key_str, hashed_name);
+
+            if (hashed_name == account_name) {
+                try{
+                  //Check if fio.system account exists first. Cannot make call to bind2eosio without this
+                  fc::variant json;
+                  json = call(get_account_func, fc::mutable_variant_object("account_name", "fio.system"));
+                }
+                catch(boost::tuples::null_type){
+                  std::cout<<"Required fio.system account does not exist"<<std::endl;
+                }
+                //Create bind2eosio action
+                auto bind = create_bind2eosio(active_key_str,hashed_name);
+                //Attach this action for bind2eosio to the transaction call for createaccount
+                send_actions({bind});
+          }
+
       });
    }
 };
@@ -2334,14 +2365,18 @@ int main( int argc, char** argv ) {
       auto pk    = r1 ? private_key_type::generate_r1() : private_key_type::generate();
       auto privs = string(pk);
       auto pubs  = string(pk.get_public_key());
+      string fioactor;
+      fioio::key_to_account(pubs.c_str(), fioactor);
       if (print_console) {
          std::cout << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
          std::cout << localized("Public key: ${key}", ("key", pubs ) ) << std::endl;
+         std::cout << localized("FIO Public Address (actor name): ${actor}", ("actor", fioactor) ) << std::endl;
       } else {
          std::cerr << localized("saving keys to ${filename}", ("filename", key_file)) << std::endl;
          std::ofstream out( key_file.c_str() );
          out << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
          out << localized("Public key: ${key}", ("key", pubs ) ) << std::endl;
+         out << localized("FIO Public Address (actor name): ${actor}", ("actor", fioactor) ) << std::endl;
       }
    });
    create_key->add_flag( "--r1", r1, "Generate a key using the R1 curve (iPhone), instead of the K1 curve (Bitcoin)"  );
@@ -2354,6 +2389,16 @@ int main( int argc, char** argv ) {
    // convert subcommand
    auto convert = app.add_subcommand("convert", localized("Pack and unpack transactions"), false); // TODO also add converting action args based on abi from here ?
    convert->require_subcommand();
+
+   // fio account for public key
+   string fio_pub_key;
+   auto fio_account_for_key = convert->add_subcommand("fiokey_to_account", localized("generate an account name for the public key"));
+   fio_account_for_key->add_option("key", fio_pub_key, localized("the public key for the new account"));
+   fio_account_for_key->set_callback([&] {
+      string new_account;
+      fioio::key_to_account(fio_pub_key, new_account);
+      std::cout << new_account << std::endl;
+   });
 
    // pack transaction
    string plain_signed_transaction_json;

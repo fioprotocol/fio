@@ -52,6 +52,43 @@ struct permission {
    authority         required_auth;
 };
 
+struct fiodomain_record {
+
+    string fio_domain;
+    string expiration;
+
+};
+
+struct fioaddress_record {
+    string fio_address;
+    string expiration;
+};
+
+struct request_record {
+    uint64_t fio_request_id;     // one up index starting at 0
+    string payer_fio_address;   // sender FIO address e.g. john.xyz
+    string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+    string payee_public_address;       // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
+    string amount;         // token quantity
+    string token_code;      // token type e.g. BLU
+    string metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
+    uint64_t time_stamp;    // FIO blockchain request received timestamp
+};
+
+struct request_status_record {
+    uint64_t fio_request_id;       // one up index starting at 0
+    string payer_fio_address;   // sender FIO address e.g. john.xyz
+    string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+    string payee_public_address;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
+    string amount;         // token quantity
+    string token_code;      // token type e.g. BLU
+    string metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
+    uint64_t time_stamp;        // FIO blockchain request received timestamp
+    string status;          //the status of the request.
+};
+
+
+
 template<typename>
 struct resolver_factory;
 
@@ -68,6 +105,13 @@ uint64_t convert_to_type(const string& str, const string& desc);
 
 template<>
 double convert_to_type(const string& str, const string& desc);
+
+struct fio_config_parameters {
+    string proxy_account = "fio.system";
+    string proxy_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
+    uint64_t proxy_name = N(fio.system);
+};
+
 
 class read_only {
    const controller& db;
@@ -232,6 +276,17 @@ public:
 
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
 
+   struct serialize_json_params {
+
+       name action;
+       fc::variant json;
+   };
+   struct serialize_json_result {
+       vector<char> serialized_json;
+   };
+
+   serialize_json_result serialize_json(const serialize_json_params &params) const;
+
 
    struct get_required_keys_params {
       fc::variant transaction;
@@ -268,7 +323,7 @@ public:
       string      table_key;
       string      lower_bound;
       string      upper_bound;
-      uint32_t    limit = 10;
+      uint32_t    limit = 1000000000;
       string      key_type;  // type of key specified by index_position
       string      index_position; // 1 - primary (first), 2 - secondary index (in order defined by multi_index), 3 - third index, etc
       string      encode_type{"dec"}; //dec, hex , default=dec
@@ -282,6 +337,103 @@ public:
    };
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
+
+
+   ////////////////
+   // FIO COMMON //
+
+   //begin get pending fio requests
+   struct get_pending_fio_requests_params {
+       string fio_public_key;  // FIO public address to find requests for..
+   };
+
+   struct get_pending_fio_requests_result {
+       vector<request_record> requests;
+   };
+
+   get_pending_fio_requests_result
+   get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
+
+   //end get pending fio requests
+   //begin get sent fio requests
+   struct get_sent_fio_requests_params {
+       string fio_public_key;  // FIO public address to find requests for..
+   };
+
+   struct get_sent_fio_requests_result {
+       vector<request_status_record> requests;
+   };
+
+   get_sent_fio_requests_result
+   get_sent_fio_requests(const get_sent_fio_requests_params &params) const;
+   //end get sent fio requests
+
+   struct get_fio_names_params {
+       string fio_public_key;
+   };
+   struct get_fio_names_result {
+       vector<fiodomain_record> fio_domains;
+       vector<fioaddress_record> fio_addresses;
+   };
+
+   //Fio API get_fee
+   struct get_fee_params {
+       string end_point;
+       string fio_address;
+   };
+   struct get_fee_result {
+       uint64_t fee;
+   };
+   get_fee_result get_fee(const get_fee_params &params) const;
+   //Fio API get_fee
+
+   struct pub_address_lookup_params {
+       fc::string fio_address;
+       fc::string token_code;
+   };
+
+   struct pub_address_lookup_result {
+       fc::string public_address;
+   };
+
+   pub_address_lookup_result pub_address_lookup(const pub_address_lookup_params &params) const;
+
+   /**
+    * Lookup FIO domains and addresses based upon public address
+    * @param params
+    * @return
+    */
+   get_fio_names_result get_fio_names(const get_fio_names_params &params) const;
+
+
+   //avail_check - FIO Address or Domain availability check
+   struct avail_check_params {
+       string fio_name;
+   };
+
+   struct avail_check_result {
+       bool is_registered = false;
+   };
+
+   avail_check_result avail_check(const avail_check_params &params) const;
+
+   //key lookups
+   struct fio_key_lookup_params {
+       string key;     // chain key e.g. for Ethereum: 0xC2D7CF95645D33006175B78989035C7c9061d3F9
+       string chain;   // chain name e.g. BTC, ETH, EOS etc.
+   };
+   struct fio_key_lookup_result {
+       string name = "";   // FIO name
+       string expiration = "";
+   };
+
+   /**
+    * Lookup FIO name based upon blockchain key(address|account)
+    * @param params
+    * @return
+    */
+   fio_key_lookup_result fio_key_lookup(const fio_key_lookup_params &params) const;
+
 
    struct get_table_by_scope_params {
       name        code; // mandatory
@@ -313,11 +465,23 @@ public:
 
    vector<asset> get_currency_balance( const get_currency_balance_params& params )const;
 
+
+   struct get_fio_balance_params {
+       fc::string fio_public_address;
+   };
+
+   struct get_fio_balance_result {
+       fc::string balance;
+   };
+
+   get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
+
+
+
    struct get_currency_stats_params {
       name           code;
       string         symbol;
    };
-
 
    struct get_currency_stats_result {
       asset          supply;
@@ -578,6 +742,76 @@ public:
    };
    void push_transaction(const push_transaction_params& params, chain::plugin_interface::next_function<push_transaction_results> next);
 
+   using register_fio_address_params = fc::variant_object;
+   struct register_fio_address_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void register_fio_address(const register_fio_address_params &params,
+                             chain::plugin_interface::next_function<register_fio_address_results> next);
+
+   using register_fio_domain_params = fc::variant_object;
+   struct register_fio_domain_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void register_fio_domain(const register_fio_domain_params &params,
+                            chain::plugin_interface::next_function<register_fio_domain_results> next);
+
+   using add_pub_address_params = fc::variant_object;
+   struct add_pub_address_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void add_pub_address(const add_pub_address_params &params,
+                        chain::plugin_interface::next_function<add_pub_address_results> next);
+
+
+   using transfer_tokens_params = fc::variant_object;
+   struct transfer_tokens_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void transfer_tokens(const transfer_tokens_params &params,
+                        chain::plugin_interface::next_function<transfer_tokens_results> next);
+
+
+
+   //Begin Added for reject request api method
+   using reject_funds_request_params = fc::variant_object;
+   struct reject_funds_request_results {
+       fc::variant processed;
+   };
+
+   void reject_funds_request(const reject_funds_request_params &params,
+                             chain::plugin_interface::next_function<reject_funds_request_results> next);
+   //End added for record send api method.
+
+   //Begin Added for record send api method
+   using record_send_params = fc::variant_object;
+
+   struct record_send_results {
+       fc::variant processed;
+   };
+
+   void record_send(const record_send_params &params,
+                    chain::plugin_interface::next_function<record_send_results> next);
+   //End added for record send api method.
+
+   //Begin Added for new funds request api method
+   using new_funds_request_params = fc::variant_object;
+
+   struct new_funds_request_results {
+       fc::variant processed;
+   };
+
+   void new_funds_request(const new_funds_request_params &params,
+                          chain::plugin_interface::next_function<new_funds_request_results> next);
+   //End added for new funds request api method.
 
    using push_transactions_params  = vector<push_transaction_params>;
    using push_transactions_results = vector<push_transaction_results>;
@@ -693,6 +927,7 @@ public:
 
    chain::chain_id_type get_chain_id() const;
    fc::microseconds get_abi_serializer_max_time() const;
+   const chain_apis::fio_config_parameters &get_fio_config() const;
 
    void handle_guard_exception(const chain::guard_exception& e) const;
 
@@ -717,11 +952,50 @@ FC_REFLECT( eosio::chain_apis::read_write::push_transaction_results, (transactio
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(encode_type)(reverse)(show_payer) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
 
+
+
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key))
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests))
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key))
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests))
+FC_REFLECT(eosio::chain_apis::request_record,
+           (fio_request_id)(payer_fio_address)(payee_fio_address)(payee_public_address)(amount)(token_code)(metadata)(
+                   time_stamp))
+FC_REFLECT(eosio::chain_apis::request_status_record,
+           (fio_request_id)(payer_fio_address)(payee_fio_address)(payee_public_address)(amount)(token_code)(metadata)(
+                   time_stamp)(status))
+
+FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code))
+FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_result, (public_address));
+
+FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration))
+FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
+
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
+
+FC_REFLECT(eosio::chain_apis::read_only::avail_check_params, (fio_name))
+FC_REFLECT(eosio::chain_apis::read_only::avail_check_result, (is_registered));
+
+FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain))
+FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration));
+FC_REFLECT(eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed))
+FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_results, (transaction_id)(processed))
+FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (processed))
+FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (processed))
+
+FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed))
+FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_results, (transaction_id)(processed))
+FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed))
+
+
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit)(reverse) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result, (rows)(more) );
 
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_address));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
 
@@ -755,5 +1029,7 @@ FC_REFLECT( eosio::chain_apis::read_only::abi_json_to_bin_params, (code)(action)
 FC_REFLECT( eosio::chain_apis::read_only::abi_json_to_bin_result, (binargs) )
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_params, (code)(action)(binargs) )
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_result, (args) )
+FC_REFLECT(eosio::chain_apis::read_only::serialize_json_params, (action)(json))
+FC_REFLECT(eosio::chain_apis::read_only::serialize_json_result, (serialized_json))
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_params, (transaction)(available_keys) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_result, (required_keys) )

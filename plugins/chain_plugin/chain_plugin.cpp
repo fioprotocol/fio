@@ -16,6 +16,12 @@
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
 
+#include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/actionmapping.hpp>
+#include <eosio/chain/fioio/signature_validator.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
+#include <eosio/chain/fioio/json_helper.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
 #include <eosio/chain/eosio_contract.hpp>
 
 #include <boost/signals2/connection.hpp>
@@ -26,6 +32,855 @@
 #include <fc/variant.hpp>
 #include <signal.h>
 #include <cstdlib>
+
+
+const char* const eosio_system_abi = R"=====(
+{
+   "version": "eosio::abi/1.0",
+   "types": [{
+      "new_type_name": "account_name",
+      "type": "name"
+   },{
+      "new_type_name": "permission_name",
+      "type": "name"
+   },{
+      "new_type_name": "action_name",
+      "type": "name"
+   },{
+      "new_type_name": "transaction_id_type",
+      "type": "checksum256"
+   },{
+      "new_type_name": "weight_type",
+      "type": "uint16"
+   }],
+   "____comment": "eosio.bios structs: set_account_limits, setpriv, set_global_limits, producer_key, set_producers, require_auth are provided so abi available for deserialization in future.",
+   "structs": [{
+      "name": "permission_level",
+      "base": "",
+      "fields": [
+        {"name":"actor",      "type":"account_name"},
+        {"name":"permission", "type":"permission_name"}
+      ]
+    },{
+      "name": "key_weight",
+      "base": "",
+      "fields": [
+        {"name":"key",    "type":"public_key"},
+        {"name":"weight", "type":"weight_type"}
+      ]
+    },{
+      "name": "bidname",
+      "base": "",
+      "fields": [
+        {"name":"bidder",  "type":"account_name"},
+        {"name":"newname", "type":"account_name"},
+        {"name":"bid", "type":"asset"}
+      ]
+    },{
+      "name": "permission_level_weight",
+      "base": "",
+      "fields": [
+        {"name":"permission", "type":"permission_level"},
+        {"name":"weight",     "type":"weight_type"}
+      ]
+    },{
+      "name": "wait_weight",
+      "base": "",
+      "fields": [
+        {"name":"wait_sec", "type":"uint32"},
+        {"name":"weight",   "type":"weight_type"}
+      ]
+    },{
+      "name": "authority",
+      "base": "",
+      "fields": [
+        {"name":"threshold", "type":"uint32"},
+        {"name":"keys",      "type":"key_weight[]"},
+        {"name":"accounts",  "type":"permission_level_weight[]"},
+        {"name":"waits",     "type":"wait_weight[]"}
+      ]
+    },{
+      "name": "newaccount",
+      "base": "",
+      "fields": [
+        {"name":"creator", "type":"account_name"},
+        {"name":"name",    "type":"account_name"},
+        {"name":"owner",   "type":"authority"},
+        {"name":"active",  "type":"authority"}
+      ]
+    },{
+      "name": "setcode",
+      "base": "",
+      "fields": [
+        {"name":"account",   "type":"account_name"},
+        {"name":"vmtype",    "type":"uint8"},
+        {"name":"vmversion", "type":"uint8"},
+        {"name":"code",      "type":"bytes"}
+      ]
+    },{
+      "name": "setabi",
+      "base": "",
+      "fields": [
+        {"name":"account", "type":"account_name"},
+        {"name":"abi",     "type":"bytes"}
+      ]
+    },{
+      "name": "updateauth",
+      "base": "",
+      "fields": [
+        {"name":"account",    "type":"account_name"},
+        {"name":"permission", "type":"permission_name"},
+        {"name":"parent",     "type":"permission_name"},
+        {"name":"auth",       "type":"authority"}
+      ]
+    },{
+      "name": "deleteauth",
+      "base": "",
+      "fields": [
+        {"name":"account",    "type":"account_name"},
+        {"name":"permission", "type":"permission_name"}
+      ]
+    },{
+      "name": "linkauth",
+      "base": "",
+      "fields": [
+        {"name":"account",     "type":"account_name"},
+        {"name":"code",        "type":"account_name"},
+        {"name":"type",        "type":"action_name"},
+        {"name":"requirement", "type":"permission_name"}
+      ]
+    },{
+      "name": "unlinkauth",
+      "base": "",
+      "fields": [
+        {"name":"account",     "type":"account_name"},
+        {"name":"code",        "type":"account_name"},
+        {"name":"type",        "type":"action_name"}
+      ]
+    },{
+      "name": "canceldelay",
+      "base": "",
+      "fields": [
+        {"name":"canceling_auth", "type":"permission_level"},
+        {"name":"trx_id",         "type":"transaction_id_type"}
+      ]
+    },{
+      "name": "onerror",
+      "base": "",
+      "fields": [
+        {"name":"sender_id", "type":"uint128"},
+        {"name":"sent_trx",  "type":"bytes"}
+      ]
+    },{
+      "name": "buyrambytes",
+      "base": "",
+      "fields": [
+         {"name":"payer", "type":"account_name"},
+         {"name":"receiver", "type":"account_name"},
+         {"name":"bytes", "type":"uint32"}
+      ]
+    },{
+      "name": "sellram",
+      "base": "",
+      "fields": [
+         {"name":"account", "type":"account_name"},
+         {"name":"bytes", "type":"uint64"}
+      ]
+    },{
+      "name": "buyram",
+      "base": "",
+      "fields": [
+         {"name":"payer", "type":"account_name"},
+         {"name":"receiver", "type":"account_name"},
+         {"name":"quant", "type":"asset"}
+      ]
+    },{
+      "name": "delegatebw",
+      "base": "",
+      "fields": [
+         {"name":"from", "type":"account_name"},
+         {"name":"receiver", "type":"account_name"},
+         {"name":"stake_net_quantity", "type":"asset"},
+         {"name":"stake_cpu_quantity", "type":"asset"},
+         {"name":"transfer", "type":"bool"}
+      ]
+    },{
+      "name": "undelegatebw",
+      "base": "",
+      "fields": [
+         {"name":"from", "type":"account_name"},
+         {"name":"receiver", "type":"account_name"},
+         {"name":"unstake_net_quantity", "type":"asset"},
+         {"name":"unstake_cpu_quantity", "type":"asset"}
+      ]
+    },{
+      "name": "refund",
+      "base": "",
+      "fields": [
+         {"name":"owner", "type":"account_name"}
+      ]
+    },{
+      "name": "delegated_bandwidth",
+      "base": "",
+      "fields": [
+         {"name":"from", "type":"account_name"},
+         {"name":"to", "type":"account_name"},
+         {"name":"net_weight", "type":"asset"},
+         {"name":"cpu_weight", "type":"asset"}
+      ]
+    },{
+      "name": "user_resources",
+      "base": "",
+      "fields": [
+         {"name":"owner", "type":"account_name"},
+         {"name":"net_weight", "type":"asset"},
+         {"name":"cpu_weight", "type":"asset"},
+         {"name":"ram_bytes", "type":"uint64"}
+      ]
+    },{
+      "name": "total_resources",
+      "base": "",
+      "fields": [
+         {"name":"owner", "type":"account_name"},
+         {"name":"net_weight", "type":"asset"},
+         {"name":"cpu_weight", "type":"asset"},
+         {"name":"ram_bytes", "type":"uint64"}
+      ]
+    },{
+      "name": "refund_request",
+      "base": "",
+      "fields": [
+         {"name":"owner", "type":"account_name"},
+         {"name":"request_time", "type":"time_point_sec"},
+         {"name":"net_amount", "type":"asset"},
+         {"name":"cpu_amount", "type":"asset"}
+      ]
+    },{
+      "name": "blockchain_parameters",
+      "base": "",
+      "fields": [
+
+         {"name":"max_block_net_usage",                 "type":"uint64"},
+         {"name":"target_block_net_usage_pct",          "type":"uint32"},
+         {"name":"max_transaction_net_usage",           "type":"uint32"},
+         {"name":"base_per_transaction_net_usage",      "type":"uint32"},
+         {"name":"net_usage_leeway",                    "type":"uint32"},
+         {"name":"context_free_discount_net_usage_num", "type":"uint32"},
+         {"name":"context_free_discount_net_usage_den", "type":"uint32"},
+         {"name":"max_block_cpu_usage",                 "type":"uint32"},
+         {"name":"target_block_cpu_usage_pct",          "type":"uint32"},
+         {"name":"max_transaction_cpu_usage",           "type":"uint32"},
+         {"name":"min_transaction_cpu_usage",           "type":"uint32"},
+         {"name":"max_transaction_lifetime",            "type":"uint32"},
+         {"name":"deferred_trx_expiration_window",      "type":"uint32"},
+         {"name":"max_transaction_delay",               "type":"uint32"},
+         {"name":"max_inline_action_size",              "type":"uint32"},
+         {"name":"max_inline_action_depth",             "type":"uint16"},
+         {"name":"max_authority_depth",                 "type":"uint16"}
+
+      ]
+    },{
+      "name": "eosio_global_state",
+      "base": "blockchain_parameters",
+      "fields": [
+         {"name":"max_ram_size",                  "type":"uint64"},
+         {"name":"total_ram_bytes_reserved",      "type":"uint64"},
+         {"name":"total_ram_stake",               "type":"int64"},
+         {"name":"last_producer_schedule_update", "type":"block_timestamp_type"},
+         {"name":"last_pervote_bucket_fill",      "type":"uint64"},
+         {"name":"pervote_bucket",                "type":"int64"},
+         {"name":"perblock_bucket",               "type":"int64"},
+         {"name":"total_unpaid_blocks",           "type":"uint32"},
+         {"name":"total_activated_stake",         "type":"int64"},
+         {"name":"thresh_activated_stake_time",   "type":"uint64"},
+         {"name":"last_producer_schedule_size",   "type":"uint16"},
+         {"name":"total_producer_vote_weight",    "type":"float64"},
+         {"name":"last_name_close",               "type":"block_timestamp_type"}
+      ]
+    },{
+      "name": "producer_info",
+      "base": "",
+      "fields": [
+         {"name":"owner",           "type":"account_name"},
+         {"name":"total_votes",     "type":"float64"},
+         {"name":"producer_key",    "type":"public_key"},
+         {"name":"is_active",       "type":"bool"},
+         {"name":"url",             "type":"string"},
+         {"name":"unpaid_blocks",   "type":"uint32"},
+         {"name":"last_claim_time", "type":"uint64"},
+         {"name":"location",        "type":"uint16"}
+      ]
+    },{
+      "name": "regproducer",
+      "base": "",
+      "fields": [
+        {"name":"producer",     "type":"account_name"},
+        {"name":"producer_key", "type":"public_key"},
+        {"name":"url",          "type":"string"},
+        {"name":"location",     "type":"uint16"}
+      ]
+    },{
+      "name": "unregprod",
+      "base": "",
+      "fields": [
+        {"name":"producer",     "type":"account_name"}
+      ]
+    },{
+      "name": "setram",
+      "base": "",
+      "fields": [
+        {"name":"max_ram_size",     "type":"uint64"}
+      ]
+    },{
+      "name": "regproxy",
+      "base": "",
+      "fields": [
+        {"name":"proxy",     "type":"account_name"},
+        {"name":"isproxy",   "type":"bool"}
+      ]
+    },{
+      "name": "voteproducer",
+      "base": "",
+      "fields": [
+        {"name":"voter",     "type":"account_name"},
+        {"name":"proxy",     "type":"account_name"},
+        {"name":"producers", "type":"account_name[]"}
+      ]
+    },{
+      "name": "voter_info",
+      "base": "",
+      "fields": [
+        {"name":"owner",                "type":"account_name"},
+        {"name":"proxy",                "type":"account_name"},
+        {"name":"producers",            "type":"account_name[]"},
+        {"name":"staked",               "type":"int64"},
+        {"name":"last_vote_weight",     "type":"float64"},
+        {"name":"proxied_vote_weight",  "type":"float64"},
+        {"name":"is_proxy",             "type":"bool"}
+      ]
+    },{
+      "name": "claimrewards",
+      "base": "",
+      "fields": [
+        {"name":"owner",   "type":"account_name"}
+      ]
+    },{
+      "name": "setpriv",
+      "base": "",
+      "fields": [
+        {"name":"account",    "type":"account_name"},
+        {"name":"is_priv",    "type":"int8"}
+      ]
+    },{
+      "name": "rmvproducer",
+      "base": "",
+      "fields": [
+        {"name":"producer", "type":"account_name"}
+      ]
+    },{
+      "name": "set_account_limits",
+      "base": "",
+      "fields": [
+        {"name":"account",    "type":"account_name"},
+        {"name":"ram_bytes",  "type":"int64"},
+        {"name":"net_weight", "type":"int64"},
+        {"name":"cpu_weight", "type":"int64"}
+      ]
+    },{
+      "name": "set_global_limits",
+      "base": "",
+      "fields": [
+        {"name":"cpu_usec_per_period",    "type":"int64"}
+      ]
+    },{
+      "name": "producer_key",
+      "base": "",
+      "fields": [
+        {"name":"producer_name",      "type":"account_name"},
+        {"name":"block_signing_key",  "type":"public_key"}
+      ]
+    },{
+      "name": "set_producers",
+      "base": "",
+      "fields": [
+        {"name":"schedule",   "type":"producer_key[]"}
+      ]
+    },{
+      "name": "require_auth",
+      "base": "",
+      "fields": [
+        {"name":"from", "type":"account_name"}
+      ]
+    },{
+      "name": "setparams",
+      "base": "",
+      "fields": [
+        {"name":"params", "type":"blockchain_parameters"}
+      ]
+    },{
+      "name": "connector",
+      "base": "",
+      "fields": [
+        {"name":"balance", "type":"asset"},
+        {"name":"weight", "type":"float64"}
+      ]
+    },{
+      "name": "exchange_state",
+      "base": "",
+      "fields": [
+        {"name":"supply", "type":"asset"},
+        {"name":"base", "type":"connector"},
+        {"name":"quote", "type":"connector"}
+      ]
+    }, {
+       "name": "namebid_info",
+       "base": "",
+       "fields": [
+          {"name":"newname", "type":"account_name"},
+          {"name":"high_bidder", "type":"account_name"},
+          {"name":"high_bid", "type":"int64"},
+          {"name":"last_bid_time", "type":"uint64"}
+       ]
+    }
+   ],
+   "actions": [{
+     "name": "newaccount",
+     "type": "newaccount",
+     "ricardian_contract": ""
+   },{
+     "name": "setcode",
+     "type": "setcode",
+     "ricardian_contract": ""
+   },{
+     "name": "setabi",
+     "type": "setabi",
+     "ricardian_contract": ""
+   },{
+     "name": "updateauth",
+     "type": "updateauth",
+     "ricardian_contract": ""
+   },{
+     "name": "deleteauth",
+     "type": "deleteauth",
+     "ricardian_contract": ""
+   },{
+     "name": "linkauth",
+     "type": "linkauth",
+     "ricardian_contract": ""
+   },{
+     "name": "unlinkauth",
+     "type": "unlinkauth",
+     "ricardian_contract": ""
+   },{
+     "name": "canceldelay",
+     "type": "canceldelay",
+     "ricardian_contract": ""
+   },{
+     "name": "onerror",
+     "type": "onerror",
+     "ricardian_contract": ""
+   },{
+      "name": "buyrambytes",
+      "type": "buyrambytes",
+      "ricardian_contract": ""
+   },{
+      "name": "buyram",
+      "type": "buyram",
+      "ricardian_contract": ""
+   },{
+      "name": "sellram",
+      "type": "sellram",
+      "ricardian_contract": ""
+   },{
+      "name": "delegatebw",
+      "type": "delegatebw",
+      "ricardian_contract": ""
+   },{
+      "name": "undelegatebw",
+      "type": "undelegatebw",
+      "ricardian_contract": ""
+   },{
+      "name": "refund",
+      "type": "refund",
+      "ricardian_contract": ""
+   },{
+      "name": "regproducer",
+      "type": "regproducer",
+      "ricardian_contract": ""
+   },{
+      "name": "setram",
+      "type": "setram",
+      "ricardian_contract": ""
+   },{
+      "name": "bidname",
+      "type": "bidname",
+      "ricardian_contract": ""
+   },{
+      "name": "unregprod",
+      "type": "unregprod",
+      "ricardian_contract": ""
+   },{
+      "name": "regproxy",
+      "type": "regproxy",
+      "ricardian_contract": ""
+   },{
+      "name": "voteproducer",
+      "type": "voteproducer",
+      "ricardian_contract": ""
+   },{
+      "name": "claimrewards",
+      "type": "claimrewards",
+      "ricardian_contract": ""
+   },{
+      "name": "setpriv",
+      "type": "setpriv",
+      "ricardian_contract": ""
+   },{
+      "name": "rmvproducer",
+      "type": "rmvproducer",
+      "ricardian_contract": ""
+   },{
+      "name": "setalimits",
+      "type": "set_account_limits",
+      "ricardian_contract": ""
+    },{
+      "name": "setglimits",
+      "type": "set_global_limits",
+      "ricardian_contract": ""
+    },{
+      "name": "setprods",
+      "type": "set_producers",
+      "ricardian_contract": ""
+    },{
+      "name": "reqauth",
+      "type": "require_auth",
+      "ricardian_contract": ""
+    },{
+      "name": "setparams",
+      "type": "setparams",
+      "ricardian_contract": ""
+    }],
+   "tables": [{
+      "name": "producers",
+      "type": "producer_info",
+      "index_type": "i64",
+      "key_names" : ["owner"],
+      "key_types" : ["uint64"]
+    },{
+      "name": "global",
+      "type": "eosio_global_state",
+      "index_type": "i64",
+      "key_names" : [],
+      "key_types" : []
+    },{
+      "name": "voters",
+      "type": "voter_info",
+      "index_type": "i64",
+      "key_names" : ["owner"],
+      "key_types" : ["account_name"]
+    },{
+      "name": "userres",
+      "type": "user_resources",
+      "index_type": "i64",
+      "key_names" : ["owner"],
+      "key_types" : ["uint64"]
+    },{
+      "name": "delband",
+      "type": "delegated_bandwidth",
+      "index_type": "i64",
+      "key_names" : ["to"],
+      "key_types" : ["uint64"]
+    },{
+      "name": "rammarket",
+      "type": "exchange_state",
+      "index_type": "i64",
+      "key_names" : ["supply"],
+      "key_types" : ["uint64"]
+    },{
+      "name": "refunds",
+      "type": "refund_request",
+      "index_type": "i64",
+      "key_names" : ["owner"],
+      "key_types" : ["uint64"]
+    },{
+       "name": "namebids",
+       "type": "namebid_info",
+       "index_type": "i64",
+       "key_names" : ["newname"],
+       "key_types" : ["account_name"]
+    }
+   ],
+   "ricardian_clauses": [],
+   "abi_extensions": []
+}
+)=====";
+
+const char* const fio_name_abi = R"=====(
+{
+  "____comment": "This file was generated by eosio-abigen. DO NOT EDIT - 2018-12-12T06:43:09",
+  "version": "eosio::abi/1.0",
+  "types": [],
+  "structs": [{
+      "name": "fioname",
+      "base": "",
+      "fields": [{
+          "name": "name",
+          "type": "string"
+        },{
+          "name": "namehash",
+          "type": "uint64"
+        },{
+          "name": "domain",
+          "type": "string"
+        },{
+          "name": "domainhash",
+          "type": "uint64"
+        },{
+          "name": "expiration",
+          "type": "uint32"
+        },{
+          "name": "account",
+          "type": "uint64"
+        },{
+          "name": "addresses",
+          "type": "string[]"
+        }
+      ]
+    },{
+      "name": "domain",
+      "base": "",
+      "fields": [{
+          "name": "name",
+          "type": "string"
+        },{
+          "name": "domainhash",
+          "type": "uint64"
+        },{
+          "name": "expiration",
+          "type": "uint32"
+        },{
+          "name": "account",
+          "type": "uint64"
+         }
+      ]
+    },{
+      "name": "chainList",
+      "base": "",
+      "fields": [{
+          "name": "name",
+          "type": "string"
+        },{
+          "name": "id",
+          "type": "uint64"
+        },{
+          "name": "chainhash",
+          "type": "uint32"
+        }
+      ]
+    },{
+      "name": "key_name",
+      "base": "",
+      "fields": [{
+          "name": "id",
+          "type": "uint64"
+        },{
+          "name": "key",
+          "type": "string"
+        },{
+          "name": "keyhash",
+          "type": "uint64"
+        },{
+          "name": "chaintype",
+          "type": "uint64"
+        },{
+          "name": "name",
+          "type": "string"
+        },{
+          "name": "expiration",
+          "type": "uint32"
+        }
+      ]
+     },{
+      "name": "eosio_name",
+      "base": "",
+      "fields": [{
+          "name": "account",
+          "type": "name"
+        },{
+          "name": "clientkey",
+          "type": "string"
+        }
+      ]
+     },{
+      "name": "chainpair",
+      "base": "",
+      "fields": [{
+          "name": "index",
+          "type": "uint64"
+        },{
+          "name": "chainname",
+          "type": "string"
+        },{
+          "name": "chainhash",
+          "type": "uint64"
+        }
+      ]
+    },{
+      "name": "registername",
+      "base": "",
+      "fields": [{
+          "name": "fio_name",
+          "type": "string"
+        },{
+          "name": "actor",
+          "type": "name"
+        },{
+          "name": "owner_fio_public_key",
+          "type": "string"
+        }
+      ]
+    },{
+      "name": "addaddress",
+      "base": "",
+      "fields": [{
+          "name": "fio_address",
+          "type": "string"
+        },{
+          "name": "token_code",
+          "type": "string"
+        },{
+          "name": "public_address",
+          "type": "string"
+        },{
+          "name": "actor",
+          "type": "name"
+        }
+      ]
+    },{
+    "name": "adddomain",
+    "base": "",
+    "fields": [{
+        "name": "domain",
+        "type": "string"
+      },{
+        "name": "pubaddress",
+        "type": "string"
+      },{
+        "name": "actor",
+        "type": "name"
+      }
+    ]
+  },{
+      "name": "removename",
+      "base": "",
+      "fields": []
+    },{
+      "name": "removedomain",
+      "base": "",
+      "fields": []
+    },{
+      "name": "rmvaddress",
+      "base": "",
+      "fields": []
+    },{
+      "name": "bind2eosio",
+      "base": "",
+      "fields": [{
+      "name": "account",
+      "type": "name"
+      },{
+      "name": "client_key",
+      "type": "string"
+      },{
+      "name": "existing",
+      "type": "bool"
+      }]
+      }
+  ],
+  "actions": [{
+      "name": "registername",
+      "type": "registername",
+      "ricardian_contract": ""
+    },{
+      "name": "addaddress",
+      "type": "addaddress",
+      "ricardian_contract": ""
+    },{
+      "name": "removename",
+      "type": "removename",
+      "ricardian_contract": ""
+    },{
+      "name": "removedomain",
+      "type": "removedomain",
+      "ricardian_contract": ""
+    },{
+      "name": "rmvaddress",
+      "type": "rmvaddress",
+      "ricardian_contract": ""
+    },{
+    "name": "bind2eosio",
+    "type": "bind2eosio",
+    "ricardian_contract": ""
+    }
+  ],
+  "tables": [{
+      "name": "fionames",
+      "index_type": "i64",
+      "key_names": [
+        "name"
+      ],
+      "key_types": [
+        "string"
+      ],
+      "type": "fioname"
+    },{
+      "name": "domains",
+      "index_type": "i64",
+      "key_names": [
+        "name"
+      ],
+      "key_types": [
+        "string"
+      ],
+      "type": "domain"
+    },{
+      "name": "chains",
+      "index_type": "i64",
+      "key_names": [
+        "name"
+      ],
+      "key_types": [
+        "string"
+      ],
+      "type": "chainList"
+    },{
+      "name": "keynames",
+      "index_type": "i64",
+      "key_names": [
+        "id"
+      ],
+      "key_types": [
+        "uint64"
+      ],
+      "type": "key_name"
+    },{
+      "name": "eosionames",
+      "index_type": "i64",
+      "key_names": [
+        "account"
+      ],
+      "key_types": [
+        "uint64"
+      ],
+      "type": "eosio_name"
+    }
+  ],
+  "ricardian_clauses": [],
+  "error_messages": [],
+  "abi_extensions": [],
+  "variants": []
+}
+)=====";
 
 namespace eosio {
 
@@ -193,6 +1048,8 @@ public:
    fc::optional<scoped_connection>                                   accepted_transaction_connection;
    fc::optional<scoped_connection>                                   applied_transaction_connection;
 
+
+   chain_apis::fio_config_parameters fio_config;
 };
 
 chain_plugin::chain_plugin()
@@ -250,6 +1107,11 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("disable-ram-billing-notify-checks", bpo::bool_switch()->default_value(false),
           "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
          ("trusted-producer", bpo::value<vector<string>>()->composing(), "Indicate a producer whose blocks headers signed by it will be fully validated, but transactions in those validated blocks will be trusted.")
+         ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),
+         "Account to serve as a procy for FIO name creation actions")
+        ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
+        ("fio-proxy-key-file", bpo::value<bfs::path>(),
+         "File containing the private key for FIO proxy signing")
          ;
 
 // TODO: rate limiting
@@ -330,6 +1192,21 @@ void clear_directory_contents( const fc::path& p ) {
 }
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
+
+
+    std::cout<<"      ___                       ___     "<<std::endl;
+    std::cout<<"     /\\__\\                     /\\  \\    "<<std::endl;
+    std::cout<<"    /:/ _/_       ___         /::\\  \\   "<<std::endl;
+    std::cout<<"   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\  "<<std::endl;
+    std::cout<<"  /:/ /:/  /    /:/__/      /:/  \\:\\  \\ "<<std::endl;
+    std::cout<<" /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\  "<<std::endl;
+    std::cout<<" \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /"<<std::endl;
+    std::cout<<"  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  / "<<std::endl;
+    std::cout<<"   \\:\\  \\          \\::/  /   \\:\\/:/  /  "<<std::endl;
+    std::cout<<"    \\:\\__\\         /:/  /     \\::/  /   "<<std::endl;
+    std::cout<<"     \\/__/         \\/__/       \\/__/    "<<std::endl;
+    std::cout<<"  FOUNDATION FOR INTERWALLET OPERABILITY" <<std::endl;
+
    ilog("initializing chain plugin");
 
    try {
@@ -636,6 +1513,43 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
          my->chain_config->block_validation_mode = options.at("validation-mode").as<validation_mode>();
       }
 
+      if (options.count("fio-proxy") == 1) {
+          my->fio_config.proxy_account = options.at("fio-proxy").as<string>();
+          my->fio_config.proxy_name = chain::name(my->fio_config.proxy_account);
+          dlog ("set fio proxy ${a} ${n} ", ("a", my->fio_config.proxy_account)("n", my->fio_config.proxy_name));
+      }
+      {
+          int numkey = options.count("fio-proxy-key");
+          int numfile = options.count("fio-proxy-key-file");
+          EOS_ASSERT ((numkey == 0 || numfile == 0), plugin_config_exception,
+                      "set either fio-proxy-key or fio-proxy-key-file but not both");
+
+          if (numkey) {
+              EOS_ASSERT(numkey == 1, plugin_config_exception, "Only one fio-proxy-key may be supplied");
+              my->fio_config.proxy_key = options.at("fio-proxy-key").as<string>();
+          }
+          if (numfile) {
+              EOS_ASSERT(numfile == 1, plugin_config_exception, "Only one fio-proxy-key-file may be supplied");
+              auto keyfile = options.at("fio-proxy-key-file").as<bfs::path>();
+              EOS_ASSERT(fc::exists(keyfile), plugin_config_exception,
+                         "Cannot load fio key from file, ${name} does not exist",
+                         ("name", keyfile.generic_string()));
+              auto stat = bfs::status(keyfile);
+              EOS_ASSERT(stat.type() == bfs::regular_file && (stat.permissions() | 0700) == 0700,
+                         plugin_config_exception,
+                         "fio-proxy-key-file must be a regular file with owner only acceess");
+              stat = bfs::status(bfs::canonical(keyfile).parent_path());
+              EOS_ASSERT(stat.type() == bfs::directory_file && (stat.permissions() | 0700) == 0700,
+                         plugin_config_exception,
+                         "fio-proxy-key-file must be in a directory with owner only access");
+
+
+              auto infile = std::ifstream(keyfile.generic_string());
+              infile >> my->fio_config.proxy_key;
+              infile.close();
+          }
+      }
+
       my->chain.emplace( *my->chain_config );
       my->chain_id.emplace( my->chain->get_chain_id());
 
@@ -751,6 +1665,12 @@ chain_apis::read_write::read_write(controller& db, const fc::microseconds& abi_s
 void chain_apis::read_write::validate() const {
    EOS_ASSERT( db.get_read_mode() != chain::db_read_mode::READ_ONLY, missing_chain_api_plugin_exception, "Not allowed, node in read-only mode" );
 }
+
+const chain_apis::fio_config_parameters &
+chain_plugin::get_fio_config() const {
+    return my->fio_config;
+}
+
 
 void chain_plugin::accept_block(const signed_block_ptr& block ) {
    my->incoming_block_sync_method(block);
@@ -1091,7 +2011,7 @@ uint64_t convert_to_type(const string& str, const string& desc) {
    try {
       return boost::lexical_cast<uint64_t>(str.c_str(), str.size());
    } catch( ... ) { }
-   
+
    try {
       auto trimmed_str = str;
       boost::trim(trimmed_str);
@@ -1105,7 +2025,7 @@ uint64_t convert_to_type(const string& str, const string& desc) {
          return symb.value();
       } catch( ... ) { }
    }
-   
+
    try {
       return ( eosio::chain::string_to_symbol( 0, str.c_str() ) >> 8 );
    } catch( ... ) {
@@ -1145,6 +2065,713 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
    }
    EOS_ASSERT( false, chain::contract_table_query_exception, "Table ${table} is not specified in the ABI", ("table",table_name) );
 }
+
+
+//*******************BEGIN FIO API
+
+      const name fio_system_code = N(fio.system);    // FIO name contract account, init in the top of this class
+      const string fio_system_scope = "fio.system";   // FIO name contract scope
+      const name fio_reqobt_code = N(fio.reqobt);    // FIO request obt contract account, init in the top of this class
+      const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
+      const name fio_fee_code = N(fio.fee);    // FIO fee account, init in the top of this class
+      const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
+
+
+      const name fio_address_table = N(fionames); // FIO Address Table
+      const name fio_fees_table = N(fiofees); // FIO fees Table
+      const name fio_domains_table = N(domains); // FIO Domains Table
+      const name fio_chains_table = N(chains); // FIO Chains Table
+
+
+      /***
+        * get pending fio requests.
+        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+        * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+        */
+        read_only::get_pending_fio_requests_result
+        read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
+            // assert if empty fio name
+            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            //get the public address.
+            uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str());
+
+            get_pending_fio_requests_result result;
+
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+
+            //lookup the public address in the key_names table.
+            string fio_key_lookup_table = "keynames";   // table name
+
+            dlog("Lookup fio public key in key names using key hash: '${key_hash}'", ("key_hash", key_hash));
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_system_code,
+                    .scope       = fio_system_scope,
+                    .table       = fio_key_lookup_table,
+                    .lower_bound = boost::lexical_cast<string>(key_hash),
+                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .key_type       = "i64",
+                    .index_position ="2"};
+            // Do secondary key lookup
+            get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+            dlog("key names row count : '${size}'", ("size", keynames_rows_result.rows.size()));
+            FIO_404_ASSERT(!keynames_rows_result.rows.empty(), "No pending FIO Requests",
+                           fioio::ErrorNoFioRequestsFound);
+
+            for (size_t knpos = 0; knpos < keynames_rows_result.rows.size(); knpos++) {
+                //get the fio address associated with this public address
+                string fio_address = (string) keynames_rows_result.rows[knpos]["name"].as_string();
+                //get the name of the from associated with the request without looking up the
+                //hashed value. tricky.
+                string from_fioadd = fio_address;
+                uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
+
+                //look up the requests for this fio name (look for matches in the tofioadd
+                string fio_requests_lookup_table = "fioreqctxts";   // table name
+
+                dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
+                     ("add_hash", address_hash));
+                get_table_rows_params requests_row_params = get_table_rows_params{
+                        .json        = true,
+                        .code        = fio_reqobt_code,
+                        .scope       = fio_reqobt_scope,
+                        .table       = fio_requests_lookup_table,
+                        .lower_bound = boost::lexical_cast<string>(address_hash),
+                        .upper_bound = boost::lexical_cast<string>(address_hash + 1),
+                        .key_type       = "i64",
+                        .index_position = "2"};
+                // Do secondary key lookup
+                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                        requests_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                            return v;
+                        });
+
+                dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
+
+                //for each request look to see if there are associated statuses
+                //query the fioreqstss table by the fioreqid, if there is a match then take these
+                //out of the results, otherwise include in the results.
+                // Look through the keynames lookup results and push the fio_addresses into results
+                for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
+
+                    //get all the attributes of the fio request
+                    uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                    uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
+                    uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
+                    string payee_public_address = requests_rows_result.rows[pos]["payee_public_address"].as_string();
+                    string amount = requests_rows_result.rows[pos]["amount"].as_string();
+                    string token_code = requests_rows_result.rows[pos]["token_code"].as_string();
+                    string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+
+                    //find the tofioaddress
+                    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                            .code=fio_system_code,
+                            .scope=fio_system_scope,
+                            .table=fio_address_table,
+                            .lower_bound=boost::lexical_cast<string>(payee_fio_address),
+                            .upper_bound=boost::lexical_cast<string>(payee_fio_address + 1),
+                            .encode_type="dec",
+                            .index_position ="1"};
+
+                    get_table_rows_result fioname_result =
+                            get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
+
+                    FIO_404_ASSERT(!fioname_result.rows.empty(), "No pending FIO Requests",
+                                   fioio::ErrorNoFioRequestsFound);
+
+                    string to_fioadd = fioname_result.rows[0]["name"].as_string();
+                    request_record rr{fio_request_id, from_fioadd, to_fioadd, payee_public_address, amount, token_code,
+                                      metadata, time_stamp};
+
+                    //use this id and query the fioreqstss table for status updates to this fioreqid
+                    //look up the requests for this fio name (look for matches in the tofioadd
+                    string fio_request_status_lookup_table = "fioreqstss";   // table name
+
+                    dlog("Lookup request statuses in fioreqstss using id: '${fio_request_id}'",
+                         ("fio_request_id", fio_request_id));
+                    get_table_rows_params request_status_row_params = get_table_rows_params{
+                            .json        = true,
+                            .code        = fio_reqobt_code,
+                            .scope       = fio_reqobt_scope,
+                            .table       = fio_request_status_lookup_table,
+                            .lower_bound = boost::lexical_cast<string>(fio_request_id),
+                            .upper_bound = boost::lexical_cast<string>(fio_request_id + 1),
+                            .key_type       = "i64",
+                            .index_position = "2"};
+                    // Do secondary key lookup
+                    get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                            request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                                return v;
+                            });
+
+                    dlog("request status unfiltered row count : '${size}'",
+                         ("size", request_status_rows_result.rows.size()));
+
+                    //if there are no statuses for this record then add it to the results
+                    if (request_status_rows_result.rows.empty()) {
+                        result.requests.push_back(rr);
+                    }
+                }
+
+            } // Get request statuses
+
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+            return result;
+        } // get_pending_fio_requests
+
+        /***
+        * get sent fio requests.
+        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+        * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+        */
+        read_only::get_sent_fio_requests_result
+        read_only::get_sent_fio_requests(const read_only::get_sent_fio_requests_params &p) const {
+            // assert if empty fio name
+            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            //get the public address.
+            uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str());
+
+            get_sent_fio_requests_result result;
+
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+
+            //lookup the public address in the key_names table.
+            string fio_key_lookup_table = "keynames";   // table name
+
+            dlog("Lookup fio public key in key names using key hash: '${key_hash}'", ("key_hash", key_hash));
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_system_code,
+                    .scope       = fio_system_scope,
+                    .table       = fio_key_lookup_table,
+                    .lower_bound = boost::lexical_cast<string>(key_hash),
+                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+            // Do secondary key lookup
+            get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            dlog("key names row count : '${size}'", ("size", keynames_rows_result.rows.size()));
+            FIO_404_ASSERT(!keynames_rows_result.rows.empty(), "No FIO Requests",
+                           fioio::ErrorNoFioRequestsFound);
+
+            for (size_t knpos = 0; knpos < keynames_rows_result.rows.size(); knpos++) {
+                //get the fio address associated with this public address
+                string fio_address = keynames_rows_result.rows[knpos]["name"].as_string();
+                string to_fioadd = fio_address;
+                uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
+
+                //look up the requests for this fio name (look for matches in the tofioadd
+                string fio_requests_lookup_table = "fioreqctxts";   // table name
+
+                dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
+                     ("add_hash", address_hash));
+                get_table_rows_params requests_row_params = get_table_rows_params{
+                        .json        = true,
+                        .code        = fio_reqobt_code,
+                        .scope       = fio_reqobt_scope,
+                        .table       = fio_requests_lookup_table,
+                        .lower_bound = boost::lexical_cast<string>(address_hash),
+                        .upper_bound = boost::lexical_cast<string>(address_hash + 1),
+                        .key_type       = "i64",
+                        .index_position = "3"};
+                // Do secondary key lookup
+                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                        requests_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                            return v;
+                        });
+
+                dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
+
+                // Look through the keynames lookup results and push the fio_addresses into results
+                for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
+                    //get all the attributes of the fio request
+                    uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                    uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
+                    uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
+                    string payee_public_address = requests_rows_result.rows[pos]["payee_public_address"].as_string();
+                    string amount = requests_rows_result.rows[pos]["amount"].as_string();
+                    string token_code = requests_rows_result.rows[pos]["token_code"].as_string();
+                    string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+
+                    //find the fromfioaddress
+                    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                            .code=fio_system_code,
+                            .scope=fio_system_scope,
+                            .table=fio_address_table,
+                            .lower_bound=boost::lexical_cast<string>(payer_fio_address),
+                            .upper_bound=boost::lexical_cast<string>(payer_fio_address + 1),
+                            .encode_type="dec",
+                            .index_position ="1"};
+
+                    get_table_rows_result fioname_result =
+                            get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
+
+                    FIO_404_ASSERT(!fioname_result.rows.empty(), "No FIO Requests",
+                                   fioio::ErrorNoFioRequestsFound);
+
+                    string from_fioadd = fioname_result.rows[0]["name"].as_string(); //incorrect
+
+                    //query the statuses
+                    //use this id and query the fioreqstss table for status updates to this fioreqid
+                    //look up the requests for this fio name (look for matches in the tofioadd
+                    string fio_request_status_lookup_table = "fioreqstss";   // table name
+
+                    dlog("Lookup request statuses in fioreqstss using id: '${fio_request_id}'",
+                         ("fio_request_id", fio_request_id));
+                    get_table_rows_params request_status_row_params = get_table_rows_params{
+                            .json        = true,
+                            .code        = fio_reqobt_code,
+                            .scope       = fio_reqobt_scope,
+                            .table       = fio_request_status_lookup_table,
+                            .lower_bound = boost::lexical_cast<string>(fio_request_id),
+                            .upper_bound = boost::lexical_cast<string>(fio_request_id + 1),
+                            .key_type       = "i64",
+                            .index_position = "2"};
+                    // Do secondary key lookup
+                    get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                            request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                                return v;
+                            });
+
+                    dlog("request status unfiltered row count : '${size}'", ("size", request_status_rows_result.rows.size()));
+
+                    string status = "requested";
+
+                    if (!(request_status_rows_result.rows.empty())) {
+                        uint64_t statusintV = request_status_rows_result.rows[0]["status"].as_uint64();
+                        if (statusintV == 0) {
+                            status = "requested";
+                        } else if (statusintV == 1) {
+                            status = "rejected";
+                        } else if (statusintV == 2) {
+                            status = "sent_to_blockchain";
+                        }
+                    }
+
+                    request_status_record rr{fio_request_id, from_fioadd, to_fioadd, payee_public_address, amount,
+                                             token_code, metadata, time_stamp, status};
+
+                    result.requests.push_back(rr);
+                } // Get request statuses
+            }
+
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+            return result;
+        } // get_sent_fio_requests
+
+
+
+        /*** v1/chain/get_fio_names
+        * Retrieves the fionames associated with the provided public address
+        * @param p
+        * @return result
+        */
+        read_only::get_fio_names_result read_only::get_fio_names(const read_only::get_fio_names_params &p) const {
+            // assert if empty chain key
+            get_fio_names_result result;
+            //first check the pub key for validity.
+            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO names", fioio::ErrorNoFIONames);
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+
+            string fio_key_lookup_table = "keynames";   // table name
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            const uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str()); // hash of public address
+
+            dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash));
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_system_code,
+                    .scope       = fio_system_scope,
+                    .table       = fio_key_lookup_table,
+                    .lower_bound = boost::lexical_cast<string>(key_hash),
+                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .key_type       = "i64",
+                    .index_position ="2"};
+
+            // Do secondary key lookup
+            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi,
+                                                                                  [](uint64_t v) -> uint64_t {
+                                                                                      return v;
+                                                                                  });
+
+            dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
+            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
+
+            std::string nam, namexpiration;
+            int chainindex = 0;
+
+            // Look through the keynames lookup results and push the fio_addresses into results
+            for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
+
+                nam = (string) table_rows_result.rows[pos]["name"].as_string();
+                if (nam.find('.') != std::string::npos)  { //if it's not a domain record in the keynames table (no '.'),
+                    namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
+                    chainindex = table_rows_result.rows[pos]["chaintype"].as_int64();
+                    FIO_404_ASSERT(chainindex == 0, "No FIO names", fioio::ErrorNoFIONames);
+                    fioaddress_record fa{nam, namexpiration};
+                    //then push the address record result
+                    result.fio_addresses.push_back(fa);
+                }
+
+            } // Get FIO domains and push
+
+              //Get the domain record
+            get_table_rows_params domain_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
+                    .upper_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str()) + 1),
+                    .key_type       = "i64",
+                    .index_position ="2"};
+
+            get_table_rows_result domain_result = get_table_rows_by_seckey<index64_index, uint64_t>(domain_row_params, abi,
+                                                                                  [](uint64_t v) -> uint64_t {
+                                                                                      return v;
+                                                                                  });
+
+            dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
+
+            if (domain_result.rows.empty()) {
+              FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()) , "No FIO names", fioio::ErrorNoFIONames);
+            return result; }
+
+            std::string domexpiration, dom;
+
+            for (size_t pos = 0; pos < domain_result.rows.size(); pos++) {
+                dom = ((string)domain_result.rows[pos]["name"].as_string());
+                domexpiration = domain_result.rows[pos]["expiration"].as_string();
+                fiodomain_record d{dom, domexpiration};
+                result.fio_domains.push_back(d);    //pushback results in domain
+            }
+
+          return result;
+        } // get_fio_names
+
+
+        /*** v1/chain/get_fee
+       * Retrieves the fee associated with the specified fio address and blockchain endpoint
+       * @param p
+       * @return result
+       */
+        read_only::get_fee_result read_only::get_fee(const read_only::get_fee_params &p) const {
+            // assert if empty chain key
+            get_fee_result result;
+            result.fee = 0;
+
+            FIO_400_ASSERT(!p.end_point.empty(), "end_point", "", "Invalid end point",
+                           fioio::ErrorNoEndpoint);
+
+            //get_fee
+            const uint64_t endpointhash = ::eosio::string_to_uint64_t(p.end_point.c_str());
+
+            //read the fees table.
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_fee_code);
+
+
+            dlog("Lookup using endpoint hash: ‘${endpoint_hash}‘", ("endpoint_hash", endpointhash));
+
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_fee_code,
+                    .scope       = fio_fee_scope,
+                    .table       = fio_fees_table,
+                    .lower_bound = boost::lexical_cast<string>(endpointhash),
+                    .upper_bound = boost::lexical_cast<string>(endpointhash + 1),
+                    .key_type       = "i64",
+                    .index_position ="2"};
+
+            // Do secondary key lookup
+            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi,
+                                                                                                        [](uint64_t v) -> uint64_t {
+                                                                                                            return v;
+                                                                                                        });
+
+            dlog("Lookup for fee, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
+
+            FIO_400_ASSERT(!table_rows_result.rows.empty(), "end_point", p.end_point, "Invalid end point",
+                           fioio::ErrorNoFeesFoundForEndpoint);
+            FIO_404_ASSERT(table_rows_result.rows.size() == 1, "Multiple fees found for endpoint", fioio::ErrorNoFeesFoundForEndpoint);
+
+            bool isbundleeligible  = ((uint64_t) (table_rows_result.rows[0]["type"].as_uint64()) == 1);
+            uint64_t feeamount = (uint64_t) table_rows_result.rows[0]["suf_amount"].as_uint64();
+
+            if (isbundleeligible) { //if bundle eligible check the countdown on the name, return the fee.
+
+                FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", "", "Invalid FIO Address",
+                               fioio::ErrorChainAddressEmpty);
+
+                //read the fio names table using the specified address
+                //read the fees table.
+                const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+                uint64_t namehash = ::eosio::string_to_uint64_t(p.fio_address.c_str());
+
+                dlog("Lookup fio name using name hash: ‘${name_hash}‘", ("name_hash", namehash));
+
+                const name code = ::eosio::string_to_name("fio.system");
+                get_table_rows_params table_row_params = get_table_rows_params{
+                        .json        = true,
+                        .code        = fio_system_code,
+                        .scope       = fio_system_scope,
+                        .table       = fio_address_table,
+                        .lower_bound = boost::lexical_cast<string>(namehash),
+                        .upper_bound = boost::lexical_cast<string>(namehash + 1),
+                        .key_type       = "dec",
+                        .index_position ="1"};
+
+                get_table_rows_result names_table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+
+                dlog("Lookup for fio name, row count: ‘${size}‘", ("size", names_table_rows_result.rows.size()));
+
+                FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", p.fio_address, "No such FIO address",
+                               fioio::ErrorFioNameNotReg);
+
+                FIO_404_ASSERT(names_table_rows_result.rows.size() == 1, "Multiple names found for fio address", fioio::ErrorNoFeesFoundForEndpoint);
+
+                uint64_t bundleeligiblecountdown  = (uint64_t) names_table_rows_result.rows[0]["bundleeligiblecountdown"].as_uint64();
+                //read fio names
+
+                if (bundleeligiblecountdown < 1){
+                    result.fee = feeamount;
+                }
+            } else {
+                //not bundle eligible
+                result.fee = feeamount;
+            }
+            //get the fee
+
+
+            return result;
+        } // get_fee
+
+        /***
+        * Lookup address by FIO name.
+        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+        * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+        */
+        read_only::pub_address_lookup_result
+        read_only::pub_address_lookup(const read_only::pub_address_lookup_params &p) const {
+            fioio::FioAddress fa;
+            fioio::getFioAddressStruct(p.fio_address, fa);
+            // assert if empty fio name
+            int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
+            dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
+
+            FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
+                           fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
+                           "Invalid token code format",
+                           fioio::ErrorInvalidFioNameFormat);
+
+            dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fioaddress)("domain", fa.fiodomain));
+
+            //declare variables.
+            const name code = ::eosio::string_to_name("fio.system");
+            const abi_def abi = eosio::chain_apis::get_abi(db, code);
+            const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_address.c_str());
+            const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
+            const uint64_t chain_hash = ::eosio::string_to_uint64_t(p.token_code.c_str());
+
+            dlog("fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash));
+
+            //these are the results for the table searches for domain ansd fio name
+            get_table_rows_result domain_result;
+            get_table_rows_result fioname_result;
+            get_table_rows_result chains_result;
+            //this is the table rows result to use after domain/fioname specific processing
+            get_table_rows_result name_result;
+            //this is the result returned to the user
+            pub_address_lookup_result result;
+
+            result.public_address = "";
+
+            //get the domain, check if the domain is expired.
+            get_table_rows_params table_row_params = get_table_rows_params{.json=true,
+                    .code=code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=boost::lexical_cast<string>(domain_hash),
+                    .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
+                    .encode_type="dec"};
+
+            domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+
+            // If no matches, then domain not found, return empty result
+            dlog("Domain matched: ${matched}", ("matched", !domain_result.rows.empty()));
+            FIO_404_ASSERT(!domain_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            //This is not the local computer time, it is in fact the block time.
+            uint32_t present_time = (uint32_t) time(0);
+
+            //if the domain is expired then return an empty result.
+            dlog("Domain expired: ${expired}", ("expired", present_time > domain_expiration));
+            FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
+                           fioio::ErrorFioNameEmpty);
+
+            //set name result to be the domain results.
+            name_result = domain_result;
+
+            if (!fa.fioname.empty()) {
+                //query the names table and check if the name is expired
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=code,
+                        .scope=fio_system_scope,
+                        .table=fio_address_table,
+                        .lower_bound=boost::lexical_cast<string>(name_hash),
+                        .upper_bound=boost::lexical_cast<string>(name_hash + 1),
+                        .encode_type="dec",
+                        .index_position ="1"};
+
+                fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+
+                // If no matches, the name does not exist, return empty result
+                dlog("FIO address matched: ${matched}", ("matched", !fioname_result.rows.empty()));
+                FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found",
+                               fioio::ErrorPubAddressNotFound);
+
+                uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+
+                //if the name is expired then return an empty result.
+                dlog("FIO name expired: ${expired}", ("expired", present_time > domain_expiration));
+                FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
+                               fioio::ErrorFioNameEmpty);
+
+                //set the result to the name results
+                name_result = fioname_result;
+            } else {
+                FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+            }
+
+            // chain support check
+            string my_chain = p.token_code;
+            //chain_type c_type= str_to_chain_type(my_chain);
+
+            //Get Chains Table
+            get_table_rows_params chain_table_row_params = get_table_rows_params{.json=true,
+                    .code=code,
+                    .scope=fio_system_scope,
+                    .table=fio_chains_table,
+                    .lower_bound=boost::lexical_cast<string>(chain_hash),
+                    .upper_bound=boost::lexical_cast<string>(chain_hash + 1),
+                    .encode_type="dec"};
+
+            chains_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
+
+            FIO_404_ASSERT(!chains_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            //   // Pick out chain specific key and populate result
+            uint32_t c_type = (uint32_t) chains_result.rows[0]["id"].as_uint64();
+            result.public_address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
+
+            FIO_404_ASSERT(!(result.public_address == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            return result;
+        } // pub_address_lookup
+
+        /***
+        * Checks if a FIO Address or FIO Domain is available for registration.
+        * @param p
+        * @return result.fio_name, result.is_registered
+        */
+        read_only::avail_check_result read_only::avail_check(const read_only::avail_check_params &p) const {
+
+            avail_check_result result;
+
+            // assert if empty fio name
+            FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid FIO Name",
+                           fioio::ErrorInvalidFioNameFormat);
+
+            fioio::FioAddress fa;
+            fioio::getFioAddressStruct(p.fio_name, fa);
+            int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
+            dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
+
+            FIO_400_ASSERT(res == 0, "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
+
+            //declare variables.
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fioaddress.c_str());
+            const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
+            get_table_rows_result fioname_result;
+            get_table_rows_result name_result;
+            get_table_rows_result domain_result;
+
+            get_table_rows_params table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=boost::lexical_cast<string>(domain_hash),
+                    .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
+                    .encode_type="dec"};
+
+            domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+
+            if (!fa.fioname.empty()) {
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=fio_system_code,
+                        .scope=fio_system_scope,
+                        .table=fio_address_table,
+                        .lower_bound=boost::lexical_cast<string>(name_hash),
+                        .upper_bound=boost::lexical_cast<string>(name_hash + 1),
+                        .encode_type="dec",
+                        .index_position ="1"};
+
+                fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+
+                // Not Registered
+                if (fioname_result.rows.empty()) {
+                    return result;
+                }
+
+                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
+                //This is not the local computer time, it is in fact the block time.
+                uint32_t present_time = (uint32_t) time(0);
+                //if the domain is expired then return an empty result.
+                if (present_time > name_expiration) {
+                    return result;
+                }
+            }
+
+            if (domain_result.rows.empty()) {
+                return result;
+            }
+
+            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            uint32_t present_time = (uint32_t) time(0);
+
+            if (present_time > domain_expiration) {
+                return result;
+            }
+
+            // name checked and set
+            result.is_registered = true;
+            return result;
+        }
+
+        /*****************End of FIO API******************************/
+        /*************************************************************/
+
 
 read_only::get_table_rows_result read_only::get_table_rows( const read_only::get_table_rows_params& p )const {
    const abi_def abi = eosio::chain_apis::get_abi( db, p.code );
@@ -1280,6 +2907,40 @@ vector<asset> read_only::get_currency_balance( const read_only::get_currency_bal
 
    return results;
 }
+
+// Begin FIO API
+read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
+    FIO_404_ASSERT(!p.fio_public_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+    FIO_404_ASSERT(p.fio_public_address.size() <= 13, "Public address not found", fioio::ErrorPubAddressNotFound);
+
+    get_account_results actor_lookup_results;
+    get_account_params actor_lookup_params;
+    get_fio_balance_result result;
+    vector<asset> cursor;
+    result.balance = "0";
+    actor_lookup_params.account_name = p.fio_public_address.c_str();
+
+    try{
+        actor_lookup_results = get_account(actor_lookup_params);
+    }
+    catch(...) {
+        FIO_404_ASSERT(false, "Public address not found", fioio::ErrorPubAddressNotFound);
+    }
+
+    get_currency_balance_params balance_params;
+    balance_params.code =  ::eosio::string_to_name("fio.token");
+    balance_params.account = ::eosio::string_to_name(p.fio_public_address.c_str());
+    cursor = get_currency_balance(balance_params);
+
+    if(!cursor.empty()) {
+        size_t pos = cursor[0].to_string().find(' ');
+        result.balance = cursor[0].to_string().substr(0, pos);
+    }
+
+    return result;
+} //get_fio_balance
+
+// End FIO API
 
 fc::variant read_only::get_currency_stats( const read_only::get_currency_stats_params& p )const {
    fc::mutable_variant_object results;
@@ -1587,6 +3248,337 @@ void read_write::push_transaction(const read_write::push_transaction_params& par
    } CATCH_AND_CALL(next);
 }
 
+//Temporary to register_fio_name_params
+constexpr const char *fioCreatorKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; //  "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS" - fiosystem
+constexpr const char *fioCreator = "fio.system";
+
+/***
+ *  new_funds_request- This api method will invoke the fio.request.obt smart contract for newfundsreq this api method is
+ * intended add a new request for funds to the index tables of the chain..
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.processed (fc::variant) json blob meeting the api specification.
+ */
+void read_write::new_funds_request(const new_funds_request_params &params,
+                                   chain::plugin_interface::next_function<new_funds_request_results> next) {
+    try {
+        auto trx = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        name fiosystem = N(fio.reqobtr);
+
+
+        dlog("new_funds_request called");
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+            if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::new_funds_request_results{output});
+                  } CATCH_AND_CALL(next);
+              }
+
+
+          });
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+/***
+* reject funds request - This api method will invoke the fio.request.obt smart contract for rejectfndreq. this api method is
+* intended to add the json passed into this method to the block log so that it can be scraped as necessary.
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.processed (fc::variant) json blob meeting the api specification.
+*/
+void read_write::reject_funds_request(const reject_funds_request_params &params,
+                                      chain::plugin_interface::next_function<reject_funds_request_results> next) {
+    try {
+
+        auto trx = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        name fiosystem = N(fio.reqobtr);
+
+
+        dlog("reject_funds_request called");
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+              if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::reject_funds_request_results{output});
+                  } CATCH_AND_CALL(next);
+              }
+          });
+
+
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+/***
+* record_send - This api method will invoke the fio.request.obt smart contract for recordsend. this api method is
+* intended to add the json passed into this method to the block log so that it can be scraped as necessary.
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.processed (fc::variant) json blob meeting the api specification.
+*/
+void read_write::record_send (const record_send_params &params,
+                              chain::plugin_interface::next_function<record_send_results> next) {
+    try {
+        auto trx = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        name fiosystem = N(fio.reqobtr);
+
+        dlog("record_send called");
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+                if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      chain::transaction_id_type id = trx_trace_ptr->id;
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::record_send_results{output});
+                  } CATCH_AND_CALL(next);
+              }
+          });
+
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+/***
+ * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+void read_write::register_fio_address(const read_write::register_fio_address_params &params,
+                                      next_function<read_write::register_fio_address_results> next) {
+    try {
+        auto trx = std::make_shared<packed_transaction>();
+
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        fioio::regaddress rn;
+        dlog("register_fio_address called");
+
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+                if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      chain::transaction_id_type id = trx_trace_ptr->id;
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::register_fio_address_results{id, output});
+                  } CATCH_AND_CALL(next);
+              }
+          });
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+void read_write::register_fio_domain(const read_write::register_fio_domain_params &params,
+                                     next_function<read_write::register_fio_domain_results> next) {
+    try {
+        auto trx = std::make_shared<packed_transaction>();
+
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        fioio::regdomain rn;
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+                  if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      chain::transaction_id_type id = trx_trace_ptr->id;
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::register_fio_domain_results{id, output});
+                  } CATCH_AND_CALL(next);
+              }
+          });
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+/***
+ * add_pub_address - Registers a public address onto the address container
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+void read_write::add_pub_address (const read_write::add_pub_address_params &params,
+                                  next_function<read_write::add_pub_address_results> next) {
+    try {
+
+        auto trx = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        name fiosystem = N(fio.system);
+
+        dlog("add_pub_address called");
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+                if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      chain::transaction_id_type id = trx_trace_ptr->id;
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::add_pub_address_results{id, output});
+                  } CATCH_AND_CALL(next);
+              }
+          });
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+/***
+ * transfer_tokens - Transfers FIO tokens from actor to fio pub address
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+void read_write::transfer_tokens(const read_write::transfer_tokens_params &params,
+                                  next_function<read_write::transfer_tokens_results> next) {
+    try {
+
+        auto trx = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
+                                           abi_serializer_max_time};
+
+        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
+        name fiosystem = N(fio.system);
+
+        dlog("transfer_tokens called");
+        try {
+            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+                if (result.contains<fc::exception_ptr>()) {
+                  next(result.get<fc::exception_ptr>());
+              } else {
+                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                  try {
+                      chain::transaction_id_type id = trx_trace_ptr->id;
+                      fc::variant output;
+                      try {
+                          output = db.to_variant_with_abi(*trx_trace_ptr,
+                                                          abi_serializer_max_time);
+                      } catch (chain::abi_exception &) {
+                          output = *trx_trace_ptr;
+                      }
+                      next(read_write::transfer_tokens_results{id, output});
+                  } CATCH_AND_CALL(next);
+              }
+          });
+    } catch (const boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+} // transfer tokens
+
+
+
 static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
    auto wrapped_next = [=](const fc::static_variant<fc::exception_ptr, read_write::push_transaction_results>& result) {
       if (result.contains<fc::exception_ptr>()) {
@@ -1853,6 +3845,41 @@ read_only::abi_bin_to_json_result read_only::abi_bin_to_json( const read_only::a
    }
    return result;
 }
+
+read_only::serialize_json_result
+read_only::serialize_json(const read_only::serialize_json_params &params) const try {
+    serialize_json_result result;
+
+    string actionname = fioio::returncontract(params.action.to_string());
+    name code = ::eosio::string_to_name(actionname.c_str());
+
+    const auto code_account = db.db().find<account_object, by_name>(code);
+    EOS_ASSERT(code_account != nullptr, contract_query_exception, "Contract can't be found ${contract}",
+               ("contract", code));
+
+    abi_def abi;
+    if (abi_serializer::to_abi(code_account->abi, abi)) {
+        abi_serializer abis(abi, abi_serializer_max_time);
+        auto action_type = abis.get_action_type(params.action);
+        EOS_ASSERT(!action_type.empty(), action_validate_exception,
+                   "Unknown action ${action} in contract ${contract}",
+                   ("action", params.action)("contract", code));
+        try {
+            result.serialized_json = abis.variant_to_binary(action_type, params.json, abi_serializer_max_time,
+                                                            shorten_abi_errors);
+        } EOS_RETHROW_EXCEPTIONS(chain::invalid_action_args_exception,
+                                 "'${args}' is invalid args for action '${action}' code '${code}'. expected '${proto}'",
+                                 ("args", params.json)("action", params.action)("code", code)("proto",
+                                                                                              action_abi_to_variant(
+                                                                                                      abi,
+                                                                                                      action_type)))
+    } else {
+        EOS_ASSERT(false, abi_not_found_exception, "No ABI found for ${contract}", ("contract", code));
+    }
+    return result;
+} FC_RETHROW_EXCEPTIONS(warn, "action: ${action}, args: ${args}",
+                        ("action", params.action)("args", params.json))
+
 
 read_only::get_required_keys_result read_only::get_required_keys( const get_required_keys_params& params )const {
    transaction pretty_input;
