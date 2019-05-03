@@ -21,6 +21,3 @@
 [submodule "fio.contracts"]
 	path = fio.contracts
 	url = https://github.com/dapixio/fio.contracts
-[submodule "cdt"]
-	path = cdt
-	url = https://github.com/dapixio/cdt
