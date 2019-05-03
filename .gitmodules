@@ -18,10 +18,9 @@
 [submodule "libraries/yubihsm"]
 	path = libraries/yubihsm
 	url = https://github.com/Yubico/yubihsm-shell
-[submodule "cdt"]
-	path = cdt
-	url = https://github.com/dapixio/cdt
-	branch = release/1.5.x
 [submodule "fio.contracts"]
 	path = fio.contracts
 	url = https://github.com/dapixio/fio.contracts
+[submodule "cdt"]
+	path = cdt
+	url = https://github.com/dapixio/cdt
