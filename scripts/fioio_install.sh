@@ -1,7 +1,7 @@
 #!/bin/bash
 ##########################################################################
-# This is the EOSIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/EOSIO/eos
+# This is the FIOIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/dapixio/fio
 #
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
@@ -27,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/EOSIO/eos/blob/master/LICENSE.txt
+# https://github.com/dapixio/fio/blob/master/LICENSE.txt
 ##########################################################################
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -54,7 +54,7 @@ bldred=${txtbld}$(tput setaf 1)
 txtrst=$(tput sgr0)
 
 if [ ! -d $BUILD_DIR ]; then
-   printf "\\nError, eosio_build.sh has not ran.  Please run ./eosio_build.sh first!\\n\\n"
+   printf "\\nError, fioio_build.sh has not ran.  Please run ./fioio_build.sh first!\\n\\n"
    exit -1
 fi
 
@@ -64,7 +64,7 @@ if ! pushd "${BUILD_DIR}" &> /dev/null;then
 fi
 
 if ! make install; then
-   printf "\\nMAKE installing EOSIO has exited with the above error.\\n\\n"
+   printf "\\nMAKE installing FIOIO has exited with the above error.\\n\\n"
    exit -1
 fi
 popd &> /dev/null 
