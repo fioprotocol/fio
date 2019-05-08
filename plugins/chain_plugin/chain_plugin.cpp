@@ -1194,18 +1194,18 @@ void clear_directory_contents( const fc::path& p ) {
 void chain_plugin::plugin_initialize(const variables_map& options) {
 
 
-    std::cout<<"      ___                       ___     "<<std::endl;
-    std::cout<<"     /\\__\\                     /\\  \\    "<<std::endl;
-    std::cout<<"    /:/ _/_       ___         /::\\  \\   "<<std::endl;
-    std::cout<<"   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\  "<<std::endl;
-    std::cout<<"  /:/ /:/  /    /:/__/      /:/  \\:\\  \\ "<<std::endl;
-    std::cout<<" /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\  "<<std::endl;
-    std::cout<<" \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /"<<std::endl;
-    std::cout<<"  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  / "<<std::endl;
-    std::cout<<"   \\:\\  \\          \\::/  /   \\:\\/:/  /  "<<std::endl;
-    std::cout<<"    \\:\\__\\         /:/  /     \\::/  /   "<<std::endl;
-    std::cout<<"     \\/__/         \\/__/       \\/__/    "<<std::endl;
-    std::cout<<"  FOUNDATION FOR INTERWALLET OPERABILITY" <<std::endl;
+    std::cout<<"      ___                       ___                 "<<std::endl;
+    std::cout<<"     /\\__\\                     /\\  \\            "<<std::endl;
+    std::cout<<"    /:/ _/_       ___         /::\\  \\             "<<std::endl;
+    std::cout<<"   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       "<<std::endl;
+    std::cout<<"  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          "<<std::endl;
+    std::cout<<" /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       "<<std::endl;
+    std::cout<<" \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   "<<std::endl;
+    std::cout<<"  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      "<<std::endl;
+    std::cout<<"   \\:\\  \\          \\::/  /   \\:\\/:/  /        "<<std::endl;
+    std::cout<<"    \\:\\__\\         /:/  /     \\::/  /           "<<std::endl;
+    std::cout<<"     \\/__/         \\/__/       \\/__/             "<<std::endl;
+    std::cout<<"  FOUNDATION FOR INTERWALLET OPERABILITY            " <<std::endl;
 
    ilog("initializing chain plugin");
 

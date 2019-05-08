@@ -20,7 +20,7 @@ if [ -d $OPT_LOCATION/eosio ]; then
       case $yn in
          [Yy]* )
             if [ "$(id -u)" -ne 0 ]; then
-               printf "\nThis requires sudo, please run ./eosio_uninstall.sh with sudo\n\n"
+               printf "\nThis requires sudo, please run ./fioio_uninstall.sh with sudo\n\n"
                exit -1
             fi
 
@@ -56,7 +56,7 @@ if [ -d "/usr/local/eosio" ]; then
       case $yn in
          [Yy]* )
             if [ "$(id -u)" -ne 0 ]; then
-               printf "\nThis requires sudo, please run ./eosio_uninstall.sh with sudo\n\n"
+               printf "\nThis requires sudo, please run ./fioio_uninstall.sh with sudo\n\n"
                exit -1
             fi
 

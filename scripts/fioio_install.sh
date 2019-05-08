@@ -30,6 +30,11 @@
 # https://github.com/EOSIO/eos/blob/master/LICENSE.txt
 ##########################################################################
 
+if [ "$(id -u)" -ne 0 ]; then
+        printf "\n\tFIO install requires sudo. Please run sudo ./fioio_install.sh\n\n"
+        exit -1
+fi
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${SCRIPT_DIR}/.."
 BUILD_DIR="${REPO_ROOT}/build"
@@ -65,22 +70,25 @@ fi
 popd &> /dev/null 
 
 printf "\n${bldred}      ___           ___           ___                       ___\n"
-printf "     /  /\\         /  /\\         /  /\\        ___          /  /\\ \n"
-printf "    /  /:/_       /  /::\\       /  /:/_      /  /\\        /  /::\\ \n"
-printf "   /  /:/ /\\     /  /:/\\:\\     /  /:/ /\\    /  /:/       /  /:/\\:\\ \n"
-printf "  /  /:/ /:/_   /  /:/  \\:\\   /  /:/ /::\\  /__/::\\      /  /:/  \\:\\ \n"
-printf " /__/:/ /:/ /\\ /__/:/ \\__\\:\\ /__/:/ /:/\\:\\ \\__\\/\\:\\__  /__/:/ \\__\\:\\ \n"
-printf " \\  \\:\\/:/ /:/ \\  \\:\\ /  /:/ \\  \\:\\/:/~/:/    \\  \\:\\/\\ \\  \\:\\ /  /:/ \n"
-printf "  \\  \\::/ /:/   \\  \\:\\  /:/   \\  \\::/ /:/      \\__\\::/  \\  \\:\\  /:/ \n"
-printf "   \\  \\:\\/:/     \\  \\:\\/:/     \\__\\/ /:/       /__/:/    \\  \\:\\/:/ \n"
-printf "    \\  \\::/       \\  \\::/        /__/:/        \\__\\/      \\  \\::/ \n"
-printf "     \\__\\/         \\__\\/         \\__\\/                     \\__\\/ \n\n${txtrst}"
+printf "      ___                       ___                 \n"
+printf "     /\\__\\                     /\\  \\            \n"
+printf "    /:/ _/_       ___         /::\\  \\             \n"
+printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
+printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
+printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
+printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
+printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
+printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
+printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
+printf "     \\/__/         \\/__/       \\/__/             \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n"${txtrst}"
 
 printf "==============================================================================================\\n"
-printf "EOSIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
-printf "If you need to, you can fully uninstall using eosio_uninstall.sh && scripts/clean_old_install.sh.\\n"
+printf "FIOIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
+printf "If you need to, you can fully uninstall using fioio_uninstall.sh && scripts/clean_old_install.sh.\\n"
 printf "==============================================================================================\\n\\n"
 
-printf "EOSIO website: https://eos.io\\n"
-printf "EOSIO resources: https://eos.io/resources/\\n"
-printf "EOSIO Stack Exchange: https://eosio.stackexchange.com\\n"
+printf "For more information:\\n"
+printf "FIOIO website: https://fio.foundation\\n"
+printf "\\tFIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
+printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
