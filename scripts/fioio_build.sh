@@ -304,7 +304,7 @@ printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
 printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
 printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
 printf "     \\/__/         \\/__/       \\/__/             \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n"${txtrst}"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
 
 printf "\\nFIOIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
 printf "==============================================================================================\\n${bldred}"
@@ -317,4 +317,3 @@ printf "For more information:\\n"
 printf "FIOIO website: https://fio.foundation\\n"
 printf "\\tFIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
 printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
-
