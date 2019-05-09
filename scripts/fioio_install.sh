@@ -81,7 +81,7 @@ printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
 printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
 printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
 printf "     \\/__/         \\/__/       \\/__/             \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n"${txtrst}"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
 
 printf "==============================================================================================\\n"
 printf "FIOIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
@@ -90,5 +90,5 @@ printf "========================================================================
 
 printf "For more information:\\n"
 printf "FIOIO website: https://fio.foundation\\n"
-printf "\\tFIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
+printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n"
 printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"

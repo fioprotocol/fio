@@ -3,8 +3,8 @@
 pkill nodeos
 
 echo $'Deleting Logs...\n'
-rm -rf node1.txt
-rm -rf node2.txt
+rm -rf ../node1.txt
+rm -rf ../node2.txt
 rm -rf ../walletkey.ini
 
 cd ~/opt/eosio/bin
