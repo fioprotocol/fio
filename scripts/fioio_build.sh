@@ -292,7 +292,7 @@ cd $REPO_ROOT
 
 TIME_END=$(( $(date -u +%s) - $TIME_BEGIN ))
 
-printf "${bldred}\n\n _______  _______  _______ _________ _______\n"
+printf "${bldred}\n"
 printf "      ___                       ___                 \n"
 printf "     /\\__\\                     /\\  \\            \n"
 printf "    /:/ _/_       ___         /::\\  \\             \n"

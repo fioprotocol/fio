@@ -67,9 +67,20 @@ if ! make install; then
    printf "\\nMAKE installing FIOIO has exited with the above error.\\n\\n"
    exit -1
 fi
-popd &> /dev/null 
+popd &> /dev/null
 
-printf "\n${bldred}      ___           ___           ___                       ___\n"
+if hash eosio-cpp 2>/dev/null; then
+    echo $'Restart Detected\n\n'
+else
+    cd ../
+    git clone https://github.com/dapixio/cdt
+    cd cdt
+    git submodule update --init --recursive
+    ./build.sh
+    sudo ./install.sh
+fi
+
+printf "\n${bldred}\n"
 printf "      ___                       ___                 \n"
 printf "     /\\__\\                     /\\  \\            \n"
 printf "    /:/ _/_       ___         /::\\  \\             \n"
