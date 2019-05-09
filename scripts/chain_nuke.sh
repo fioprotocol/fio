@@ -9,7 +9,6 @@ rm -rf ../walletkey.ini
 
 cd ~/opt/eosio/bin
 echo $'Deleting Node Data...\n'
-if [ -d ~/opt/eosio/bin/node2 ]; then rm -rf ~/opt/eosio/bin/node2; fi # Mac OS
 if [ -d ~/node2 ]; then rm -rf ~/node2; fi # Mac OS
 
 echo $'Deleting Chain Data...\n'
