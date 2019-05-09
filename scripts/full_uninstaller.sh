@@ -2,7 +2,7 @@
 ANSWER=0
 if [[ $1 =~ force-* ]]; then FORCED=1; else FORCED=0; fi
 if [ -d "/usr/local/include/eosio" ] || [ -d "$HOME/opt/eosio" ] || [ $FORCED == 1 ]; then # use force for running the script directly
-   printf "\nEOSIO installation (AND DEPENDENCIES) already found...\n"
+   printf "\nFIOIO installation (AND DEPENDENCIES) already found...\n"
    if [ $1 == 0 ]; then
       read -p "Do you wish to remove them? (this includes dependencies)? (y/n) " ANSWER
    elif [ $1 == 1 ] || [ $FORCED == 1 ]; then
