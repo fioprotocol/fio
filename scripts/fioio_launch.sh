@@ -34,67 +34,62 @@ if [ $mChoice == 2 ]; then
     pwd
     cd ../fio.contracts
     ./build.sh
-fi
 
-#Fio Name Directory Check
-if [ -f ../fio.contracts/build/contracts/fio.name/fio.name.wasm ]; then
-    echo 'No wasm file found at $PWD/build/contracts/fio.name'
-    read -p 'Path to Fio Name Contract Folder: ' fio_contract_name_path
-else
-    fio_contract_name_path="$PWD/build/contracts/fio.name"
+    exit -1
 fi
-
-#Fio fee Directory Check
-if [ -f ../fio.contracts/build/contracts/fio.fee/fio.fee.wasm ]; then
-    echo 'No wasm file found at $PWD/build/contracts/fio.fee'
-    read -p 'Path to Fio Name Contract Folder: ' fio_fee_name_path
-else
-    fio_fee_name_path="$PWD/build/contracts/fio.fee"
-fi
-
-#Fio request obt Directory Check
-if [ -f ../fio.contracts/build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
-    echo 'No wasm file found at $PWD/build/contracts/fio.request.obt'
-    read -p 'Path to Fio request obt Contract Folder: ' fio_request_obt_path
-else
-    fio_request_obt_path="$PWD/build/contracts/fio.request.obt"
-fi
-
-#Fio Finance Directory Check
-if [ -f ../fio.contracts/build/contracts/fio.finance/fio.finance.wasm ]; then
-    echo 'No wasm file found at $PWD/build/contracts/fio.finance'
-    read -p 'Path to Fio Finance Contract Folder: ' fio_finance_contract_name_path
-else
-    fio_finance_contract_name_path="$PWD/build/contracts/fio.finance"
-fi
-
-#EOSIO Directory Check
-if [ -f ../fio.contracts/build/contracts/eosio.bios/eosio.bios.wasm ]; then
-    echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
-    read -p 'Path to EOSIO.Token Contract Folder: ' eosio.bios_contract_name_path
-else
-    eosio_bios_contract_name_path="$PWD/build/contracts/eosio.bios"
-fi
-
-if [ -f ../fio.contracts/build/contracts/eosio.token/eosio.token.wasm ]; then
-    echo 'No wasm file found at $PWD/build/contracts/eosio.token'
-    read -p 'Path to EOSIO.Token Contract Folder: ' eosio.token_contract_name_path
-else
-    eosio_token_contract_name_path="$PWD/build/contracts/eosio.token"
-fi
-
-cd ~/opt/eosio/bin
 
 if [ $mChoice == 1 ]; then
+    #EOSIO Directory Check
+    if [ -f ../fio.contracts/build/contracts/eosio.bios/eosio.bios.wasm ]; then
+        eosio_bios_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.bios"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
+    fi
+
+    if [ -f ../fio.contracts/build/contracts/eosio.token/eosio.token.wasm ]; then
+        eosio_token_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.token"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/eosio.token'
+    fi
+    #Fio Name Directory Check
+    if [ -f ../fio.contracts/build/contracts/fio.name/fio.name.wasm ]; then
+        fio_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.name"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/fio.name'
+    fi
+
+    #Fio fee Directory Check
+    if [ -f ../fio.contracts/build/contracts/fio.fee/fio.fee.wasm ]; then
+        fio_fee_name_path="$PWD/../fio.contracts/build/contracts/fio.fee"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/fio.fee'
+    fi
+
+    #Fio request obt Directory Check
+    if [ -f ../fio.contracts/build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
+        fio_request_obt_path="$PWD/../fio.contracts/build/contracts/fio.request.obt"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/fio.request.obt'
+    fi
+
+    #Fio Finance Directory Check
+    if [ -f ../fio.contracts/build/contracts/fio.finance/fio.finance.wasm ]; then
+        fio_finance_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.finance"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/fio.finance'
+    fi
+
+    sleep 2s
+    cd ~/opt/eosio/bin
 
     if [ ! -f $oldpath/../walletkey.ini ]; then
-        ./keosd --config-dir ~/eosio-wallet --wallet-dir ~/eosio-wallet --http-server-address localhost:8879 --http-alias localhost:8900 > ~/eosio-wallet/stdout.log 2> ~/eosio-wallet/stderr.log &
+        #./keosd --config-dir ~/eosio-wallet --wallet-dir ~/eosio-wallet --http-server-address localhost:8879 --http-alias localhost:8900 > ~/eosio-wallet/stdout.log 2> ~/eosio-wallet/stderr.log &
         ./cleos wallet create -n fio -f $oldpath/../walletkey.ini
     else
         walletkey=$(head -n 1 $oldpath/../walletkey.ini)
         echo 'Using Password:' $walletkey
         sleep 2s
-        ./keosd --config-dir ~/eosio-wallet --wallet-dir ~/eosio-wallet --http-server-address localhost:8879 --http-alias localhost:8900 > ~/eosio-wallet/stdout.log 2> ~/eosio-wallet/stderr.log &
+        #./keosd --config-dir ~/eosio-wallet --wallet-dir ~/eosio-wallet --http-server-address localhost:8879 --http-alias localhost:8900 > ~/eosio-wallet/stdout.log 2> ~/eosio-wallet/stderr.log &
         ./cleos wallet unlock -n fio --password $walletkey
     fi
 
