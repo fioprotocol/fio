@@ -3532,12 +3532,12 @@ void read_write::add_pub_address (const read_write::add_pub_address_params &para
 }
 
 /***
- * transfer_tokens - Transfers FIO tokens from actor to fio pub address
+ * transfer_tokens_pub_key - Transfers FIO tokens from actor to fio pub address
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
-void read_write::transfer_tokens(const read_write::transfer_tokens_params &params,
-                                  next_function<read_write::transfer_tokens_results> next) {
+void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_key_params &params,
+                                  next_function<read_write::transfer_tokens_pub_key_results> next) {
     try {
 
         auto trx = std::make_shared<packed_transaction>();
@@ -3548,7 +3548,7 @@ void read_write::transfer_tokens(const read_write::transfer_tokens_params &param
         transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
         name fiosystem = N(fio.system);
 
-        dlog("transfer_tokens called");
+        dlog("transfer_tokens_pub_key called");
         try {
             abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
         } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
@@ -3568,14 +3568,14 @@ void read_write::transfer_tokens(const read_write::transfer_tokens_params &param
                       } catch (chain::abi_exception &) {
                           output = *trx_trace_ptr;
                       }
-                      next(read_write::transfer_tokens_results{id, output});
+                      next(read_write::transfer_tokens_pub_key_results{id, output});
                   } CATCH_AND_CALL(next);
               }
           });
     } catch (const boost::interprocess::bad_alloc &) {
         chain_plugin::handle_db_exhaustion();
     } CATCH_AND_CALL(next);
-} // transfer tokens
+} // transfer_tokens_pub_key
 
 
 

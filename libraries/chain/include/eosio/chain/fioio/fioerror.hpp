@@ -60,6 +60,7 @@ namespace fioio {
     constexpr auto ErrorEndpointNotFound =   ident | httpDataError | 127;   // Fee endpoint not found.
     constexpr auto ErrorNoEndpoint =                ident | httpDataError | 128; // No endpoint specified.
     constexpr auto ErrorNoFeesFoundForEndpoint =    ident | httpDataError | 129; // No Fees found for endpoint
+    constexpr auto ErrorMaxFeeExceeded =                ident | httpDataError | 130; // max fee exceeded.
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values

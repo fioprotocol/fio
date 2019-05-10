@@ -42,24 +42,28 @@ static constexpr uint64_t string_to_uint64_t( const char* str ) {
 
     uint32_t len = 0;
     while( str[len] ) ++len;
-
+    
     uint64_t value = 0;
-
-    for( uint32_t i = 0; i <= 12; ++i ) {
+    uint64_t multv = 0;
+    if (len > 0) {
+        multv = 60 / len;
+    }
+    
+    for( uint32_t i = 0; i < len; ++i ) {
         uint64_t c = 0;
-        if( i < len && i <= 12 ) c = uint64_t(str[i]);
-
-        if( i < 12 ) {
+        if( i < len ) c = uint64_t(str[i]);
+        
+        if( i < 60 ) {
             c &= 0x1f;
-            c <<= 64-5*(i+1);
+            c <<= 64-multv*(i+1);
         }
         else {
             c &= 0x0f;
         }
-
+        
         value |= c;
     }
-
+    
     return value;
 }
 
