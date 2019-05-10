@@ -21,3 +21,4 @@
 [submodule "fio.contracts"]
 	path = fio.contracts
 	url = https://github.com/dapixio/fio.contracts
+	branch = master
