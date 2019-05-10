@@ -33,7 +33,7 @@ namespace fioio {
         fiosystemActions.push_back("addaddress");
         fiosystemActions.push_back("bind2eosio");
         //fio.token actions
-        fioTokenActions.push_back("transferfio");
+        fioTokenActions.push_back("trnsfiopubky");
         //fio.finance actions
         fioFinanceActions.push_back("requestfunds");
 
