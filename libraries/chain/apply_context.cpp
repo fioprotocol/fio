@@ -37,6 +37,7 @@ void apply_context::exec_one( action_trace& trace )
    r.receiver         = receiver;
    r.act_digest       = digest_type::hash(act);
 
+
    trace.trx_id = trx_context.id;
    trace.block_num = control.pending_block_state()->block_num;
    trace.block_time = control.pending_block_time();
@@ -76,7 +77,7 @@ void apply_context::exec_one( action_trace& trace )
       finalize_trace( trace, start );
       throw;
    }
-
+   r.response =        _response;
    r.global_sequence  = next_global_sequence();
    r.recv_sequence    = next_recv_sequence( receiver );
 
