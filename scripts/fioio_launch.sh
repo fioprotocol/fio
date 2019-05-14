@@ -58,26 +58,7 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/fio.name'
     fi
 
-    #Fio fee Directory Check
-    if [ -f ../fio.contracts/build/contracts/fio.fee/fio.fee.wasm ]; then
-        fio_fee_name_path="$PWD/../fio.contracts/build/contracts/fio.fee"
-    else
-        echo 'No wasm file found at $PWD/build/contracts/fio.fee'
-    fi
 
-    #Fio request obt Directory Check
-    if [ -f ../fio.contracts/build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
-        fio_request_obt_path="$PWD/../fio.contracts/build/contracts/fio.request.obt"
-    else
-        echo 'No wasm file found at $PWD/build/contracts/fio.request.obt'
-    fi
-
-    #Fio Finance Directory Check
-    if [ -f ../fio.contracts/build/contracts/fio.finance/fio.finance.wasm ]; then
-        fio_finance_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.finance"
-    else
-        echo 'No wasm file found at $PWD/build/contracts/fio.finance'
-    fi
 
     sleep 2s
     cd ~/opt/eosio/bin
@@ -146,13 +127,7 @@ if [ $mChoice == 1 ]; then
 
     #Bind FIO.NAME Contract to Chain
     ./cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
-    #Bind fio.finance Contract to Chain
-    ./cleos -u http://localhost:8889 set contract -j fio.finance $fio_finance_contract_name_path fio.finance.wasm fio.finance.abi --permission fio.finance@active
-    #Bind fio.request.obt Contract to Chain
-    ./cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_request_obt_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
-    #Bind fio.fee Contract to Chain
-    ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
-    #Bind EOSIO.Token Contract to Chain
+
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
     ./cleos -u http://localhost:8889 set contract fio.token $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
 
@@ -187,42 +162,20 @@ if [ $mChoice == 1 ]; then
       ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
     fi
 
-    #create fees for the fio protocol
-    echo "creating fees"
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-    ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
 
     echo setting accounts
     sleep 1
     dom=1
 
-    function chkdomain ()
-    {
-        ./cleos  -u http://localhost:8889 get table fio.system fio.system domains | grep -q $1
-        dom=$?
-    }
-
     retries=3
-    chkdomain "dapix"
-    ./cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"dapix","actor":"fio.system"}' --permission fio.system@active
+
+    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"1","actor":"fio.system"}' --permission fio.system@active
 
     sleep 1
-    chkdomain "dapix"
-    if [ $dom -eq 0 ]; then
-        echo dapix exists
-    else
-        echo failed to register dapix
-    fi
 
     #Create Account Name
-    ./cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"casey.dapix","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
-    ./cleos -u http://localhost:8889 push action -j fio.system registername '{"fioname":"adam.dapix","actor":"htjonrkf1lgs"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey.dapix","owner_fio_public_key":"","max_fee":"1","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam.dapix","owner_fio_public_key":"","max_fee":"1","actor":"htjonrkf1lgs"}' --permission htjonrkf1lgs@active
 
 elif [ $mChoice == 3 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
