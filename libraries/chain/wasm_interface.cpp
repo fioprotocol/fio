@@ -1797,7 +1797,7 @@ REGISTER_INTRINSICS(action_api,
    (read_action_data,       int(int, int)  )
    (action_data_size,       int()          )
    (current_receiver,   int64_t()          )
-   (send_response,          int()          )
+   (send_response,          void(int)      )
 );
 
 REGISTER_INTRINSICS(authorization_api,
