@@ -968,6 +968,11 @@ class action_api : public context_aware_api {
       name current_receiver() {
          return context.receiver;
       }
+
+      void send_response(null_terminated_ptr response) {
+      context.set_response(response);
+    }
+
 };
 
 class console_api : public context_aware_api {
@@ -1792,6 +1797,7 @@ REGISTER_INTRINSICS(action_api,
    (read_action_data,       int(int, int)  )
    (action_data_size,       int()          )
    (current_receiver,   int64_t()          )
+   (send_response,          int()          )
 );
 
 REGISTER_INTRINSICS(authorization_api,
