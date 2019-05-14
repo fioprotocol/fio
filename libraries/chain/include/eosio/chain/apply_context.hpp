@@ -608,7 +608,7 @@ class apply_context {
       vector<action>                      _cfa_inline_actions; ///< queued inline messages
       std::ostringstream                  _pending_console_output;
       flat_set<account_delta>             _account_ram_deltas; ///< flat_set of account_delta so json is an array of objects
-      std::string_to_public_key           _response;
+      std::string                        _response;
       //bytes                               _cached_trx;
 };
 
