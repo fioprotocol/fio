@@ -58,6 +58,12 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/fio.name'
     fi
 
+    if [ -f ../fio.contracts/build/contracts/fio.fee/fio.fee.wasm ]; then
+        fio_fee_name_path="$PWD/../fio.contracts/build/contracts/fio.fee"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/fio.fee'
+    fi
+
 
 
     sleep 2s
@@ -128,6 +134,8 @@ if [ $mChoice == 1 ]; then
     #Bind FIO.NAME Contract to Chain
     ./cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
 
+
+    ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
     ./cleos -u http://localhost:8889 set contract fio.token $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
 
@@ -144,6 +152,37 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
     ./cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
     ./cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.000000000 FIO","memo"]' -p eosio@active
+
+    if [ $restartneeded == 0 ]; then
+
+          # Setup permissions for inline actions in the
+                echo Setting up inline permissions
+                echo Adding eosio code to fio.token and fio.system.
+                # Reference: https://github.com/EOSIO/eos/issues/4348#issuecomment-400562839
+                # Reference: https://developers.eos.io/eosio-home/docs/inline-actions
+                cleos -u http://localhost:8889 set account permission fio.token active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.token","permission":"eosio.code"},"weight":1}]}}' owner -p fio.token@owner
+                #make the fio.token into a privileged account
+                cleos -u http://localhost:8889 push action eosio setpriv '["fio.token",1]' -p eosio@active
+                cleos -u http://localhost:8889 set account permission fio.system active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.system","permission":"eosio.code"},"weight":1}]}}' owner -p fio.system@owner
+                #make the fio.system into a privileged account
+                cleos -u http://localhost:8889 push action eosio setpriv '["fio.system",1]' -p eosio@active
+                cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
+                #make the fio.reqobt into a privileged account
+                cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
+    fi
+
+    #create fees for the fio protocol
+     echo "creating fees"
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+
+
 
     if [ $restartneeded == 0 ]; then
       # Setup permissions for inline actions in the
