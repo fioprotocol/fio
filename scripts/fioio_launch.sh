@@ -208,7 +208,7 @@ if [ $mChoice == 1 ]; then
 
     retries=3
 
-    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"1","actor":"fio.system"}' --permission fio.system@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"1","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
 
     sleep 1
 
