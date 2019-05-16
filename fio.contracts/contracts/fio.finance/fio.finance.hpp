@@ -77,7 +77,7 @@ namespace fioio {
         uint64_t fioappid;  // key to trxcontext table
         uint16_t type;      // log message of type ${trx_type}
         uint16_t status;    // status message of type ${trx_sts}
-        time time;          // transaction received (by blockchain) time
+        uint32_t time;          // transaction received (by blockchain) time
         string data;        // data binding specific to transaction type. Defined in ${FioFinance::trx_type_dta_*} variables
 
         uint64_t primary_key() const    { return key; }
