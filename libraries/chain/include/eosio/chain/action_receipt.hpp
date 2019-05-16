@@ -13,6 +13,7 @@ namespace eosio { namespace chain {
     */
    struct action_receipt {
       account_name                    receiver;
+      string                          response;
       digest_type                     act_digest;
       uint64_t                        global_sequence = 0; ///< total number of actions dispatched since genesis
       uint64_t                        recv_sequence   = 0; ///< total number of actions with this receiver since genesis
@@ -25,4 +26,4 @@ namespace eosio { namespace chain {
 
 } }  /// namespace eosio::chain
 
-FC_REFLECT( eosio::chain::action_receipt, (receiver)(act_digest)(global_sequence)(recv_sequence)(auth_sequence)(code_sequence)(abi_sequence) )
+FC_REFLECT( eosio::chain::action_receipt, (receiver)(response)(act_digest)(global_sequence)(recv_sequence)(auth_sequence)(code_sequence)(abi_sequence) )

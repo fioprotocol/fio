@@ -18,7 +18,7 @@
 [submodule "libraries/yubihsm"]
 	path = libraries/yubihsm
 	url = https://github.com/Yubico/yubihsm-shell
+
 [submodule "fio.contracts"]
 	path = fio.contracts
 	url = https://github.com/dapixio/fio.contracts
-	branch = master
