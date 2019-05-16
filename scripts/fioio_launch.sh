@@ -35,6 +35,13 @@ if [ $mChoice == 2 ]; then
     cd ../fio.contracts
     ./build.sh
 
+      #ED commented out this is temp dev stuff used until we get abi generation to work
+      #echo COPYING ABI FILES FROM ./abistaging to ./build/contracts!
+        #cp ./abistaging/fio.fee.abi ./build/contracts/fio.fee/fio.fee.abi
+        #cp ./abistaging/fio.name.abi ./build/contracts/fio.name/fio.name.abi
+        #cp ./abistaging/fio.request.obt.abi ./build/contracts/fio.request.obt/fio.request.obt.abi
+
+
     exit -1
 fi
 
@@ -63,6 +70,14 @@ if [ $mChoice == 1 ]; then
     else
         echo 'No wasm file found at $PWD/build/contracts/fio.fee'
     fi
+
+    # Ed commented out, this will get uncommented when fio.reqobt is working in the migration.
+    #if [ -f ../fio.contracts/build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
+            #fio_reqobt_name_path="$PWD/../fio.contracts/build/contracts/fio.request.obt"
+        #else
+            #echo 'No wasm file found at $PWD/build/contracts/fio.request.obt'
+        #fi
+
 
 
 
@@ -133,11 +148,14 @@ if [ $mChoice == 1 ]; then
 
     #Bind FIO.NAME Contract to Chain
     ./cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
+    # Ed commented out, will be uncommented when fio.reqobt is working in the migration
+    #./cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_reqobt_name_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
 
 
     ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
     ./cleos -u http://localhost:8889 set contract fio.token $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+
 
     #Create the hashed accounts
     if [ $restartneeded == 0 ]; then
@@ -166,9 +184,11 @@ if [ $mChoice == 1 ]; then
                 cleos -u http://localhost:8889 set account permission fio.system active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.system","permission":"eosio.code"},"weight":1}]}}' owner -p fio.system@owner
                 #make the fio.system into a privileged account
                 cleos -u http://localhost:8889 push action eosio setpriv '["fio.system",1]' -p eosio@active
-                cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
+
+                #Ed commented out will be uncommented when fio.reqobt is working
+                #cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
                 #make the fio.reqobt into a privileged account
-                cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
+                #cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
     fi
 
     #create fees for the fio protocol
@@ -184,22 +204,7 @@ if [ $mChoice == 1 ]; then
 
 
 
-    if [ $restartneeded == 0 ]; then
-      # Setup permissions for inline actions in the
-      echo Setting up inline permissions
-      echo Adding eosio code to fio.token and fio.system.
-      # Reference: https://github.com/EOSIO/eos/issues/4348#issuecomment-400562839
-      # Reference: https://developers.eos.io/eosio-home/docs/inline-actions
-      ./cleos -u http://localhost:8889 set account permission fio.token active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.token","permission":"eosio.code"},"weight":1}]}}' owner -p fio.token@owner
-      #make the fio.token into a privileged account
-      ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.token",1]' -p eosio@active
-      ./cleos -u http://localhost:8889 set account permission fio.system active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.system","permission":"eosio.code"},"weight":1}]}}' owner -p fio.system@owner
-      #make the fio.system into a privileged account
-      ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.system",1]' -p eosio@active
-      ./cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
-      #make the fio.reqobt into a privileged account
-      ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
-    fi
+
 
 
     echo setting accounts
