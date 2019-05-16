@@ -10,9 +10,6 @@
 #include <eosiolib/asset.hpp>
 #include "fio.finance.hpp"
 #include <fio.common/fio.common.hpp>
-#include <eosio/native/intrinsics.hpp>
-
-#include <sstream>
 
 namespace fioio {
 

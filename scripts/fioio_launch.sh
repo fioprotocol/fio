@@ -40,6 +40,7 @@ if [ $mChoice == 2 ]; then
         #cp ./abistaging/fio.fee.abi ./build/contracts/fio.fee/fio.fee.abi
         #cp ./abistaging/fio.name.abi ./build/contracts/fio.name/fio.name.abi
         #cp ./abistaging/fio.request.obt.abi ./build/contracts/fio.request.obt/fio.request.obt.abi
+        #cp ./abistaging/fio.request.obt.abi ./build/contracts/fio.finance/fio.finance.abi
 
 
     exit -1
@@ -71,15 +72,18 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/fio.fee'
     fi
 
+    if [ -f ../fio.contracts/build/contracts/fio.finance/fio.finance.wasm ]; then
+        fio_fee_name_path="$PWD/../fio.contracts/build/contracts/fio.fee"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/fio.fee'
+    fi
+
     # Ed commented out, this will get uncommented when fio.reqobt is working in the migration.
     #if [ -f ../fio.contracts/build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
             #fio_reqobt_name_path="$PWD/../fio.contracts/build/contracts/fio.request.obt"
         #else
             #echo 'No wasm file found at $PWD/build/contracts/fio.request.obt'
         #fi
-
-
-
 
     sleep 2s
     cd ~/opt/eosio/bin
@@ -201,11 +205,6 @@ if [ $mChoice == 1 ]; then
         cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
         cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
         cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-
-
-
-
-
 
     echo setting accounts
     sleep 1
