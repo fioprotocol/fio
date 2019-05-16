@@ -72,8 +72,9 @@ popd &> /dev/null
 if hash eosio-cpp 2>/dev/null; then
     echo $'Restart Detected\n\n'
 else
-    cd ../
+    cd ../../
     git clone https://github.com/dapixio/cdt
+    sleep 2s
     cd cdt
     git submodule update --init --recursive
     ./build.sh
