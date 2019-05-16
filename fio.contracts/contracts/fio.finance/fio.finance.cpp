@@ -9,6 +9,8 @@
 
 #include <eosiolib/asset.hpp>
 #include "fio.finance.hpp"
+#include <fio.common/fio.common.hpp>
+#include <eosio/native/intrinsics.hpp>
 
 #include <sstream>
 
@@ -32,9 +34,14 @@ namespace fioio {
         const string trx_type_dta_REQ_REJECT = R"({"memo":"%s"})";                   // ${trx_type::REQ_REJECT}
 
     public:
-        explicit FioFinance(account_name self)
-                : contract(self), contract_state(self, self), transaction_contexts(self, self),
-                  transaction_logs(self, self), pending_requests(self, self), processed_requests(self, self) {}
+        using contract::contract;
+
+        explicit FioFinance(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
+                                                                              contract_state(_self, _self.value),
+                                                                              transaction_contexts(_self, _self.value),
+                                                                              transaction_logs(_self, _self.value),
+                                                                              pending_requests(_self, _self.value),
+                                                                              processed_requests(_self, _self.value) {}
 
         // generic function to construct Fio log data string.
         inline static std::string trxlogformat(const std::string format, ...) {
@@ -53,6 +60,7 @@ namespace fioio {
          * Requestor initiates funds request.
          */
         // @abi action
+        [[eosio::action]]
         void requestfunds(uint64_t requestid, const name &requestor, const name &requestee, const string &chain,
                           const string &asset, const string quantity, const string &memo) {
             print("..Validating authority ", requestor);
@@ -65,7 +73,7 @@ namespace fioio {
 
             // Validate requestid is unique for this user
             print("..Validating requestid uniqueness");
-            auto idx = pending_requests.get_index<N(byrequestid)>();
+            auto idx = pending_requests.get_index<"byrequestid"_n>();
             auto matchingItem = idx.lower_bound(requestid);
 
             // Advance to the first entry matching the specified requestid and from
@@ -128,13 +136,14 @@ namespace fioio {
          * Requestor cancel pending funds request
          */
         // @abi action
+        [[eosio::action]]
         void cancelrqst(uint64_t requestid, const name &requestor, const string memo) {
             print("..Validating authority ", requestor);
             require_auth(requestor); // we need requesters authorization
 
             print("..Validating pending request exists. Request id: ", requestid);
             // validate a pending request exists for this requester with this requestid
-            auto idx = pending_requests.get_index<N(byrequestid)>();
+            auto idx = pending_requests.get_index<"byrequestid"_n>();
             auto matchingItem = idx.lower_bound(requestid);
 
             // Advance to the first entry matching the specified vID
@@ -173,6 +182,7 @@ namespace fioio {
          * Requestee reports(approve) pending funds request
          */
         // @abi action
+        [[eosio::action]]
         void reportrqst(const uint64_t fioappid, const name &requestee, const string &obtid, const string memo) {
             print("..Validating authority ", requestee);
             require_auth(requestee); // we need requesters authorization
@@ -209,6 +219,7 @@ namespace fioio {
          * Requestee reject pending funds request
          */
         // @abi action
+        [[eosio::action]]
         void rejectrqst(uint64_t fioappid, const name &requestee, const string &memo) {
             print("..Validating authority ", requestee);
             require_auth(requestee); // we need requesters authorization
@@ -243,5 +254,6 @@ namespace fioio {
 
     }; // class FioFinance
 
-    EOSIO_ABI(FioFinance, (requestfunds)(cancelrqst)(reportrqst)(rejectrqst))
+    EOSIO_DISPATCH(FioFinance, (requestfunds)(cancelrqst)(reportrqst)
+    (rejectrqst))
 }
