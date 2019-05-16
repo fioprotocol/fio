@@ -1,14 +1,22 @@
 #!/bin/bash
 
 # Script to sign and pack a transaction.
+#ACCOUNT r41zuwovtn44   --casey.dapix
+#OWNER KEYS
+#PUBLIC EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
+#PRIVATE 5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF
 
+#ACCOUNT htjonrkf1lgs    -- adam.dapix
+#OWNER KEYS
+#PUBLIC EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
+#PRIVATE 5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz
 
 nPort=8889
 wPort=9899
 hostname="localhost"
 
 if [ -z "$1" ]; then
-    domain="adam.dapix"
+    domain="casey.dapix"
 else
     domain=$1
 fi
@@ -25,12 +33,13 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 dataJson="{
   \"payee_public_key\": \"EOS6ZnHNENybLCe6n221dgTbEYgizrWG4NGot6h5cdtPk5XXjxtez\",
-  \"amount\": \"100.0000\",
+  \"amount\": \"100000000000\",
+  \"max_fee\":\"000000000\",
   \"actor\": \"${fioactor}\"
 }"
 
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.token transferfio '${dataJson}'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.token trnsfiopubky '${dataJson}'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -74,7 +83,7 @@ unsignedRequest='{
     "context_free_actions": [],
     "actions": [{
         "account":"fio.token",
-        "name": "transferfio"
+        "name": "trnsfiopubky"
         "authorization":[{
              "actor":"'${fioactor}'",
              "permission":"active"

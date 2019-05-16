@@ -18,17 +18,18 @@ echo ------------------------------------------
 
 fiopubkey="EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
 
-fioactor=`~/opt/eosio/bin/cleos convert fiokey_to_account $fiopubkey`
+fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 #NOTE -- set the owner_fio_public_key to "" to have the owner be the account that is signing the TX
 echo ------------------------------------------
 dataJson="{
-  \"fio_name\": \"${domain}\",
+  \"fio_domain\": \"${domain}\",
   \"actor\": \"${fioactor}\",
+  \"max_fee\":\"40000000000\",
   \"owner_fio_public_key\":\"EOS6vRt3FzoRJYx1dxWigXzgkbnoZXg2zAfiofh4E3eCtNvJZhvWY\"
 }"
 
 expectedPackedData=056461706978104208414933a95b
-cmd="~/opt/eosio/bin/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system registername '${dataJson}'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system regdomain '${dataJson}'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -36,7 +37,7 @@ echo PACKED DATA: $actualPackedData
 if [[ $ret != 0 ]]; then  exit $ret; fi
 echo ------------------------------------------
 
-headBlockTime=`~/opt/eosio/bin/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep head_block_time | awk '{print substr($2,2,length($2)-3)}'`
+headBlockTime=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep head_block_time | awk '{print substr($2,2,length($2)-3)}'`
 echo HEAD BLOCK TIME: $headBlockTime
 
 cmd="date -d \"+1 hour $headBlockTime\" \"+%FT\"%T"
@@ -47,16 +48,16 @@ echo CMD: $cmd
 expirationStr=`eval $cmd`
 echo EXPIRATION: $expirationStr
 
-cmd="~/opt/eosio/bin/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep last_irreversible_block_num | grep -o '[0-9]\+'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep last_irreversible_block_num | grep -o '[0-9]\+'"
 echo CMD: $cmd
 lastIrreversibleBlockNum=`eval $cmd`
 #lastIrreversibleBlockNum=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get info | grep last_irreversible_block_num | grep -o '[[:digit:]]*'`
 echo LAST IRREVERSIBLE BLOCK NUM: $lastIrreversibleBlockNum
 
-cmd="~/opt/eosio/bin/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[0-9]\+'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[0-9]\+'"
 echo CMD: $cmd
 refBlockPrefix=`eval $cmd`
-#refBlockPrefix=`~/opt/eosio/bin/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[[:digit:]]*'`
+#refBlockPrefix=`programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort get block $lastIrreversibleBlockNum | grep -m 1 -e ref_block_prefix | grep -o '[[:digit:]]*'`
 echo REF BLOCK PREFIX: $refBlockPrefix
 echo ------------------------------------------
 
@@ -72,7 +73,7 @@ unsignedRequest='{
     "context_free_actions": [],
     "actions": [{
         "account":"fio.system",
-        "name": "registername"
+        "name": "regdomain"
         "authorization":[{
              "actor":"'${fioactor}'",
              "permission":"active"
@@ -94,7 +95,7 @@ expectedSignedRequest='{
 "context_free_data":[]}'
 
 
-cmd="~/opt/eosio/bin/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k 5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF"
+cmd="./programs/cleos/cleos --no-auto-keosd --url http://localhost:8889  --wallet-url http://localhost:9899 sign '$unsignedRequest' -k 5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF"
 echo CMD: $cmd
 actualSignedResponse=`eval $cmd`
 ret=$?
@@ -112,7 +113,7 @@ expectedPackedResponse='{
     "packed_trx": "46c8125c8d00783accd500000000010000000000000000a0a4995765ec98ba000c036f6369104208414933a95b00" }'
 
 
-cmd="~/opt/eosio/bin/cleos --no-auto-keosd --verbose --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort convert pack_transaction '$actualSignedResponse'"
+cmd="programs/cleos/cleos --no-auto-keosd --verbose --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort convert pack_transaction '$actualSignedResponse'"
 echo CMD: $cmd
 actualPackedResponse=`eval $cmd`
 ret=$?

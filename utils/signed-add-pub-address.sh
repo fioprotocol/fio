@@ -36,6 +36,7 @@ dataJson="{
   \"fio_address\": \"${domain}\",
   \"token_code\": \"DAI\",
   \"public_address\": \"eddie1\",
+  \"max_fee\":\"00000000100\",
   \"actor\": \"${fioactor}\"
 }"
 
