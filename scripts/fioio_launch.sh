@@ -217,7 +217,7 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam.dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs"}' --permission htjonrkf1lgs@active
 
 elif [ $mChoice == 3 ]; then
-    read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. No 2. Yes): ' bChoice
+    read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. Yes 2. No): ' bChoice
 
     if [ $bChoice == 1 ]; then
         cd $oldpath
