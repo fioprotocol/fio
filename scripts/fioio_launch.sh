@@ -73,7 +73,7 @@ if [ $mChoice == 1 ]; then
     fi
 
     if [ -f ../fio.contracts/build/contracts/fio.finance/fio.finance.wasm ]; then
-        fio_fee_name_path="$PWD/../fio.contracts/build/contracts/fio.finance"
+        fio_finance_name_path="$PWD/../fio.contracts/build/contracts/fio.finance"
     else
         echo 'No wasm file found at $PWD/build/contracts/fio.finance'
     fi
