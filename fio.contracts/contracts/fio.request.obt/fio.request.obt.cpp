@@ -13,13 +13,16 @@
 #include "../fio.fee/fio.fee.hpp"
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
-#include <eosio/chain/fioio/fioerror.hpp>
-#include <eosio/chain/fioio/fio_common_validator.hpp>
-#include <eosio/chain/fioio/chain_control.hpp>
+#include <fio.common/fioerror.hpp>
+
 
 namespace fioio {
 
-    class FioRequestObt : public contract {
+    const static name TokenContract = name("fio.token");
+
+
+
+    class [[eosio::contract("FioRequestObt")]]  FioRequestObt : public eosio::contract {
 
     private:
         fiorequest_contexts_table fiorequestContextsTable;
@@ -29,14 +32,16 @@ namespace fioio {
         config appConfig;
 
 
-        const account_name TokenContract = eosio::string_to_name(TOKEN_CONTRACT);
+
+
     public:
-        explicit FioRequestObt(account_name self)
-                : contract(self), fiorequestContextsTable(self, self),
-                fiorequestStatusTable(self, self),
-                fionames(SystemContract,SystemContract),
-                fiofees(FeeContract,FeeContract){
-            configs_singleton configsSingleton(FeeContract, FeeContract);
+        explicit FioRequestObt(name s, name code, datastream<const char*> ds)
+                : contract(s,code,ds),
+                fiorequestContextsTable(_self, _self.value),
+                fiorequestStatusTable(_self, _self.value),
+                fionames(SystemContract,SystemContract.value),
+                fiofees(FeeContract,FeeContract.value){
+            configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
 
@@ -44,11 +49,25 @@ namespace fioio {
         struct decrementcounter {
             string fio_address;
         };
+
+        int64_t stoi(const char *s) //1000000000000
+        {
+            int64_t i;
+            i = 0;
+            while(*s >= '0' && *s <= '9')
+            {
+                i = i * 10 + (*s - '0');
+                s++;
+            }
+
+            return i;
+        }
         /***
          * this action will record a send using Obt. the input json will be verified, if verification fails an exception will be thrown.
          * if verification succeeds then status tables will be updated...
          */
         // @abi action
+        [[eosio::action]]
         void recordsend(const string &payer_fio_address, const string &payee_fio_address,
                         const string &payer_public_address, const string &payee_public_address, const string &amount,
                         const string &token_code, const string status, const string obt_id, const string &metadata,
@@ -82,7 +101,7 @@ namespace fioio {
             }
 
             //check the from address, see that its a valid fio name
-            uint64_t nameHash = ::eosio::string_to_uint64_t(payer_fio_address.c_str());
+            uint64_t nameHash = string_to_uint64_hash(payer_fio_address.c_str());
             auto fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
@@ -90,22 +109,22 @@ namespace fioio {
             uint64_t account = fioname_iter->account;
 
             //check the to address, see that its a valid fio name
-            nameHash = ::eosio::string_to_uint64_t(payee_fio_address.c_str());
+            nameHash = string_to_uint64_hash(payee_fio_address.c_str());
             fioname_iter = fionames.find(nameHash);
 
             fio_400_assert(fioname_iter != fionames.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
-            account_name aactor = eosio::string_to_name(actor.c_str());
+            name aactor = name(actor.c_str());
             print("account: ", account, " actor: ", aactor, "\n");
-            fio_403_assert(account == aactor, ErrorSignature);
+            fio_403_assert(account == aactor.value, ErrorSignature);
 
 
             //begin new fees, bundle eligible fee logic
-            uint64_t endpoint_hash = string_to_uint64_t("record_send");
+            uint64_t endpoint_hash = string_to_uint64_hash("record_send");
 
-            auto fees_by_endpoint = fiofees.get_index<N(byendpoint)>();
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "record_send",
@@ -128,9 +147,9 @@ namespace fioio {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
                 action {
-                        permission_level{_self, N(active)},
-                        N(fio.system),
-                        N(decrcounter),
+                        permission_level{_self, "active"_n},
+                        "fio.system"_n,
+                        "decrcounter"_n,
                         decrementcounter {
                                 .fio_address = payer_fio_address
                         }
@@ -142,7 +161,9 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                asset reg_fee_asset = asset(fee_amount);
+                asset reg_fee_asset = asset();
+                reg_fee_asset.amount = fee_amount;
+                reg_fee_asset.symbol = symbol("FIO",9);
 
                 fio_fees(aactor, reg_fee_asset);
             }
@@ -154,13 +175,13 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        inline void fio_fees(const account_name &actor, const asset &fee) const {
+        inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
-                account_name fiosystem = eosio::string_to_name("fio.system");
+                name fiosystem = name("fio.system");
                 // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting FIO API fees: ", fee);
-                action(permission_level{actor, N(active)},
-                       TokenContract, N(transfer),
+                action(permission_level{actor, "active"_n},
+                       TokenContract, "transfer"_n,
                        make_tuple(actor, fiosystem, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
@@ -174,6 +195,7 @@ namespace fioio {
         * if verification succeeds then status tables will be updated...
         */
         // @abi action
+        [[eosio::action]]
         void newfundsreq(const string &payer_fio_address, const string &payee_fio_address,
                          const string &payee_public_address, const string &amount,
                          const string &token_code, const string &metadata, uint64_t max_fee, const string &actor) {
@@ -187,29 +209,29 @@ namespace fioio {
                            ErrorInvalidJsonInput);
 
             //check the from address, see that its a valid fio name
-            uint64_t nameHash = ::eosio::string_to_uint64_t(payer_fio_address.c_str());
+            uint64_t nameHash = string_to_uint64_hash(payer_fio_address.c_str());
             auto fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            Error400FioNameNotRegistered);
 
             //check the to address, see that its a valid fio name
-            nameHash = ::eosio::string_to_uint64_t(payee_fio_address.c_str());
+            nameHash = string_to_uint64_hash(payee_fio_address.c_str());
             fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            Error400FioNameNotRegistered);
             uint64_t account = fioname_iter->account;
 
-            account_name aActor = eosio::string_to_name(actor.c_str());
+            name aActor = name(actor.c_str());
             print("account: ", account, " actor: ", aActor, "\n");
-            fio_403_assert(account == aActor, ErrorSignature);
+            fio_403_assert(account == aActor.value, ErrorSignature);
 
             //put the thing into the table get the index.
             uint64_t id = fiorequestContextsTable.available_primary_key();
             uint64_t currentTime = now();
-            uint64_t toHash = ::eosio::string_to_uint64_t(payee_fio_address.c_str());
-            uint64_t fromHash = ::eosio::string_to_uint64_t(payer_fio_address.c_str());
+            uint64_t toHash = string_to_uint64_hash(payee_fio_address.c_str());
+            uint64_t fromHash = string_to_uint64_hash(payer_fio_address.c_str());
 
             //insert a send record into the status table using this id.
             fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
@@ -226,9 +248,9 @@ namespace fioio {
 
 
             //begin new fees, bundle eligible fee logic
-            uint64_t endpoint_hash = string_to_uint64_t("new_funds_request");
+            uint64_t endpoint_hash = string_to_uint64_hash("new_funds_request");
 
-            auto fees_by_endpoint = fiofees.get_index<N(byendpoint)>();
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "new_funds_request",
@@ -251,9 +273,9 @@ namespace fioio {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
                 action {
-                        permission_level{_self, N(active)},
-                        N(fio.system),
-                        N(decrcounter),
+                        permission_level{_self, "active"_n},
+                        "fio.system"_n,
+                        "decrcounter"_n,
                         decrementcounter {
                                 .fio_address = payee_fio_address
                         }
@@ -265,7 +287,9 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                asset reg_fee_asset = asset(fee_amount);
+                asset reg_fee_asset = asset();
+                reg_fee_asset.symbol = symbol("FIO",9);
+                reg_fee_asset.amount = fee_amount;
 
                 fio_fees(aActor, reg_fee_asset);
             }
@@ -284,6 +308,7 @@ namespace fioio {
          * before the status record is added to the index tables.
          f*/
         // @abi action
+        [[eosio::action]]
         void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor) {
             print("call new funds request\n");
 
@@ -312,9 +337,9 @@ namespace fioio {
             uint64_t account = fioname_iter->account;
             string payer_fio_address = fioname_iter->name;
 
-            account_name aactor = eosio::string_to_name(actor.c_str());
+            name aactor = name(actor.c_str());
             print("account: ", account, " actor: ", aactor, "\n");
-            fio_403_assert(account == aactor, ErrorSignature);
+            fio_403_assert(account == aactor.value, ErrorSignature);
 
             //insert a send record into the status table using this id.
             fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
@@ -327,9 +352,9 @@ namespace fioio {
 
             //begin new fees, bundle eligible fee logic
 
-            uint64_t endpoint_hash = string_to_uint64_t("reject_funds_request");
+            uint64_t endpoint_hash = string_to_uint64_hash("reject_funds_request");
 
-            auto fees_by_endpoint = fiofees.get_index<N(byendpoint)>();
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "reject_funds_request",
@@ -352,9 +377,9 @@ namespace fioio {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
                 action {
-                        permission_level{_self, N(active)},
-                        N(fio.system),
-                        N(decrcounter),
+                        permission_level{_self, "active"_n},
+                        "fio.system"_n,
+                        "decrcounter"_n,
                         decrementcounter {
                                 .fio_address = payer_fio_address
                         }
@@ -366,7 +391,9 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                asset reg_fee_asset = asset(fee_amount);
+                asset reg_fee_asset = asset();
+                reg_fee_asset.amount = fee_amount;
+                reg_fee_asset.symbol = symbol("FIO",9);
 
                 fio_fees(aactor, reg_fee_asset);
             }
@@ -378,6 +405,6 @@ namespace fioio {
         }
     };
 
-    EOSIO_ABI(FioRequestObt, (recordsend)(newfundsreq)(rejectfndreq))
+    EOSIO_DISPATCH(FioRequestObt, (recordsend)(newfundsreq)(rejectfndreq))
 }
 

@@ -12,7 +12,7 @@
 #include <string>
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
-#include <eosiolib/fio/types.hpp>
+
 
 using std::string;
 
@@ -29,7 +29,7 @@ namespace fioio {
 
     // Structure for "FIO request" context.
     // @abi table fioreqctxts i64
-    struct fioreqctxt {        // FIO funds request context; specific to requests native to FIO platform
+    struct [[eosio::action]] fioreqctxt {        // FIO funds request context; specific to requests native to FIO platform
         uint64_t fio_request_id;     // one up index starting at 0
         uint64_t payer_fio_address;  // requestee fio address of fio request
         uint64_t payee_fio_address;    // requestor fio address of the fio request
@@ -52,14 +52,14 @@ namespace fioio {
     };
 
     // FIO requests contexts table
-    typedef multi_index<N(fioreqctxts), fioreqctxt,
-            indexed_by<N(byreceiver), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver>>,
-            indexed_by<N(byoriginator), const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_originator>
+    typedef multi_index<"fioreqctxts"_n, fioreqctxt,
+            indexed_by<"byreceiver"_n, const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver>>,
+            indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_originator>
             >> fiorequest_contexts_table;
 
     // Structure for "FIO request status" updates.
     // @abi table fioreqstss i64
-    struct fioreqsts {
+    struct [[eosio::action]] fioreqsts {
         uint64_t id;             // primary key, auto-increment
         uint64_t fio_request_id;       // FIO request {fioreqctxt.fioreqid} this request status update is related to
         uint64_t status;         // request status
@@ -75,8 +75,8 @@ namespace fioio {
     };
 
     // FIO requests status table
-    typedef multi_index<N(fioreqstss), fioreqsts,
-            indexed_by<N(byfioreqid), const_mem_fun<fioreqsts, uint64_t, &fioreqsts::by_fioreqid> >
+    typedef multi_index<"fioreqstss"_n, fioreqsts,
+            indexed_by<"byfioreqid"_n, const_mem_fun<fioreqsts, uint64_t, &fioreqsts::by_fioreqid> >
     > fiorequest_status_table;
 
 }
