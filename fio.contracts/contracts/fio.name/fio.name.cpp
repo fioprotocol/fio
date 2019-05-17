@@ -78,7 +78,7 @@ namespace fioio {
                 copy_n(vch.begin(), 33, pubkey_data.begin());
 
                 capi_checksum160 check_pubkey;
-                assert_ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
+                ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
                 eosio_assert(memcmp(&check_pubkey.hash, &vch.end()[-4], 4) == 0,
                              "invalid public key");
                 //end of the public key validity check.
