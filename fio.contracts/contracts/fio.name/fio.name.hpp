@@ -112,11 +112,5 @@ namespace fioio {
 
     typedef multi_index<"eosionames"_n, eosio_name> eosio_names_table;
 
-    struct [[eosio::action]] account {
-        asset balance;
-
-    //    uint64_t primary_key() const { return balance.symbol.name(); }
-    };
-
-    typedef eosio::multi_index<"accounts"_n, account> accounts;
+  
 }
