@@ -115,9 +115,13 @@ namespace fioio {
                     const auto rbprice = rambytes_price(3 * 1024);
 
                     // Create account.
-              //      INLINE_ACTION_SENDER(eosiosystem::native, newaccount)
-              //              ("eosio"_n), {{_self, "active"_n}},
-              //               {_self, owner_account_name, owner_auth, owner_auth});
+                    action(
+                          permission_level{get_self(),"active"_n},
+                          "eosio"_n,
+                          "newaccount"_n,
+                          std::make_tuple(get_self(), owner_account_name, owner_auth, owner_auth)
+                        ).send();
+
 
                     // Buy ram for account.
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
