@@ -15,8 +15,6 @@
 [submodule "libraries/yubihsm"]
 	path = libraries/yubihsm
 	url = https://github.com/Yubico/yubihsm-shell
-
 [submodule "libraries/fc"]
 	path = libraries/fc
 	url = https://github.com/dapixio/fc
-	branch = v1.7.x
