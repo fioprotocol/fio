@@ -12,7 +12,7 @@
 namespace eosio {
     namespace nodeos {
         namespace config {
-            constexpr uint64_t version = 0x$ { nodeos_BUILD_VERSION };
+            constexpr uint64_t version = 0x${nodeos_BUILD_VERSION};
         }
     }
 }
