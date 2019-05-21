@@ -24,7 +24,7 @@ fi
 echo ------------------------------------------
 
 
-fiopubkey="EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
+fiopubkey="FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
@@ -32,7 +32,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 # use this public key for teh account exists already use case EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
 echo ------------------------------------------
 dataJson="{
-  \"payee_public_key\": \"EOS6ZnHNENybLCe6n221dgTbEYgizrWG4NGot6h5cdtPk5XXjxtez\",
+  \"payee_public_key\": \"FIO6ZnHNENybLCe6n221dgTbEYgizrWG4NGot6h5cdtPk5XXjxtez\",
   \"amount\": \"100000000000\",
   \"max_fee\":\"000000000\",
   \"actor\": \"${fioactor}\"

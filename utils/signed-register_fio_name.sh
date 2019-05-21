@@ -16,7 +16,7 @@ fi
 echo ------------------------------------------
 
 
-fiopubkey="EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
+fiopubkey="FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 #NOTE -- set the owner_fio_public_key to "" to have the owner be the account that is signing the TX
@@ -25,7 +25,7 @@ dataJson="{
   \"fio_domain\": \"${domain}\",
   \"actor\": \"${fioactor}\",
   \"max_fee\":\"40000000000\",
-  \"owner_fio_public_key\":\"EOS6vRt3FzoRJYx1dxWigXzgkbnoZXg2zAfiofh4E3eCtNvJZhvWY\"
+  \"owner_fio_public_key\":\"FIO6vRt3FzoRJYx1dxWigXzgkbnoZXg2zAfiofh4E3eCtNvJZhvWY\"
 }"
 
 expectedPackedData=056461706978104208414933a95b

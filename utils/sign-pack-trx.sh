@@ -16,7 +16,7 @@ fi
 echo ------------------------------------------
 
 if [ -z "${fiopubkey}" ]; then
-   fiopubkey="EOS5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
+   fiopubkey="FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY"
    fioprivatekey="5K2HBexbraViJLQUJVJqZc42A8dxkouCmzMamdrZsLHhUHv77jF"
 fi
 

@@ -122,7 +122,7 @@ void token::trnsfiopubky( string      payee_public_key,
    fio_400_assert(payee_public_key.length() == 53, "payee_public_key", payee_public_key,
                            "Invalid Public Key", ErrorChainAddressNotFound);
 
-    string pubkey_prefix("EOS");
+    string pubkey_prefix("FIO");
     auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
                            payee_public_key.begin());
     eosio_assert(result.first == pubkey_prefix.end(),

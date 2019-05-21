@@ -63,7 +63,7 @@ Key string_to_key(std::string_view s, key_type type, const char (&suffix)[suffix
 
 
 eosio::public_key string_to_public_key(std::string_view s) {
-  if (s.size() >= 3 && s.substr(0, 3) == "EOS" ) {
+  if (s.size() >= 3 && s.substr(0, 3) == "FIO" ) {
     auto whole = base58_to_binary<37>(s.substr(3));
     eosio::public_key key{(uint8_t)key_type::k1};
     static_assert(whole.size() == key.data.size() + 4, "Error: whole.size() != key.data.size() + 4");
