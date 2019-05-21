@@ -3385,84 +3385,77 @@ chain::plugin_interface::next_function<record_send_results> next) {
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
 void read_write::register_fio_address(const read_write::register_fio_address_params &params,
-                                      next_function<read_write::register_fio_address_results> next) {
-    try {
-        auto trx = std::make_shared<packed_transaction>();
+next_function<read_write::register_fio_address_results> next) {
+try {
+   auto pretty_input = std::make_shared<packed_transaction>();
+   auto resolver = make_resolver(this, abi_serializer_max_time);
+   transaction_metadata_ptr ptrx;
+   dlog("register_fio_address called");
+   try {
+      abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+      ptrx = std::make_shared<transaction_metadata>( pretty_input );
+   } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-        auto resolver = make_resolver(this, abi_serializer_max_time);
-        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
-        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
-                                           abi_serializer_max_time};
+   app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+      if (result.contains<fc::exception_ptr>()) {
+         next(result.get<fc::exception_ptr>());
+      } else {
+         auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-        fioio::regaddress rn;
-        dlog("register_fio_address called");
+         try {
+            fc::variant output;
+            try {
+               output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+            } catch( chain::abi_exception& ) {
+               output = *trx_trace_ptr;
+            }
+            const chain::transaction_id_type& id = trx_trace_ptr->id;
+            next(read_write::register_fio_address_results{id,output});
+         } CATCH_AND_CALL(next);
+      }
+   });
 
-        try {
-            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-
-        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-                if (result.contains<fc::exception_ptr>()) {
-                  next(result.get<fc::exception_ptr>());
-              } else {
-                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                  try {
-                      chain::transaction_id_type id = trx_trace_ptr->id;
-                      fc::variant output;
-                      try {
-                          output = db.to_variant_with_abi(*trx_trace_ptr,
-                                                          abi_serializer_max_time);
-                      } catch (chain::abi_exception &) {
-                          output = *trx_trace_ptr;
-                      }
-                      next(read_write::register_fio_address_results{id, output});
-                  } CATCH_AND_CALL(next);
-              }
-          });
-    } catch (const boost::interprocess::bad_alloc &) {
-        chain_plugin::handle_db_exhaustion();
-    } CATCH_AND_CALL(next);
+  } catch ( boost::interprocess::bad_alloc& ) {
+     chain_plugin::handle_db_exhaustion();
+  } CATCH_AND_CALL(next);
 }
 
 void read_write::register_fio_domain(const read_write::register_fio_domain_params &params,
-                                     next_function<read_write::register_fio_domain_results> next) {
+next_function<read_write::register_fio_domain_results> next) {
+ try {
+    auto pretty_input = std::make_shared<packed_transaction>();
+    auto resolver = make_resolver(this, abi_serializer_max_time);
+    transaction_metadata_ptr ptrx;
+    dlog("register_fio_domain called");
     try {
-        auto trx = std::make_shared<packed_transaction>();
+       abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+       ptrx = std::make_shared<transaction_metadata>( pretty_input );
+    } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-        auto resolver = make_resolver(this, abi_serializer_max_time);
-        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
-        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
-                                           abi_serializer_max_time};
+    app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+       if (result.contains<fc::exception_ptr>()) {
+          next(result.get<fc::exception_ptr>());
+       } else {
+          auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-        fioio::regdomain rn;
-        try {
-            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+          try {
+             fc::variant output;
+             try {
+                output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+             } catch( chain::abi_exception& ) {
+                output = *trx_trace_ptr;
+             }
+             const chain::transaction_id_type& id = trx_trace_ptr->id;
+             next(read_write::register_fio_domain_results{id,output});
+          } CATCH_AND_CALL(next);
+       }
+    });
 
-        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-                  if (result.contains<fc::exception_ptr>()) {
-                  next(result.get<fc::exception_ptr>());
-              } else {
-                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-                  try {
-                      chain::transaction_id_type id = trx_trace_ptr->id;
-                      fc::variant output;
-                      try {
-                          output = db.to_variant_with_abi(*trx_trace_ptr,
-                                                          abi_serializer_max_time);
-                      } catch (chain::abi_exception &) {
-                          output = *trx_trace_ptr;
-                      }
-                      next(read_write::register_fio_domain_results{id, output});
-                  } CATCH_AND_CALL(next);
-              }
-          });
-    } catch (const boost::interprocess::bad_alloc &) {
-        chain_plugin::handle_db_exhaustion();
-    } CATCH_AND_CALL(next);
+ } catch ( boost::interprocess::bad_alloc& ) {
+    chain_plugin::handle_db_exhaustion();
+ } CATCH_AND_CALL(next);
 }
 
 /***
@@ -3471,44 +3464,40 @@ void read_write::register_fio_domain(const read_write::register_fio_domain_param
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
 void read_write::add_pub_address (const read_write::add_pub_address_params &params,
-                                  next_function<read_write::add_pub_address_results> next) {
-    try {
+next_function<read_write::add_pub_address_results> next) {
+  try {
+     auto pretty_input = std::make_shared<packed_transaction>();
+     auto resolver = make_resolver(this, abi_serializer_max_time);
+     transaction_metadata_ptr ptrx;
+     dlog("add_pub_address called");
+     try {
+        abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+        ptrx = std::make_shared<transaction_metadata>( pretty_input );
+     } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-        auto trx = std::make_shared<packed_transaction>();
-        auto resolver = make_resolver(this, abi_serializer_max_time);
-        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
-                                           abi_serializer_max_time};
+     app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+        if (result.contains<fc::exception_ptr>()) {
+           next(result.get<fc::exception_ptr>());
+        } else {
+           auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
-        name fiosystem = N(fio.system);
-
-        dlog("add_pub_address called");
-        try {
-            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
-
-        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-                if (result.contains<fc::exception_ptr>()) {
-                  next(result.get<fc::exception_ptr>());
-              } else {
-                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                  try {
-                      chain::transaction_id_type id = trx_trace_ptr->id;
-                      fc::variant output;
-                      try {
-                          output = db.to_variant_with_abi(*trx_trace_ptr,
-                                                          abi_serializer_max_time);
-                      } catch (chain::abi_exception &) {
-                          output = *trx_trace_ptr;
-                      }
-                      next(read_write::add_pub_address_results{id, output});
-                  } CATCH_AND_CALL(next);
+           try {
+              fc::variant output;
+              try {
+                 output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+              } catch( chain::abi_exception& ) {
+                 output = *trx_trace_ptr;
               }
-          });
-    } catch (const boost::interprocess::bad_alloc &) {
-        chain_plugin::handle_db_exhaustion();
-    } CATCH_AND_CALL(next);
+              const chain::transaction_id_type& id = trx_trace_ptr->id;
+              next(read_write::add_pub_address_results{id,output});
+           } CATCH_AND_CALL(next);
+        }
+     });
+
+
+  } catch ( boost::interprocess::bad_alloc& ) {
+     chain_plugin::handle_db_exhaustion();
+  } CATCH_AND_CALL(next);
 }
 
 /***
@@ -3517,45 +3506,41 @@ void read_write::add_pub_address (const read_write::add_pub_address_params &para
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
 void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_key_params &params,
-                                  next_function<read_write::transfer_tokens_pub_key_results> next) {
+  next_function<read_write::transfer_tokens_pub_key_results> next) {
     try {
+       auto pretty_input = std::make_shared<packed_transaction>();
+       auto resolver = make_resolver(this, abi_serializer_max_time);
+       transaction_metadata_ptr ptrx;
+       dlog("transfer_tokens_pub_key called");
+       try {
+          abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+          ptrx = std::make_shared<transaction_metadata>( pretty_input );
+       } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-        auto trx = std::make_shared<packed_transaction>();
-        auto resolver = make_resolver(this, abi_serializer_max_time);
-        abi_serializer fio_name_serializer{fc::json::from_string(fio_name_abi).as<abi_def>(),
-                                           abi_serializer_max_time};
+       app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+          if (result.contains<fc::exception_ptr>()) {
+             next(result.get<fc::exception_ptr>());
+          } else {
+             auto trx_trace_ptr = result.get<transaction_trace_ptr>();
 
-        transaction_metadata_ptr ptrx = std::make_shared<transaction_metadata>( trx );
-        name fiosystem = N(fio.system);
+             try {
+                fc::variant output;
+                try {
+                   output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+                } catch( chain::abi_exception& ) {
+                   output = *trx_trace_ptr;
+                }
+                const chain::transaction_id_type& id = trx_trace_ptr->id;
+                next(read_write::transfer_tokens_pub_key_results{id,output});
+             } CATCH_AND_CALL(next);
+          }
+       });
 
-        dlog("transfer_tokens_pub_key called");
-        try {
-            abi_serializer::from_variant(params, *trx, resolver, abi_serializer_max_time);
-        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
-        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
-                if (result.contains<fc::exception_ptr>()) {
-                  next(result.get<fc::exception_ptr>());
-              } else {
-                  auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                  try {
-                      chain::transaction_id_type id = trx_trace_ptr->id;
-                      fc::variant output;
-                      try {
-                          output = db.to_variant_with_abi(*trx_trace_ptr,
-                                                          abi_serializer_max_time);
-                      } catch (chain::abi_exception &) {
-                          output = *trx_trace_ptr;
-                      }
-                      next(read_write::transfer_tokens_pub_key_results{id, output});
-                  } CATCH_AND_CALL(next);
-              }
-          });
-    } catch (const boost::interprocess::bad_alloc &) {
-        chain_plugin::handle_db_exhaustion();
+    } catch ( boost::interprocess::bad_alloc& ) {
+       chain_plugin::handle_db_exhaustion();
     } CATCH_AND_CALL(next);
-} // transfer_tokens_pub_key
+  }
 
 
 
