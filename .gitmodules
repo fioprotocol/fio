@@ -18,3 +18,4 @@
 [submodule "libraries/fc"]
 	path = libraries/fc
 	url = https://github.com/dapixio/fc
+	branch = fio-fc-1.7.x
