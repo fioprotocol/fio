@@ -4,14 +4,10 @@
  */
 
 #include <fio.token/fio.token.hpp>
-#include <fio.common/fioerror.hpp>
 #include <fio.common/fio.common.hpp>
-#include <fio.common/json.hpp>
-#include <fio.common/keyops.hpp>
-#include <fio.common/account_operations.hpp>
 #include <eosiolib/asset.hpp>
-#include <fio.common/fio_common_validator.hpp>
-#include <fio.common/chain_control.hpp>
+
+using namespace fioio;
 
 namespace eosio {
 
@@ -114,9 +110,9 @@ namespace eosio {
         add_balance(to, quantity, payer);
     }
 
-    inline void token::fio_fees(const account_name &actor, const asset &fee) {
+    inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
-            account_name fiosystem = eosio::string_to_name("fio.system");
+            name fiosystem = eosio::name("fio.system");
             // check for funds is implicitly done as part of the funds transfer.
             print("Collecting FIO API fees: ", fee);
             transfer(actor, fiosystem, fee, string("FIO API fees. Thank you."));
@@ -133,7 +129,7 @@ namespace eosio {
         asset qty;
         //we assume the amount is in fio sufs.
         qty.amount = (int64_t) atoi(amount.c_str());
-        qty.symbol = ::eosio::string_to_symbol(9, "FIO");
+        qty.symbol = ::eosio::symbol(9, "FIO");
 
         ///BEGIN new account management logic!!!!
 
@@ -149,9 +145,9 @@ namespace eosio {
         auto base58substr = payee_public_key.substr(pubkey_prefix.length());
 
         vector<unsigned char> vch;
-        eosio_assert(decode_base58(base58substr, vch), "Decode pubkey failed");
+        eosio_assert(fioio::decode_base58(base58substr, vch), "Decode pubkey failed");
         fio_400_assert(vch.size() == 37, "payee_public_address", payee_public_key, "Invalid FIO Public Key",
-                       ErrorChainAddressNotFound);
+                       fioio::ErrorChainAddressNotFound);
 
         array<unsigned char, 33> pubkey_data;
         copy_n(vch.begin(), 33, pubkey_data.begin());
@@ -168,7 +164,7 @@ namespace eosio {
 
         //see if the payee_actor is in the eosionames table.
         eosio_assert(payee_account.length() == 12, "Length of account name should be 12");
-        account_name new_account_name = string_to_name(payee_account.c_str());
+        name new_account_name = string_to_name(payee_account.c_str());
         bool accountExists = is_account(new_account_name);
 
         auto other = eosionames.find(new_account_name);
@@ -192,26 +188,26 @@ namespace eosio {
             const auto rbprice = rambytes_price(3 * 1024);
 
             // Create account.
-            INLINE_ACTION_SENDER(call::eosio, newaccount)
-                    (N(eosio), {{_self, N(active)}},
+            INLINE_ACTION_SENDER(fioio::call::eosio, newaccount)
+                    ("eosio"_n, {{_self, "active"_n}},
                      {_self, new_account_name, owner_auth, owner_auth});
 
             // Buy ram for account.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                    (N(eosio), {{_self, N(active)}},
+                    ("eosio"_n, {{_self, "active"_n }},
                      {_self, new_account_name, rbprice});
 
             // Replace lost ram.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                    (N(eosio), {{_self, N(active)}},
+                    ("eosio"_n, {{_self, "active"_n}},
                      {_self, _self, rbprice});
 
             print("created the account!!!!", new_account_name, "\n");
 
             action{
-                    permission_level{_self, N(active)},
-                    N(fio.system),
-                    N(bind2eosio),
+                    permission_level{_self, "active"_n},
+                    "fio.system"_n,
+                    "bind2eosio"_n,
                     bind2eosio{
                             .accountName = new_account_name,
                             .public_key = payee_public_key,
@@ -227,7 +223,7 @@ namespace eosio {
                            ErrorPubAddressExist);
             //if the payee public key doesnt match whats in the eosionames table this is an error,it means there is a collision on hashing!
             eosio_assert_message_code(payee_public_key == other->clientkey, "FIO account already bound",
-                                      ErrorPubAddressExist);
+                                      fioio::ErrorPubAddressExist);
         }
 
         ///end new account management logic!!!!!
@@ -236,9 +232,9 @@ namespace eosio {
         //require_recipient will also fail.
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_t("transfer_tokens_to_pub_key");
+        uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_to_pub_key");
 
-        auto fees_by_endpoint = fiofees.get_index<N(byendpoint)>();
+        auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
         fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_to_pub_key",
@@ -335,5 +331,5 @@ namespace eosio {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(open)(close)
+EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)
 (retire))

@@ -26,12 +26,6 @@ namespace eosio {
         fioio::fiofee_table fiofees;
         fioio::config appConfig;
     public:
-        token(account_name _self) : contract(_self),
-                                    eosionames("fio.system"_n, "fio.system"_n),
-                                    fiofees(fioio::FeeContract, fioio::FeeContract) {
-            fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract);
-            appConfig = configsSingleton.get_or_default(fioio::config());
-        }
 
         using contract::contract;
 
@@ -42,7 +36,7 @@ namespace eosio {
         [[eosio::action]]
         void issue(name to, asset quantity, string memo);
 
-        inline void fio_fees(const account_name &actor, const asset &fee);
+        inline void fio_fees(const name &actor, const asset &fee);
 
         [[eosio::action]]
         void retire(asset quantity, string memo);
@@ -106,28 +100,28 @@ namespace eosio {
 
     public:
         struct transfer_args {
-            account_name from;
-            account_name to;
+            name from;
+            name to;
             asset quantity;
             string memo;
         };
 
         struct bind2eosio {
-            account_name accountName;
+            name accountName;
             string public_key;
             bool existing;
         };
     };
 
     [[eosio::action]]
-    asset token::get_supply(symbol_name sym) const {
+    asset token::get_supply(symbol_code sym) const {
         stats statstable(_self, sym);
         const auto &st = statstable.get(sym);
         return st.supply;
     }
 
     [[eosio::action]]
-    asset token::get_balance(account_name owner, symbol_name sym) const {
+    asset token::get_balance(name owner, symbol_code sym) const {
         accounts accountstable(_self, owner);
         const auto &ac = accountstable.get(sym);
         return ac.balance;

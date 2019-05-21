@@ -3,6 +3,7 @@ add_contract(eosio.system eosio.system ${CMAKE_CURRENT_SOURCE_DIR}/src/eosio.sys
 target_include_directories(eosio.system
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../
         ${CMAKE_CURRENT_SOURCE_DIR}/../fio.token/include)
 
 set_target_properties(eosio.system

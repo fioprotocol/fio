@@ -12,7 +12,7 @@
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/transaction.hpp>
-#include <eosio.token/eosio.token.hpp>
+#include <fio.token/fio.token.hpp>
 
 #include <algorithm>
 #include <cmath>
