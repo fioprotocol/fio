@@ -180,27 +180,27 @@ if [ $mChoice == 1 ]; then
                 echo Adding eosio code to fio.token and fio.system.
                 # Reference: https://github.com/EOSIO/eos/issues/4348#issuecomment-400562839
                 # Reference: https://developers.eos.io/eosio-home/docs/inline-actions
-                cleos -u http://localhost:8889 set account permission fio.token active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.token","permission":"eosio.code"},"weight":1}]}}' owner -p fio.token@owner
+                ./cleos -u http://localhost:8889 set account permission fio.token active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.token","permission":"eosio.code"},"weight":1}]}}' owner -p fio.token@owner
                 #make the fio.token into a privileged account
-                cleos -u http://localhost:8889 push action eosio setpriv '["fio.token",1]' -p eosio@active
-                cleos -u http://localhost:8889 set account permission fio.system active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.system","permission":"eosio.code"},"weight":1}]}}' owner -p fio.system@owner
+                ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.token",1]' -p eosio@active
+                ./cleos -u http://localhost:8889 set account permission fio.system active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.system","permission":"eosio.code"},"weight":1}]}}' owner -p fio.system@owner
                 #make the fio.system into a privileged account
-                cleos -u http://localhost:8889 push action eosio setpriv '["fio.system",1]' -p eosio@active
-                cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
+                ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.system",1]' -p eosio@active
+                ./cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
                 #make the fio.reqobt into a privileged account
-                cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
+                ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
     fi
 
     #create fees for the fio protocol
      echo "creating fees"
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
 
     echo setting accounts
     sleep 1
