@@ -9,7 +9,7 @@ hostname="localhost"
 #34.214.170.140 Eds test AWS server for UAT
 #ACCOUNT r41zuwovtn44   --casey.dapix
 #OWNER KEYS
-#PUBLIC EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
+#PUBLIC FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
 #PRIVATE 5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF
 
 #ACCOUNT htjonrkf1lgs    -- adam.dapix
@@ -17,7 +17,7 @@ hostname="localhost"
 #PUBLIC EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
 #PRIVATE 5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz
 
-fiopubkey="EOS5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
+fiopubkey="FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
 fioprivatekey="5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF"
 
 

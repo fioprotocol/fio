@@ -63,7 +63,7 @@ namespace fioio {
                 //and use this as the owner_fio_public_key.
                 eosio_assert(owner_fio_public_key.length() == 53, "Length of publik key should be 53");
 
-                string pubkey_prefix("EOS");
+                string pubkey_prefix("FIO");
                 auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
                                        owner_fio_public_key.begin());
                 eosio_assert(result.first == pubkey_prefix.end(),

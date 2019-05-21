@@ -664,7 +664,7 @@ authority parse_json_authority(const std::string& authorityJsonOrFile) {
 }
 
 authority parse_json_authority_or_key(const std::string& authorityJsonOrFile) {
-   if (boost::istarts_with(authorityJsonOrFile, "EOS") || boost::istarts_with(authorityJsonOrFile, "PUB_R1")) {
+   if (boost::istarts_with(authorityJsonOrFile, "FIO") || boost::istarts_with(authorityJsonOrFile, "PUB_R1")) {
       try {
          return authority(public_key_type(authorityJsonOrFile));
       } EOS_RETHROW_EXCEPTIONS(public_key_type_exception, "Invalid public key: ${public_key}", ("public_key", authorityJsonOrFile))
@@ -1072,7 +1072,7 @@ struct create_account_subcommand {
             } else {
                send_actions( { create } );
             }
-            
+
             //Check if the account being created is a hashed_version from the public key
             std::string hashed_name;
             fioio::key_to_account(active_key_str, hashed_name);

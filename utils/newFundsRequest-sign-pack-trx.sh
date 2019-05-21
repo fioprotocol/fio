@@ -18,11 +18,11 @@ hostname="localhost"
 #PRIVATE 5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz
 
 ######### to test a user that is not yet on the blockchain, use these..
-#fiopubkey="EOS5FTe5jmJ9koAvMr4T5J2ZMdYqBBF7PgzUQHf7KbqVK4S5vpVeM"
+#fiopubkey="FIO5FTe5jmJ9koAvMr4T5J2ZMdYqBBF7PgzUQHf7KbqVK4S5vpVeM"
 #fioprivatekey="5JDurZ7F9maZqDQ4Jn4N5ooBjdPWwzcxyggFbWke9WjeGhS5VECz"
 
 
-fiopubkey="EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
+fiopubkey="FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
 fioprivatekey="5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`

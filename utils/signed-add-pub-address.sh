@@ -9,7 +9,7 @@
 
 #ACCOUNT htjonrkf1lgs    -- adam.dapix
 #OWNER KEYS
-#PUBLIC EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
+#PUBLIC FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
 #PRIVATE 5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz
 
 
@@ -26,7 +26,7 @@ fi
 echo ------------------------------------------
 
 
-fiopubkey="EOS7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
+fiopubkey="FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
 fioprivatekey='5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz'
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
