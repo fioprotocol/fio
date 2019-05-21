@@ -311,7 +311,7 @@ namespace fioio {
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
             auto fioname_iter = fionames.find(nameHash);
-        //    fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
