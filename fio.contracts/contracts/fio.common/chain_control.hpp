@@ -19,33 +19,33 @@ namespace fioio {
     };
 
     struct clist {
-        vector<clentry> chains;
+        vector <clentry> chains;
     };
 
     struct chainControl {
         clist chainList;
 
         inline string getChainFromIndex(int index) {
-            for(int it = 0; it < chainList.chains.size(); it++){
-                if(index == chainList.chains[it].index){
+            for (int it = 0; it < chainList.chains.size(); it++) {
+                if (index == chainList.chains[it].index) {
                     return chainList.chains[it].chain;
                 }
             }
             return "";
         }
 
-        inline int getIndexFromChain(string chainname){
-            for(int it = 0; it < chainList.chains.size(); it++){
-                if(chainname == chainList.chains[it].chain){
+        inline int getIndexFromChain(string chainname) {
+            for (int it = 0; it < chainList.chains.size(); it++) {
+                if (chainname == chainList.chains[it].chain) {
                     return chainList.chains[it].index;
                 }
             }
             return -1;
         }
 
-        inline int getVectorIndex(int chainIndex){
-            for(int it = 0; it < chainList.chains.size(); it++){
-                if(chainIndex == chainList.chains[it].index){
+        inline int getVectorIndex(int chainIndex) {
+            for (int it = 0; it < chainList.chains.size(); it++) {
+                if (chainIndex == chainList.chains[it].index) {
                     return it;
                 }
             }

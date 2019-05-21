@@ -19,18 +19,18 @@ namespace fioio {
 
     using namespace std;
 
-    struct FioAddress{
+    struct FioAddress {
         string fioaddress;
         string fioname;
         string fiodomain;
         bool domainOnly;
     };
 
-    inline bool isFioNameEmpty( string p ){
+    inline bool isFioNameEmpty(string p) {
         return p.empty();
     }
 
-   inline void getFioAddressStruct(const string &p, FioAddress& fa){
+    inline void getFioAddressStruct(const string &p, FioAddress &fa) {
         // Split the fio name and domain portions
         fa.fioname = "";
         fa.fiodomain = "";
@@ -39,69 +39,70 @@ namespace fioio {
         fa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
-       fa.fioaddress = p;
-       for (auto &c : fa.fioaddress) {
-           c = char(::tolower(c));
+        fa.fioaddress = p;
+        for (auto &c : fa.fioaddress) {
+            c = char(::tolower(c));
         }
 
         if (pos == string::npos) {
             fa.fiodomain = fa.fioaddress;
         } else {
-           if (!fa.domainOnly)
-               fa.fioname = fa.fioaddress.substr(0, pos);
+            if (!fa.domainOnly)
+                fa.fioname = fa.fioaddress.substr(0, pos);
             fa.fiodomain = fa.fioaddress.substr(pos + 1);
         }
     }
 
-   inline int isFioNameValid( const string &name ){
+    inline int isFioNameValid(const string &name) {
         //Name validation.
-      if (name.size() < 1 || name.size() > maxFioNameLen) {
-         return 1;
-      }
-      if(name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
-         return 2;
-      }
-      if( name.front() == '-' || name.back() == '-') {
-         return 3;
-      }
-      return 0;
+        if (name.size() < 1 || name.size() > maxFioNameLen) {
+            return 1;
+        }
+        if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
+            return 2;
+        }
+        if (name.front() == '-' || name.back() == '-') {
+            return 3;
+        }
+        return 0;
     }
 
-    inline int isDomainNameValid( string domain, bool domainOnly ){
-       return domainOnly ? isFioNameValid (domain)*10 : 0;
+    inline int isDomainNameValid(string domain, bool domainOnly) {
+        return domainOnly ? isFioNameValid(domain) * 10 : 0;
     }
 
-    inline int fioNameSizeCheck(string fn, string fd){
+    inline int fioNameSizeCheck(string fn, string fd) {
         size_t totalsize = fn.size() + fd.size();
 
-        if( totalsize > maxFioNameLen+maxFioDomainLen){
+        if (totalsize > maxFioNameLen + maxFioDomainLen) {
             return 100;
         }
         return 0;
     }
 
-    inline bool isChainNameValid( string chain ){
-        if (chain.size() >= 1 && chain.size() <= 10){
-            if(chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") != std::string::npos) {
+    inline bool isChainNameValid(string chain) {
+        if (chain.size() >= 1 && chain.size() <= 10) {
+            if (chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
+                std::string::npos) {
                 return false;
             }
         }
         return true;
     }
 
-    inline bool isPubAddressValid(string address){
+    inline bool isPubAddressValid(string address) {
         if (address.size() == 0 || address.find(" ")) {
             return true;
         }
         return false;
     }
 
-   inline string chainToUpper( string chain ) {
-      string my_chain = chain;
+    inline string chainToUpper(string chain) {
+        string my_chain = chain;
 
-      transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
+        transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
 
-      return my_chain;
-   }
+        return my_chain;
+    }
 
 }

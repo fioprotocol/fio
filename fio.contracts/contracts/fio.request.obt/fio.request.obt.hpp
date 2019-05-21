@@ -53,9 +53,10 @@ namespace fioio {
 
     // FIO requests contexts table
     typedef multi_index<"fioreqctxts"_n, fioreqctxt,
-            indexed_by<"byreceiver"_n, const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_receiver>>,
-            indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_originator>
-            >> fiorequest_contexts_table;
+            indexed_by<"byreceiver"_n, const_mem_fun < fioreqctxt, uint64_t, &fioreqctxt::by_receiver>>,
+    indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_originator>
+    >>
+    fiorequest_contexts_table;
 
     // Structure for "FIO request status" updates.
     // @abi table fioreqstss i64
@@ -76,7 +77,8 @@ namespace fioio {
 
     // FIO requests status table
     typedef multi_index<"fioreqstss"_n, fioreqsts,
-            indexed_by<"byfioreqid"_n, const_mem_fun<fioreqsts, uint64_t, &fioreqsts::by_fioreqid> >
-    > fiorequest_status_table;
+            indexed_by<"byfioreqid"_n, const_mem_fun < fioreqsts, uint64_t, &fioreqsts::by_fioreqid> >
+    >
+    fiorequest_status_table;
 
 }

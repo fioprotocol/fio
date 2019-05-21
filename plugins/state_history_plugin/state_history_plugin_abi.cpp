@@ -1,4 +1,4 @@
-extern const char* const state_history_plugin_abi = R"({
+extern const char *const state_history_plugin_abi = R"({
     "version": "eosio::abi/1.1",
     "structs": [
         {
