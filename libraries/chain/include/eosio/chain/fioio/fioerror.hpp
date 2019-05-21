@@ -18,49 +18,51 @@ namespace fioio {
      * The fields are: An itentifier, 'FIO\0', then http error code and finally a FIO specific error number.
      */
 
-   constexpr auto identOffset = 48;
-   constexpr uint64_t ident = uint64_t((('F' << 4) | 'I' << 4) | 'O') << identOffset; // to distinguish the error codes generically
-   constexpr auto httpOffset = 32;
-   constexpr uint64_t httpDataError = 400LL << httpOffset;
-   constexpr uint64_t httpInvalidError = 403LL << httpOffset;
-   constexpr uint64_t httpLocationError = 404LL << httpOffset;
-   constexpr uint64_t httpMask = 0xfffLL << httpOffset;
-   constexpr uint64_t ecCodeMask = 0xff;
+    constexpr auto identOffset = 48;
+    constexpr uint64_t ident =
+            uint64_t((('F' << 4) | 'I' << 4) | 'O') << identOffset; // to distinguish the error codes generically
+    constexpr auto httpOffset = 32;
+    constexpr uint64_t httpDataError = 400LL << httpOffset;
+    constexpr uint64_t httpInvalidError = 403LL << httpOffset;
+    constexpr uint64_t httpLocationError = 404LL << httpOffset;
+    constexpr uint64_t httpMask = 0xfffLL << httpOffset;
+    constexpr uint64_t ecCodeMask = 0xff;
 
-   constexpr auto ErrorDomainAlreadyRegistered =   ident | httpDataError | 100;   // Domain is already registered
-   constexpr auto ErrorDomainNotRegistered =       ident | httpDataError | 101;   // Domain not yet registered
-   constexpr auto ErrorFioNameAlreadyRegistered =  ident | httpDataError | 102;   // Fioname is already registered
+    constexpr auto ErrorDomainAlreadyRegistered = ident | httpDataError | 100;   // Domain is already registered
+    constexpr auto ErrorDomainNotRegistered = ident | httpDataError | 101;   // Domain not yet registered
+    constexpr auto ErrorFioNameAlreadyRegistered = ident | httpDataError | 102;   // Fioname is already registered
 
-   constexpr auto ErrorFioNameEmpty =              ident | httpDataError | 103;   // FIO user name is empty
-   constexpr auto ErrorChainEmpty =                ident | httpDataError | 104;   // Chain name is empty
-   constexpr auto ErrorChainAddressEmpty =         ident | httpDataError | 105;   // Chain address is empty
-   constexpr auto ErrorChainContainsWhiteSpace =   ident | httpDataError | 106;   // Chain address contains whitespace
-   constexpr auto ErrorChainNotSupported =         ident | httpDataError | 107;   // Chain isn't supported
-   constexpr auto ErrorFioNameNotRegistered =      ident | httpLocationError | 108;
-   constexpr auto ErrorFioNameNotReg =             ident | httpDataError | 127;   // Fioname not yet registered
-   constexpr auto ErrorDomainExpired =             ident | httpDataError | 109;   // Fioname not yet registered
-   constexpr auto ErrorFioNameExpired =            ident | httpDataError | 110;   // Fioname not yet registered
-   constexpr auto ErrorPubAddressEmpty =           ident | httpDataError | 111;   // Public address is empty
-   constexpr auto ErrorPubKeyEmpty =               ident | httpDataError | 112;   // Public key is empty
-   constexpr auto ErrorPubAddressExist =           ident | httpDataError | 113;   // Public address exists
+    constexpr auto ErrorFioNameEmpty = ident | httpDataError | 103;   // FIO user name is empty
+    constexpr auto ErrorChainEmpty = ident | httpDataError | 104;   // Chain name is empty
+    constexpr auto ErrorChainAddressEmpty = ident | httpDataError | 105;   // Chain address is empty
+    constexpr auto ErrorChainContainsWhiteSpace = ident | httpDataError | 106;   // Chain address contains whitespace
+    constexpr auto ErrorChainNotSupported = ident | httpDataError | 107;   // Chain isn't supported
+    constexpr auto ErrorFioNameNotRegistered = ident | httpLocationError | 108;
+    constexpr auto ErrorFioNameNotReg = ident | httpDataError | 127;   // Fioname not yet registered
+    constexpr auto ErrorDomainExpired = ident | httpDataError | 109;   // Fioname not yet registered
+    constexpr auto ErrorFioNameExpired = ident | httpDataError | 110;   // Fioname not yet registered
+    constexpr auto ErrorPubAddressEmpty = ident | httpDataError | 111;   // Public address is empty
+    constexpr auto ErrorPubKeyEmpty = ident | httpDataError | 112;   // Public key is empty
+    constexpr auto ErrorPubAddressExist = ident | httpDataError | 113;   // Public address exists
 
-   constexpr auto ErrorSignature =                 ident | httpInvalidError | 114;   // user permission failure
-   constexpr auto ErrorNotFound =                  ident | httpLocationError | 115;   // cannot locate resource
-   constexpr auto ErrorInvalidFioNameFormat =      ident | httpDataError | 116;   // Public address exists
-   constexpr auto ErrorTransaction =               ident | httpInvalidError | 117;   // Public address exists
-   constexpr auto ErrorNoFIONames =                ident | httpLocationError | 118; // No FIO Names
-   constexpr auto ErrorInvalidJsonInput =          ident | httpDataError | 119;   // invalid json sent for json input
-   constexpr auto ErrorRequestContextNotFound =    ident | httpDataError | 120;   // the specified request context record was not found
-   constexpr auto ErrorChainAddressNotFound =      ident | httpDataError | 121;   // Chain address not found
-   constexpr auto ErrorNoFioRequestsFound =        ident | httpLocationError | 122;   // no fio requests found
-   constexpr auto Error400FioNameNotRegistered =   ident | httpDataError | 123;   // Fioname not yet registered
-   constexpr auto ErrorPubAddressNotFound =        ident | httpLocationError | 124; //Pub Address not found
+    constexpr auto ErrorSignature = ident | httpInvalidError | 114;   // user permission failure
+    constexpr auto ErrorNotFound = ident | httpLocationError | 115;   // cannot locate resource
+    constexpr auto ErrorInvalidFioNameFormat = ident | httpDataError | 116;   // Public address exists
+    constexpr auto ErrorTransaction = ident | httpInvalidError | 117;   // Public address exists
+    constexpr auto ErrorNoFIONames = ident | httpLocationError | 118; // No FIO Names
+    constexpr auto ErrorInvalidJsonInput = ident | httpDataError | 119;   // invalid json sent for json input
+    constexpr auto ErrorRequestContextNotFound =
+            ident | httpDataError | 120;   // the specified request context record was not found
+    constexpr auto ErrorChainAddressNotFound = ident | httpDataError | 121;   // Chain address not found
+    constexpr auto ErrorNoFioRequestsFound = ident | httpLocationError | 122;   // no fio requests found
+    constexpr auto Error400FioNameNotRegistered = ident | httpDataError | 123;   // Fioname not yet registered
+    constexpr auto ErrorPubAddressNotFound = ident | httpLocationError | 124; //Pub Address not found
     constexpr auto ErrorDomainNotFound = ident | httpLocationError | 125;   // Domain not yet registered
     constexpr auto ErrorLowFunds = ident | httpDataError | 126; // Insufficient balance
-    constexpr auto ErrorEndpointNotFound =   ident | httpDataError | 127;   // Fee endpoint not found.
-    constexpr auto ErrorNoEndpoint =                ident | httpDataError | 128; // No endpoint specified.
-    constexpr auto ErrorNoFeesFoundForEndpoint =    ident | httpDataError | 129; // No Fees found for endpoint
-    constexpr auto ErrorMaxFeeExceeded =                ident | httpDataError | 130; // max fee exceeded.
+    constexpr auto ErrorEndpointNotFound = ident | httpDataError | 127;   // Fee endpoint not found.
+    constexpr auto ErrorNoEndpoint = ident | httpDataError | 128; // No endpoint specified.
+    constexpr auto ErrorNoFeesFoundForEndpoint = ident | httpDataError | 129; // No Fees found for endpoint
+    constexpr auto ErrorMaxFeeExceeded = ident | httpDataError | 130; // max fee exceeded.
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
@@ -97,7 +99,7 @@ namespace fioio {
             string error = "";
         };
 
-        vector<field> fields;
+        vector <field> fields;
 
         //      Code_400_Result (const Code_400_field &) default;
         Code_400_Result(const string &fname = "", const string &fval = "", const string &ferr = "") :

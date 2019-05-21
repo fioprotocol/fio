@@ -27,7 +27,7 @@ services:
     stop_grace_period: 10m
 
 volumes:
- nodeos-data-volume:
-   external: true
- keosd-data-volume:
-   external: true
+  nodeos-data-volume:
+    external: true
+  keosd-data-volume:
+    external: true

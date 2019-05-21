@@ -1,144 +1,161 @@
 #pragma once
+
 #include <string>
 #include <fc/reflect/reflect.hpp>
 #include <iosfwd>
 
-namespace eosio { namespace chain {
-   using std::string;
+namespace eosio {
+    namespace chain {
+        using std::string;
 
-   static constexpr uint64_t char_to_symbol( char c ) {
-      if( c >= 'a' && c <= 'z' )
-         return (c - 'a') + 6;
-      if( c >= '1' && c <= '5' )
-         return (c - '1') + 1;
-      return 0;
-   }
-
-   // Each char of the string is encoded into 5-bit chunk and left-shifted
-   // to its 5-bit slot starting with the highest slot for the first char.
-   // The 13th char, if str is long enough, is encoded into 4-bit chunk
-   // and placed in the lowest 4 bits. 64 = 12 * 5 + 4
-   static constexpr uint64_t string_to_name( const char* str )
-   {
-      uint64_t name = 0;
-      int i = 0;
-      for ( ; str[i] && i < 12; ++i) {
-          // NOTE: char_to_symbol() returns char type, and without this explicit
-          // expansion to uint64 type, the compilation fails at the point of usage
-          // of string_to_name(), where the usage requires constant (compile time) expression.
-           name |= (char_to_symbol(str[i]) & 0x1f) << (64 - 5 * (i + 1));
-       }
-
-      // The for-loop encoded up to 60 high bits into uint64 'name' variable,
-      // if (strlen(str) > 12) then encode str[12] into the low (remaining)
-      // 4 bits of 'name'
-      if (i == 12)
-          name |= char_to_symbol(str[12]) & 0x0F;
-      return name;
-   }
-
-   // Converts a string to a uint64_t using the same hashing mechanism as string_to_name without using the base32 symbols
-static constexpr uint64_t string_to_uint64_t( const char* str ) {
-
-    uint32_t len = 0;
-    while( str[len] ) ++len;
-    
-    uint64_t value = 0;
-    uint64_t multv = 0;
-    if (len > 0) {
-        multv = 60 / len;
-    }
-    
-    for( uint32_t i = 0; i < len; ++i ) {
-        uint64_t c = 0;
-        if( i < len ) c = uint64_t(str[i]);
-        
-        if( i < 60 ) {
-            c &= 0x1f;
-            c <<= 64-multv*(i+1);
+        static constexpr uint64_t char_to_symbol(char c) {
+            if (c >= 'a' && c <= 'z')
+                return (c - 'a') + 6;
+            if (c >= '1' && c <= '5')
+                return (c - '1') + 1;
+            return 0;
         }
-        else {
-            c &= 0x0f;
+
+        // Each char of the string is encoded into 5-bit chunk and left-shifted
+        // to its 5-bit slot starting with the highest slot for the first char.
+        // The 13th char, if str is long enough, is encoded into 4-bit chunk
+        // and placed in the lowest 4 bits. 64 = 12 * 5 + 4
+        static constexpr uint64_t string_to_name(const char *str) {
+            uint64_t name = 0;
+            int i = 0;
+            for (; str[i] && i < 12; ++i) {
+                // NOTE: char_to_symbol() returns char type, and without this explicit
+                // expansion to uint64 type, the compilation fails at the point of usage
+                // of string_to_name(), where the usage requires constant (compile time) expression.
+                name |= (char_to_symbol(str[i]) & 0x1f) << (64 - 5 * (i + 1));
+            }
+
+            // The for-loop encoded up to 60 high bits into uint64 'name' variable,
+            // if (strlen(str) > 12) then encode str[12] into the low (remaining)
+            // 4 bits of 'name'
+            if (i == 12)
+                name |= char_to_symbol(str[12]) & 0x0F;
+            return name;
         }
-        
-        value |= c;
-    }
-    
-    return value;
-}
+
+        // Converts a string to a uint64_t using the same hashing mechanism as string_to_name without using the base32 symbols
+        static constexpr uint64_t string_to_uint64_t(const char *str) {
+
+            uint32_t len = 0;
+            while (str[len]) ++len;
+
+            uint64_t value = 0;
+            uint64_t multv = 0;
+            if (len > 0) {
+                multv = 60 / len;
+            }
+
+            for (uint32_t i = 0; i < len; ++i) {
+                uint64_t c = 0;
+                if (i < len) c = uint64_t(str[i]);
+
+                if (i < 60) {
+                    c &= 0x1f;
+                    c <<= 64 - multv * (i + 1);
+                } else {
+                    c &= 0x0f;
+                }
+
+                value |= c;
+            }
+
+            return value;
+        }
 
 #define N(X) eosio::chain::string_to_name(#X)
 
-   struct name {
-      uint64_t value = 0;
-      bool empty()const { return 0 == value; }
-      bool good()const  { return !empty();   }
+        struct name {
+            uint64_t value = 0;
 
-      name( const char* str )   { set(str);           }
-      name( const string& str ) { set( str.c_str() ); }
+            bool empty() const { return 0 == value; }
 
-      void set( const char* str );
+            bool good() const { return !empty(); }
 
-      template<typename T>
-      name( T v ):value(v){}
-      name(){}
+            name(const char *str) { set(str); }
 
-      explicit operator string()const;
+            name(const string &str) { set(str.c_str()); }
 
-      string to_string() const { return string(*this); }
+            void set(const char *str);
 
-      name& operator=( uint64_t v ) {
-         value = v;
-         return *this;
-      }
+            template<typename T>
+            name(T v):value(v) {}
 
-      name& operator=( const string& n ) {
-         value = name(n).value;
-         return *this;
-      }
-      name& operator=( const char* n ) {
-         value = name(n).value;
-         return *this;
-      }
+            name() {}
 
-      friend std::ostream& operator << ( std::ostream& out, const name& n ) {
-         return out << string(n);
-      }
+            explicit operator string() const;
 
-      friend bool operator < ( const name& a, const name& b ) { return a.value < b.value; }
-      friend bool operator <= ( const name& a, const name& b ) { return a.value <= b.value; }
-      friend bool operator > ( const name& a, const name& b ) { return a.value > b.value; }
-      friend bool operator >=( const name& a, const name& b ) { return a.value >= b.value; }
-      friend bool operator == ( const name& a, const name& b ) { return a.value == b.value; }
+            string to_string() const { return string(*this); }
 
-      friend bool operator == ( const name& a, uint64_t b ) { return a.value == b; }
-      friend bool operator != ( const name& a, uint64_t b ) { return a.value != b; }
+            name &operator=(uint64_t v) {
+                value = v;
+                return *this;
+            }
 
-      friend bool operator != ( const name& a, const name& b ) { return a.value != b.value; }
+            name &operator=(const string &n) {
+                value = name(n).value;
+                return *this;
+            }
 
-      operator bool()const            { return value; }
-      operator uint64_t()const        { return value; }
-      operator unsigned __int128()const       { return value; }
-   };
+            name &operator=(const char *n) {
+                value = name(n).value;
+                return *this;
+            }
 
-} } // eosio::chain
+            friend std::ostream &operator<<(std::ostream &out, const name &n) {
+                return out << string(n);
+            }
+
+            friend bool operator<(const name &a, const name &b) { return a.value < b.value; }
+
+            friend bool operator<=(const name &a, const name &b) { return a.value <= b.value; }
+
+            friend bool operator>(const name &a, const name &b) { return a.value > b.value; }
+
+            friend bool operator>=(const name &a, const name &b) { return a.value >= b.value; }
+
+            friend bool operator==(const name &a, const name &b) { return a.value == b.value; }
+
+            friend bool operator==(const name &a, uint64_t b) { return a.value == b; }
+
+            friend bool operator!=(const name &a, uint64_t b) { return a.value != b; }
+
+            friend bool operator!=(const name &a, const name &b) { return a.value != b.value; }
+
+            operator bool() const { return value; }
+
+            operator uint64_t() const { return value; }
+
+            operator unsigned __int128() const { return value; }
+        };
+
+    }
+} // eosio::chain
 
 namespace std {
-   template<> struct hash<eosio::chain::name> : private hash<uint64_t> {
-      typedef eosio::chain::name argument_type;
-      typedef typename hash<uint64_t>::result_type result_type;
-      result_type operator()(const argument_type& name) const noexcept
-      {
-         return hash<uint64_t>::operator()(name.value);
-      }
-   };
+    template<>
+    struct hash<eosio::chain::name> : private hash<uint64_t> {
+        typedef eosio::chain::name argument_type;
+        typedef typename hash<uint64_t>::result_type result_type;
+
+        result_type operator()(const argument_type &name) const noexcept {
+            return hash<uint64_t>::operator()(name.value);
+        }
+    };
 };
 
 namespace fc {
-  class variant;
-  void to_variant(const eosio::chain::name& c, fc::variant& v);
-  void from_variant(const fc::variant& v, eosio::chain::name& check);
+    class variant;
+
+    void to_variant(const eosio::chain::name &c, fc::variant &v);
+
+    void from_variant(const fc::variant &v, eosio::chain::name &check);
 } // fc
 
 
-FC_REFLECT( eosio::chain::name, (value) )
+FC_REFLECT( eosio::chain::name, (value)
+)
