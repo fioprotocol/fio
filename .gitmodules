@@ -9,12 +9,14 @@
 [submodule "libraries/softfloat"]
 	path = libraries/softfloat
 	url = https://github.com/eosio/berkeley-softfloat-3
-[submodule "libraries/fc"]
-	path = libraries/fc
-	url = https://github.com/EOSIO/fc
 [submodule "libraries/wabt"]
 	path = libraries/wabt
 	url = https://github.com/EOSIO/wabt
 [submodule "libraries/yubihsm"]
 	path = libraries/yubihsm
 	url = https://github.com/Yubico/yubihsm-shell
+
+[submodule "libraries/fc"]
+	path = libraries/fc
+	url = https://github.com/dapixio/fc
+	branch = v1.7.x
