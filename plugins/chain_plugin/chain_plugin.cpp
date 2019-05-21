@@ -2934,7 +2934,11 @@ read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::ge
 
     if(!cursor.empty()) {
         size_t pos = cursor[0].to_string().find(' ');
-        result.balance = cursor[0].to_string().substr(0, pos);
+        std::string decval = cursor[0].to_string().substr(0, pos);
+        pos = decval.find('.');
+        std::string whole = decval.substr(0,pos);
+        std::string precision = decval.substr(pos+1,decval.size());
+        result.balance = whole+precision;
     }
 
     return result;
