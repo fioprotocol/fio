@@ -331,5 +331,4 @@ namespace eosio {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)
-(retire))
+EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)(retire)
