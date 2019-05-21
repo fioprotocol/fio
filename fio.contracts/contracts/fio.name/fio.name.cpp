@@ -6,7 +6,7 @@
  */
 
 #include "fio.name.hpp"
-#include "../fio.fee/fio.fee.hpp"
+#include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <eosiolib/asset.hpp>
 

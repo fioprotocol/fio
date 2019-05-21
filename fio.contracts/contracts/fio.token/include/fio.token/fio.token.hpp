@@ -7,9 +7,10 @@
 #include <eosiolib/asset.hpp>
 #include <eosiolib/eosio.hpp>
 #include <string>
-#include "../../fio.name/fio.name.hpp"
-#include "../../fio.fee/fio.fee.hpp"
-#include "../../fio.common/fio.common.hpp"
+
+#include <fio.fee/fio.fee.hpp>
+#include <fio.common/fio.common.hpp>
+#include <fio.name/fio.name.hpp>
 
 namespace eosiosystem {
     class system_contract;
@@ -52,6 +53,7 @@ namespace eosio {
                       asset quantity,
                       string memo);
 
+        [[eosio::action]]
         void trnsfiopubky(string payee_public_key,
                           string amount,
                           uint64_t max_fee,
@@ -100,7 +102,6 @@ namespace eosio {
         typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 
         void sub_balance(name owner, asset value);
-
         void add_balance(name owner, asset value, name ram_payer);
 
     public:
@@ -118,12 +119,14 @@ namespace eosio {
         };
     };
 
+    [[eosio::action]]
     asset token::get_supply(symbol_name sym) const {
         stats statstable(_self, sym);
         const auto &st = statstable.get(sym);
         return st.supply;
     }
 
+    [[eosio::action]]
     asset token::get_balance(account_name owner, symbol_name sym) const {
         accounts accountstable(_self, owner);
         const auto &ac = accountstable.get(sym);

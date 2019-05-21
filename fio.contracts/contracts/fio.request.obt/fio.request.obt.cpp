@@ -9,8 +9,8 @@
 
 #include <eosiolib/asset.hpp>
 #include "fio.request.obt.hpp"
-#include "../fio.name/fio.name.hpp"
-#include "../fio.fee/fio.fee.hpp"
+#include <fio.name/fio.name.hpp>
+#include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <fio.common/fioerror.hpp>

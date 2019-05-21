@@ -19,7 +19,7 @@
 #endif
 
 #ifndef TOKEN_CONTRACT
-#define TOKEN_CONTRACT "eosio.token"
+#define TOKEN_CONTRACT "fio.token"
 #endif
 
 #ifndef FIO_SYSTEM
