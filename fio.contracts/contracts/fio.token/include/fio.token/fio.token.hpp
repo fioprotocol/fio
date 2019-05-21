@@ -7,9 +7,9 @@
 #include <eosiolib/asset.hpp>
 #include <eosiolib/eosio.hpp>
 #include <string>
-#include <fio.name/fio.name.hpp>
-#include <fio.fee/fio.fee.hpp>
-#include <fio.common/fio.common.hpp>
+#include "../../fio.name/fio.name.hpp"
+#include "../../fio.fee/fio.fee.hpp"
+#include "../../fio.common/fio.common.hpp"
 
 namespace eosiosystem {
     class system_contract;

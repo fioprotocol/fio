@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <cmath>
-#include <eosio.system/eosio.system.hpp>
+#include "../eosio.system/include/eosio.system/eosio.system.hpp"
 #include <eosiolib/eosio.hpp>
 #include <string>
 #include <eosiolib/asset.hpp>

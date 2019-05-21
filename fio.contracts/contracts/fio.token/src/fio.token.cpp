@@ -4,7 +4,7 @@
  */
 
 #include <fio.token/fio.token.hpp>
-#include <eosio/chain/fioio/fioerror.hpp>
+#include <fio.common/fioerror.hpp>
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <fio.common/keyops.hpp>

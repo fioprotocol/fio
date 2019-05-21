@@ -7,12 +7,12 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/crypto.hpp>
-#include <fio.common/json.hpp>
-#include <fio.common/keyops.hpp>
-#include <fio.common/fioerror.hpp>
-#include <fio.common/fio_common_validator.hpp>
-#include <fio.common/chain_control.hpp>
-#include <fio.common/account_operations.hpp>
+#include "json.hpp"
+#include "keyops.hpp"
+#include "fioerror.hpp"
+#include "fio_common_validator.hpp"
+#include "chain_control.hpp"
+#include "account_operations.hpp"
 
 #ifndef FEE_CONTRACT
 #define FEE_CONTRACT "fio.fee"
