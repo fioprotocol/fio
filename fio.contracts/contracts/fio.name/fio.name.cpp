@@ -572,8 +572,8 @@ namespace fioio {
         void bind2eosio(name account, const string &client_key, bool existing) {
             // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
             //NOTE -- ed removed the require authorization when integrating the account management into
-            //        the smart contract layer, the eosio.token contract needs to invoke this action from
-            //        the eosio.token contract, this requires that either the fio.token account get the authorization
+            //        the smart contract layer, the fio.token contract needs to invoke this action from
+            //        the fio.token contract, this requires that either the fio.token account get the authorization
             //        of fio.system, or that this line of code be removed. this needs more thought in the future.
             // require_auth(name(FIO_SYSTEM));
 

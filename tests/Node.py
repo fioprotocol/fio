@@ -1,19 +1,20 @@
 import copy
+import datetime
 import decimal
-import subprocess
-import time
+import json
 import os
 import re
-import datetime
-import json
 import signal
+import subprocess
+import time
 
 from core_symbol import CORE_SYMBOL
-from testUtils import Utils
 from testUtils import Account
 from testUtils import EnumType
+from testUtils import Utils
 from testUtils import addEnum
 from testUtils import unhandledEnumType
+
 
 class ReturnType(EnumType):
     pass
@@ -855,7 +856,7 @@ class Node(object):
     def getAccountEosBalanceStr(self, scope):
         """Returns SYS currency0000 account balance from cleos get table command. Returned balance is string following syntax "98.0311 SYS". """
         assert isinstance(scope, str)
-        amount=self.getTableAccountBalance("eosio.token", scope)
+        amount = self.getTableAccountBalance("fio.token", scope)
         if Utils.Debug: Utils.Print("getNodeAccountEosBalance %s %s" % (scope, amount))
         assert isinstance(amount, str)
         return amount

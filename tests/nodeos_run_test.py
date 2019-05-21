@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-from testUtils import Utils
+import decimal
+import re
+
 from Cluster import Cluster
-from WalletMgr import WalletMgr
 from Node import Node
 from Node import ReturnType
 from TestHelper import TestHelper
-
-import decimal
-import re
+from WalletMgr import WalletMgr
+from testUtils import Utils
 
 ###############################################################
 # nodeos_run_test
@@ -321,9 +321,9 @@ try:
     if hashNum != 0:
         errorExit("FAILURE - get code currency1111 failed", raw=True)
 
-    contractDir="unittests/contracts/eosio.token"
-    wasmFile="eosio.token.wasm"
-    abiFile="eosio.token.abi"
+    contractDir = "unittests/contracts/fio.token"
+    wasmFile = "fio.token.wasm"
+    abiFile = "fio.token.abi"
     Print("Publish contract")
     trans=node.publishContract(currencyAccount.name, contractDir, wasmFile, abiFile, waitForTransBlock=True)
     if trans is None:

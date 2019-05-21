@@ -1,6 +1,6 @@
 #include <eosio.system/eosio.system.hpp>
 
-#include <eosio.token/eosio.token.hpp>
+#include <fio.token/fio.token.hpp>
 
 namespace eosiosystem {
 

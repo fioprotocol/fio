@@ -3064,7 +3064,7 @@ int main( int argc, char** argv ) {
    auto setActionPermission = set_action_permission_subcommand(setAction);
 
    // Transfer subcommand
-   string con = "eosio.token";
+    string con = "fio.token";
    string sender;
    string recipient;
    string amount;

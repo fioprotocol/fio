@@ -192,14 +192,30 @@ BOOST_AUTO_TEST_SUITE(bootseq_tests)
 BOOST_FIXTURE_TEST_CASE( bootseq_test, bootseq_tester ) {
     try {
 
-        // Create eosio.msig and eosio.token
-        create_accounts({N(eosio.msig), N(eosio.token), N(eosio.ram), N(eosio.ramfee), N(eosio.stake), N(eosio.vpay), N(eosio.bpay), N(eosio.saving) });
+// Create eosio.msig and fio.token
+create_accounts({
+N(eosio
+.msig),
+N(fio
+.token),
+N(eosio
+.ram),
+N(eosio
+.ramfee),
+N(eosio
+.stake),
+N(eosio
+.vpay),
+N(eosio
+.bpay),
+N(eosio
+.saving) });
         // Set code for the following accounts:
         //  - eosio (code: eosio.bios) (already set by tester constructor)
         //  - eosio.msig (code: eosio.msig)
-        //  - eosio.token (code: eosio.token)
+//  - fio.token (code: fio.token)
         // set_code_abi(N(eosio.msig), contracts::eosio_msig_wasm(), contracts::eosio_msig_abi().data());//, &eosio_active_pk);
-        // set_code_abi(N(eosio.token), contracts::eosio_token_wasm(), contracts::eosio_token_abi().data()); //, &eosio_active_pk);
+// set_code_abi(N(fio.token), contracts::fio_token_wasm(), contracts::fio_token_abi().data()); //, &eosio_active_pk);
 
         set_code_abi(N(eosio.msig),
                      contracts::eosio_msig_wasm(),
@@ -208,21 +224,23 @@ BOOST_FIXTURE_TEST_CASE( bootseq_test, bootseq_tester ) {
                      contracts::eosio_token_wasm(),
                      contracts::eosio_token_abi().data()); //, &eosio_active_pk);
 
-        // Set privileged for eosio.msig and eosio.token
+// Set privileged for eosio.msig and fio.token
         set_privileged(N(eosio.msig));
-        set_privileged(N(eosio.token));
+set_privileged(N(fio.token)
+);
 
-        // Verify eosio.msig and eosio.token is privileged
+// Verify eosio.msig and fio.token is privileged
         const auto& eosio_msig_acc = get<account_object, by_name>(N(eosio.msig));
         BOOST_TEST(eosio_msig_acc.privileged == true);
-        const auto& eosio_token_acc = get<account_object, by_name>(N(eosio.token));
+const auto &eosio_token_acc = get<account_object, by_name>(N(fio.token));
         BOOST_TEST(eosio_token_acc.privileged == true);
 
 
-        // Create SYS tokens in eosio.token, set its manager as eosio
+// Create SYS tokens in fio.token, set its manager as eosio
         auto max_supply = core_from_string("10000000000.0000"); /// 1x larger than 1B initial tokens
         auto initial_supply = core_from_string("1000000000.0000"); /// 1x larger than 1B initial tokens
-        create_currency(N(eosio.token), config::system_account_name, max_supply);
+create_currency(N(fio.token), config::system_account_name, max_supply
+);
         // Issue the genesis supply of 1 billion SYS tokens to eosio.system
         issue(N(eosio.token), config::system_account_name, config::system_account_name, initial_supply);
 
