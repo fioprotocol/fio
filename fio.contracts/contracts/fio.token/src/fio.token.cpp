@@ -3,9 +3,9 @@
  *  @copyright defined in eos/LICENSE.txt
  */
 
-#include <fio.token/fio.token.hpp>
+#include <eosiolib/crypto.hpp>
 #include <fio.common/fio.common.hpp>
-#include <eosiolib/asset.hpp>
+#include <fio.token/fio.token.hpp>
 
 using namespace fioio;
 
@@ -152,7 +152,7 @@ namespace eosio {
         array<unsigned char, 33> pubkey_data;
         copy_n(vch.begin(), 33, pubkey_data.begin());
 
-        checksum160 check_pubkey;
+        capi_checksum160 check_pubkey;
         ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
         fio_400_assert(memcmp(&check_pubkey.hash, &vch.end()[-4], 4) == 0, "payee_public_address", payee_public_key,
                        "Invalid FIO Public Key", ErrorChainAddressNotFound);
@@ -254,13 +254,14 @@ namespace eosio {
         fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
-        asset reg_fee_asset = asset(reg_amount);
-        fio_fees(actor, reg_fee_asset);
         //end new fees, logic for Mandatory fees.
 
         auto sym = qty.symbol;
-        stats statstable(_self, sym.value);
-        const auto &st = statstable.get(sym);
+        stats statstable(_self, sym.raw());
+        const auto &st = statstable.get(sym.raw());
+
+        asset reg_fee_asset = asset(reg_amount, sym);
+        fio_fees(actor, reg_fee_asset);
 
         require_recipient(actor);
         //require recipient if the account was found on the chain.

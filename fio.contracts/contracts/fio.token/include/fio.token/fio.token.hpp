@@ -23,8 +23,6 @@ namespace eosio {
         fioio::config appConfig;
     public:
 
-        using contract::contract;
-
         [[eosio::action]]
         void create(name issuer,
                     asset maximum_supply);
