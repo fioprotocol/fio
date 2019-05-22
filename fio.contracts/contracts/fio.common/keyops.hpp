@@ -12,6 +12,8 @@
 
 #pragma once
 
+using namespace eosio;
+
 namespace fioio {
 
 

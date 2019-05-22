@@ -4,12 +4,8 @@
  */
 #pragma once
 
-#include <eosiolib/asset.hpp>
-#include <eosiolib/eosio.hpp>
-#include <string>
-
-#include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
+#include <fio.fee/fio.fee.hpp>
 #include <fio.name/fio.name.hpp>
 
 namespace eosiosystem {
@@ -112,18 +108,4 @@ namespace eosio {
             bool existing;
         };
     };
-
-    [[eosio::action]]
-    asset token::get_supply(symbol_code sym) const {
-        stats statstable(_self, sym);
-        const auto &st = statstable.get(sym);
-        return st.supply;
-    }
-
-    [[eosio::action]]
-    asset token::get_balance(name owner, symbol_code sym) const {
-        accounts accountstable(_self, owner.value);
-        const auto &ac = accountstable.get(sym);
-        return ac.balance;
-    }
 } /// namespace eosio

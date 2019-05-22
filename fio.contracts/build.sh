@@ -17,3 +17,4 @@ cp contracts/fio.name/fio.name.abi build/contracts/fio.name/
 cp contracts/fio.fee/fio.fee.abi build/contracts/fio.fee/
 cp contracts/fio.request.obt/fio.request.obt.abi build/contracts/fio.request.obt/
 cp contracts/fio.finance/fio.finance.abi build/contracts/fio.finance/
+cp contracts/fio.token/fio.token.abi build/contracts/fio.token/

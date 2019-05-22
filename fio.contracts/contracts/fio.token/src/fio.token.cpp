@@ -259,7 +259,7 @@ namespace eosio {
         //end new fees, logic for Mandatory fees.
 
         auto sym = qty.symbol;
-        stats statstable(_self, sym);
+        stats statstable(_self, sym.value);
         const auto &st = statstable.get(sym);
 
         require_recipient(actor);
@@ -334,4 +334,5 @@ namespace eosio {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)(retire)
+EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)
+(retire))
