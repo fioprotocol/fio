@@ -112,7 +112,7 @@ namespace eosio {
 
     inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
-            name fiosystem = eosio::name("fio.system");
+            name fiosystem = name("fio.system");
             // check for funds is implicitly done as part of the funds transfer.
             print("Collecting FIO API fees: ", fee);
             transfer(actor, fiosystem, fee, string("FIO API fees. Thank you."));
@@ -129,7 +129,7 @@ namespace eosio {
         asset qty;
         //we assume the amount is in fio sufs.
         qty.amount = (int64_t) atoi(amount.c_str());
-        qty.symbol = ::eosio::symbol(9, "FIO");
+        qty.symbol = symbol("FIO", 9);
 
         ///BEGIN new account management logic!!!!
 
@@ -164,10 +164,10 @@ namespace eosio {
 
         //see if the payee_actor is in the eosionames table.
         eosio_assert(payee_account.length() == 12, "Length of account name should be 12");
-        name new_account_name = string_to_name(payee_account.c_str());
+        name new_account_name = name(payee_account.c_str());
         bool accountExists = is_account(new_account_name);
 
-        auto other = eosionames.find(new_account_name);
+        auto other = eosionames.find(new_account_name.value);
 
         if (other == eosionames.end()) { //the name is not in the table.
             // if account does exist on the chain this is an error. DANGER account was created without binding!
@@ -188,19 +188,22 @@ namespace eosio {
             const auto rbprice = rambytes_price(3 * 1024);
 
             // Create account.
-            INLINE_ACTION_SENDER(fioio::call::eosio, newaccount)
-                    ("eosio"_n, {{_self, "active"_n}},
-                     {_self, new_account_name, owner_auth, owner_auth});
+            action(
+                  permission_level{get_self(),"active"_n},
+                  "eosio"_n,
+                  "newaccount"_n,
+                  std::make_tuple(get_self(), new_account_name, owner_auth, owner_auth)
+                ).send();
 
             // Buy ram for account.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                    ("eosio"_n, {{_self, "active"_n }},
+                    ("eosio"_n, {{_self, "active"_n}},
                      {_self, new_account_name, rbprice});
-
             // Replace lost ram.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
                     ("eosio"_n, {{_self, "active"_n}},
                      {_self, _self, rbprice});
+
 
             print("created the account!!!!", new_account_name, "\n");
 
@@ -255,7 +258,7 @@ namespace eosio {
         fio_fees(actor, reg_fee_asset);
         //end new fees, logic for Mandatory fees.
 
-        auto sym = qty.symbol.name();
+        auto sym = qty.symbol;
         stats statstable(_self, sym);
         const auto &st = statstable.get(sym);
 

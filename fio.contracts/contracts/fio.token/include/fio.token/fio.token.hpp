@@ -122,7 +122,7 @@ namespace eosio {
 
     [[eosio::action]]
     asset token::get_balance(name owner, symbol_code sym) const {
-        accounts accountstable(_self, owner);
+        accounts accountstable(_self, owner.value);
         const auto &ac = accountstable.get(sym);
         return ac.balance;
     }
