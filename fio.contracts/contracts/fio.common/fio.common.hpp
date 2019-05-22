@@ -49,7 +49,7 @@ namespace fioio {
 
     struct config {
         name tokencontr; // owner of the token contract
-        bool pmtson = false; // enable/disable payments
+        bool pmtson = true; // enable/disable payments
 
         EOSLIB_SERIALIZE(config, (tokencontr)(pmtson))
     };
