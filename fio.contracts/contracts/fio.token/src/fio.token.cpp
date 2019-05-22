@@ -139,6 +139,8 @@ namespace eosio {
         //we assume the amount is in fio sufs.
         int64_t i64 = stoi(amount.c_str());
         qty.amount = i64;
+        qty.symbol = symbol("FIO", 9);
+
 
         ///BEGIN new account management logic!!!!
 
@@ -264,14 +266,16 @@ namespace eosio {
                        ErrorMaxFeeExceeded);
 
         //end new fees, logic for Mandatory fees.
-
         auto sym = qty.symbol;
-        stats statstable(_self, sym.raw());
-        const auto &st = statstable.get(sym.raw());
+        stats statstable(_self, sym.code().raw());
+        const auto &st = statstable.get(sym.code().raw());
 
-        asset reg_fee_asset = asset(reg_amount, sym);
+
+        asset reg_fee_asset = asset();
+        reg_fee_asset.amount = reg_amount;
+        reg_fee_asset.symbol = symbol("FIO", 9);
+
         fio_fees(actor, reg_fee_asset);
-
         require_recipient(actor);
         //require recipient if the account was found on the chain.
         if (accountExists) {
