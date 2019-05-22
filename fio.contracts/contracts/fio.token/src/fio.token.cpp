@@ -3,9 +3,7 @@
  *  @copyright defined in eos/LICENSE.txt
  */
 
-#include <eosiolib/crypto.hpp>
-#include <fio.common/fio.common.hpp>
-#include <fio.token/fio.token.hpp>
+#include "fio.token/fio.token.hpp"
 
 using namespace fioio;
 
@@ -30,7 +28,6 @@ namespace eosio {
             s.issuer = issuer;
         });
     }
-
 
     void token::issue(name to, asset quantity, string memo) {
         auto sym = quantity.symbol;

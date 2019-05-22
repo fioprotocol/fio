@@ -5,8 +5,8 @@
 #pragma once
 
 #include <fio.common/fio.common.hpp>
-#include <fio.fee/fio.fee.hpp>
 #include <fio.name/fio.name.hpp>
+#include <fio.fee/fio.fee.hpp>
 
 namespace eosiosystem {
     class system_contract;
@@ -22,6 +22,12 @@ namespace eosio {
         fioio::fiofee_table fiofees;
         fioio::config appConfig;
     public:
+        token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
+                                                                eosionames(_self, _self.value),
+                                                                fiofees(fioio::FeeContract, fioio::FeeContract.value) {
+            fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
+            appConfig = configsSingleton.get_or_default(fioio::config());
+        }
 
         [[eosio::action]]
         void create(name issuer,
