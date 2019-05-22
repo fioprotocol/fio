@@ -118,6 +118,18 @@ namespace eosio {
         }
     }
 
+    inline int64_t stoi(const char *s) //1000000000000
+    {
+        int64_t i;
+        i = 0;
+
+        while(*s >= '0' && *s <= '9') {
+            i = i * 10 + (*s - '0');
+            s++;
+        }
+        return i;
+    }
+
     void token::trnsfiopubky(string payee_public_key,
                              string amount,
                              uint64_t max_fee,
@@ -125,8 +137,8 @@ namespace eosio {
 
         asset qty;
         //we assume the amount is in fio sufs.
-        qty.amount = (int64_t) atoi(amount.c_str());
-        qty.symbol = symbol("FIO", 9);
+        int64_t i64 = stoi(amount.c_str());
+        qty.amount = i64;
 
         ///BEGIN new account management logic!!!!
 
