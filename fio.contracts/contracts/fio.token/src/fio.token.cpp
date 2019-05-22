@@ -123,7 +123,7 @@ namespace eosio {
         int64_t i;
         i = 0;
 
-        while(*s >= '0' && *s <= '9') {
+        while (*s >= '0' && *s <= '9') {
             i = i * 10 + (*s - '0');
             s++;
         }
@@ -200,11 +200,11 @@ namespace eosio {
 
             // Create account.
             action(
-                  permission_level{get_self(),"active"_n},
-                  "eosio"_n,
-                  "newaccount"_n,
-                  std::make_tuple(get_self(), new_account_name, owner_auth, owner_auth)
-                ).send();
+                    permission_level{get_self(), "active"_n},
+                    "eosio"_n,
+                    "newaccount"_n,
+                    std::make_tuple(get_self(), new_account_name, owner_auth, owner_auth)
+            ).send();
 
             // Buy ram for account.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
