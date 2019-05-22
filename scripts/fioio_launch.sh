@@ -40,8 +40,7 @@ if [ $mChoice == 2 ]; then
             cp ./contracts/fio.name/fio.name.abi ./build/contracts/fio.name/fio.name.abi
             cp ./contracts/fio.request.obt/fio.request.obt.abi ./build/contracts/fio.request.obt/fio.request.obt.abi
             cp ./contracts/fio.finance/fio.finance.abi ./build/contracts/fio.finance/fio.finance.abi
-
-
+            
     exit -1
 fi
 
@@ -53,10 +52,10 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
     fi
 
-    if [ -f ../fio.contracts/build/contracts/eosio.token/eosio.token.wasm ]; then
-        eosio_token_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.token"
+    if [ -f ../fio.contracts/build/contracts/fio.token/fio.token.wasm ]; then
+        fio_token_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.token"
     else
-        echo 'No wasm file found at $PWD/build/contracts/eosio.token'
+        echo 'No wasm file found at $PWD/build/contracts/fio.token'
     fi
     #Fio Name Directory Check
     if [ -f ../fio.contracts/build/contracts/fio.name/fio.name.wasm ]; then
@@ -156,7 +155,7 @@ if [ $mChoice == 1 ]; then
 
     ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
-    ./cleos -u http://localhost:8889 set contract fio.token $eosio_token_contract_name_path eosio.token.wasm eosio.token.abi
+    ./cleos -u http://localhost:8889 set contract fio.token $fio_token_contract_name_path fio.token.wasm fio.token.abi
 
 
     #Create the hashed accounts
@@ -189,7 +188,7 @@ if [ $mChoice == 1 ]; then
                 ./cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
                 #make the fio.reqobt into a privileged account
                 ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
-    fi
+     fi
 
     #create fees for the fio protocol
      echo "creating fees"

@@ -22,8 +22,9 @@ namespace fioio {
 
 
         using contract::contract;
-        FioFee(name s, name code, datastream<const char*> ds)
-                : contract(s,code,ds), fiofees(_self,_self.value) {
+
+        FioFee(name s, name code, datastream<const char *> ds)
+                : contract(s, code, ds), fiofees(_self, _self.value) {
         }
 
         /***
@@ -35,14 +36,13 @@ namespace fioio {
                 string end_point,   // the blockchain endpoint to which the fee relates.
                 uint64_t type,      // this is the fee type from the feetype enumeration.
                 uint64_t suf_amount // this is the amount of the fee in small units of FIO.
-                                    // 1 billion per fio as of 04/23/2019.
-        )
-        {
+                // 1 billion per fio as of 04/23/2019.
+        ) {
 
-            print("called create fee.","\n");
-            require_auth( _self );
+            print("called create fee.", "\n");
+            require_auth(_self);
 
-            print("creating name for end point ",end_point.c_str());
+            print("creating name for end point ", end_point.c_str());
 
             uint64_t endPointHash = string_to_uint64_hash(end_point.c_str());
             uint64_t fee_id = fiofees.available_primary_key();
@@ -58,8 +58,8 @@ namespace fioio {
         }
 
 
-
     }; // class FioFee
 
-    EOSIO_DISPATCH(FioFee,(create))
+    EOSIO_DISPATCH(FioFee, (create)
+    )
 } // namespace fioio

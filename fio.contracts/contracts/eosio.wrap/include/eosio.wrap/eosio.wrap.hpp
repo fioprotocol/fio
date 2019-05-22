@@ -6,14 +6,14 @@
 
 namespace eosio {
 
-   class [[eosio::contract("eosio.wrap")]] wrap : public contract {
-      public:
-         using contract::contract;
+    class [[eosio::contract("eosio.wrap")]] wrap : public contract {
+    public:
+        using contract::contract;
 
-         [[eosio::action]]
-         void exec( ignore<name> executer, ignore<transaction> trx );
+        [[eosio::action]]
+        void exec(ignore <name> executer, ignore <transaction> trx);
 
-         using exec_action = eosio::action_wrapper<"exec"_n, &wrap::exec>;
-   };
+        using exec_action = eosio::action_wrapper<"exec"_n, &wrap::exec>;
+    };
 
 } /// namespace eosio

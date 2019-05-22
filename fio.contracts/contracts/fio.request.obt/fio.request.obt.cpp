@@ -9,8 +9,8 @@
 
 #include <eosiolib/asset.hpp>
 #include "fio.request.obt.hpp"
-#include "../fio.name/fio.name.hpp"
-#include "../fio.fee/fio.fee.hpp"
+#include <fio.name/fio.name.hpp>
+#include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <fio.common/fioerror.hpp>
@@ -19,7 +19,6 @@
 namespace fioio {
 
     const static name TokenContract = name("fio.token");
-
 
 
     class [[eosio::contract("FioRequestObt")]]  FioRequestObt : public eosio::contract {
@@ -32,15 +31,13 @@ namespace fioio {
         config appConfig;
 
 
-
-
     public:
-        explicit FioRequestObt(name s, name code, datastream<const char*> ds)
-                : contract(s,code,ds),
-                fiorequestContextsTable(_self, _self.value),
-                fiorequestStatusTable(_self, _self.value),
-                fionames(SystemContract,SystemContract.value),
-                fiofees(FeeContract,FeeContract.value){
+        explicit FioRequestObt(name s, name code, datastream<const char *> ds)
+                : contract(s, code, ds),
+                  fiorequestContextsTable(_self, _self.value),
+                  fiorequestStatusTable(_self, _self.value),
+                  fionames(SystemContract, SystemContract.value),
+                  fiofees(FeeContract, FeeContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -54,8 +51,7 @@ namespace fioio {
         {
             int64_t i;
             i = 0;
-            while(*s >= '0' && *s <= '9')
-            {
+            while (*s >= '0' && *s <= '9') {
                 i = i * 10 + (*s - '0');
                 s++;
             }
@@ -127,14 +123,14 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "record_send",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "record_send",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a bundleeligible fee then this is an error.
-            fio_400_assert(fee_type == 1,"fee_type", to_string(fee_type),
+            fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "record_send unexpected fee type for endpoint record_send, expected 1", ErrorNoEndpoint);
 
 
@@ -142,35 +138,35 @@ namespace fioio {
 
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown >0)
-            {
+            if (bundleeligiblecountdown > 0) {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
-                action {
+                action{
                         permission_level{_self, "active"_n},
                         "fio.system"_n,
                         "decrcounter"_n,
-                        decrementcounter {
+                        decrementcounter{
                                 .fio_address = payer_fio_address
                         }
                 }.send();
 
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",ErrorMaxFeeExceeded );
+                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                               ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 asset reg_fee_asset = asset();
                 reg_fee_asset.amount = fee_amount;
-                reg_fee_asset.symbol = symbol("FIO",9);
+                reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
             }
             //end new fees, bundle eligible fee logic
 
-            nlohmann::json json = {{"status", status},
-                                   {"fee_collected",fee_amount}};
+            nlohmann::json json = {{"status",        status},
+                                   {"fee_collected", fee_amount}};
 
             send_response(json.dump().c_str());
         }
@@ -253,42 +249,43 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "new_funds_request",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "new_funds_request",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a bundleeligible fee then this is an error.
-            fio_400_assert(fee_type == 1,"fee_type", to_string(fee_type),
-                           "new_funds_request unexpected fee type for endpoint new_funds_request, expected 1", ErrorNoEndpoint);
+            fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                           "new_funds_request unexpected fee type for endpoint new_funds_request, expected 1",
+                           ErrorNoEndpoint);
 
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown >0)
-            {
+            if (bundleeligiblecountdown > 0) {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
-                action {
+                action{
                         permission_level{_self, "active"_n},
                         "fio.system"_n,
                         "decrcounter"_n,
-                        decrementcounter {
+                        decrementcounter{
                                 .fio_address = payee_fio_address
                         }
                 }.send();
 
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",ErrorMaxFeeExceeded );
+                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                               ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 asset reg_fee_asset = asset();
-                reg_fee_asset.symbol = symbol("FIO",9);
+                reg_fee_asset.symbol = symbol("FIO", 9);
                 reg_fee_asset.amount = fee_amount;
 
                 fio_fees(aActor, reg_fee_asset);
@@ -297,7 +294,7 @@ namespace fioio {
 
             nlohmann::json json = {{"fio_request_id", id},
                                    {"status",         "requested"},
-                                   {"fee_collected",fee_amount}};
+                                   {"fee_collected",  fee_amount}};
 
             send_response(json.dump().c_str());
         }
@@ -357,54 +354,56 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "reject_funds_request",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "reject_funds_request",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a bundleeligible fee then this is an error.
-            fio_400_assert(fee_type == 1,"fee_type", to_string(fee_type),
-                           "reject_funds_request unexpected fee type for endpoint reject_funds_request, expected 1", ErrorNoEndpoint);
+            fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                           "reject_funds_request unexpected fee type for endpoint reject_funds_request, expected 1",
+                           ErrorNoEndpoint);
 
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown >0)
-            {
+            if (bundleeligiblecountdown > 0) {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
-                action {
+                action{
                         permission_level{_self, "active"_n},
                         "fio.system"_n,
                         "decrcounter"_n,
-                        decrementcounter {
+                        decrementcounter{
                                 .fio_address = payer_fio_address
                         }
                 }.send();
 
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",ErrorMaxFeeExceeded );
+                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                               ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 asset reg_fee_asset = asset();
                 reg_fee_asset.amount = fee_amount;
-                reg_fee_asset.symbol = symbol("FIO",9);
+                reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
             }
             //end new fees, bundle eligible fee logic
 
-            nlohmann::json json = {{"status", "request_rejected"},
-                                   {"fee_collected",fee_amount}};
+            nlohmann::json json = {{"status",        "request_rejected"},
+                                   {"fee_collected", fee_amount}};
             send_response(json.dump().c_str());
         }
     };
 
-    EOSIO_DISPATCH(FioRequestObt, (recordsend)(newfundsreq)(rejectfndreq))
+    EOSIO_DISPATCH(FioRequestObt, (recordsend)(newfundsreq)
+    (rejectfndreq))
 }
 

@@ -17,13 +17,13 @@ namespace fioio {
     using namespace std;
 
     //map<string, string> ctType;
-    vector<string> eosioActions;
-    vector<string> fiosystemActions;
-    vector<string> fioFinanceActions;
-    vector<string> fioRequestObtActions;
-    vector<string> fioTokenActions;
+    vector <string> eosioActions;
+    vector <string> fiosystemActions;
+    vector <string> fioFinanceActions;
+    vector <string> fioRequestObtActions;
+    vector <string> fioTokenActions;
 
-    static void Set_map(void){
+    static void Set_map(void) {
         //eosio actions
         eosioActions.push_back("default");
 
@@ -43,14 +43,14 @@ namespace fioio {
         fioRequestObtActions.push_back("newfundsreq");
     }
 
-    static string map_to_contract( string t ){
-        if (find(fiosystemActions.begin(), fiosystemActions.end(), t) != fiosystemActions.end()){
+    static string map_to_contract(string t) {
+        if (find(fiosystemActions.begin(), fiosystemActions.end(), t) != fiosystemActions.end()) {
             return "fio.system";
         }
-        if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()){
+        if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()) {
             return "fio.finance";
         }
-        if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()){
+        if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()) {
             return "fio.reqobt";
         }
         if (find(fioTokenActions.begin(), fioTokenActions.end(), t) != fioTokenActions.end()) {
@@ -62,15 +62,15 @@ namespace fioio {
     inline string returncontract(string incomingaction) {
         Set_map();
 
-        string contract = map_to_contract( incomingaction );
+        string contract = map_to_contract(incomingaction);
 
         return contract;
     }
 
     struct regaddress {
-      string name;
-      uint64_t requestor;
-   };
+        string name;
+        uint64_t requestor;
+    };
 
     struct regdomain {
         string name;
@@ -85,6 +85,8 @@ namespace fioio {
     //};
 }
 
-FC_REFLECT(fioio::regaddress, (name)(requestor))
-FC_REFLECT(fioio::regdomain, (name)(requestor))
+FC_REFLECT(fioio::regaddress, (name)(requestor)
+)
+FC_REFLECT(fioio::regdomain, (name)(requestor)
+)
 //FC_REFLECT( fioio::addaddress, (fioaddress)(tokencode)(pubaddress)(actor) )

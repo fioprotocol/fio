@@ -6,7 +6,7 @@
  */
 
 #include "fio.name.hpp"
-#include "../fio.fee/fio.fee.hpp"
+#include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <eosiolib/asset.hpp>
 
@@ -19,18 +19,22 @@ namespace fioio {
         chains_table chains;
         fionames_table fionames;
         keynames_table keynames;
-        fiofee_table   fiofees;
+        fiofee_table fiofees;
         eosio_names_table eosionames;
         config appConfig;
 
         const name TokenContract = name("fio.token");
 
     public:
-    using contract::contract;
-        FioNameLookup( name s, name code, datastream<const char*> ds ) : contract(s,code,ds), domains(_self, _self.value),
-          fionames(_self, _self.value), keynames(_self, _self.value),
-          fiofees(FeeContract, FeeContract.value), eosionames(_self, _self.value), chains(_self, _self.value)
-          {
+        using contract::contract;
+
+        FioNameLookup(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
+                                                                        domains(_self, _self.value),
+                                                                        fionames(_self, _self.value),
+                                                                        keynames(_self, _self.value),
+                                                                        fiofees(FeeContract, FeeContract.value),
+                                                                        eosionames(_self, _self.value),
+                                                                        chains(_self, _self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -116,11 +120,11 @@ namespace fioio {
 
                     // Create account.
                     action(
-                          permission_level{get_self(),"active"_n},
-                          "eosio"_n,
-                          "newaccount"_n,
-                          std::make_tuple(get_self(), owner_account_name, owner_auth, owner_auth)
-                        ).send();
+                            permission_level{get_self(), "active"_n},
+                            "eosio"_n,
+                            "newaccount"_n,
+                            std::make_tuple(get_self(), owner_account_name, owner_auth, owner_auth)
+                    ).send();
 
 
                     // Buy ram for account.
@@ -166,7 +170,7 @@ namespace fioio {
                        TokenContract, "transfer"_n,
                        make_tuple(actor, fiosystem, fee,
                                   string("FIO API fees. Thank you."))
-                       ).send();
+                ).send();
 
             } else {
                 print("Payments currently disabled.");
@@ -305,8 +309,9 @@ namespace fioio {
         }
         //adddomain
 
-        uint64_t chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress,uint64_t max_fee,
-                               const FioAddress &fa, const name &actor) {
+        uint64_t
+        chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee,
+                          const FioAddress &fa, const name &actor) {
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
@@ -318,7 +323,7 @@ namespace fioio {
             uint32_t present_time = now();
 
             uint64_t account = fioname_iter->account;
-      //      print("account: ", account, " actor: ", actor, "\n");
+            //      print("account: ", account, " actor: ", actor, "\n");
             fio_403_assert(account == actor.value, ErrorSignature);
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
@@ -390,23 +395,23 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "add_pub_address",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "add_pub_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             int64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a bundleeligible fee then this is an error.
-            fio_400_assert(fee_type == 1,"fee_type", to_string(fee_type),
-                           "register_fio_address unexpected fee type for endpoint add_pub_address, expected 0", ErrorNoEndpoint);
+            fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint add_pub_address, expected 0",
+                           ErrorNoEndpoint);
 
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown >0)
-            {
+            if (bundleeligiblecountdown > 0) {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
 
@@ -415,7 +420,8 @@ namespace fioio {
                 });
             } else {
                 fee_amount = fee_iter->suf_amount;
-                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",ErrorMaxFeeExceeded );
+                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                               ErrorMaxFeeExceeded);
 
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
@@ -445,7 +451,8 @@ namespace fioio {
         /********* CONTRACT ACTIONS ********/
 
         [[eosio::action]]
-        void regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
+        void
+        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
             FioAddress fa;
@@ -462,33 +469,36 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "register_fio_address",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             int64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a mandatory fee then this is an error.
-            fio_400_assert(fee_type == 0,"fee_type", to_string(fee_type),
-                           "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0", ErrorNoEndpoint);
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
+                           ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",ErrorMaxFeeExceeded );
+            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
-           //ADAM how to set this reg_fee_asset = asset::from_string(to_string(reg_amount));
+            //ADAM how to set this reg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
 
             //end new fees, logic for Mandatory fees.
 
-            nlohmann::json json = {{"status",     "OK"},
-                {"expiration", expiration_time},
-                {"fee_collected",reg_amount}};
-                send_response(json.dump().c_str());
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"expiration",    expiration_time},
+                                   {"fee_collected", reg_amount}};
+            send_response(json.dump().c_str());
 
         }
 
         [[eosio::action]]
-        void regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
+        void
+        regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
             FioAddress fa;
@@ -505,17 +515,19 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(),"endpoint_name", "register_fio_domain",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a mandatory fee then this is an error.
-            fio_400_assert(fee_type == 0,"fee_type", to_string(fee_type),
-                           "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0", ErrorNoEndpoint);
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
+                           ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",ErrorMaxFeeExceeded );
+            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
@@ -523,11 +535,11 @@ namespace fioio {
 
             //end new fees, logic for Mandatory fees.
 
-            nlohmann::json json = {{"status",     "OK"},
-                {"expiration", expiration_time},
-                {"fee_collected",reg_amount}};
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"expiration",    expiration_time},
+                                   {"fee_collected", reg_amount}};
 
-             send_response(json.dump().c_str());
+            send_response(json.dump().c_str());
 
         }
 
@@ -539,20 +551,19 @@ namespace fioio {
          * @param pubaddress The chain specific user address
          */
         [[eosio::action]]
-        void addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
-                        const name &actor) {
+        void
+        addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
+                   const name &actor) {
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             addaddress_errors(token_code, public_address, fa);
 
-             uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address,max_fee, fa, actor);
+            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor);
 
 
-
-
-            nlohmann::json json = {{"status", "OK"},
-                {"fee_collected",fee_amount}};
-              send_response(json.dump().c_str());
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"fee_collected", fee_amount}};
+            send_response(json.dump().c_str());
 
         } //addaddress
 
@@ -572,8 +583,8 @@ namespace fioio {
         void bind2eosio(name account, const string &client_key, bool existing) {
             // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
             //NOTE -- ed removed the require authorization when integrating the account management into
-            //        the smart contract layer, the eosio.token contract needs to invoke this action from
-            //        the eosio.token contract, this requires that either the fio.token account get the authorization
+            //        the smart contract layer, the fio.token contract needs to invoke this action from
+            //        the fio.token contract, this requires that either the fio.token account get the authorization
             //        of fio.system, or that this line of code be removed. this needs more thought in the future.
             // require_auth(name(FIO_SYSTEM));
 
@@ -615,8 +626,7 @@ namespace fioio {
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
-            if (bundleeligiblecountdown >0)
-            {
+            if (bundleeligiblecountdown > 0) {
                 fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
                 });
@@ -624,10 +634,8 @@ namespace fioio {
         }
 
 
-
-
-
     }; // class FioNameLookup
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(removename)(removedomain)(rmvaddress)(decrcounter)
+    (bind2eosio))
 }

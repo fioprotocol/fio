@@ -17,17 +17,19 @@ namespace fioio {
     using namespace std;
     namespace bs = boost::filesystem;
 
-    inline void chain () {
+    inline void chain() {
         bs::path cp = bs::current_path() / "config" / "bip44chains.json";
 
         try {
             //fc::json::from_file(cp).as<clist>(approvedTokens.chainList);
         } catch (const fc::exception ex) {
-            elog ("from_file threw ${ex}", ("ex", ex));
+            elog("from_file threw ${ex}", ("ex", ex));
         } catch (...) {
-            elog ("failed to read ${f}", ("f", cp.string()));
+            elog("failed to read ${f}", ("f", cp.string()));
         }
     };
 }
-FC_REFLECT(fioio::clentry, (index)(chain));
-FC_REFLECT(fioio::clist, (chains));
+FC_REFLECT(fioio::clentry, (index)(chain)
+);
+FC_REFLECT(fioio::clist, (chains)
+);

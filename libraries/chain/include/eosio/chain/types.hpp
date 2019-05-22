@@ -3,6 +3,7 @@
  *  @copyright defined in eos/LICENSE
  */
 #pragma once
+
 #include <eosio/chain/name.hpp>
 #include <eosio/chain/chain_id_type.hpp>
 
@@ -46,175 +47,178 @@
 
 #define _V(n, v)  fc::mutable_variant_object(n, v)
 
-namespace eosio { namespace chain {
-   using                               std::map;
-   using                               std::vector;
-   using                               std::unordered_map;
-   using                               std::string;
-   using                               std::deque;
-   using                               std::shared_ptr;
-   using                               std::weak_ptr;
-   using                               std::unique_ptr;
-   using                               std::set;
-   using                               std::pair;
-   using                               std::make_pair;
-   using                               std::enable_shared_from_this;
-   using                               std::tie;
-   using                               std::move;
-   using                               std::forward;
-   using                               std::to_string;
-   using                               std::all_of;
+namespace eosio {
+    namespace chain {
+        using std::map;
+        using std::vector;
+        using std::unordered_map;
+        using std::string;
+        using std::deque;
+        using std::shared_ptr;
+        using std::weak_ptr;
+        using std::unique_ptr;
+        using std::set;
+        using std::pair;
+        using std::make_pair;
+        using std::enable_shared_from_this;
+        using std::tie;
+        using std::move;
+        using std::forward;
+        using std::to_string;
+        using std::all_of;
 
-   using                               fc::path;
-   using                               fc::smart_ref;
-   using                               fc::variant_object;
-   using                               fc::variant;
-   using                               fc::enum_type;
-   using                               fc::optional;
-   using                               fc::unsigned_int;
-   using                               fc::signed_int;
-   using                               fc::time_point_sec;
-   using                               fc::time_point;
-   using                               fc::safe;
-   using                               fc::flat_map;
-   using                               fc::flat_set;
-   using                               fc::static_variant;
-   using                               fc::ecc::range_proof_type;
-   using                               fc::ecc::range_proof_info;
-   using                               fc::ecc::commitment_type;
+        using fc::path;
+        using fc::smart_ref;
+        using fc::variant_object;
+        using fc::variant;
+        using fc::enum_type;
+        using fc::optional;
+        using fc::unsigned_int;
+        using fc::signed_int;
+        using fc::time_point_sec;
+        using fc::time_point;
+        using fc::safe;
+        using fc::flat_map;
+        using fc::flat_set;
+        using fc::static_variant;
+        using fc::ecc::range_proof_type;
+        using fc::ecc::range_proof_info;
+        using fc::ecc::commitment_type;
 
-   using public_key_type  = fc::crypto::public_key;
-   using private_key_type = fc::crypto::private_key;
-   using signature_type   = fc::crypto::signature;
+        using public_key_type  = fc::crypto::public_key;
+        using private_key_type = fc::crypto::private_key;
+        using signature_type   = fc::crypto::signature;
 
-   struct void_t{};
+        struct void_t {
+        };
 
-   using chainbase::allocator;
-   using shared_string = boost::interprocess::basic_string<char, std::char_traits<char>, allocator<char>>;
-   template<typename T>
-   using shared_vector = boost::interprocess::vector<T, allocator<T>>;
-   template<typename T>
-   using shared_set = boost::interprocess::set<T, std::less<T>, allocator<T>>;
+        using chainbase::allocator;
+        using shared_string = boost::interprocess::basic_string<char, std::char_traits<char>, allocator<char>>;
+        template<typename T>
+        using shared_vector = boost::interprocess::vector <T, allocator<T>>;
+        template<typename T>
+        using shared_set = boost::interprocess::set <T, std::less<T>, allocator<T>>;
 
-   /**
-    * For bugs in boost interprocess we moved our blob data to shared_string
-    * this wrapper allows us to continue that while also having a type-level distinction for
-    * serialization and to/from variant
-    */
-   class shared_blob : public shared_string {
-      public:
-         shared_blob() = delete;
-         shared_blob(shared_blob&&) = default;
+        /**
+         * For bugs in boost interprocess we moved our blob data to shared_string
+         * this wrapper allows us to continue that while also having a type-level distinction for
+         * serialization and to/from variant
+         */
+        class shared_blob : public shared_string {
+        public:
+            shared_blob() = delete;
 
-         shared_blob(const shared_blob& s)
-         :shared_string(s.get_allocator())
-         {
-            assign(s.c_str(), s.size());
-         }
+            shared_blob(shared_blob &&) = default;
 
-
-         shared_blob& operator=(const shared_blob& s) {
-            assign(s.c_str(), s.size());
-            return *this;
-         }
-
-         shared_blob& operator=(shared_blob&& ) = default;
-
-         template <typename InputIterator>
-         shared_blob(InputIterator f, InputIterator l, const allocator_type& a)
-         :shared_string(f,l,a)
-         {}
-
-         shared_blob(const allocator_type& a)
-         :shared_string(a)
-         {}
-   };
-
-   using action_name      = name;
-   using scope_name       = name;
-   using account_name     = name;
-   using permission_name  = name;
-   using table_name       = name;
+            shared_blob(const shared_blob &s)
+                    : shared_string(s.get_allocator()) {
+                assign(s.c_str(), s.size());
+            }
 
 
-   /**
-    * List all object types from all namespaces here so they can
-    * be easily reflected and displayed in debug output.  If a 3rd party
-    * wants to extend the core code then they will have to change the
-    * packed_object::type field from enum_type to uint16 to avoid
-    * warnings when converting packed_objects to/from json.
-    *
-    * UNUSED_ enums can be taken for new purposes but otherwise the offsets
-    * in this enumeration are potentially shared_memory breaking
-    */
-   enum object_type
-   {
-      null_object_type = 0,
-      account_object_type,
-      account_sequence_object_type,
-      permission_object_type,
-      permission_usage_object_type,
-      permission_link_object_type,
-      UNUSED_action_code_object_type,
-      key_value_object_type,
-      index64_object_type,
-      index128_object_type,
-      index256_object_type,
-      index_double_object_type,
-      index_long_double_object_type,
-      global_property_object_type,
-      dynamic_global_property_object_type,
-      block_summary_object_type,
-      transaction_object_type,
-      generated_transaction_object_type,
-      producer_object_type,
-      UNUSED_chain_property_object_type,
-      account_control_history_object_type,     ///< Defined by history_plugin
-      UNUSED_account_transaction_history_object_type,
-      UNUSED_transaction_history_object_type,
-      public_key_history_object_type,          ///< Defined by history_plugin
-      UNUSED_balance_object_type,
-      UNUSED_staked_balance_object_type,
-      UNUSED_producer_votes_object_type,
-      UNUSED_producer_schedule_object_type,
-      UNUSED_proxy_vote_object_type,
-      UNUSED_scope_sequence_object_type,
-      table_id_object_type,
-      resource_limits_object_type,
-      resource_usage_object_type,
-      resource_limits_state_object_type,
-      resource_limits_config_object_type,
-      account_history_object_type,              ///< Defined by history_plugin
-      action_history_object_type,               ///< Defined by history_plugin
-      reversible_block_object_type,
-      OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
-   };
+            shared_blob &operator=(const shared_blob &s) {
+                assign(s.c_str(), s.size());
+                return *this;
+            }
 
-   class account_object;
-   class producer_object;
+            shared_blob &operator=(shared_blob &&) = default;
 
-   using block_id_type       = fc::sha256;
-   using checksum_type       = fc::sha256;
-   using checksum256_type    = fc::sha256;
-   using checksum512_type    = fc::sha512;
-   using checksum160_type    = fc::ripemd160;
-   using transaction_id_type = checksum_type;
-   using digest_type         = checksum_type;
-   using weight_type         = uint16_t;
-   using block_num_type      = uint32_t;
-   using share_type          = int64_t;
-   using int128_t            = __int128;
-   using uint128_t           = unsigned __int128;
-   using bytes               = vector<char>;
+            template<typename InputIterator>
+            shared_blob(InputIterator f, InputIterator l, const allocator_type &a)
+                    :shared_string(f, l, a) {}
+
+            shared_blob(const allocator_type &a)
+                    : shared_string(a) {}
+        };
+
+        using action_name      = name;
+        using scope_name       = name;
+        using account_name     = name;
+        using permission_name  = name;
+        using table_name       = name;
 
 
-   /**
-    *  Extentions are prefixed with type and are a buffer that can be
-    *  interpreted by code that is aware and ignored by unaware code.
-    */
-   typedef vector<std::pair<uint16_t,vector<char>>> extensions_type;
+        /**
+         * List all object types from all namespaces here so they can
+         * be easily reflected and displayed in debug output.  If a 3rd party
+         * wants to extend the core code then they will have to change the
+         * packed_object::type field from enum_type to uint16 to avoid
+         * warnings when converting packed_objects to/from json.
+         *
+         * UNUSED_ enums can be taken for new purposes but otherwise the offsets
+         * in this enumeration are potentially shared_memory breaking
+         */
+        enum object_type {
+            null_object_type = 0,
+            account_object_type,
+            account_sequence_object_type,
+            permission_object_type,
+            permission_usage_object_type,
+            permission_link_object_type,
+            UNUSED_action_code_object_type,
+            key_value_object_type,
+            index64_object_type,
+            index128_object_type,
+            index256_object_type,
+            index_double_object_type,
+            index_long_double_object_type,
+            global_property_object_type,
+            dynamic_global_property_object_type,
+            block_summary_object_type,
+            transaction_object_type,
+            generated_transaction_object_type,
+            producer_object_type,
+            UNUSED_chain_property_object_type,
+            account_control_history_object_type,     ///< Defined by history_plugin
+            UNUSED_account_transaction_history_object_type,
+            UNUSED_transaction_history_object_type,
+            public_key_history_object_type,          ///< Defined by history_plugin
+            UNUSED_balance_object_type,
+            UNUSED_staked_balance_object_type,
+            UNUSED_producer_votes_object_type,
+            UNUSED_producer_schedule_object_type,
+            UNUSED_proxy_vote_object_type,
+            UNUSED_scope_sequence_object_type,
+            table_id_object_type,
+            resource_limits_object_type,
+            resource_usage_object_type,
+            resource_limits_state_object_type,
+            resource_limits_config_object_type,
+            account_history_object_type,              ///< Defined by history_plugin
+            action_history_object_type,               ///< Defined by history_plugin
+            reversible_block_object_type,
+            OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
+        };
+
+        class account_object;
+
+        class producer_object;
+
+        using block_id_type       = fc::sha256;
+        using checksum_type       = fc::sha256;
+        using checksum256_type    = fc::sha256;
+        using checksum512_type    = fc::sha512;
+        using checksum160_type    = fc::ripemd160;
+        using transaction_id_type = checksum_type;
+        using digest_type         = checksum_type;
+        using weight_type         = uint16_t;
+        using block_num_type      = uint32_t;
+        using share_type          = int64_t;
+        using int128_t            = __int128;
+        using uint128_t           = unsigned __int128;
+        using bytes               = vector<char>;
 
 
-} }  // eosio::chain
+        /**
+         *  Extentions are prefixed with type and are a buffer that can be
+         *  interpreted by code that is aware and ignored by unaware code.
+         */
+        typedef vector <std::pair<uint16_t, vector < char>>>
+        extensions_type;
 
-FC_REFLECT( eosio::chain::void_t, )
+
+    }
+}  // eosio::chain
+
+FC_REFLECT( eosio::chain::void_t,
+)
