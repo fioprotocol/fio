@@ -23,7 +23,7 @@ namespace eosio {
         fioio::config appConfig;
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
-                                                                eosionames(_self, _self.value),
+                                                                eosionames(fioio::SystemContract,fioio::SystemContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
             appConfig = configsSingleton.get_or_default(fioio::config());
