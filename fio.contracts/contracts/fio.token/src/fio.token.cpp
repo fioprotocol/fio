@@ -298,7 +298,9 @@ namespace eosio {
         accounts from_acnts(_self, owner.value);
 
         const auto &from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
-        check(from.balance.amount >= value.amount, "overdrawn balance");
+
+        fio_400_assert(from.balance.amount >= value.amount, "amount", to_string(value.amount),
+                       "Insufficient balance",ErrorLowFunds);
 
         from_acnts.modify(from, owner, [&](auto &a) {
             a.balance -= value;
