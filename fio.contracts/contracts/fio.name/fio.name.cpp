@@ -165,7 +165,6 @@ namespace fioio {
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
                 name fiosystem = name("fio.system");
-
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
                        make_tuple(actor, fiosystem, fee,
@@ -423,10 +422,12 @@ namespace fioio {
                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-
+                asset reg_fee_asset;         
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                asset reg_fee_asset;
+                reg_fee_asset.symbol = symbol("FIO",9);
+                reg_fee_asset.amount = reg_amount;
+                print(reg_fee_asset.amount);
                 //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
                 fio_fees(actor, reg_fee_asset);
             }
@@ -484,7 +485,10 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
-            //ADAM how to set this reg_fee_asset = asset::from_string(to_string(reg_amount));
+            reg_fee_asset.symbol = symbol("FIO",9);
+            reg_fee_asset.amount = reg_amount;
+            print(reg_fee_asset.amount);
+            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
 
             //end new fees, logic for Mandatory fees.
@@ -530,6 +534,10 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
+            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
+            reg_fee_asset.symbol = symbol("FIO",9);
+            reg_fee_asset.amount = reg_amount;
+            print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
 
