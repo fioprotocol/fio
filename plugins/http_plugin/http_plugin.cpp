@@ -699,9 +699,13 @@ namespace eosio {
                     elog("got FIO error code ${f}", ("f", rescode));
                     cb(rescode, e.what());
                 } else {
-                    error_results results{500, "Internal Service Error",
-                                          error_results::error_info(e, verbose_http_errors)};
-                    cb(500, fc::json::to_string(results));
+
+                  //ED commented out these lines on may 23 2019, they were causing the chasin to crash on
+                  //any 500 error...they look like they are junk, this logic is done in the httpify_exception,
+                  //and this seems added by someone who may not have got the 'gist' of this code segment.
+                  //  error_results results{500, "Internal Service Error",
+                                         // error_results::error_info(e, verbose_http_errors)};
+                  //  cb(500, fc::json::to_string(results));
                     if (e.code() != chain::greylist_net_usage_exceeded::code_value &&
                         e.code() != chain::greylist_cpu_usage_exceeded::code_value) {
                         elog("FC Exception encountered while processing ${api}.${call}",
