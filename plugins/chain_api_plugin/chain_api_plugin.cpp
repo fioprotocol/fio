@@ -99,6 +99,7 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_currency_balance, 200),
                                      CHAIN_RO_CALL(get_fio_balance, 200),
                                      CHAIN_RO_CALL(get_fio_names, 200),
+                                     CHAIN_RO_CALL(get_fee, 200),
                                      CHAIN_RO_CALL(avail_check, 200),
                                      CHAIN_RO_CALL(get_currency_stats, 200),
                                      CHAIN_RO_CALL(get_producers, 200),

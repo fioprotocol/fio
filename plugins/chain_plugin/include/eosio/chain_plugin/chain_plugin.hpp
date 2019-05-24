@@ -1048,6 +1048,9 @@ FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key)
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses)
 );
 
+FC_REFLECT(eosio::chain_apis::read_only::get_fee_params, (end_point)(fio_address))
+FC_REFLECT(eosio::chain_apis::read_only::get_fee_result, (fee));
+
 FC_REFLECT(eosio::chain_apis::read_only::avail_check_params, (fio_name)
 )
 FC_REFLECT(eosio::chain_apis::read_only::avail_check_result, (is_registered)
