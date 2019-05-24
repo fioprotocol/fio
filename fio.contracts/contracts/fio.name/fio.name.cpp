@@ -71,7 +71,7 @@ namespace fioio {
                 auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
                                        owner_fio_public_key.begin());
                 eosio_assert(result.first == pubkey_prefix.end(),
-                             "Public key should be prefix with EOS");
+                             "Public key should be prefix with FIO");
                 auto base58substr = owner_fio_public_key.substr(pubkey_prefix.length());
 
                 vector<unsigned char> vch;
