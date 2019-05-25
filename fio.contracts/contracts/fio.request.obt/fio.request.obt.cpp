@@ -64,10 +64,13 @@ namespace fioio {
          */
         // @abi action
         [[eosio::action]]
-        void recordsend(const string &payer_fio_address, const string &payee_fio_address,
-                        const string &payer_public_address, const string &payee_public_address, const string &amount,
-                        const string &token_code, const string status, const string obt_id, const string &metadata,
-                        const string fio_request_id, uint64_t max_fee, const string &actor) {
+        void recordsend(
+                const string fio_request_id,
+                const string &payer_fio_address,
+                const string &payee_fio_address,
+                const string &content,
+                uint64_t max_fee,
+                const string &actor) {
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found in obt json blob", ErrorInvalidJsonInput);
@@ -165,7 +168,7 @@ namespace fioio {
             }
             //end new fees, bundle eligible fee logic
 
-            nlohmann::json json = {{"status",        status},
+            nlohmann::json json = {{"status",        "sent_to_blockchain"},
                                    {"fee_collected", fee_amount}};
 
             send_response(json.dump().c_str());
@@ -192,9 +195,12 @@ namespace fioio {
         */
         // @abi action
         [[eosio::action]]
-        void newfundsreq(const string &payer_fio_address, const string &payee_fio_address,
-                         const string &payee_public_address, const string &amount,
-                         const string &token_code, const string &metadata, uint64_t max_fee, const string &actor) {
+        void newfundsreq(
+                const string &payer_fio_address,
+                const string &payee_fio_address,
+                const string &content,
+                uint64_t max_fee,
+                const string &actor) {
 
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
@@ -234,10 +240,7 @@ namespace fioio {
                 frc.fio_request_id = id;
                 frc.payer_fio_address = fromHash;
                 frc.payee_fio_address = toHash;
-                frc.payee_public_address = payee_public_address;
-                frc.amount = amount;
-                frc.token_code = token_code;
-                frc.metadata = metadata;
+                frc.content = content;
                 frc.time_stamp = currentTime;
             });
 
