@@ -2165,10 +2165,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                     uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
                     uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
-                    string payee_public_address = requests_rows_result.rows[pos]["payee_public_address"].as_string();
-                    string amount = requests_rows_result.rows[pos]["amount"].as_string();
-                    string token_code = requests_rows_result.rows[pos]["token_code"].as_string();
-                    string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                    string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
                     //find the tofioaddress
@@ -2188,8 +2185,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
-                    request_record rr{fio_request_id, from_fioadd, to_fioadd, payee_public_address, amount, token_code,
-                                      metadata, time_stamp};
+                    request_record rr{fio_request_id, from_fioadd,
+                                      to_fioadd, content, time_stamp};
 
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
@@ -2304,10 +2301,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                     uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
                     uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
-                    string payee_public_address = requests_rows_result.rows[pos]["payee_public_address"].as_string();
-                    string amount = requests_rows_result.rows[pos]["amount"].as_string();
-                    string token_code = requests_rows_result.rows[pos]["token_code"].as_string();
-                    string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                    string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
                     //find the fromfioaddress
@@ -2365,8 +2359,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                         }
                     }
 
-                    request_status_record rr{fio_request_id, from_fioadd, to_fioadd, payee_public_address, amount,
-                                             token_code, metadata, time_stamp, status};
+                    request_status_record rr{fio_request_id, from_fioadd, to_fioadd,  content, time_stamp, status};
 
                     result.requests.push_back(rr);
                 } // Get request statuses

@@ -70,10 +70,7 @@ namespace eosio {
             uint64_t fio_request_id;     // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
             string payee_fio_address;     // receiver FIO address e.g. jane.xyz
-            string payee_public_address;       // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
-            string amount;         // token quantity
-            string token_code;      // token type e.g. BLU
-            string metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
+            string content;             // this is encrypted content
             uint64_t time_stamp;    // FIO blockchain request received timestamp
         };
 
@@ -81,10 +78,7 @@ namespace eosio {
             uint64_t fio_request_id;       // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
             string payee_fio_address;     // receiver FIO address e.g. jane.xyz
-            string payee_public_address;      // chain specific receiver public address e.g 0xC8a5bA5868A5E9849962167B2F99B2040Cee2031
-            string amount;         // token quantity
-            string token_code;      // token type e.g. BLU
-            string metadata;       // JSON formatted meta data e.g. {"memo":"utility payment"}
+            string content;      // this is encrypted content
             uint64_t time_stamp;        // FIO blockchain request received timestamp
             string status;          //the status of the request.
         };
@@ -1025,12 +1019,9 @@ FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_publ
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)
 )
 FC_REFLECT(eosio::chain_apis::request_record,
-(fio_request_id)(payer_fio_address)(payee_fio_address)(payee_public_address)(amount)(token_code)(metadata)
-(
-time_stamp))
+(fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp))
 FC_REFLECT(eosio::chain_apis::request_status_record,
-(fio_request_id)(payer_fio_address)(payee_fio_address)(payee_public_address)(amount)(token_code)(metadata)(
-        time_stamp)
+(fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp)
 (status))
 
 FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code)
