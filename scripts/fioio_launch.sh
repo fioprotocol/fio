@@ -192,11 +192,12 @@ if [ $mChoice == 1 ]; then
 
     #create fees for the fio protocol
      echo "creating fees"
+
         ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
         ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
         ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_to_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
+        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
         ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
         ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
         ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active

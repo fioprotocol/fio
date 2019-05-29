@@ -2462,6 +2462,38 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         } // get_fio_names
 
 
+
+        read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
+            FIO_404_ASSERT(!p.fio_public_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+            FIO_404_ASSERT(p.fio_public_address.size() <= 13, "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            get_account_results actor_lookup_results;
+            get_account_params actor_lookup_params;
+            get_fio_balance_result result;
+            vector<asset> cursor;
+            result.balance = 0;
+            actor_lookup_params.account_name = p.fio_public_address.c_str();
+
+            try{
+                actor_lookup_results = get_account(actor_lookup_params);
+            }
+            catch(...) {
+                FIO_404_ASSERT(false, "Public address not found", fioio::ErrorPubAddressNotFound);
+            }
+
+            get_currency_balance_params balance_params;
+            balance_params.code =  ::eosio::string_to_name("fio.token");
+            balance_params.account = ::eosio::string_to_name(p.fio_public_address.c_str());
+            cursor = get_currency_balance(balance_params);
+
+            if(!cursor.empty()) {
+                uint64_t rVal = (uint64_t)cursor[0].get_amount();
+                result.balance = rVal;
+            }
+
+            return result;
+        } //get_fio_balance
+
         /*** v1/chain/get_fee
        * Retrieves the fee associated with the specified fio address and blockchain endpoint
        * @param p
@@ -2908,41 +2940,7 @@ vector<asset> read_only::get_currency_balance( const read_only::get_currency_bal
    return results;
 }
 
-// Begin FIO API
-read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
-    FIO_404_ASSERT(!p.fio_public_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
-    FIO_404_ASSERT(p.fio_public_address.size() <= 13, "Public address not found", fioio::ErrorPubAddressNotFound);
 
-    get_account_results actor_lookup_results;
-    get_account_params actor_lookup_params;
-    get_fio_balance_result result;
-    vector<asset> cursor;
-    result.balance = "0";
-    actor_lookup_params.account_name = p.fio_public_address.c_str();
-
-    try{
-        actor_lookup_results = get_account(actor_lookup_params);
-    }
-    catch(...) {
-        FIO_404_ASSERT(false, "Public address not found", fioio::ErrorPubAddressNotFound);
-    }
-
-    get_currency_balance_params balance_params;
-    balance_params.code =  ::eosio::string_to_name("fio.token");
-    balance_params.account = ::eosio::string_to_name(p.fio_public_address.c_str());
-    cursor = get_currency_balance(balance_params);
-
-    if(!cursor.empty()) {
-        size_t pos = cursor[0].to_string().find(' ');
-        std::string decval = cursor[0].to_string().substr(0, pos);
-        pos = decval.find('.');
-        std::string whole = decval.substr(0,pos);
-        std::string precision = decval.substr(pos+1,decval.size());
-        result.balance = whole+precision;
-    }
-
-    return result;
-} //get_fio_balance
 
 // End FIO API
 
