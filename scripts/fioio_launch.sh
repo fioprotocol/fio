@@ -50,6 +50,12 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
     fi
 
+    if [ -f ../fio.contracts/build/contracts/eosio.msig/eosio.msig.wasm ]; then
+        eosio_msig_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.msig"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/eosio.msig'
+    fi
+
     if [ -f ../fio.contracts/build/contracts/fio.token/fio.token.wasm ]; then
         fio_token_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.token"
     else
@@ -136,6 +142,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8889 create account eosio fio.system FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.fee FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.reqobt FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio fio.msig FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
     fi
 
     #Bind FIO.NAME Contract to Chain
@@ -145,6 +152,7 @@ if [ $mChoice == 1 ]; then
 
     ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
+    ./cleos -u http://localhost:8889 set contract eosio.msig $eosio_msig_contract_name_path eosio.msig.wasm eosio.msig.abi
     ./cleos -u http://localhost:8889 set contract fio.token $fio_token_contract_name_path fio.token.wasm fio.token.abi
 
 
