@@ -39,8 +39,6 @@ if [ $mChoice == 2 ]; then
             cp ./contracts/fio.fee/fio.fee.abi ./build/contracts/fio.fee/fio.fee.abi
             cp ./contracts/fio.name/fio.name.abi ./build/contracts/fio.name/fio.name.abi
             cp ./contracts/fio.request.obt/fio.request.obt.abi ./build/contracts/fio.request.obt/fio.request.obt.abi
-            cp ./contracts/fio.finance/fio.finance.abi ./build/contracts/fio.finance/fio.finance.abi
-            
     exit -1
 fi
 
@@ -68,12 +66,6 @@ if [ $mChoice == 1 ]; then
         fio_fee_name_path="$PWD/../fio.contracts/build/contracts/fio.fee"
     else
         echo 'No wasm file found at $PWD/build/contracts/fio.fee'
-    fi
-
-    if [ -f ../fio.contracts/build/contracts/fio.finance/fio.finance.wasm ]; then
-        fio_finance_name_path="$PWD/../fio.contracts/build/contracts/fio.finance"
-    else
-        echo 'No wasm file found at $PWD/build/contracts/fio.finance'
     fi
 
     if [ -f ../fio.contracts/build/contracts/fio.request.obt/fio.request.obt.wasm ]; then
@@ -143,7 +135,6 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8889 create account eosio fio.token FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.system FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.fee FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
-        ./cleos -u http://localhost:8889 create account eosio fio.finance FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.reqobt FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
     fi
 
@@ -151,7 +142,6 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
     # Bind fio.request.obt
     ./cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_reqobt_name_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
-
 
     ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
