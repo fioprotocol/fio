@@ -378,6 +378,18 @@ namespace eosio {
                 vector <fioaddress_record> fio_addresses;
             };
 
+            struct get_fio_balance_params {
+                fc::string fio_public_address;
+            };
+
+            struct get_fio_balance_result {
+                uint64_t balance;
+            };
+
+            get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
+
+
+
             //Fio API get_fee
             struct get_fee_params {
                 string end_point;
@@ -467,17 +479,6 @@ namespace eosio {
             };
 
             vector <asset> get_currency_balance(const get_currency_balance_params &params) const;
-
-
-            struct get_fio_balance_params {
-                fc::string fio_public_address;
-            };
-
-            struct get_fio_balance_result {
-                uint64_t balance;
-            };
-
-            get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
 
 
             struct get_currency_stats_params {
