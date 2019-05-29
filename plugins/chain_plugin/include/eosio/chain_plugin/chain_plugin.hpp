@@ -474,7 +474,7 @@ namespace eosio {
             };
 
             struct get_fio_balance_result {
-                fc::string balance;
+                uint64_t balance;
             };
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
