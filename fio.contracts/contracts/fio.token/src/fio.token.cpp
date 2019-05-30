@@ -246,12 +246,12 @@ namespace eosio {
         //require_recipient will also fail.
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_to_pub_key");
+        uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_pub_key");
 
         auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_to_pub_key",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -259,7 +259,7 @@ namespace eosio {
 
         //if its not a mandatory fee then this is an error.
         fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                       "transfer_tokens_to_pub_key unexpected fee type for endpoint transfer_tokens_to_pub_key, expected 0",
+                       "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
                        ErrorNoEndpoint);
 
         fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
