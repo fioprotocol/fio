@@ -349,10 +349,6 @@ private:
     eosio_global_state2 _gstate2;
     eosio_global_state3 _gstate3;
     rammarket _rammarket;
-    rex_pool_table _rexpool;
-    rex_fund_table _rexfunds;
-    rex_balance_table _rexbalance;
-    rex_order_table _rexorders;
 
 public:
     static constexpr eosio::name active_permission{"active"_n};
@@ -741,8 +737,6 @@ private:
 
         system_contract *this_contract;
     };
-
-    registration<&system_contract::update_rex_stake> vote_stake_updater{this};
 };
 
 } /// eosiosystem

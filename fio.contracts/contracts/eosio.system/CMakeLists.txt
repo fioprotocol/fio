@@ -9,11 +9,3 @@ target_include_directories(eosio.system
 set_target_properties(eosio.system
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-
-target_include_directories(rex.results
-        PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-set_target_properties(rex.results
-        PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.rex")

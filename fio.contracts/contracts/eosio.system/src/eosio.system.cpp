@@ -16,50 +16,46 @@ namespace eosiosystem {
               _global(_self, _self.value),
               _global2(_self, _self.value),
               _global3(_self, _self.value),
-              _rammarket(_self, _self.value),
-              _rexpool(_self, _self.value),
-              _rexfunds(_self, _self.value),
-              _rexbalance(_self, _self.value),
-              _rexorders(_self, _self.value) {
+              _rammarket(_self, _self.value) {
         //print( "construct system\n" );
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
         _gstate2 = _global2.exists() ? _global2.get() : eosio_global_state2{};
         _gstate3 = _global3.exists() ? _global3.get() : eosio_global_state3{};
     }
 
-    eosio_global_state system_contract::get_default_parameters() {
+    eosiosystem::eosio_global_state eosiosystem::system_contract::get_default_parameters() {
         eosio_global_state dp;
         get_blockchain_parameters(dp);
         return dp;
     }
 
-    time_point system_contract::current_time_point() {
+    time_point eosiosystem::system_contract::current_time_point() {
         const static time_point ct{microseconds{static_cast<int64_t>( current_time())}};
         return ct;
     }
 
-    time_point_sec system_contract::current_time_point_sec() {
+    time_point_sec eosiosystem::system_contract::current_time_point_sec() {
         const static time_point_sec cts{current_time_point()};
         return cts;
     }
 
-    block_timestamp system_contract::current_block_time() {
+    block_timestamp eosiosystem::system_contract::current_block_time() {
         const static block_timestamp cbt{current_time_point()};
         return cbt;
     }
 
-    symbol system_contract::core_symbol() const {
+    symbol eosiosystem::system_contract::core_symbol() const {
         const static auto sym = get_core_symbol(_rammarket);
         return sym;
     }
 
-    system_contract::~system_contract() {
+    eosiosystem::system_contract::~system_contract() {
         _global.set(_gstate, _self);
         _global2.set(_gstate2, _self);
         _global3.set(_gstate3, _self);
     }
 
-    void system_contract::setram(uint64_t max_ram_size) {
+    void eosiosystem::system_contract::setram(uint64_t max_ram_size) {
         require_auth(_self);
 
         check(_gstate.max_ram_size < max_ram_size,
@@ -80,7 +76,7 @@ namespace eosiosystem {
         _gstate.max_ram_size = max_ram_size;
     }
 
-    void system_contract::update_ram_supply() {
+    void eosiosystem::system_contract::update_ram_supply() {
         auto cbt = current_block_time();
 
         if (cbt <= _gstate2.last_ram_increase) return;
@@ -105,26 +101,26 @@ namespace eosiosystem {
      *  If update_ram_supply hasn't been called for the most recent block, then new ram will
      *  be allocated at the old rate up to the present block before switching the rate.
      */
-    void system_contract::setramrate(uint16_t bytes_per_block) {
+    void eosiosystem::system_contract::setramrate(uint16_t bytes_per_block) {
         require_auth(_self);
 
         update_ram_supply();
         _gstate2.new_ram_per_block = bytes_per_block;
     }
 
-    void system_contract::setparams(const eosio::blockchain_parameters &params) {
+    void eosiosystem::system_contract::setparams(const eosio::blockchain_parameters &params) {
         require_auth(_self);
         (eosio::blockchain_parameters & )(_gstate) = params;
         check(3 <= _gstate.max_authority_depth, "max_authority_depth should be at least 3");
         set_blockchain_parameters(params);
     }
 
-    void system_contract::setpriv(name account, uint8_t ispriv) {
+    void eosiosystem::system_contract::setpriv(name account, uint8_t ispriv) {
         require_auth(_self);
         set_privileged(account.value, ispriv);
     }
 
-    void system_contract::setalimits(name account, int64_t ram, int64_t net, int64_t cpu) {
+    void eosiosystem::system_contract::setalimits(name account, int64_t ram, int64_t net, int64_t cpu) {
         require_auth(_self);
 
         user_resources_table userres(_self, account.value);
@@ -143,7 +139,7 @@ namespace eosiosystem {
         set_resource_limits(account.value, ram, net, cpu);
     }
 
-    void system_contract::setacctram(name account, std::optional <int64_t> ram_bytes) {
+    void eosiosystem::system_contract::setacctram(name account, std::optional <int64_t> ram_bytes) {
         require_auth(_self);
 
         int64_t current_ram, current_net, current_cpu;
@@ -188,7 +184,7 @@ namespace eosiosystem {
         set_resource_limits(account.value, ram, current_net, current_cpu);
     }
 
-    void system_contract::setacctnet(name account, std::optional <int64_t> net_weight) {
+    void eosiosystem::system_contract::setacctnet(name account, std::optional <int64_t> net_weight) {
         require_auth(_self);
 
         int64_t current_ram, current_net, current_cpu;
@@ -232,7 +228,7 @@ namespace eosiosystem {
         set_resource_limits(account.value, current_ram, net, current_cpu);
     }
 
-    void system_contract::setacctcpu(name account, std::optional <int64_t> cpu_weight) {
+    void eosiosystem::system_contract::setacctcpu(name account, std::optional <int64_t> cpu_weight) {
         require_auth(_self);
 
         int64_t current_ram, current_net, current_cpu;
@@ -276,7 +272,7 @@ namespace eosiosystem {
         set_resource_limits(account.value, current_ram, current_net, cpu);
     }
 
-    void system_contract::rmvproducer(name producer) {
+    void eosiosystem::system_contract::rmvproducer(name producer) {
         require_auth(_self);
         auto prod = _producers.find(producer.value);
         check(prod != _producers.end(), "producer not found");
@@ -285,7 +281,7 @@ namespace eosiosystem {
         });
     }
 
-    void system_contract::updtrevision(uint8_t revision) {
+    void eosiosystem::system_contract::updtrevision(uint8_t revision) {
         require_auth(_self);
         check(_gstate2.revision < 255, "can not increment revision"); // prevent wrap around
         check(revision == _gstate2.revision + 1, "can only increment revision by one");
@@ -294,7 +290,7 @@ namespace eosiosystem {
         _gstate2.revision = revision;
     }
 
-    void system_contract::bidname(name bidder, name newname, asset bid) {
+    void eosiosystem::system_contract::bidname(name bidder, name newname, asset bid) {
         require_auth(bidder);
         check(newname.suffix() == newname, "you can only bid on top-level suffix");
 
@@ -358,7 +354,7 @@ namespace eosiosystem {
         }
     }
 
-    void system_contract::bidrefund(name bidder, name newname) {
+    void eosiosystem::system_contract::bidrefund(name bidder, name newname) {
         bid_refund_table refunds_table(_self, newname.value);
         auto it = refunds_table.find(bidder.value);
         check(it != refunds_table.end(), "refund not found");
@@ -380,10 +376,10 @@ namespace eosiosystem {
      *  who can create accounts with the creator's name as a suffix.
      *
      */
-    void native::newaccount(name creator,
-                            name newact,
-                            ignore <authority> owner,
-                            ignore <authority> active) {
+    void eosiosystem::native::newaccount(name creator,
+                                         name newact,
+                                         ignore <authority> owner,
+                                         ignore <authority> active) {
 
         if (creator != _self) {
             uint64_t tmp = newact.value >> 4;
@@ -419,7 +415,7 @@ namespace eosiosystem {
         set_resource_limits(newact.value, 0, 0, 0);
     }
 
-    void native::setabi(name acnt, const std::vector<char> &abi) {
+    void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
         eosio::multi_index<"abihash"_n, abi_hash> table(_self, _self.value);
         auto itr = table.find(acnt.value);
         if (itr == table.end()) {
@@ -434,7 +430,7 @@ namespace eosiosystem {
         }
     }
 
-    void system_contract::init(unsigned_int version, symbol core) {
+    void eosiosystem::system_contract::init(unsigned_int version, symbol core) {
         require_auth(_self);
         check(version.value == 0, "unsupported version for init action");
 

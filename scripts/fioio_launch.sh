@@ -50,6 +50,12 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
     fi
 
+    if [ -f ../fio.contracts/build/contracts/eosio.system/eosio.system.wasm ]; then
+        eosio_system_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.system"
+    else
+        echo 'No wasm file found at $PWD/build/contracts/eosio.system'
+    fi
+
     if [ -f ../fio.contracts/build/contracts/eosio.msig/eosio.msig.wasm ]; then
         eosio_msig_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.msig"
     else
@@ -152,6 +158,7 @@ if [ $mChoice == 1 ]; then
 
     ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
     ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
+    ./cleos -u http://localhost:8889 set contract eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi
     ./cleos -u http://localhost:8889 set contract eosio.msig $eosio_msig_contract_name_path eosio.msig.wasm eosio.msig.abi
     ./cleos -u http://localhost:8889 set contract fio.token $fio_token_contract_name_path fio.token.wasm fio.token.abi
 
