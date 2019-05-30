@@ -5,7 +5,6 @@
 #include "delegate_bandwidth.cpp"
 #include "voting.cpp"
 #include "exchange_state.cpp"
-#include "rex.cpp"
 
 namespace eosiosystem {
 
@@ -468,9 +467,6 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         // eosio.system.cpp
         (init)(setram)(setramrate)(setparams)(setpriv)(setalimits)(setacctram)(setacctnet)(setacctcpu)
         (rmvproducer)(updtrevision)(bidname)(bidrefund)
-        // rex.cpp
-        (deposit)(withdraw)(buyrex)(unstaketorex)(sellrex)(cnclrexorder)(rentcpu)(rentnet)(fundcpuloan)(fundnetloan)
-        (defcpuloan)(defnetloan)(updaterex)(consolidate)(mvtosavings)(mvfrsavings)(setrex)(rexexec)(closerex)
         // delegate_bandwidth.cpp
         (buyrambytes)(buyram)(sellram)(delegatebw)(undelegatebw)(refund)
         // voting.cpp
