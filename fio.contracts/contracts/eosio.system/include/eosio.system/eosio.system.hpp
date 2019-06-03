@@ -349,14 +349,10 @@ private:
     eosio_global_state2 _gstate2;
     eosio_global_state3 _gstate3;
     rammarket _rammarket;
-    rex_pool_table _rexpool;
-    rex_fund_table _rexfunds;
-    rex_balance_table _rexbalance;
-    rex_order_table _rexorders;
 
 public:
     static constexpr eosio::name active_permission{"active"_n};
-    static constexpr eosio::name token_account{"eosio.token"_n};
+    static constexpr eosio::name token_account{"fio.token"_n};
     static constexpr eosio::name ram_account{"eosio.ram"_n};
     static constexpr eosio::name ramfee_account{"eosio.ramfee"_n};
     static constexpr eosio::name stake_account{"eosio.stake"_n};
@@ -694,67 +690,6 @@ private:
 
     void update_ram_supply();
 
-    // defined in rex.cpp
-    void runrex(uint16_t max);
-
-    void update_resource_limits(const name &from, const name &receiver, int64_t delta_net, int64_t delta_cpu);
-
-    void check_voting_requirement(const name &owner,
-                                  const char *error_msg = "must vote for at least 21 producers or for a proxy before buying REX") const;
-
-    rex_order_outcome fill_rex_order(const rex_balance_table::const_iterator &bitr, const asset &rex);
-
-    asset update_rex_account(const name &owner, const asset &proceeds, const asset &unstake_quant,
-                             bool force_vote_update = false);
-
-    void channel_to_rex(const name &from, const asset &amount);
-
-    void channel_namebid_to_rex(const int64_t highest_bid);
-
-    template<typename T>
-    int64_t
-    rent_rex(T &table, const name &from, const name &receiver, const asset &loan_payment, const asset &loan_fund);
-
-    template<typename T>
-    void fund_rex_loan(T &table, const name &from, uint64_t loan_num, const asset &payment);
-
-    template<typename T>
-    void defund_rex_loan(T &table, const name &from, uint64_t loan_num, const asset &amount);
-
-    void transfer_from_fund(const name &owner, const asset &amount);
-
-    void transfer_to_fund(const name &owner, const asset &amount);
-
-    bool rex_loans_available() const;
-
-    bool rex_system_initialized() const { return _rexpool.begin() != _rexpool.end(); }
-
-    bool rex_available() const { return rex_system_initialized() && _rexpool.begin()->total_rex.amount > 0; }
-
-    static time_point_sec get_rex_maturity();
-
-    asset add_to_rex_balance(const name &owner, const asset &payment, const asset &rex_received);
-
-    asset add_to_rex_pool(const asset &payment);
-
-    void process_rex_maturities(const rex_balance_table::const_iterator &bitr);
-
-    void consolidate_rex_balance(const rex_balance_table::const_iterator &bitr,
-                                 const asset &rex_in_sell_order);
-
-    int64_t read_rex_savings(const rex_balance_table::const_iterator &bitr);
-
-    void put_rex_savings(const rex_balance_table::const_iterator &bitr, int64_t rex);
-
-    void update_rex_stake(const name &voter);
-
-    void add_loan_to_rex_pool(const asset &payment, int64_t rented_tokens, bool new_loan);
-
-    void remove_loan_from_rex_pool(const rex_loan &loan);
-
-    template<typename Index, typename Iterator>
-    int64_t update_renewed_loan(Index &idx, const Iterator &itr, int64_t rented_tokens);
-
     // defined in delegate_bandwidth.cpp
     void changebw(name from, name receiver,
                   asset stake_net_quantity, asset stake_cpu_quantity, bool transfer);
@@ -802,8 +737,6 @@ private:
 
         system_contract *this_contract;
     };
-
-    registration<&system_contract::update_rex_stake> vote_stake_updater{this};
 };
 
 } /// eosiosystem

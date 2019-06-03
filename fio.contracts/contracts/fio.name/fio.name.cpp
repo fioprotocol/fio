@@ -548,7 +548,6 @@ namespace fioio {
                                    {"fee_collected", reg_amount}};
 
             send_response(json.dump().c_str());
-
         }
 
         /***

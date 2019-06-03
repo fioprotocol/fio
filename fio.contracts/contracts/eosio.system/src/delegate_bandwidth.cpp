@@ -137,7 +137,6 @@ namespace eosiosystem {
                     token_account, {{payer, active_permission}},
                     {payer, ramfee_account, fee, std::string("ram fee")}
             );
-            channel_to_rex(ramfee_account, fee);
         }
 
         int64_t bytes_out;
@@ -231,7 +230,6 @@ namespace eosiosystem {
                     token_account, {{account, active_permission}},
                     {account, ramfee_account, asset(fee, core_symbol()), std::string("sell ram fee")}
             );
-            channel_to_rex(ramfee_account, asset(fee, core_symbol()));
         }
     }
 
@@ -417,8 +415,6 @@ namespace eosiosystem {
                 );
             }
         }
-
-        vote_stake_updater(from);
         update_voting_power(from, stake_net_delta + stake_cpu_delta);
     }
 
