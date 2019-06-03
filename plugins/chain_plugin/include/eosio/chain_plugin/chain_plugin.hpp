@@ -379,7 +379,7 @@ namespace eosio {
             };
 
             struct get_fio_balance_params {
-                fc::string fio_public_address;
+                fc::string fio_public_key;
             };
 
             struct get_fio_balance_result {
@@ -1078,7 +1078,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result, (rows)(more
 
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)
 (symbol));
-FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_address)
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key)
 );
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)
 );

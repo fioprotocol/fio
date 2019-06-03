@@ -92,7 +92,6 @@ namespace fioio {
         uint32_t expiration;        //expiration of the fioname.
 
         uint64_t primary_key() const { return id; }
-
         uint64_t by_keyhash() const { return keyhash; }
 
         EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(expiration)
@@ -113,13 +112,15 @@ namespace fioio {
 
         uint64_t primary_key() const { return account; }
 
-        uint64_t client_key() const { return keyhash; }
+        uint64_t by_keyhash() const { return keyhash; }
 
         EOSLIB_SERIALIZE(eosio_name, (account)(clientkey)(keyhash)
         )
     };
 
-    typedef multi_index<"eosionames"_n, eosio_name> eosio_names_table;
+    typedef multi_index<"eosionames"_n, eosio_name,
+            indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint64_t, &eosio_name::by_keyhash> > >
+    eosio_name_table;
 
 
 }
