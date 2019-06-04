@@ -120,7 +120,7 @@ namespace fioio {
 
     typedef multi_index<"eosionames"_n, eosio_name,
             indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint64_t, &eosio_name::by_keyhash> > >
-    eosio_name_table;
+    eosio_names_table;
 
 
 }
