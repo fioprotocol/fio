@@ -70,6 +70,8 @@ namespace eosio {
             uint64_t fio_request_id;     // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
             string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+            string payer_fio_public_key;
+            string payee_fio_public_key;
             string content;             // this is encrypted content
             uint64_t time_stamp;    // FIO blockchain request received timestamp
         };
@@ -78,6 +80,8 @@ namespace eosio {
             uint64_t fio_request_id;       // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
             string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+            string payer_fio_public_key;
+            string payee_fio_public_key;
             string content;      // this is encrypted content
             uint64_t time_stamp;        // FIO blockchain request received timestamp
             string status;          //the status of the request.
@@ -743,6 +747,8 @@ namespace eosio {
             chain::symbol extract_core_symbol() const;
 
             friend struct resolver_factory<read_only>;
+
+            void GetFIOAccount(uint64_t address, get_table_rows_result &account_result) const;
         };
 
         class read_write {
