@@ -122,5 +122,4 @@ namespace fioio {
             indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint64_t, &eosio_name::by_keyhash> > >
     eosio_names_table;
 
-
 }
