@@ -747,6 +747,8 @@ namespace eosio {
             chain::symbol extract_core_symbol() const;
 
             friend struct resolver_factory<read_only>;
+
+            void GetFIOAccount(uint64_t address, get_table_rows_result &account_result) const;
         };
 
         class read_write {
