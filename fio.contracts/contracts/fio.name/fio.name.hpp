@@ -25,7 +25,7 @@ namespace fioio {
         uint64_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
-        uint32_t expiration;
+        uint64_t expiration;
         uint64_t account;
         // Chain specific keys
         std::vector <string> addresses;
@@ -36,6 +36,8 @@ namespace fioio {
 
         uint64_t by_domain() const { return domainhash; }
 
+        uint64_t by_expiration() const { return expiration; }
+
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(account)(addresses)(
                 bundleeligiblecountdown)
         )
@@ -43,26 +45,32 @@ namespace fioio {
 
     //Where fioname tokens are stored
     typedef multi_index<"fionames"_n, fioname,
-            indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain> > >
+            indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
+            indexed_by<"byexpiration"_n, const_mem_fun < fioname, uint64_t, &fioname::by_expiration>>
+    >
     fionames_table;
 
     // @abi table domains i64
     struct [[eosio::action]] domain {
         string name;
         uint64_t domainhash;
-        uint32_t expiration;
+        uint64_t expiration;
         uint64_t account;
 
         uint64_t primary_key() const { return domainhash; }
 
         uint64_t by_account() const { return account; }
 
+        uint64_t by_expiration() const { return expiration; }
+
         EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration)(account)
         )
     };
 
     typedef multi_index<"domains"_n, domain,
-            indexed_by<"byaccount"_n, const_mem_fun < domain, uint64_t, &domain::by_account> > >
+            indexed_by<"byaccount"_n, const_mem_fun < domain, uint64_t, &domain::by_account>>,
+            indexed_by<"byexpiration"_n, const_mem_fun < domain, uint64_t, &domain::by_expiration>>
+                    >
     domains_table;
 
     // @abi table chains i64
@@ -89,17 +97,20 @@ namespace fioio {
         uint64_t keyhash = 0;       // chainkey hash
         uint64_t chaintype;         // maps to chain_control vector position
         string name = nullptr;      // FIO name
+        uint64_t namehash;          //use this index for searches when burning or whenever useful.
         uint32_t expiration;        //expiration of the fioname.
 
         uint64_t primary_key() const { return id; }
         uint64_t by_keyhash() const { return keyhash; }
+        uint64_t by_namehash() const { return namehash; }
 
-        EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(expiration)
+        EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(namehash)(expiration)
         )
     };
 
     typedef multi_index<"keynames"_n, key_name,
-            indexed_by<"bykey"_n, const_mem_fun < key_name, uint64_t, &key_name::by_keyhash> > >
+            indexed_by<"bykey"_n, const_mem_fun < key_name, uint64_t, &key_name::by_keyhash> >,
+            indexed_by<"bynamehash"_n, const_mem_fun < key_name, uint64_t, &key_name::by_namehash> > >
     keynames_table;
 
     // Maps client wallet generated public keys to EOS user account names.

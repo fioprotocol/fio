@@ -290,13 +290,15 @@ namespace fioio {
                 matchingItem++;
             }
 
+            uint64_t namehash = string_to_uint64_hash(domain_iter->name.c_str());
             if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
                 keynames.emplace(_self, [&](struct key_name &k) {
                     k.id = keynames.available_primary_key();        // use next available primary key
                     k.key = owner_fio_public_key;                             // persist key
                     k.keyhash = keyhash;                            // persist key hash
                     k.chaintype = 0;                       // specific chain type
-                    k.name = domain_iter->name;                    // FIO name
+                    k.name = domain_iter->name;    // FIO name
+                    k.namehash = namehash;
                     k.expiration = domain_expiration;
                 });
             } else {
@@ -380,6 +382,7 @@ namespace fioio {
                     k.keyhash = keyhash;                            // persist key hash
                     k.chaintype = (chain_iter)->by_index();                       // specific chain type
                     k.name = fioname_iter->name;                    // FIO name
+                    k.namehash = nameHash;
                     k.expiration = name_expiration;
                 });
             } else {
@@ -448,6 +451,30 @@ namespace fioio {
             return incremented_time;
         }
 
+
+        /***
+         * This method will decrement the now time by the specified number of years.
+         * @param nyearsago   this is the number of years ago from now to return as a value
+         * @return  the decremented now() time by nyearsago
+         */
+        inline uint32_t get_now_minus_years(int nyearsago) {
+            uint32_t present_time = now();
+
+            uint32_t decremented_time = present_time - (YEARTOSECONDS * nyearsago);
+            return decremented_time;
+        }
+
+        /***
+         * This method will increment the now time by the specified number of years.
+         * @param nyearsago   this is the number of years from now to return as a value
+         * @return  the decremented now() time by nyearsago
+         */
+        inline uint32_t get_now_plus_years(int nyearsago) {
+            uint32_t present_time = now();
+
+            uint32_t decremented_time = present_time + (YEARTOSECONDS * nyearsago);
+            return decremented_time;
+        }
 
         /********* CONTRACT ACTIONS ********/
 
@@ -550,6 +577,144 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
+
+        /*
+         * This action will look for expired domains, then look for expired addresses, it will burn a total
+         * of 100 addresses each time called. please see the code for the logic of identifying expired domains
+         * and addresses.
+         */
+        [[eosio::action]]
+        void burnexpired() {
+
+            //this is the burn list holding the list of address hashes that should be destroyed.
+            std::vector <uint64_t> burnlist;
+            //we look back 20 years for expired things.
+            int windowmaxyears = 20;
+            //number of seconds in a day.
+            uint64_t secondsperday = 86400;
+            //amount of time to wait to burn a domain beyond its expriation date
+            uint64_t domainwaitforburndays = 90 * secondsperday;
+            //amount of time to wait to burn an address beyond its expriation date
+            uint64_t addresswaitforburndays = 90 * secondsperday;
+            //the time now, use this everywhere to avoid any odd behaviors during execution..
+            uint64_t nowtime = now();
+            //the minimum expiration to look for in searching for expired items
+            uint32_t minexpiration = get_now_minus_years(windowmaxyears);
+
+            //fio names by expiration.
+            auto nameexpidx = fionames.get_index<"byexpiration"_n>();
+            //fio domains by expiration
+            auto domainexpidx = domains.get_index<"byexpiration"_n>();
+            auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
+            auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
+
+            //using this instead of now time will place everything in the to be burned list, for testing only.
+            uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
+
+            //first find all domains with expiration greater than or equal to minexpiration.
+            //since the index returns values in ascending order we get the oldest expired first.
+            //this is a good order to burn them in which is oldest to youngest.
+            auto domainiter = domainexpidx.lower_bound(minexpiration);
+
+            //loop over all of the entries,until we find one with expire time plus wait time > now time.
+            //if its less than or equal to nowtime then it needs burned.
+            while (domainiter != domainexpidx.end()) {
+                uint64_t expire = domainiter->expiration;
+                uint64_t domainnamehash = domainiter->domainhash;
+
+                if ((expire + domainwaitforburndays) > nowtime) //check for done searching.
+                    // if ((expire + domainwaitforburndays) > kludgedNow) //this is for testing only
+                {
+                    break;
+                } else {   //add up to 100 addresses, add all addresses in domain until 100 is hit, or all are added.
+                    auto domainhash = domainiter->domainhash;
+                    auto nmiter = fionamesbydomainhashidx.find(domainhash);
+
+                    while (nmiter != fionamesbydomainhashidx.end()) {
+                        //look at all addresses in this domain, add until 100
+                        burnlist.push_back(nmiter->namehash);
+                        if (burnlist.size() >= 100) {
+                            break;
+                        }
+                        nmiter++;
+                    }
+
+                    //if we processed all the addresses inside a domain then add the domain itself to the list
+                    //to be burned. since its in the fionames table.
+                    if (nmiter == fionamesbydomainhashidx.end()) {
+                        burnlist.push_back(domainnamehash);
+                    }
+
+                    //since we can add the domain, check one more time for macx number to burn inserted.
+                    if (burnlist.size() >= 100) {
+                        break;
+                    }
+                }
+                domainiter++;
+            }
+
+            //check if we have enough to remove already, if not move on to the addresses
+            if (burnlist.size() < 100) {
+
+                //add addresses to the burn list until 100 total. if 100 total continue the loop. or exahaust the expired addresses
+                auto nameiter = nameexpidx.lower_bound(minexpiration);
+
+                while (nameiter != nameexpidx.end()) {
+                    uint64_t expire = nameiter->expiration;
+                    if ((expire + addresswaitforburndays) > nowtime)
+                        //if ((expire + addresswaitforburndays) > kludgedNow) //this is for testing only.
+                    {
+                        break;
+                    } else {
+                        //if its in the burn list already, dont re-add. since we did expired domains first, we can
+                        //get duplicate names attempted to be inserted, keep the duplicates out.
+                        if (!(std::find(burnlist.begin(), burnlist.end(), nameiter->namehash) != burnlist.end())) {
+                            burnlist.push_back(nameiter->namehash);
+                            if (burnlist.size() >= 100) {
+                                break;
+                            }
+                        }
+                    }
+                    nameiter++;
+                }
+            }
+
+
+            //do the burning.
+            for (int i = 0; i < burnlist.size(); i++) {
+                uint64_t burner = burnlist[i];
+                //to call erase we need to have the primary key, get the list of primary keys out of keynames
+                vector <uint64_t> ids;
+
+                auto keynameiter = keynamesbynamehashidx.find(burner);
+                while (keynameiter != keynamesbynamehashidx.end()) {
+                    uint64_t id = keynameiter->id;
+                    ids.push_back(id);
+                    keynameiter++;
+                }
+
+                //remove the ids from keynames
+                for (int i = 0; i < ids.size(); i++) {
+                    auto iter2 = keynames.find(ids[i]);
+                    keynames.erase(iter2);
+                }
+                //remove the items from the fionames
+                auto fionamesiter = fionames.find(burner);
+                if (fionamesiter != fionames.end()) {
+                    fionames.erase(fionamesiter);
+                }
+            }
+
+            //done with burning, return the result.
+            nlohmann::json json = {{"status", "OK"},
+                                   {"items_burned",burnlist.size()}
+            };
+
+            send_response(json.dump().c_str());
+        }
+
+
+
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
@@ -643,6 +808,6 @@ namespace fioio {
 
     }; // class FioNameLookup
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(removename)(removedomain)(rmvaddress)(decrcounter)
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)
     (bind2eosio))
 }
