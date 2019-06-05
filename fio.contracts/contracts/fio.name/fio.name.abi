@@ -19,7 +19,7 @@
           "type": "uint64"
         },{
           "name": "expiration",
-          "type": "uint32"
+          "type": "uint64"
         },{
           "name": "account",
           "type": "uint64"
@@ -80,6 +80,9 @@
         },{
           "name": "name",
           "type": "string"
+        },{
+          "name": "namehash",
+          "type": "uint64"
         },{
           "name": "expiration",
           "type": "uint32"
@@ -168,6 +171,11 @@
       }
     ]
   },{
+       "name": "burnexpired",
+       "base": "",
+       "fields": [
+       ]
+     },{
       "name": "removename",
       "base": "",
       "fields": []
@@ -212,6 +220,10 @@
     },{
       "name": "regdomain",
       "type": "regdomain",
+      "ricardian_contract": ""
+    },{
+      "name": "burnexpired",
+      "type": "burnexpired",
       "ricardian_contract": ""
     },{
       "name": "removename",
