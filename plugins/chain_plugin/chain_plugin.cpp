@@ -1473,7 +1473,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     read_only::get_table_rows_result account_result;
                     GetFIOAccount(payer_fio_address, account_result);
 
-                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
+                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found1",
                                    fioio::ErrorPubAddressNotFound);
 
                     string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
@@ -1481,7 +1481,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     read_only::get_table_rows_result account_result2;
                     GetFIOAccount(payee_fio_address, account_result2);
 
-                    FIO_404_ASSERT(!account_result2.rows.empty(), "Public key not found",
+                    FIO_404_ASSERT(!account_result2.rows.empty(), "Public key not found2",
                                    fioio::ErrorPubAddressNotFound);
 
                     string payee_fio_public_key = account_result2.rows[0]["clientkey"].as_string();

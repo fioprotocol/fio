@@ -169,11 +169,15 @@ if [ $mChoice == 1 ]; then
 
         ./cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.000000000 FIO"]' -p fio.token@active
         ./cleos -u http://localhost:8889 set contract -j eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi --permission eosio@active
+        sleep 3s
         ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
 
+        sleep 3s
         # Bind more fio contracts
         ./cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_reqobt_name_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
+        sleep 3s
         ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
+        sleep 3s
 
         ./cleos -u http://localhost:8889 create account eosio r41zuwovtn44 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
         ./cleos -u http://localhost:8889 create account eosio htjonrkf1lgs FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
