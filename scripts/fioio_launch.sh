@@ -141,8 +141,15 @@ if [ $mChoice == 1 ]; then
     ./nodeos --max-transaction-time=3000 --producer-name inita --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8889 --http-validate-host=0 --p2p-listen-endpoint :9877 --p2p-peer-address 0.0.0.0:9876 --config-dir $HOME/node2 --data-dir $HOME/node2 --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node2.txt &
     sleep 6s
 
+    if [ -z "$1" ]; then
+        read -p $'1. Local ( LIGHTWEIGHT ) 2. AWS ( FULL SYSTEM )\nChoose(#):' yChoice
+    else
+        yChoice=$1
+    fi
+
     if [ $restartneeded == 0 ]; then
         #Create Accounts
+
         echo $'Creating Accounts...\n'
         ./cleos -u http://localhost:8889 create account eosio fio.token FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.system FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
@@ -168,8 +175,13 @@ if [ $mChoice == 1 ]; then
         echo bound all contracts
 
         ./cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.000000000 FIO"]' -p fio.token@active
-        ./cleos -u http://localhost:8889 set contract -j eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi --permission eosio@active
-        sleep 3s
+
+        if [ $yChoice == 2 ]; then
+
+            ./cleos -u http://localhost:8889 set contract -j eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi --permission eosio@active
+            sleep 3s
+        fi
+
         ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
 
         sleep 3s
