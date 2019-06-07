@@ -1316,23 +1316,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                     uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
                     uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
-
-                    read_only::get_table_rows_result account_result;
-                    GetFIOAccount(payer_fio_address, account_result);
-
-                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                   fioio::ErrorPubAddressNotFound);
-
-                    string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-
-                    read_only::get_table_rows_result account_result2;
-                    GetFIOAccount(payee_fio_address, account_result2);
-
-                    FIO_404_ASSERT(!account_result2.rows.empty(), "Public key not found",
-                                   fioio::ErrorPubAddressNotFound);
-
-                    string payee_fio_public_key = account_result2.rows[0]["clientkey"].as_string();
-
                     string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
@@ -1353,6 +1336,19 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
+                    string to_fiopub = fioname_result.rows[0]["addresses"][static_cast<int>(0)].as_string();
+                    uint64_t address_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
+
+                    read_only::get_table_rows_result account_result;
+                    GetFIOAccount(address_hash, account_result);
+
+                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
+                                   fioio::ErrorPubAddressNotFound);
+
+                    string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
+
+                    string payee_fio_public_key = p.fio_public_key;
+
                     request_record rr{fio_request_id, from_fioadd,
                                       to_fioadd, payer_fio_public_key, payee_fio_public_key, content, time_stamp};
 
@@ -1467,35 +1463,18 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                    uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
-                    uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
-
-                    read_only::get_table_rows_result account_result;
-                    GetFIOAccount(payer_fio_address, account_result);
-
-                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                   fioio::ErrorPubAddressNotFound);
-
-                    string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-
-                    read_only::get_table_rows_result account_result2;
-                    GetFIOAccount(payee_fio_address, account_result2);
-
-                    FIO_404_ASSERT(!account_result2.rows.empty(), "Public key not found",
-                                   fioio::ErrorPubAddressNotFound);
-
-                    string payee_fio_public_key = account_result2.rows[0]["clientkey"].as_string();
-
+                    uint64_t payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
+                    uint64_t payee_hash_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
                     string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
-                    //find the fromfioaddress
+                    dlog("fio namehash: '${size}'", ("size", payer_hash_address));
                     get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                             .code=fio_system_code,
                             .scope=fio_system_scope,
                             .table=fio_address_table,
-                            .lower_bound=boost::lexical_cast<string>(payer_fio_address),
-                            .upper_bound=boost::lexical_cast<string>(payer_fio_address + 1),
+                            .lower_bound=boost::lexical_cast<string>(payer_hash_address),
+                            .upper_bound=boost::lexical_cast<string>(payer_hash_address + 1),
                             .encode_type="dec",
                             .index_position ="1"};
 
@@ -1505,7 +1484,33 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     FIO_404_ASSERT(!fioname_result.rows.empty(), "No FIO Requests",
                                    fioio::ErrorNoFioRequestsFound);
 
+                    dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
+                    string fiopub = fioname_result.rows[0]["addresses"][static_cast<int>(0)].as_string();
+                    dlog("fio pub: '${size}'", ("size", fiopub));
+                    uint64_t address_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
+                    dlog("fio add hash: '${size}'", ("size", address_hash));
+
+                    read_only::get_table_rows_result account_result;
+                    GetFIOAccount(address_hash, account_result);
+
+                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
+                                   fioio::ErrorPubAddressNotFound);
+
+                    string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
+                    dlog("fio key: '${size}'", ("size", payer_fio_public_key));
+
+                    address_hash = ::eosio::string_to_uint64_t(to_fioadd.c_str());
+
+                    dlog("fio account: '${size}'", ("size", address_hash));
+                    //read_only::get_table_rows_result account_result2;
+                    //GetFIOAccount(address_hash, account_result2);
+
+                    //FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found1",
+                    //               fioio::ErrorPubAddressNotFound);
+
                     string from_fioadd = fioname_result.rows[0]["name"].as_string(); //incorrect
+                    string payee_fio_public_key = p.fio_public_key;
+                    //account_result2.rows[0]["clientkey"].as_string();
 
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
@@ -1566,9 +1571,13 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound    = boost::lexical_cast<string>(address),
                     .upper_bound    = boost::lexical_cast<string>(address + 1),
                     .key_type       = "i64",
-                    .index_position = "1"};
+                    .index_position = "3"};
 
-            account_result = get_table_rows_ex<key_value_index>(eosio_table_row_params, system_abi);
+            account_result =
+                    get_table_rows_by_seckey<index64_index, uint64_t>(
+                            eosio_table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                                return v;
+                            });
         }
         // get_sent_fio_requests
 

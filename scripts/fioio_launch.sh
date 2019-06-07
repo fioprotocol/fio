@@ -43,6 +43,12 @@ if [ $mChoice == 2 ]; then
 fi
 
 if [ $mChoice == 1 ]; then
+    if [ -z "$1" ]; then
+        read -p $'1. Local ( LIGHTWEIGHT ) 2. AWS ( FULL SYSTEM )\nChoose(#):' yChoice
+    else
+        yChoice=$1
+    fi
+
     #EOSIO Directory Check
     if [ -f ../fio.contracts/build/contracts/eosio.bios/eosio.bios.wasm ]; then
         eosio_bios_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.bios"
@@ -143,36 +149,58 @@ if [ $mChoice == 1 ]; then
 
     if [ $restartneeded == 0 ]; then
         #Create Accounts
+
         echo $'Creating Accounts...\n'
         ./cleos -u http://localhost:8889 create account eosio fio.token FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.system FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.fee FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
-        ./cleos -u http://localhost:8889 create account eosio fio.finance FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8889 create account eosio fio.reqobt FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
 
+        ./cleos -u http://localhost:8889 create account eosio eosio.bpay FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio eosio.msig FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio eosio.ram FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio eosio.ramfee FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio eosio.saving FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio eosio.stake FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8889 create account eosio eosio.vpay FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+
+        #Set Contacts
         ./cleos -u http://localhost:8889 set contract fio.token $fio_token_contract_name_path fio.token.wasm fio.token.abi
+        sleep 2s
+        ./cleos -u http://localhost:8889 set contract eosio.msig $eosio_msig_contract_name_path eosio.msig.wasm eosio.msig.abi
         ./cleos -u http://localhost:8889 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
+
+        sleep 5s
+
+        echo bound all contracts
+
+        ./cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.000000000 FIO"]' -p fio.token@active
+
+        if [ $yChoice == 2 ]; then
+
+            ./cleos -u http://localhost:8889 set contract -j eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi --permission eosio@active
+            sleep 3s
+        fi
+
+        ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
+
+        sleep 3s
+        # Bind more fio contracts
+        ./cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_reqobt_name_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
+        sleep 3s
+        ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
+        sleep 3s
 
         ./cleos -u http://localhost:8889 create account eosio r41zuwovtn44 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
         ./cleos -u http://localhost:8889 create account eosio htjonrkf1lgs FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
         ./cleos -u http://localhost:8889 create account eosio euwdcp13zlrj FIO8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB FIO8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB
         ./cleos -u http://localhost:8889 create account eosio mnvcf4v1flnn FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
+
+        ./cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.000000000 FIO","memo"]' -p eosio@active
     fi
-
-    ./cleos -u http://localhost:8889 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
-    ./cleos -u http://localhost:8889 set contract -j eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi --permission eosio@active
-
-     # Bind more fio contracts
-     ./cleos -u http://localhost:8889 set contract -j fio.reqobt $fio_reqobt_name_path fio.request.obt.wasm fio.request.obt.abi --permission fio.reqobt@active
-     ./cleos -u http://localhost:8889 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
-
-     echo bound all contracts
-     ./cleos -u http://localhost:8889 push action -j fio.token create '["eosio","1000000000.000000000 FIO"]' -p fio.token@active
-     ./cleos -u http://localhost:8889 push action -j fio.token issue '["r41zuwovtn44","1000000.000000000 FIO","memo"]' -p eosio@active
-     ./cleos -u http://localhost:8889 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
-     ./cleos -u http://localhost:8889 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
-     ./cleos -u http://localhost:8889 push action -j fio.token issue '["mnvcf4v1flnn","1000.000000000 FIO","memo"]' -p eosio@active
-
     if [ $restartneeded == 0 ]; then
           # Setup permissions for inline actions in the
           echo Setting up inline permissions
@@ -188,29 +216,31 @@ if [ $mChoice == 1 ]; then
           ./cleos -u http://localhost:8889 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
           #make the fio.reqobt into a privileged account
           ./cleos -u http://localhost:8889 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
+
+          ./cleos -u http://localhost:8889 set account permission r41zuwovtn44 active '{"threshold":1,"keys":[{"key":"FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82","weight":1}],"accounts":[{"permission":{"actor":"eosio","permission":"eosio.code"},"weight":1}]}' owner -p r41zuwovtn44@owner
+          ./cleos -u http://localhost:8889 push action eosio setpriv '["r41zuwovtn44",1]' -p eosio@active
+
      fi
 
     #create fees for the fio protocol
      echo "creating fees"
 
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
-        ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_domain","type":"0","suf_amount":"30000000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_fio_address","type":"0","suf_amount":"2000000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_pub_address","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_pub_key","type":"0","suf_amount":"250000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"transfer_tokens_fio_address","type":"0","suf_amount":"100000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"new_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
 
     echo setting accounts
     sleep 1
     dom=1
-
     retries=3
 
     ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active
-
-    sleep 1
+    sleep 5
 
     #Create Account Name
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey.dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44"}' --permission r41zuwovtn44@active

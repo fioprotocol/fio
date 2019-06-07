@@ -141,8 +141,10 @@ namespace fioio {
                     print("created the account!!!!", owner_account_name, "\n");
 
                     uint64_t nmi = owner_account_name.value;
+
                     eosionames.emplace(_self, [&](struct eosio_name &p) {
                         p.account = nmi;
+                        p.accounthash = string_to_uint64_hash(owner_account_name.to_string().c_str());
                         p.clientkey = owner_fio_public_key;
                         p.keyhash = string_to_uint64_hash(owner_fio_public_key.c_str());
                     });
@@ -769,6 +771,7 @@ namespace fioio {
                 eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
                 eosionames.emplace(_self, [&](struct eosio_name &p) {
                     p.account = account.value;
+                    p.accounthash = string_to_uint64_hash(account.to_string().c_str());
                     p.clientkey = client_key;
                     p.keyhash = string_to_uint64_hash(client_key.c_str());
                 });
