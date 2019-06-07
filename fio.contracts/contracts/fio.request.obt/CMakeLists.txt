@@ -3,7 +3,7 @@ add_contract(fio.system fio.request.obt ${CMAKE_CURRENT_SOURCE_DIR}/fio.request.
 target_include_directories(fio.request.obt
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../fio.system/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../eosio.system/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../
         )
 

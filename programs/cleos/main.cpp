@@ -4192,7 +4192,7 @@ int main(int argc, char **argv) {
     });
 
     // system subcommand
-    auto system = app.add_subcommand("system", localized("Send fio.system contract action to the blockchain."),
+    auto system = app.add_subcommand("system", localized("Send eosio.system contract action to the blockchain."),
                                      false);
     system->require_subcommand();
 

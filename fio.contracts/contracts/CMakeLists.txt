@@ -7,7 +7,7 @@ find_package(eosio.cdt)
 
 add_subdirectory(eosio.bios)
 add_subdirectory(eosio.msig)
-add_subdirectory(fio.system)
+add_subdirectory(eosio.system)
 add_subdirectory(fio.token)
 add_subdirectory(eosio.wrap)
 add_subdirectory(fio.name)
