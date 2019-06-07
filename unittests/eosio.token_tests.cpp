@@ -31,8 +31,8 @@ public:
         create_accounts({N(alice), N(bob), N(carol), N(eosio.token)});
         produce_blocks(2);
 
-        set_code(N(eosio.token), contracts::eosio_token_wasm());
-        set_abi(N(eosio.token), contracts::eosio_token_abi().data());
+        set_code(N(fio.token), contracts::fio_token_wasm());
+        set_abi(N(fio.token), contracts::fio_token_abi().data());
 
         produce_blocks();
 
