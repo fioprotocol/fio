@@ -68,7 +68,7 @@ namespace eosiosystem {
     };
 
 
-    struct [[eosio::table("abihash"), eosio::contract("eosio.system")]] abi_hash {
+    struct [[eosio::table("abihash"), eosio::contract("fio.system")]] abi_hash {
         name owner;
         capi_checksum256 hash;
 
@@ -81,7 +81,7 @@ namespace eosiosystem {
     /*
      * Method parameters commented out to prevent generation of code that parses input data.
      */
-    class [[eosio::contract("eosio.system")]] native : public eosio::contract {
+    class [[eosio::contract("fio.system")]] native : public eosio::contract {
     public:
 
         using eosio::contract::contract;
