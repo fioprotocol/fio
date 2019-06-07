@@ -1,4 +1,4 @@
-#include <eosio.system/eosio.system.hpp>
+#include <fio.system/fio.system.hpp>
 #include <eosiolib/dispatcher.hpp>
 #include <eosiolib/crypto.h>
 #include "producer_pay.cpp"
@@ -454,13 +454,13 @@ namespace eosiosystem {
                                                  {rex_account, core, _self});
     }
 
-} /// eosio.system
+} /// fio.system
 
 
 EOSIO_DISPATCH( eosiosystem::system_contract,
-// native.hpp (newaccount definition is actually in eosio.system.cpp)
+// native.hpp (newaccount definition is actually in fio.system.cpp)
 (newaccount)(updateauth)(deleteauth)(linkauth)(unlinkauth)(canceldelay)(onerror)(setabi)
-        // eosio.system.cpp
+        // fio.system.cpp
         (init)(setram)(setramrate)(setparams)(setpriv)(setalimits)(setacctram)(setacctnet)(setacctcpu)
         (rmvproducer)(updtrevision)(bidname)(bidrefund)
         // delegate_bandwidth.cpp

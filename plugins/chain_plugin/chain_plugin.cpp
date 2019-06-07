@@ -1350,7 +1350,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     string payee_fio_public_key = p.fio_public_key;
 
                     request_record rr{fio_request_id, from_fioadd,
-                                      to_fioadd, payer_fio_public_key, payee_fio_public_key, content, time_stamp};
+                                      to_fioadd, payee_fio_public_key, payer_fio_public_key, content, time_stamp};
 
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd

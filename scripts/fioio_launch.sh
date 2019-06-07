@@ -46,7 +46,7 @@ fi
 
 if [ $mChoice == 1 ]; then
     if [ -z "$1" ]; then
-        read -p $'1. Local ( LIGHTWEIGHT ) 2. AWS ( FULL SYSTEM )\nChoose(#):' yChoice
+        read -p $'1. Local ( DEVELOPMENT ) 2. AWS ( FULL SYSTEM )\nChoose(#):' yChoice
     else
         yChoice=$1
     fi
@@ -58,10 +58,10 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/eosio.bios'
     fi
 
-    if [ -f ../fio.contracts/build/contracts/eosio.system/eosio.system.wasm ]; then
-        eosio_system_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.system"
+    if [ -f ../fio.contracts/build/contracts/fio.system/fio.system.wasm ]; then
+        fio_system_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.system"
     else
-        echo 'No wasm file found at $PWD/build/contracts/eosio.system'
+        echo 'No wasm file found at $PWD/build/contracts/fio.system'
     fi
 
     if [ -f ../fio.contracts/build/contracts/eosio.msig/eosio.msig.wasm ]; then
@@ -180,7 +180,7 @@ if [ $mChoice == 1 ]; then
 
         if [ $yChoice == 2 ]; then
 
-            ./cleos -u http://localhost:8889 set contract -j eosio $eosio_system_contract_name_path eosio.system.wasm eosio.system.abi --permission eosio@active
+            ./cleos -u http://localhost:8889 set contract -j eosio $fio_system_contract_name_path fio.system.wasm fio.system.abi --permission eosio@active
             sleep 3s
         fi
 
