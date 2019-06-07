@@ -259,7 +259,7 @@ auto max_supply = core_from_string("10000000000.0000"); /// 1x larger than 1B in
 auto initial_supply = core_from_string("1000000000.0000"); /// 1x larger than 1B initial tokens
 create_currency(N(fio.token), config::system_account_name, max_supply
 );
-// Issue the genesis supply of 1 billion SYS tokens to fio.system
+// Issue the genesis supply of 1 billion SYS tokens to eosio.system
 issue(N(eosio.token), config::system_account_name, config::system_account_name, initial_supply
 );
 

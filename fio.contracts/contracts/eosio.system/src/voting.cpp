@@ -2,7 +2,7 @@
  *  @file
  *  @copyright defined in eos/LICENSE.txt
  */
-#include <fio.system/fio.system.hpp>
+#include <eosio.system/eosio.system.hpp>
 
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/crypto.h>

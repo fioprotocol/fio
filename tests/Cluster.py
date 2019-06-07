@@ -1168,7 +1168,7 @@ class Cluster(object):
                         (expectedAmount, actualAmount))
             return None
 
-        contract = "fio.system"
+        contract = "eosio.system"
         contractDir = "unittests/contracts/%s" % (contract)
         wasmFile = "%s.wasm" % (contract)
         abiFile = "%s.abi" % (contract)

@@ -73,7 +73,7 @@ if [ -d "/usr/local/include/eosio" ] || [ -d "$HOME/opt/eosio" ] || [ $FORCED ==
             pushd /usr/local &> /dev/null
             rm -rf wasm
             pushd include &> /dev/null
-            rm -rf libbson-1.0 libmongoc-1.0 mongocxx bsoncxx appbase chainbase fio.system eosiolib fc libc++ musl secp256k* 2>/dev/null
+            rm -rf libbson-1.0 libmongoc-1.0 mongocxx bsoncxx appbase chainbase eosio.system eosiolib fc libc++ musl secp256k* 2>/dev/null
             rm -rf eosio 2>/dev/null
             popd &> /dev/null
             pushd bin &> /dev/null
