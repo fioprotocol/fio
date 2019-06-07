@@ -812,6 +812,16 @@ namespace eosio {
                                          chain::plugin_interface::next_function <transfer_tokens_pub_key_results> next);
 
 
+            //begin burn_expired
+            using burn_expired_params = fc::variant_object;
+            struct burn_expired_results {
+                fc::variant processed;
+            };
+
+            void burn_expired(const burn_expired_params &params,
+                                         chain::plugin_interface::next_function <burn_expired_results> next);
+
+            //end burn_expired
 
             //Begin Added for reject request api method
             using reject_funds_request_params = fc::variant_object;
@@ -1070,6 +1080,8 @@ FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (processed)
 FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed)
 )

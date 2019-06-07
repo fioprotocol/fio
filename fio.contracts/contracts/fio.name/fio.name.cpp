@@ -579,18 +579,125 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
+        /*
+         * TESTING ONLY, REMOVE for main net launch!
+         * This action will create a domain of the specified name and the domain will be
+         * expired.
+         */
+        void expdomain (const name &actor, const string &domain){
+            uint64_t domainHash = string_to_uint64_hash(domain.c_str());
+            uint64_t expiration_time = get_now_minus_years(5);
+
+            auto iter4 = domains.find(domainHash);
+
+            if (iter4 == domains.end()) {
+                domains.emplace(_self, [&](struct domain &d) {
+                    d.name = domain;
+                    d.domainhash = domainHash;
+                    d.expiration = expiration_time;
+                    d.account = actor.value;
+                });
+            }
+        }
+
+
+
+        /*
+         * TESTING ONLY this action should be removed for main net launch!!!
+         * This action will add the specified number of expired addresses to the specified domain using the
+         * specified address prefix, values will also be added into the keynames table using the address prefix.
+         */
+        [[eosio::action]]
+        void expaddresses(const name &actor, const string &domain, const string &address_prefix, uint64_t number_addresses_to_add) {
+
+            uint64_t nameHash ;
+            uint64_t domainHash = string_to_uint64_hash(domain.c_str());
+            uint64_t expiration_time = get_now_minus_years(1);
+
+            int countAdded = 0;
+            for (int i=0;i<10000;i++) {
+
+                string name;
+                if (i==0) {
+                   name = address_prefix + "." + domain;
+                }else {
+                    name = address_prefix + to_string(i*2) + "." + domain;
+                }
+
+                int yearsago = 1;
+                if (i>7){
+                    yearsago = i / 7;
+                }
+                expiration_time = get_now_minus_years(yearsago);
+                nameHash = string_to_uint64_hash(name.c_str());
+                auto iter1 = fionames.find(nameHash);
+                if (iter1 == fionames.end()) {
+                    //set up a couple of expired names in the fionames table.
+                    fionames.emplace(_self, [&](struct fioname &a) {
+                        a.name = name;
+                        a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
+                        a.namehash = nameHash;
+                        a.domain = domain;
+                        a.domainhash = domainHash;
+                        a.expiration = expiration_time;
+                        a.account = actor.value;
+                        a.bundleeligiblecountdown = 10000;
+                    });
+                    countAdded++;
+
+
+                    //set up a couple entries in the key names table for this name
+
+                   string pubkey1 = address_prefix + to_string(i) + "a1" + address_prefix + to_string(i) + "a1";
+                   uint64_t pubkey1hash = string_to_uint64_hash(pubkey1.c_str());
+
+                    keynames.emplace(_self, [&](struct key_name &k) {
+                        k.id = keynames.available_primary_key();        // use next available primary key
+                        k.key = pubkey1;                             // persist key
+                        k.keyhash = pubkey1hash;                            // persist key hash
+                        k.chaintype = 0;                       // specific chain type
+                        k.name = name;                    // FIO name
+                        k.namehash = nameHash;
+                        k.expiration = expiration_time;
+                    });
+                }
+
+                if (countAdded == number_addresses_to_add){
+                    print("created ",countAdded, " in the domain ",domain,"\n");
+                    break;
+                }
+            }
+
+        }
+
+
 
         /*
          * This action will look for expired domains, then look for expired addresses, it will burn a total
          * of 100 addresses each time called. please see the code for the logic of identifying expired domains
          * and addresses.
+         *   Dev note on testing
+         *   to make an expired domain.
+         *   cleos -u http://localhost:8889 push action -j fio.system expdomain '{"actor":"r41zuwovtn44","domain":"expired"}' --permission r41zuwovtn44@active
+         *   to create expired addresses under the specified domain.
+         *   cleos -u http://localhost:8889 push action -j fio.system expaddresses '{"actor":"r41zuwovtn44","domain":"expired","address_prefix":"eddieexp","number_addresses_to_add":"5"}' --permission r41zuwovtn44@active
+         *   scenarios that need tested.
+         *   1) create an expired domain with fewer than 100 expired addresses within it. run the burnexpired
+         *   2) create an expired domain with over 100 expired addresses within it. run the burnexpired repeatedly until all are removed.
+         *   3) create an expired address under a non expired domain. run the burn expired.
+         *   4) create an expired domain with a few expired addresses. create an expired address under a non expired domain. run burnexpired.
+         *   5) create an expired domain with over 100 addresses, create over 100 expired addresses in a non expired domain. run burnexpired repeatedly until all are removed.
+         *
          */
         [[eosio::action]]
         void burnexpired() {
 
             //this is the burn list holding the list of address hashes that should be destroyed.
             std::vector <uint64_t> burnlist;
+            std::vector <uint64_t> domainburnlist;
+
             //we look back 20 years for expired things.
+            int numbertoburn = 100;
             int windowmaxyears = 20;
             //number of seconds in a day.
             uint64_t secondsperday = 86400;
@@ -625,7 +732,7 @@ namespace fioio {
                 uint64_t domainnamehash = domainiter->domainhash;
 
                 if ((expire + domainwaitforburndays) > nowtime) //check for done searching.
-                    // if ((expire + domainwaitforburndays) > kludgedNow) //this is for testing only
+                //if ((expire + domainwaitforburndays) > kludgedNow) //this is for testing only
                 {
                     break;
                 } else {   //add up to 100 addresses, add all addresses in domain until 100 is hit, or all are added.
@@ -635,7 +742,7 @@ namespace fioio {
                     while (nmiter != fionamesbydomainhashidx.end()) {
                         //look at all addresses in this domain, add until 100
                         burnlist.push_back(nmiter->namehash);
-                        if (burnlist.size() >= 100) {
+                        if (burnlist.size() >= numbertoburn) {
                             break;
                         }
                         nmiter++;
@@ -645,10 +752,11 @@ namespace fioio {
                     //to be burned. since its in the fionames table.
                     if (nmiter == fionamesbydomainhashidx.end()) {
                         burnlist.push_back(domainnamehash);
+                        domainburnlist.push_back(domainnamehash);
                     }
 
                     //since we can add the domain, check one more time for macx number to burn inserted.
-                    if (burnlist.size() >= 100) {
+                    if (burnlist.size() >= numbertoburn) {
                         break;
                     }
                 }
@@ -656,7 +764,7 @@ namespace fioio {
             }
 
             //check if we have enough to remove already, if not move on to the addresses
-            if (burnlist.size() < 100) {
+            if (burnlist.size() < numbertoburn) {
 
                 //add addresses to the burn list until 100 total. if 100 total continue the loop. or exahaust the expired addresses
                 auto nameiter = nameexpidx.lower_bound(minexpiration);
@@ -672,7 +780,7 @@ namespace fioio {
                         //get duplicate names attempted to be inserted, keep the duplicates out.
                         if (!(std::find(burnlist.begin(), burnlist.end(), nameiter->namehash) != burnlist.end())) {
                             burnlist.push_back(nameiter->namehash);
-                            if (burnlist.size() >= 100) {
+                            if (burnlist.size() >= numbertoburn) {
                                 break;
                             }
                         }
@@ -681,29 +789,55 @@ namespace fioio {
                 }
             }
 
-
             //do the burning.
             for (int i = 0; i < burnlist.size(); i++) {
                 uint64_t burner = burnlist[i];
                 //to call erase we need to have the primary key, get the list of primary keys out of keynames
                 vector <uint64_t> ids;
 
-                auto keynameiter = keynamesbynamehashidx.find(burner);
+                auto keynameiter = keynamesbynamehashidx.lower_bound(burner);
                 while (keynameiter != keynamesbynamehashidx.end()) {
                     uint64_t id = keynameiter->id;
-                    ids.push_back(id);
+                    uint64_t namehash = keynameiter->namehash;
+                    if (namehash == burner) {
+                        ids.push_back(id);
+                    }
+                    else {
+                        break; //stop whenever its larger than the burner.
+                    }
+
                     keynameiter++;
                 }
 
+
                 //remove the ids from keynames
                 for (int i = 0; i < ids.size(); i++) {
+
+                    print("removing id ",ids[i]," from keynames","\n");
                     auto iter2 = keynames.find(ids[i]);
-                    keynames.erase(iter2);
+                    if(iter2 == keynames.end())
+                    {
+                        //should never get here!
+                        print ("could not find keynames id ",to_string(ids[i]),"\n");
+                    }
+                    else {
+                        keynames.erase(iter2);
+                    }
                 }
                 //remove the items from the fionames
                 auto fionamesiter = fionames.find(burner);
                 if (fionamesiter != fionames.end()) {
                     fionames.erase(fionamesiter);
+                }
+
+            }
+
+            for (int i = 0; i < domainburnlist.size(); i++) {
+                uint64_t burner = burnlist[i];
+
+                auto domainsiter = domains.find(burner);
+                if (domainsiter != domains.end()) {
+                    domains.erase(domainsiter);
                 }
             }
 
@@ -811,6 +945,5 @@ namespace fioio {
 
     }; // class FioNameLookup
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)
-    (bind2eosio))
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(expdomain)(expaddresses)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))
 }
