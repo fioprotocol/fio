@@ -70,8 +70,8 @@ std::vector <genesis_account> test_genesis({
 class bootseq_tester : public TESTER {
 public:
     void deploy_contract(bool call_init = true) {
-        set_code(config::system_account_name, contracts::eosio_system_wasm());
-        set_abi(config::system_account_name, contracts::eosio_system_abi().data());
+        set_code(config::system_account_name, contracts::fio_system_wasm());
+        set_abi(config::system_account_name, contracts::fio_system_abi().data());
         if (call_init) {
             base_tester::push_action(config::system_account_name, N(init),
                                      config::system_account_name, mutable_variant_object()
@@ -230,9 +230,9 @@ set_code_abi(N(eosio.msig),
 data()
 
 );//, &eosio_active_pk);
-set_code_abi(N(eosio.token),
-        contracts::eosio_token_wasm(),
-        contracts::eosio_token_abi()
+set_code_abi(N(fio.token),
+        contracts::fio_token_wasm(),
+        contracts::fio_token_abi()
 .
 
 data()
