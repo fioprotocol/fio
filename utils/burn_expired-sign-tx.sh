@@ -77,7 +77,7 @@ unsignedRequest='{
 "delay_sec": 0,
 "context_free_actions": [],
 "actions": [{
-"account":"fio.reqobt",
+"account":"fio.system",
 "name": "burnexpired"
 "authorization":[{
 "actor":"'${fioactor}'",
