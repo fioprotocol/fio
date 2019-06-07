@@ -85,7 +85,7 @@ public:
         set_code(N(eosio.token), contracts::fio_token_wasm());
 
         auto result = push_action(N(eosio.token), N(create), mutable_variant_object()
-                ("issuer", fio_token)
+                ("issuer", eosio_token)
                 ("maximum_supply", "1000000000.0000 CUR")
                 ("can_freeze", 0)
                 ("can_recall", 0)
