@@ -32,6 +32,8 @@ namespace fioio {
         fiosystemActions.push_back("regdomain");
         fiosystemActions.push_back("addaddress");
         fiosystemActions.push_back("bind2eosio");
+        fiosystemActions.push_back("burnexpired");
+
         //fio.token actions
         fioTokenActions.push_back("trnsfiopubky");
         //fio.finance actions
