@@ -1026,9 +1026,10 @@ FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_publ
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)
 )
 FC_REFLECT(eosio::chain_apis::request_record,
-(fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp))
+(fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)
+(time_stamp))
 FC_REFLECT(eosio::chain_apis::request_status_record,
-(fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp)
+(fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(time_stamp)
 (status))
 
 FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code)

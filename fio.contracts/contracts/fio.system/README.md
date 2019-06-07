@@ -1,4 +1,4 @@
-eosio.system
+fio.system
 ----------
 
 This contract provides multiple functionalities:

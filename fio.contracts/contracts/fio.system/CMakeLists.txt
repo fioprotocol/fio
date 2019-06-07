@@ -1,11 +1,11 @@
-add_contract(eosio.system eosio.system ${CMAKE_CURRENT_SOURCE_DIR}/src/eosio.system.cpp)
+add_contract(fio.system fio.system ${CMAKE_CURRENT_SOURCE_DIR}/src/fio.system.cpp)
 
-target_include_directories(eosio.system
+target_include_directories(fio.system
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../
         ${CMAKE_CURRENT_SOURCE_DIR}/../fio.token/include)
 
-set_target_properties(eosio.system
+set_target_properties(fio.system
         PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
