@@ -2,7 +2,7 @@
  *  @file
  *  @copyright defined in eos/LICENSE.txt
  */
-#include <eosio.system/eosio.system.hpp>
+#include <fio.system/fio.system.hpp>
 
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/datastream.hpp>
@@ -29,7 +29,7 @@ namespace eosiosystem {
     static constexpr uint32_t refund_delay_sec = 3 * 24 * 3600;
     static constexpr int64_t ram_gift_bytes = 1400;
 
-    struct [[eosio::table, eosio::contract("eosio.system")]] user_resources {
+    struct [[eosio::table, eosio::contract("fio.system")]] user_resources {
         name owner;
         asset net_weight;
         asset cpu_weight;
@@ -48,7 +48,7 @@ namespace eosiosystem {
     /**
      *  Every user 'from' has a scope/table that uses every receipient 'to' as the primary key.
      */
-    struct [[eosio::table, eosio::contract("eosio.system")]] delegated_bandwidth {
+    struct [[eosio::table, eosio::contract("fio.system")]] delegated_bandwidth {
         name from;
         name to;
         asset net_weight;
@@ -64,7 +64,7 @@ namespace eosiosystem {
 
     };
 
-    struct [[eosio::table, eosio::contract("eosio.system")]] refund_request {
+    struct [[eosio::table, eosio::contract("fio.system")]] refund_request {
         name owner;
         time_point_sec request_time;
         eosio::asset net_amount;
