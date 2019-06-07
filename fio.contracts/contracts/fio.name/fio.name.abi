@@ -92,6 +92,9 @@
           "name": "account",
           "type": "name"
         },{
+          "name": "accounthash",
+          "type": "uint64"
+        },{
           "name": "clientkey",
           "type": "string"
         },{

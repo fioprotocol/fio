@@ -43,6 +43,12 @@ if [ $mChoice == 2 ]; then
 fi
 
 if [ $mChoice == 1 ]; then
+    if [ -z "$1" ]; then
+        read -p $'1. Local ( LIGHTWEIGHT ) 2. AWS ( FULL SYSTEM )\nChoose(#):' yChoice
+    else
+        yChoice=$1
+    fi
+
     #EOSIO Directory Check
     if [ -f ../fio.contracts/build/contracts/eosio.bios/eosio.bios.wasm ]; then
         eosio_bios_contract_name_path="$PWD/../fio.contracts/build/contracts/eosio.bios"
@@ -140,12 +146,6 @@ if [ $mChoice == 1 ]; then
     sleep 3s
     ./nodeos --max-transaction-time=3000 --producer-name inita --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8889 --http-validate-host=0 --p2p-listen-endpoint :9877 --p2p-peer-address 0.0.0.0:9876 --config-dir $HOME/node2 --data-dir $HOME/node2 --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node2.txt &
     sleep 6s
-
-    if [ -z "$1" ]; then
-        read -p $'1. Local ( LIGHTWEIGHT ) 2. AWS ( FULL SYSTEM )\nChoose(#):' yChoice
-    else
-        yChoice=$1
-    fi
 
     if [ $restartneeded == 0 ]; then
         #Create Accounts
