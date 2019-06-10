@@ -811,6 +811,28 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function <transfer_tokens_pub_key_results> next);
 
+            //begin renew_domain
+            using renew_domain_params = fc::variant_object;
+            struct renew_domain_results {
+                fc::variant processed;
+            };
+
+            void renew_domain(const renew_domain_params &params,
+                              chain::plugin_interface::next_function <renew_domain_results> next);
+
+            //end renew_domain
+
+            //begin renew_address
+            using renew_address_params = fc::variant_object;
+            struct renew_address_results {
+                fc::variant processed;
+            };
+
+            void renew_address(const renew_address_params &params,
+                              chain::plugin_interface::next_function <renew_address_results> next);
+
+            //end renew_address
+
 
             //begin burn_expired
             using burn_expired_params = fc::variant_object;
@@ -1083,6 +1105,10 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::renew_domain_results,(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::renew_address_results,(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed)
 )
