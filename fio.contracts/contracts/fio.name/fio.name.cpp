@@ -442,6 +442,11 @@ namespace fioio {
             //end new fees, bundle eligible fee logic
         }
 
+        inline uint32_t get_time_plus_one_year(uint64_t timein) {
+            uint32_t incremented_time = timein + YEARTOSECONDS;
+            return incremented_time;
+        }
+
         /***
          * This method will return now plus one year.
          * the result is the present block time, which is number of seconds since 1970
@@ -580,6 +585,192 @@ namespace fioio {
         }
 
         /*
+         * This action will renew the specified domain.
+         * NOTE-- TPID is not used, this needs to be integrated properly when tpid recording is integrated
+         *
+         */
+        [[eosio::action]]
+        void
+        renewdomain(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
+
+            // Split the fio name and domain portions
+            FioAddress fa;
+            getFioAddressStruct(fio_domain, fa);
+            register_errors(fa, true);
+
+            uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+            uint32_t expiration_time;
+
+            fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
+                           ErrorInvalidFioNameFormat);
+
+            // check for domain availability
+            auto domains_iter = domains.find(domainHash);
+            fio_400_assert(domains_iter != domains.end(), "fio_domain", fa.fioaddress,
+                           "FIO domain not found", ErrorDomainNotRegistered);
+
+
+            expiration_time = domains_iter->expiration;
+
+            //begin new fees, logic for Mandatory fees.
+            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_domain");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            asset reg_fee_asset;
+
+            reg_fee_asset.symbol = symbol("FIO",9);
+            reg_fee_asset.amount = reg_amount;
+            print(reg_fee_asset.amount);
+
+            fio_fees(actor, reg_fee_asset);
+
+            //end new fees, logic for Mandatory fees.
+
+            //update the index table.
+
+            uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
+
+            domains.modify(domains_iter, _self, [&](struct domain &a) {
+                    a.expiration = new_expiration_time;
+            });
+
+
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"expiration",    new_expiration_time},
+                                   {"fee_collected", reg_amount}};
+
+            send_response(json.dump().c_str());
+        }
+
+
+        /*
+        * This action will renew the specified address.
+        * NOTE-- TPID is not used, this needs to be integrated properly when tpid recording is integrated
+        *
+        */
+        [[eosio::action]]
+        void
+        renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
+
+            // Split the fio name and domain portions
+            FioAddress fa;
+            getFioAddressStruct(fio_domain, fa);
+            register_errors(fa, false);
+
+
+            uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+            uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+
+            fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
+                           ErrorInvalidFioNameFormat);
+
+            // check if domain exists.
+            auto domains_iter = domains.find(domainHash);
+            fio_400_assert(domains_iter != domains.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
+                           ErrorDomainNotRegistered);
+
+            //check if the domain is expired.
+            uint32_t domain_expiration = domains_iter->expiration;
+            uint32_t present_time = now();
+            fio_400_assert(present_time <= domain_expiration, "fio_address", fa.fioaddress, "FIO Domain expired",
+                           ErrorDomainExpired);
+
+            // check if fioname is available
+            auto fioname_iter = fionames.find(nameHash);
+            fio_400_assert(fioname_iter != fionames.end(), "fio_address", fa.fioaddress,
+                           "FIO address not registered", ErrorFioNameNotRegistered);
+
+            //set the expiration on this new fioname
+            uint64_t expiration_time = fioname_iter->expiration;
+
+
+            //begin new fees, logic for Mandatory fees.
+            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            asset reg_fee_asset;
+
+            reg_fee_asset.symbol = symbol("FIO",9);
+            reg_fee_asset.amount = reg_amount;
+            print(reg_fee_asset.amount);
+
+            fio_fees(actor, reg_fee_asset);
+
+            //end new fees, logic for Mandatory fees.
+
+            //update the index table.
+
+            uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
+
+            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+                a.expiration = new_expiration_time;
+                a.bundleeligiblecountdown = 10000;
+            });
+
+            //update keynames
+            auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
+            auto keynameiter = keynamesbynamehashidx.lower_bound(nameHash);
+            while (keynameiter != keynamesbynamehashidx.end()) {
+                uint64_t id = keynameiter->id;
+                uint64_t namehashl = keynameiter->namehash;
+                if (namehashl == nameHash) {
+                    //ids.push_back(id);
+                    keynamesbynamehashidx.modify(keynameiter, _self, [&](struct key_name &a) {
+                        a.expiration = new_expiration_time;
+                    });
+                }
+                else {
+                    break; //stop whenever its larger than the nameHash.
+                }
+
+                keynameiter++;
+            }
+
+
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"expiration",    new_expiration_time},
+                                   {"fee_collected", reg_amount}};
+
+            send_response(json.dump().c_str());
+        }
+
+
+
+
+
+        /*
          * TESTING ONLY, REMOVE for main net launch!
          * This action will create a domain of the specified name and the domain will be
          * expired.
@@ -628,6 +819,7 @@ namespace fioio {
                 if (i>7){
                     yearsago = i / 7;
                 }
+                
                 expiration_time = get_now_minus_years(yearsago);
                 nameHash = string_to_uint64_hash(name.c_str());
                 auto iter1 = fionames.find(nameHash);
@@ -945,5 +1137,5 @@ namespace fioio {
 
     }; // class FioNameLookup
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(expdomain)(expaddresses)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(expaddresses)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))
 }
