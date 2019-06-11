@@ -698,6 +698,7 @@ namespace fioio {
 
             //set the expiration on this new fioname
             uint64_t expiration_time = fioname_iter->expiration;
+            uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
 
             //begin new fees, logic for Mandatory fees.
@@ -736,7 +737,7 @@ namespace fioio {
 
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
-                a.bundleeligiblecountdown = 10000;
+                a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown;
             });
 
             //update keynames

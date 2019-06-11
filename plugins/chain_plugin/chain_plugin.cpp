@@ -2823,8 +2823,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
-        void read_write::renew_domain(const read_write::renew_domain_params &params,
-                                      next_function <read_write::renew_domain_results> next) {
+        void read_write::renew_fio_domain(const read_write::renew_fio_domain_params &params,
+                                      next_function <read_write::renew_fio_domain_results> next) {
             try {
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
@@ -2851,7 +2851,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::renew_domain_results{output});
+                            next(read_write::renew_fio_domain_results{output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -2868,8 +2868,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
  */
-        void read_write::renew_address(const read_write::renew_address_params &params,
-                                      next_function <read_write::renew_address_results> next) {
+        void read_write::renew_fio_address(const read_write::renew_fio_address_params &params,
+                                      next_function <read_write::renew_fio_address_results> next) {
             try {
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
@@ -2896,7 +2896,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::renew_address_results{output});
+                            next(read_write::renew_fio_address_results{output});
                         } CATCH_AND_CALL(next);
                     }
                 });
