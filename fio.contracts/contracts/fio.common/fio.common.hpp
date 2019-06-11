@@ -35,7 +35,7 @@
 #endif
 
 #ifndef YEARTOSECONDS
-#define YEARTOSECONDS 31561920
+#define YEARTOSECONDS 31536000
 #endif
 
 namespace fioio {
