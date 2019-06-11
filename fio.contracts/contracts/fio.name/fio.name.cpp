@@ -331,13 +331,13 @@ namespace fioio {
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
             fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress,
-                           "FIO Address or FIO Domain expired", ErrorFioNameExpired);
+                           "FIO Address expired", ErrorFioNameExpired);
 
             auto domains_iter = domains.find(domainHash);
             fio_404_assert(domains_iter != domains.end(), "FIO Domain not found", ErrorDomainNotFound);
 
             uint32_t expiration = domains_iter->expiration;
-            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Address or FIO Domain expired",
+            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
 
             uint64_t chainhash = string_to_uint64_hash(tokencode.c_str());
