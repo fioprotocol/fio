@@ -31,6 +31,8 @@ namespace fioio {
         fiosystemActions.push_back("regaddress");
         fiosystemActions.push_back("regdomain");
         fiosystemActions.push_back("addaddress");
+        fiosystemActions.push_back("renewdomain");
+        fiosystemActions.push_back("renewaddress");
         fiosystemActions.push_back("expdomain");
         fiosystemActions.push_back("expaddresses");
         fiosystemActions.push_back("bind2eosio");
