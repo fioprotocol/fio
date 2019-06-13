@@ -651,6 +651,26 @@ namespace fioio {
             });
 
 
+            //update keynames
+            auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
+            auto keynameiter = keynamesbynamehashidx.lower_bound(domainHash);
+            while (keynameiter != keynamesbynamehashidx.end()) {
+                uint64_t id = keynameiter->id;
+                uint64_t namehashl = keynameiter->namehash;
+                if (namehashl == domainHash) {
+                    //ids.push_back(id);
+                    keynamesbynamehashidx.modify(keynameiter, _self, [&](struct key_name &a) {
+                        a.expiration = new_expiration_time;
+                    });
+                }
+                else {
+                    break; //stop whenever its larger than the nameHash.
+                }
+
+                keynameiter++;
+            }
+
+
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    new_expiration_time},
                                    {"fee_collected", reg_amount}};
