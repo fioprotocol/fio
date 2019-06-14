@@ -1,16 +1,17 @@
 #include <fio.common/fio.common.hpp>
 #include <string>
 #include <eosiolib/eosio.hpp>
+#include <eosiolib/asset.hpp>
+
 namespace fioio{
   using namespace eosio;
 
   // @abi table tpids i64
   struct [[eosio::action]] tpid {
 
-
     uint64_t fioaddhash;
     string fioaddress;
-    uint64_t rewards;
+    asset rewards;
 
     uint64_t primary_key() const {return fioaddhash;}
 

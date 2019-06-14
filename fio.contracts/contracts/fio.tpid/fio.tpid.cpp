@@ -31,8 +31,8 @@ namespace fioio {
 
            f.fioaddress  = tpid;
            f.fioaddhash = fioaddhash;
-           f.rewards = 0;
-
+           f.rewards.amount = 0;
+           f.rewards.symbol = symbol("FIO",9);
          });
        }
        else {
