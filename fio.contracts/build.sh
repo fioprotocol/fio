@@ -16,3 +16,4 @@ printf "\t=========== Copying FIO source abi ===========\n\n"
 cp contracts/fio.name/fio.name.abi build/contracts/fio.name/
 cp contracts/fio.fee/fio.fee.abi build/contracts/fio.fee/
 cp contracts/fio.request.obt/fio.request.obt.abi build/contracts/fio.request.obt/
+cp contracts/fio.tpid/fio.tpid.abi build/contracts/fio.tpid/

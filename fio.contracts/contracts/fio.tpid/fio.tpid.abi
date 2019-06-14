@@ -1,0 +1,44 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Jun 13 20:29:09 2019",
+    "version": "eosio::abi/1.1",
+    "structs": [{
+            "name": "tpid",
+            "base": "",
+            "fields": [
+                {"name":"fioaddhash", "type":"uint64"},
+                {"name":"fioaddress", "type":"string"},
+                {"name":"rewards", "type":"uint64"}
+            ]
+            },{
+              "name": "regtpid",
+              "base": "",
+              "fields": [{
+              "name": "tpid",
+              "type": "string"
+              },{
+              "name": "actor",
+              "type": "name"
+              }]
+              }
+          ],
+    "types": [],
+    "actions": [{
+         "name": "regtpid",
+         "type": "regtpid",
+         "ricardian_contract": ""
+       }],
+    "tables": [{
+        "name": "tpids",
+        "index_type": "i64",
+        "key_names": [
+          "fioaddhash"
+        ],
+        "key_types": [
+           "uint64"
+        ],
+        "type": "tpid"
+        }],
+    "ricardian_clauses": [],
+    "variants": [],
+    "abi_extensions": []
+}
