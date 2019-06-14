@@ -330,7 +330,7 @@ namespace fioio {
             fio_403_assert(account == actor.value, ErrorSignature);
 
             //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
-            fio_400_assert(present_time <= name_expiration, "fioaddress", fioaddress,
+            fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
             auto domains_iter = domains.find(domainHash);
