@@ -82,10 +82,6 @@ namespace fioio {
             FioAddress payerfa;
             getFioAddressStruct(payer_fio_address, payerfa);
 
-            FioAddress payeefa;
-            getFioAddressStruct(payee_fio_address, payeefa);
-
-
             //if the request id is specified in the json then look to see if it is present
             //in the table, if so then add the associated update into the status tables.
             //if the id is present in the json and not in the table error.
@@ -143,23 +139,6 @@ namespace fioio {
             fio_400_assert(fioname_iter != fionames.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
-
-            uint64_t payeenameexp = fioname_iter->expiration;
-
-            fio_400_assert(present_time <= payeenameexp, "payee_fio_address", payee_fio_address,
-                           "FIO Address expired", ErrorFioNameExpired);
-
-            //check domain.
-            domHash = string_to_uint64_hash(payeefa.fiodomain.c_str());
-            iterdom = domains.find(domHash);
-            fio_400_assert(iterdom != domains.end(), "payee_fio_address", payee_fio_address,
-                           "No such domain",
-                           ErrorDomainNotRegistered);
-            domexp = iterdom->expiration;
-            fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
-                           "FIO Domain expired", ErrorFioNameExpired);
-
-
 
             name aactor = name(actor.c_str());
             print("account: ", account, " actor: ", aactor, "\n");
@@ -269,22 +248,6 @@ namespace fioio {
             fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
-            uint64_t payernameexp = fioname_iter->expiration;
-
-            fio_400_assert(present_time <= payernameexp, "payer_fio_address", payer_fio_address,
-                           "FIO Address expired", ErrorFioNameExpired);
-
-            //check domain.
-            uint64_t domHash = string_to_uint64_hash(payerfa.fiodomain.c_str());
-            auto iterdom = domains.find(domHash);
-            fio_400_assert(iterdom != domains.end(), "payer_fio_address", payer_fio_address,
-                           "No such domain",
-                           ErrorDomainNotRegistered);
-            uint64_t domexp = iterdom->expiration;
-            fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
-                           "FIO Domain expired", ErrorFioNameExpired);
-
-
 
             //check the payee address, see that its a valid fio name
             nameHash = string_to_uint64_hash(payee_fio_address.c_str());
@@ -300,12 +263,12 @@ namespace fioio {
                            "FIO Address expired", ErrorFioNameExpired);
 
             //check domain.
-            domHash = string_to_uint64_hash(payeefa.fiodomain.c_str());
-            iterdom = domains.find(domHash);
+            uint64_t domHash = string_to_uint64_hash(payeefa.fiodomain.c_str());
+            auto iterdom = domains.find(domHash);
             fio_400_assert(iterdom != domains.end(), "payee_fio_address", payee_fio_address,
                            "No such domain",
                            ErrorDomainNotRegistered);
-            domexp = iterdom->expiration;
+            uint64_t domexp = iterdom->expiration;
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
@@ -444,35 +407,7 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-
-            //check the payee address, see that its a valid fio name
-
-            fioname_iter = fionames.find(payeeFioAddHashed);
-            fio_403_assert(fioname_iter != fionames.end(), ErrorSignature);
-
-            uint64_t payeenameexp = fioname_iter->expiration;
-            string payeeFioAddress = fioname_iter->name;
-            FioAddress payeefa;
-            getFioAddressStruct(payeeFioAddress, payeefa);
-
-            fio_400_assert(present_time <= payeenameexp, "payee_fio_address", payeeFioAddress,
-                           "FIO Address expired", ErrorFioNameExpired);
-
-            //check domain.
-            domHash = string_to_uint64_hash(payeefa.fiodomain.c_str());
-            iterdom = domains.find(domHash);
-            fio_400_assert(iterdom != domains.end(), "payee_fio_address", payeeFioAddress,
-                           "No such domain",
-                           ErrorDomainNotRegistered);
-            domexp = iterdom->expiration;
-            fio_400_assert(present_time <= domexp, "payee_fio_address", payeeFioAddress,
-                           "FIO Domain expired", ErrorFioNameExpired);
-
-
-
-
-
-
+            
 
             string payer_fio_address = fioname_iter->name;
 
