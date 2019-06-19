@@ -112,7 +112,7 @@ namespace fioio {
             fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
-            uint64_t account = fioname_iter->account;
+            uint64_t account = fioname_iter->owner;
             uint64_t payernameexp = fioname_iter->expiration;
 
             fio_400_assert(present_time <= payernameexp, "payer_fio_address", payer_fio_address,
@@ -274,7 +274,7 @@ namespace fioio {
 
 
             //payee must be the actor.
-            uint64_t account = fioname_iter->account;
+            uint64_t account = fioname_iter->owner;
 
             name aActor = name(actor.c_str());
             print("account: ", account, " actor: ", aActor, "\n");
@@ -387,7 +387,7 @@ namespace fioio {
             auto fioname_iter = fionames.find(payerFioAddHashed);
 
             fio_403_assert(fioname_iter != fionames.end(), ErrorSignature);
-            uint64_t account = fioname_iter->account;
+            uint64_t account = fioname_iter->owner;
             uint64_t payernameexp = fioname_iter->expiration;
             string payerFioAddress = fioname_iter->name;
             FioAddress payerfa;

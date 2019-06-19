@@ -62,6 +62,7 @@ namespace fioio {
 
 
                 owner_account_name = actor;
+
             } else {
                 //check the owner_fio_public_key, if its empty then go and lookup the actor in the eosionames table
                 //and use this as the owner_fio_public_key.
@@ -202,7 +203,7 @@ namespace fioio {
                            ErrorChainAddressEmpty);
         }
 
-        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa, const string pubkey) {
+        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa) {
             uint32_t expiration_time = 0;
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
@@ -245,11 +246,14 @@ namespace fioio {
                 a.domain = fa.fiodomain;
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
-                a.account = actor.value;
+                a.owner = actor.value;
                 a.bundleeligiblecountdown = 10000;
             });
-            //addaddress(fa.fioaddress, "FIO", actor.to_string(), max_fee, actor);
-            uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", pubkey, max_fee, fa, actor, true);
+            
+            auto key_iter = eosionames.find(actor.value);
+
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
+                                                    true);
 
             return expiration_time;
         }
@@ -326,7 +330,7 @@ namespace fioio {
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
 
-            uint64_t account = fioname_iter->account;
+            uint64_t account = fioname_iter->owner;
             //      print("account: ", account, " actor: ", actor, "\n");
             fio_403_assert(account == actor.value, ErrorSignature);
 
@@ -500,7 +504,7 @@ namespace fioio {
 
             name nm = name{owner_account_name};
 
-            uint32_t expiration_time = fio_address_update(nm, max_fee, fa, owner_fio_public_key);
+            uint32_t expiration_time = fio_address_update(nm, max_fee, fa);
 
             //begin new fees, logic for Mandatory fees.
             uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
@@ -851,7 +855,7 @@ namespace fioio {
                         a.domain = domain;
                         a.domainhash = domainHash;
                         a.expiration = expiration_time;
-                        a.account = actor.value;
+                        a.owner = actor.value;
                         a.bundleeligiblecountdown = 10000;
                     });
                     countAdded++;

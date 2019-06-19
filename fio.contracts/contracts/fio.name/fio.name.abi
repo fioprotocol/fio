@@ -21,7 +21,7 @@
           "name": "expiration",
           "type": "uint64"
         },{
-          "name": "account",
+          "name": "owner",
           "type": "uint64"
         },{
           "name": "addresses",

@@ -26,7 +26,7 @@ namespace fioio {
         string domain = nullptr;
         uint64_t domainhash = 0;
         uint64_t expiration;
-        uint64_t account;
+        uint64_t owner;
         // Chain specific keys
         std::vector <string> addresses;
         uint64_t bundleeligiblecountdown = 0;
@@ -38,7 +38,7 @@ namespace fioio {
 
         uint64_t by_expiration() const { return expiration; }
 
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(account)(addresses)(
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(owner)(addresses)(
                 bundleeligiblecountdown)
         )
     };
