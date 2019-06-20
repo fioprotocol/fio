@@ -8,6 +8,7 @@
 #include "fio.name.hpp"
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
+#include <fio.tpid/fio.tpid.hpp>
 #include <eosiolib/asset.hpp>
 
 namespace fioio {
@@ -21,7 +22,9 @@ namespace fioio {
         keynames_table keynames;
         fiofee_table fiofees;
         eosio_names_table eosionames;
+        tpids_table tpids;
         config appConfig;
+
 
         const name TokenContract = name("fio.token");
 
@@ -34,7 +37,8 @@ namespace fioio {
                                                                         keynames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         eosionames(_self, _self.value),
-                                                                        chains(_self, _self.value) {
+                                                                        chains(_self, _self.value),
+                                                                        tpids(_self, _self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -490,10 +494,12 @@ namespace fioio {
         regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
-
             name nm = name{owner_account_name};
 
             uint32_t expiration_time = fio_address_update(nm, max_fee, fa);
@@ -507,7 +513,7 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            int64_t reg_amount = fee_iter->suf_amount;
+            uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a mandatory fee then this is an error.
@@ -545,9 +551,12 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
+        regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -583,7 +592,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
-
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
             //end new fees, logic for Mandatory fees.
 
             nlohmann::json json = {{"status",        "OK"},
@@ -603,6 +619,9 @@ namespace fioio {
         renewdomain(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
 
             // Split the fio name and domain portions
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -648,6 +667,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
 
             //end new fees, logic for Mandatory fees.
 
@@ -696,7 +723,9 @@ namespace fioio {
         [[eosio::action]]
         void
         renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
-
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
@@ -757,6 +786,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
 
             //end new fees, logic for Mandatory fees.
 
