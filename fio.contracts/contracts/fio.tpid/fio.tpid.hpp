@@ -1,4 +1,5 @@
 #include <fio.common/fio.common.hpp>
+#include <fio.name/fio.name.hpp>
 #include <string>
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/asset.hpp>

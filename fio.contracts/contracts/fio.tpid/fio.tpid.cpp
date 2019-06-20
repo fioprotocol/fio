@@ -7,26 +7,32 @@ namespace fioio {
 
   private:
     tpids_table tpids;
-
+    fionames_table fionames;
 
   public:
     using contract::contract;
 
-      TPIDController(name s, name code, datastream<const char *> ds) : contract(s, code, ds), tpids(_self, _self.value) {
+      TPIDController(name s, name code, datastream<const char *> ds) : contract(s, code, ds), tpids(_self, _self.value), fionames(SystemContract, SystemContract.value) {
       }
 
-    // @abi action
-    [[eosio::action]]
-    void regtpid(const string& tpid, const name& actor) {
+  // @abi action
+  [[eosio::action]]
+  void createtpid(const string& tpid, const name& actor) {
 
-      require_auth(actor);
+    require_auth(actor);
 
-      //see if TPID already exists (come back to this after emplacing a hash that can be tested)
-       uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
+    //see if FIO Address already exists before creating TPIDController
 
-       auto tpidfound = tpids.find(fioaddhash);
+   uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
+
+   auto tpidfound = tpids.find(fioaddhash);
+   auto fionamefound = fionames.find(fioaddhash);
+
+     fio_400_assert(fionamefound != fionames.end(), "TPID", tpid,
+                    "Invalid TPID", InvalidTPID);
+
        if (tpidfound == tpids.end()) {
-         print("Registering new TPID.", "\n");
+         print("Creating new TPID.", "\n");
          tpids.emplace(_self, [&](struct tpid &f) {
 
            f.fioaddress  = tpid;
@@ -34,27 +40,36 @@ namespace fioio {
            f.rewards.amount = 0;
            f.rewards.symbol = symbol("FIO",9);
          });
-       }
-       else {
-         //tpids.modify()
+       } else {
+         print("TPID already exists.", "\n");
+     } //end if fiofound
 
-       }
-      //check fioaddress table, actor must be owner of the fioaddress to continue
-      //auto other = fioaddress.find(actor.value);
+}//createtpid
 
+   //@abi action
+   [[eosio::action]]
+   void updatetpid(const string& tpid, const name& actor, const uint64_t& amount) {
 
+     require_auth(actor);
 
+     uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
+
+     auto tpidfound = tpids.find(fioaddhash);
+     if (tpidfound != tpids.end()) {
+       print("Updating TPID.", "\n");
+       tpids.modify(tpidfound, _self, [&](struct tpid &f) {
+
+         f.rewards.amount += amount;
+
+       });
+   }
+   else {
+      print("TPID does not exist. Please call createtpid action.", "\n");
     }
-
-    [[eosio::action]]
-    void unregtpid(const std::string tpid, const name& actor) {
-
-    }
-
-
+  } //updatetpid
 
   }; //class TPIDController
 
 
-  EOSIO_DISPATCH(TPIDController, (regtpid)(unregtpid))
+  EOSIO_DISPATCH(TPIDController, (createtpid)(updatetpid))
 }

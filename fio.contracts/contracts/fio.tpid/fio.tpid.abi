@@ -10,7 +10,7 @@
                 {"name":"rewards", "type":"asset"}
             ]
             },{
-              "name": "regtpid",
+              "name": "createtpid",
               "base": "",
               "fields": [{
               "name": "tpid",
@@ -19,14 +19,31 @@
               "name": "actor",
               "type": "name"
               }]
-              }
+              },{
+                "name": "updatetpid",
+                "base": "",
+                "fields": [{
+                "name": "tpid",
+                "type": "string"
+                },{
+                "name": "actor",
+                "type": "name"
+                },{
+                "name": "amount",
+                "type": "uint64"
+                }]
+                }
           ],
     "types": [],
     "actions": [{
-         "name": "regtpid",
-         "type": "regtpid",
+         "name": "createtpid",
+         "type": "createtpid",
          "ricardian_contract": ""
-       }],
+       },{
+          "name": "updatetpid",
+          "type": "updatetpid",
+          "ricardian_contract": ""
+        }],
     "tables": [{
         "name": "tpids",
         "index_type": "i64",
