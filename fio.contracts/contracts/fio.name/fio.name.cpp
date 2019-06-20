@@ -211,7 +211,9 @@ namespace fioio {
                            ErrorChainAddressEmpty);
         }
 
-        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa) {
+        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa, const string &tpid) {
+            // will not check the contents of tpid here, it was already checked at the beginning of regaddress that called this method
+            
             uint32_t expiration_time = 0;
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
@@ -257,7 +259,7 @@ namespace fioio {
                 a.account = actor.value;
                 a.bundleeligiblecountdown = 10000;
             });
-            addaddress(fa.fioaddress, "FIO", actor.to_string(), max_fee, actor);
+            addaddress(fa.fioaddress, "FIO", actor.to_string(), max_fee, actor, tpid);
 
             return expiration_time;
         }
@@ -323,7 +325,7 @@ namespace fioio {
 
         uint64_t
         chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee,
-                          const FioAddress &fa, const name &actor) {
+                          const FioAddress &fa, const name &actor, const string &tpid) {
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
@@ -444,6 +446,14 @@ namespace fioio {
                 print(reg_fee_asset.amount);
                 //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
                 fio_fees(actor, reg_fee_asset);
+                if (!tpid.empty()) {
+                  action(
+                  permission_level{get_self(),"active"_n},
+                  "fio.tpid"_n,
+                  "updatetpid"_n,
+                  std::make_tuple(tpid, reg_amount / 10)
+                  ).send();
+                }
             }
 
             return fee_amount;
@@ -507,7 +517,7 @@ namespace fioio {
             register_errors(fa, false);
             name nm = name{owner_account_name};
 
-            uint32_t expiration_time = fio_address_update(nm, max_fee, fa);
+            uint32_t expiration_time = fio_address_update(nm, max_fee, fa, tpid);
 
             //begin new fees, logic for Mandatory fees.
             uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
@@ -1125,12 +1135,18 @@ namespace fioio {
         [[eosio::action]]
         void
         addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
-                   const name &actor) {
+                   const name &actor,const string &tpid) {
+             if(!tpid.empty()) {
+               fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+             }
+
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             addaddress_errors(token_code, public_address, fa);
 
-            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor);
+            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor, tpid);
+
+
 
 
             nlohmann::json json = {{"status",        "OK"},
