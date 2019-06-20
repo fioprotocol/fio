@@ -50,7 +50,9 @@ namespace fioio {
    [[eosio::action]]
    void updatetpid(const string& tpid, const uint64_t& amount) {
 
-     require_auth(SystemContract);
+     eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || (has_auth("fio.reqobt"_n)),
+  "missing required authority of fio.system, fio.token, or fio.reqobt");
+
 
      uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
 
