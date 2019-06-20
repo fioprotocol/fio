@@ -87,6 +87,10 @@ namespace eosiosystem {
         });
     }
 
+    bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
+              return (a.second < b.second);
+    }
+
     void system_contract::update_elected_producers(block_timestamp block_time) {
         _gstate.last_producer_schedule_update = block_time;
 
@@ -105,8 +109,12 @@ namespace eosiosystem {
             return;
         }
 
-        /// sort by producer name
-        std::sort(top_producers.begin(), top_producers.end());
+        /// sort by producer location, location initialized to zero in fio.system.hpp
+        /// location will be set upon call to register producer by the block producer.
+        ///the location should be considered as a scheduled order of producers, they should
+        /// set the location so that traversing locations gives most proximal producer locations
+        /// to help address latency.
+        std::sort( top_producers.begin(), top_producers.end(), sort_producers_by_location );
 
         std::vector <eosio::producer_key> producers;
 
