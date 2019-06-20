@@ -530,7 +530,7 @@ namespace fioio {
               permission_level{get_self(),"active"_n},
               "fio.tpid"_n,
               "updatetpid"_n,
-              std::make_tuple(tpid, reg_amount * .10)
+              std::make_tuple(tpid, reg_amount / 10)
               ).send();
             }
 
