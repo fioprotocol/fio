@@ -182,6 +182,11 @@ namespace fioio {
             }
         }
 
+        inline bool check_tpid(const string &tpid) {
+          auto iter = tpids.find(string_to_uint64_hash(tpid.c_str()));
+          return iter == tpids.end();
+        }
+
 
         inline void register_errors(const FioAddress &fa, bool domain) const {
             int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
