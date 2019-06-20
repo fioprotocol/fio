@@ -17,9 +17,9 @@ namespace fioio {
 
   // @abi action
   [[eosio::action]]
-  void createtpid(const string& tpid, const name& actor) {
+  void createtpid(const string& tpid) {
 
-    require_auth(actor);
+    require_auth(SystemContract);
 
     //see if FIO Address already exists before creating TPIDController
 
@@ -48,23 +48,25 @@ namespace fioio {
 
    //@abi action
    [[eosio::action]]
-   void updatetpid(const string& tpid, const name& actor, const uint64_t& amount) {
+   void updatetpid(const string& tpid, const uint64_t& amount) {
 
-     require_auth(actor);
+     eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || (has_auth("fio.reqobt"_n)),
+  "missing required authority of fio.system, fio.token, or fio.reqobt");
+
 
      uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
 
      auto tpidfound = tpids.find(fioaddhash);
-     if (tpidfound != tpids.end()) {
-       print("Updating TPID.", "\n");
-       tpids.modify(tpidfound, _self, [&](struct tpid &f) {
-
-         f.rewards.amount += amount;
-
-       });
+     if (tpidfound == tpids.end()) {
+       print("TPID does not exist. Creating TPID.", "\n");
+       createtpid(tpid);
+       updatetpid(tpid, amount);
    }
    else {
-      print("TPID does not exist. Please call createtpid action.", "\n");
+     print("Updating TPID.", "\n");
+     tpids.modify(tpidfound, _self, [&](struct tpid &f) {
+       f.rewards.amount += amount;
+     });
     }
   } //updatetpid
 

@@ -8,6 +8,7 @@
 #include "fio.name.hpp"
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
+#include <fio.tpid/fio.tpid.hpp>
 #include <eosiolib/asset.hpp>
 
 namespace fioio {
@@ -21,7 +22,9 @@ namespace fioio {
         keynames_table keynames;
         fiofee_table fiofees;
         eosio_names_table eosionames;
+        tpids_table tpids;
         config appConfig;
+
 
         const name TokenContract = name("fio.token");
 
@@ -34,7 +37,8 @@ namespace fioio {
                                                                         keynames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         eosionames(_self, _self.value),
-                                                                        chains(_self, _self.value) {
+                                                                        chains(_self, _self.value),
+                                                                        tpids(_self, _self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -166,16 +170,21 @@ namespace fioio {
 
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
-                name fiosystem = name("fio.system");
+
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, fiosystem, fee,
+                       make_tuple(actor, name("fio.treasury"), fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
 
             } else {
                 print("Payments currently disabled.");
             }
+        }
+
+        inline bool check_tpid(const string &tpid) {
+          auto iter = tpids.find(string_to_uint64_hash(tpid.c_str()));
+          return iter == tpids.end();
         }
 
 
@@ -202,7 +211,9 @@ namespace fioio {
                            ErrorChainAddressEmpty);
         }
 
-        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa) {
+        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa, const string &tpid) {
+            // will not check the contents of tpid here, it was already checked at the beginning of regaddress that called this method
+
             uint32_t expiration_time = 0;
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
@@ -248,7 +259,7 @@ namespace fioio {
                 a.account = actor.value;
                 a.bundleeligiblecountdown = 10000;
             });
-            addaddress(fa.fioaddress, "FIO", actor.to_string(), max_fee, actor);
+            addaddress(fa.fioaddress, "FIO", actor.to_string(), max_fee, actor, tpid);
 
             return expiration_time;
         }
@@ -314,7 +325,7 @@ namespace fioio {
 
         uint64_t
         chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee,
-                          const FioAddress &fa, const name &actor) {
+                          const FioAddress &fa, const name &actor, const string &tpid) {
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
@@ -427,7 +438,7 @@ namespace fioio {
                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset;         
+                asset reg_fee_asset;
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 reg_fee_asset.symbol = symbol("FIO",9);
@@ -435,6 +446,14 @@ namespace fioio {
                 print(reg_fee_asset.amount);
                 //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
                 fio_fees(actor, reg_fee_asset);
+                if (!tpid.empty()) {
+                  action(
+                  permission_level{get_self(),"active"_n},
+                  "fio.tpid"_n,
+                  "updatetpid"_n,
+                  std::make_tuple(tpid, reg_amount / 10)
+                  ).send();
+                }
             }
 
             return fee_amount;
@@ -487,16 +506,18 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
+        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
-
             name nm = name{owner_account_name};
 
-            uint32_t expiration_time = fio_address_update(nm, max_fee, fa);
+            uint32_t expiration_time = fio_address_update(nm, max_fee, fa, tpid);
 
             //begin new fees, logic for Mandatory fees.
             uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
@@ -507,7 +528,7 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            int64_t reg_amount = fee_iter->suf_amount;
+            uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             //if its not a mandatory fee then this is an error.
@@ -525,6 +546,15 @@ namespace fioio {
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
 
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
+
             //end new fees, logic for Mandatory fees.
 
             nlohmann::json json = {{"status",        "OK"},
@@ -536,9 +566,12 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
+        regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -574,7 +607,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
-
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
             //end new fees, logic for Mandatory fees.
 
             nlohmann::json json = {{"status",        "OK"},
@@ -594,6 +634,9 @@ namespace fioio {
         renewdomain(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
 
             // Split the fio name and domain portions
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -613,7 +656,7 @@ namespace fioio {
             expiration_time = domains_iter->expiration;
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_domain");
+            uint64_t endpoint_hash = string_to_uint64_hash("renew_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -639,6 +682,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
 
             //end new fees, logic for Mandatory fees.
 
@@ -687,7 +738,9 @@ namespace fioio {
         [[eosio::action]]
         void
         renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
-
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
@@ -722,7 +775,7 @@ namespace fioio {
 
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
+            uint64_t endpoint_hash = string_to_uint64_hash("renew_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -748,6 +801,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount / 10)
+              ).send();
+            }
 
             //end new fees, logic for Mandatory fees.
 
@@ -840,7 +901,7 @@ namespace fioio {
                 if (i>7){
                     yearsago = i / 7;
                 }
-                
+
                 expiration_time = get_now_minus_years(yearsago);
                 nameHash = string_to_uint64_hash(name.c_str());
                 auto iter1 = fionames.find(nameHash);
@@ -1074,12 +1135,18 @@ namespace fioio {
         [[eosio::action]]
         void
         addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
-                   const name &actor) {
+                   const name &actor,const string &tpid) {
+             if(!tpid.empty()) {
+               fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+             }
+
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             addaddress_errors(token_code, public_address, fa);
 
-            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor);
+            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor, tpid);
+
+
 
 
             nlohmann::json json = {{"status",        "OK"},

@@ -14,6 +14,7 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <fio.common/fioerror.hpp>
+#include <fio.tpid/fio.tpid.hpp>
 
 
 namespace fioio {
@@ -30,6 +31,7 @@ namespace fioio {
         domains_table domains;
         fiofee_table fiofees;
         config appConfig;
+        tpids_table tpids;
 
 
     public:
@@ -39,7 +41,8 @@ namespace fioio {
                   fiorequestStatusTable(_self, _self.value),
                   fionames(SystemContract, SystemContract.value),
                   domains(SystemContract, SystemContract.value),
-                  fiofees(FeeContract, FeeContract.value) {
+                  fiofees(FeeContract, FeeContract.value),
+                  tpids(SystemContract, SystemContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -72,7 +75,12 @@ namespace fioio {
                 const string &payee_fio_address,
                 const string &content,
                 uint64_t max_fee,
-                const string &actor) {
+                const string &actor,
+                const string &tpid) {
+
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found in obt json blob", ErrorInvalidJsonInput);
@@ -190,6 +198,16 @@ namespace fioio {
                 reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
+
+                if (!tpid.empty()) {
+                  action(
+                  permission_level{get_self(),"active"_n},
+                  "fio.tpid"_n,
+                  "updatetpid"_n,
+                  std::make_tuple(tpid, fee_amount / 10)
+                  ).send();
+                }
+
             }
             //end new fees, bundle eligible fee logic
 
@@ -206,12 +224,17 @@ namespace fioio {
                 print("Collecting FIO API fees: ", fee);
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, fiosystem, fee,
+                       make_tuple(actor, "fio.treasury_n", fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
             } else {
                 print("Payments currently disabled.");
             }
+        }
+
+        inline bool check_tpid(const string &tpid) {
+          auto iter = tpids.find(string_to_uint64_hash(tpid.c_str()));
+          return iter == tpids.end();
         }
 
         /***
@@ -225,8 +248,11 @@ namespace fioio {
                 const string &payee_fio_address,
                 const string &content,
                 uint64_t max_fee,
-                const string &actor) {
-
+                const string &actor,
+                const string &tpid) {
+                if(!tpid.empty()) {
+                  fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+                }
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not specified",
@@ -343,6 +369,14 @@ namespace fioio {
                 reg_fee_asset.amount = fee_amount;
 
                 fio_fees(aActor, reg_fee_asset);
+                if (!tpid.empty()) {
+                  action(
+                  permission_level{get_self(),"active"_n},
+                  "fio.tpid"_n,
+                  "updatetpid"_n,
+                  std::make_tuple(tpid, fee_amount / 10)
+                  ).send();
+                }
             }
             //end new fees, bundle eligible fee logic
 
@@ -360,7 +394,10 @@ namespace fioio {
          f*/
         // @abi action
         [[eosio::action]]
-        void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor) {
+        void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
+            if(!tpid.empty()) {
+              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+            }
             print("call new funds request\n");
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
@@ -471,6 +508,15 @@ namespace fioio {
                 reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
+
+                if (!tpid.empty()) {
+                  action(
+                  permission_level{get_self(),"active"_n},
+                  "fio.tpid"_n,
+                  "updatetpid"_n,
+                  std::make_tuple(tpid, fee_amount / 10)
+                  ).send();
+                }
             }
             //end new fees, bundle eligible fee logic
 
@@ -483,4 +529,3 @@ namespace fioio {
     EOSIO_DISPATCH(FioRequestObt, (recordsend)(newfundsreq)
     (rejectfndreq))
 }
-
