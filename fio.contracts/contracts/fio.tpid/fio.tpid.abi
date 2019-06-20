@@ -30,7 +30,7 @@
                 "type": "name"
                 },{
                 "name": "amount",
-                "type": "asset"
+                "type": "uint64"
                 }]
                 }
           ],
