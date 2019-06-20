@@ -245,7 +245,7 @@ namespace fioio {
                 print("Collecting FIO API fees: ", fee);
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, fiosystem, fee,
+                       make_tuple(actor, "fio.treasury_n", fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
             } else {

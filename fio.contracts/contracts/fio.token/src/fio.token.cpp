@@ -109,10 +109,9 @@ namespace eosio {
 
     inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
-            name fiosystem = name("fio.system");
             // check for funds is implicitly done as part of the funds transfer.
             print("Collecting FIO API fees: ", fee);
-            transfer(actor, fiosystem, fee, string("FIO API fees. Thank you."));
+            transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
         } else {
             print("Payments currently disabled.");
         }
