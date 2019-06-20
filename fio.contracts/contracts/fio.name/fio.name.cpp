@@ -166,10 +166,10 @@ namespace fioio {
 
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
-                name fiosystem = name("fio.system");
+
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, fiosystem, fee,
+                       make_tuple(actor, name("fio.treasury"), fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
 
@@ -427,7 +427,7 @@ namespace fioio {
                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset;         
+                asset reg_fee_asset;
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 reg_fee_asset.symbol = symbol("FIO",9);
@@ -487,7 +487,7 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor) {
+        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
             FioAddress fa;
@@ -524,6 +524,15 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
+
+            if (!tpid.empty()) {
+              action(
+              permission_level{get_self(),"active"_n},
+              "fio.tpid"_n,
+              "updatetpid"_n,
+              std::make_tuple(tpid, reg_amount * .10)
+              ).send();
+            }
 
             //end new fees, logic for Mandatory fees.
 
@@ -840,7 +849,7 @@ namespace fioio {
                 if (i>7){
                     yearsago = i / 7;
                 }
-                
+
                 expiration_time = get_now_minus_years(yearsago);
                 nameHash = string_to_uint64_hash(name.c_str());
                 auto iter1 = fionames.find(nameHash);

@@ -15,9 +15,6 @@
               "fields": [{
               "name": "tpid",
               "type": "string"
-              },{
-              "name": "actor",
-              "type": "name"
               }]
               },{
                 "name": "updatetpid",
@@ -25,9 +22,6 @@
                 "fields": [{
                 "name": "tpid",
                 "type": "string"
-                },{
-                "name": "actor",
-                "type": "name"
                 },{
                 "name": "amount",
                 "type": "uint64"

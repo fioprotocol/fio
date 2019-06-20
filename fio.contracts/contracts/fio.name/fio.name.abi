@@ -134,6 +134,9 @@
         },{
           "name": "actor",
           "type": "name"
+        },{
+          "name": "tpid",
+          "type": "string"
         }
       ]
     },{
