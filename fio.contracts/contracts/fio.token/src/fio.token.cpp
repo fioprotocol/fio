@@ -133,8 +133,11 @@ namespace eosio {
     void token::trnsfiopubky(string payee_public_key,
                              string amount,
                              uint64_t max_fee,
-                             name actor) {
-
+                             name actor,
+                             const string &tpid) {
+        if(!tpid.empty()) {
+          fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+        }
         asset qty;
         //we assume the amount is in fio sufs.
         int64_t i64 = stoi(amount.c_str());
@@ -276,6 +279,16 @@ namespace eosio {
         reg_fee_asset.symbol = symbol("FIO", 9);
 
         fio_fees(actor, reg_fee_asset);
+
+        if (!tpid.empty()) {
+          action(
+          permission_level{get_self(),"active"_n},
+          "fio.tpid"_n,
+          "updatetpid"_n,
+          std::make_tuple(tpid, reg_amount / 10)
+          ).send();
+        }
+
         require_recipient(actor);
         //require recipient if the account was found on the chain.
         if (accountExists) {

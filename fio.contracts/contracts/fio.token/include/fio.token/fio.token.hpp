@@ -7,12 +7,14 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.name/fio.name.hpp>
 #include <fio.fee/fio.fee.hpp>
+#include <fio.tpid/fio.tpid.hpp>
 
 namespace eosiosystem {
     class system_contract;
 }
 
 namespace eosio {
+using namespace fioio;
 
     using std::string;
 
@@ -21,10 +23,12 @@ namespace eosio {
         fioio::eosio_names_table eosionames;
         fioio::fiofee_table fiofees;
         fioio::config appConfig;
+        fioio::tpids_table tpids;
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                 eosionames(fioio::SystemContract,fioio::SystemContract.value),
-                                                                fiofees(fioio::FeeContract, fioio::FeeContract.value) {
+                                                                fiofees(fioio::FeeContract, fioio::FeeContract.value),
+                                                                tpids(fioio::SystemContract, fioio::SystemContract.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
             appConfig = configsSingleton.get_or_default(fioio::config());
         }
@@ -37,6 +41,11 @@ namespace eosio {
         void issue(name to, asset quantity, string memo);
 
         inline void fio_fees(const name &actor, const asset &fee);
+
+        inline bool check_tpid(const string &tpid) {
+          auto iter = tpids.find(string_to_uint64_hash(tpid.c_str()));
+          return iter == tpids.end();
+        }
 
         [[eosio::action]]
         void retire(asset quantity, string memo);
@@ -51,7 +60,8 @@ namespace eosio {
         void trnsfiopubky(string payee_public_key,
                           string amount,
                           uint64_t max_fee,
-                          name actor);
+                          name actor,
+                          const string &tpid);
 
         [[eosio::action]]
         void open(name owner, const symbol &symbol, name ram_payer);
@@ -99,6 +109,7 @@ namespace eosio {
         void add_balance(name owner, asset value, name ram_payer);
 
     public:
+
         struct transfer_args {
             name from;
             name to;

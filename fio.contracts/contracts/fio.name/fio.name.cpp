@@ -213,7 +213,7 @@ namespace fioio {
 
         uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa, const string &tpid) {
             // will not check the contents of tpid here, it was already checked at the beginning of regaddress that called this method
-            
+
             uint32_t expiration_time = 0;
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
@@ -656,7 +656,7 @@ namespace fioio {
             expiration_time = domains_iter->expiration;
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_domain");
+            uint64_t endpoint_hash = string_to_uint64_hash("renew_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -775,7 +775,7 @@ namespace fioio {
 
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
+            uint64_t endpoint_hash = string_to_uint64_hash("renew_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
