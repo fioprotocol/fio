@@ -507,11 +507,13 @@ namespace fioio {
         [[eosio::action]]
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
-            name owner_account_name = accountmgnt(actor, owner_fio_public_key);
-            // Split the fio name and domain portions
+
             if(!tpid.empty()) {
               fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
             }
+            name owner_account_name = accountmgnt(actor, owner_fio_public_key);
+            // Split the fio name and domain portions
+
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
