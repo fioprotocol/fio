@@ -158,6 +158,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     std::string url;
     uint32_t unpaid_blocks = 0;
     time_point last_claim_time;
+    //init this to zero here to ensure that if the location is not specified, sorting will still work.
     uint16_t location = 0;
 
     uint64_t primary_key() const { return owner.value; }
