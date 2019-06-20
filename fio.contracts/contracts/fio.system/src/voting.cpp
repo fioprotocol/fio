@@ -130,10 +130,12 @@ namespace eosiosystem {
     }
 
     double stake2vote(int64_t staked) {
-        /// TODO subtract 2080 brings the large numbers closer to this decade
-        double weight =
-                int64_t((now() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7)) / double(52);
-        return double(staked) * std::pow(2, weight);
+       //in EOS the weighting of a vote is strengthened each week. in FIO we remove this ever increasing vote strength
+       //and we just always use the amount staked.
+       // double weight =
+       //         int64_t((now() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7)) / double(52);
+       // return double(staked) * std::pow(2, weight);
+       return double(staked);
     }
 
     double system_contract::update_total_votepay_share(time_point ct,
