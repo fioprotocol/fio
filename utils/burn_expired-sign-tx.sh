@@ -21,6 +21,11 @@ hostname="localhost"
 #fiopubkey="FIO5FTe5jmJ9koAvMr4T5J2ZMdYqBBF7PgzUQHf7KbqVK4S5vpVeM"
 #fioprivatekey="5JDurZ7F9maZqDQ4Jn4N5ooBjdPWwzcxyggFbWke9WjeGhS5VECz"
 
+#   to make an expired domain.
+#   cleos -u http://localhost:8889 push action -j fio.system expdomain '{"actor":"r41zuwovtn44","domain":"expired"}' --permission r41zuwovtn44@active
+#   to create expired addresses under the specified domain.
+#   cleos -u http://localhost:8889 push action -j fio.system expaddresses '{"actor":"r41zuwovtn44","domain":"expired","address_prefix":"eddieexp","number_addresses_to_add":"5"}' --permission r41zuwovtn44@active
+#   scenarios that need tested.
 
 fiopubkey="FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
 fioprivatekey="5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz"

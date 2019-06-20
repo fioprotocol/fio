@@ -219,12 +219,11 @@ namespace fioio {
 
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
-                name fiosystem = name("fio.system");
                 // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting FIO API fees: ", fee);
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, "fio.treasury_n", fee,
+                       make_tuple(actor, "fio.treasury"_n, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
             } else {

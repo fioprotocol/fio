@@ -32,7 +32,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson="{\"fio_address\":\"eddieexp.expired\",\"max_fee\":\"100000000000\",\"tpid\":\"1\",\"actor\":\"r41zuwovtn44\"}"
+dataJson="{\"fio_address\":\"eddieexp.expired\",\"max_fee\":\"100000000000\",\"tpid\":\"1\",\"actor\":\"r41zuwovtn44\",\"tpid\":\"adam.dapix\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system renewaddress '$dataJson'"
 echo CMD: $cmd
