@@ -29,7 +29,7 @@ namespace fioio {
    auto fionamefound = fionames.find(fioaddhash);
 
      fio_400_assert(fionamefound != fionames.end(), "TPID", tpid,
-                    "Invalid TPID", ErrorFioNameAlreadyRegistered);
+                    "Invalid TPID", InvalidTPID);
 
        if (tpidfound == tpids.end()) {
          print("Creating new TPID.", "\n");
