@@ -58,14 +58,14 @@ namespace fioio {
                 auto other = eosionames.find(actor.value);
 
                 fio_400_assert(other != eosionames.end(), "owner_account", actor.to_string(),
-                               "Account is not bound on the fio chain ",
+                               "Account is not bound on the fio chain",
                                ErrorPubAddressExist);
                 fio_400_assert(accountExists, "owner_account", actor.to_string(),
-                               "Account does not yet exist on the fio chain ",
+                               "Account does not yet exist on the fio chain",
                                ErrorPubAddressExist);
 
-
                 owner_account_name = actor;
+
             } else {
                 //check the owner_fio_public_key, if its empty then go and lookup the actor in the eosionames table
                 //and use this as the owner_fio_public_key.
@@ -256,10 +256,13 @@ namespace fioio {
                 a.domain = fa.fiodomain;
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
-                a.account = actor.value;
+                a.owner = actor.value;
                 a.bundleeligiblecountdown = 10000;
             });
-            addaddress(fa.fioaddress, "FIO", actor.to_string(), max_fee, actor, tpid);
+
+            auto key_iter = eosionames.find(actor.value);
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
+                                                    true, tpid);
 
             return expiration_time;
         }
@@ -324,8 +327,8 @@ namespace fioio {
         //adddomain
 
         uint64_t
-        chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee,
-                          const FioAddress &fa, const name &actor, const string &tpid) {
+        chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee, const FioAddress &fa, const name &actor, const bool isFIO, const string &tpid) {
+
             uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
@@ -336,7 +339,7 @@ namespace fioio {
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
 
-            uint64_t account = fioname_iter->account;
+            uint64_t account = fioname_iter->owner;
             //      print("account: ", account, " actor: ", actor, "\n");
             fio_403_assert(account == actor.value, ErrorSignature);
 
@@ -421,10 +424,13 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint add_pub_address, expected 0",
                            ErrorNoEndpoint);
 
-
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             uint64_t fee_amount = 0;
+
+            if (isFIO) {
+                return fee_amount;
+            }
 
             if (bundleeligiblecountdown > 0) {
                 //fee is zero, and decrement the counter.
@@ -850,10 +856,6 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-
-
-
-
         /*
          * TESTING ONLY, REMOVE for main net launch!
          * This action will create a domain of the specified name and the domain will be
@@ -874,8 +876,6 @@ namespace fioio {
                 });
             }
         }
-
-
 
         /*
          * TESTING ONLY this action should be removed for main net launch!!!
@@ -916,7 +916,7 @@ namespace fioio {
                         a.domain = domain;
                         a.domainhash = domainHash;
                         a.expiration = expiration_time;
-                        a.account = actor.value;
+                        a.owner = actor.value;
                         a.bundleeligiblecountdown = 10000;
                     });
                     countAdded++;
@@ -1146,10 +1146,7 @@ namespace fioio {
             getFioAddressStruct(fio_address, fa);
             addaddress_errors(token_code, public_address, fa);
 
-            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor, tpid);
-
-
-
+            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor, false, tpid);
 
             nlohmann::json json = {{"status",        "OK"},
                                    {"fee_collected", fee_amount}};
@@ -1223,8 +1220,6 @@ namespace fioio {
                 });
             }
         }
-
-
     }; // class FioNameLookup
 
     EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(expaddresses)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))

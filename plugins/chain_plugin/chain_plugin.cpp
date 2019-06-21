@@ -1247,7 +1247,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
             //get the public address.
-            uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str());
+          uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str());
 
             get_pending_fio_requests_result result;
 
@@ -1337,10 +1337,10 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
                     string to_fiopub = fioname_result.rows[0]["addresses"][static_cast<int>(0)].as_string();
-                    uint64_t address_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
+                    uint64_t key_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
 
                     read_only::get_table_rows_result account_result;
-                    GetFIOAccount(address_hash, account_result);
+                    GetFIOAccount(key_hash, account_result);
 
                     FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
                                    fioio::ErrorPubAddressNotFound);
@@ -1401,7 +1401,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
             //get the public address.
-            uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str());
+            uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str());
 
             get_sent_fio_requests_result result;
 
@@ -1487,11 +1487,11 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
                     string fiopub = fioname_result.rows[0]["addresses"][static_cast<int>(0)].as_string();
                     dlog("fio pub: '${size}'", ("size", fiopub));
-                    uint64_t address_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
+                    uint64_t key_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
                     dlog("fio add hash: '${size}'", ("size", address_hash));
 
                     read_only::get_table_rows_result account_result;
-                    GetFIOAccount(address_hash, account_result);
+                    GetFIOAccount(key_hash, account_result);
 
                     FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
                                    fioio::ErrorPubAddressNotFound);
@@ -1571,7 +1571,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound    = boost::lexical_cast<string>(address),
                     .upper_bound    = boost::lexical_cast<string>(address + 1),
                     .key_type       = "i64",
-                    .index_position = "3"};
+                    .index_position = "2"};
 
             account_result =
                     get_table_rows_by_seckey<index64_index, uint64_t>(
@@ -1598,7 +1598,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             string fio_key_lookup_table = "keynames";   // table name
 
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str()); // hash of public address
+            const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
 
             dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash));
             get_table_rows_params table_row_params = get_table_rows_params{
@@ -1618,7 +1618,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                                                                   });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
-            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
+            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names2", fioio::ErrorNoFIONames);
 
             std::string nam, namexpiration;
             int chainindex = 0;
@@ -1656,7 +1656,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
 
             if (domain_result.rows.empty()) {
-              FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()) , "No FIO names", fioio::ErrorNoFIONames);
+                FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names3",
+                               fioio::ErrorNoFIONames);
             return result; }
 
             std::string domexpiration, dom;
