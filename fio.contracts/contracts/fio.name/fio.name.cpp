@@ -54,12 +54,11 @@ namespace fioio {
                 auto other = eosionames.find(actor.value);
 
                 fio_400_assert(other != eosionames.end(), "owner_account", actor.to_string(),
-                               "Account is not bound on the fio chain ",
+                               "Account is not bound on the fio chain",
                                ErrorPubAddressExist);
                 fio_400_assert(accountExists, "owner_account", actor.to_string(),
-                               "Account does not yet exist on the fio chain ",
+                               "Account does not yet exist on the fio chain",
                                ErrorPubAddressExist);
-
 
                 owner_account_name = actor;
 
@@ -249,7 +248,7 @@ namespace fioio {
                 a.owner = actor.value;
                 a.bundleeligiblecountdown = 10000;
             });
-            
+
             auto key_iter = eosionames.find(actor.value);
 
             uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
