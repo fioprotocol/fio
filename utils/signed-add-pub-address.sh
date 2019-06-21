@@ -36,8 +36,9 @@ dataJson="{
   \"fio_address\": \"${domain}\",
   \"token_code\": \"DAI\",
   \"public_address\": \"eddie1\",
-  \"max_fee\":\"00000000100\",
-  \"actor\": \"${fioactor}\"
+  \"max_fee\":\"3000000000\",
+  \"actor\": \"${fioactor}\",
+  \"tpid\": \"adam.dapix\"
 }"
 
 expectedPackedData=056461706978104208414933a95b

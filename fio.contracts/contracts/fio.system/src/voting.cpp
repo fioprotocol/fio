@@ -87,6 +87,10 @@ namespace eosiosystem {
         });
     }
 
+    bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
+              return (a.second < b.second);
+    }
+
     void system_contract::update_elected_producers(block_timestamp block_time) {
         _gstate.last_producer_schedule_update = block_time;
 
@@ -105,8 +109,12 @@ namespace eosiosystem {
             return;
         }
 
-        /// sort by producer name
-        std::sort(top_producers.begin(), top_producers.end());
+        /// sort by producer location, location initialized to zero in fio.system.hpp
+        /// location will be set upon call to register producer by the block producer.
+        ///the location should be considered as a scheduled order of producers, they should
+        /// set the location so that traversing locations gives most proximal producer locations
+        /// to help address latency.
+        std::sort( top_producers.begin(), top_producers.end(), sort_producers_by_location );
 
         std::vector <eosio::producer_key> producers;
 
@@ -122,10 +130,12 @@ namespace eosiosystem {
     }
 
     double stake2vote(int64_t staked) {
-        /// TODO subtract 2080 brings the large numbers closer to this decade
-        double weight =
-                int64_t((now() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7)) / double(52);
-        return double(staked) * std::pow(2, weight);
+       //in EOS the weighting of a vote is strengthened each week. in FIO we remove this ever increasing vote strength
+       //and we just always use the amount staked.
+       // double weight =
+       //         int64_t((now() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7)) / double(52);
+       // return double(staked) * std::pow(2, weight);
+       return double(staked);
     }
 
     double system_contract::update_total_votepay_share(time_point ct,
