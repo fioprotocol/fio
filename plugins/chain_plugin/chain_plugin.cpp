@@ -1618,7 +1618,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                                                                   });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
-            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names2", fioio::ErrorNoFIONames);
+            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
             std::string nam, namexpiration;
             int chainindex = 0;
