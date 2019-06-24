@@ -36,6 +36,8 @@ namespace fioio {
         uint64_t by_domain() const { return domainhash; }
         uint64_t by_expiration() const { return expiration; }
 
+        uint64_t by_owner() const { return owner; }
+
         EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(owner)(addresses)(
                 bundleeligiblecountdown)
         )
@@ -44,7 +46,8 @@ namespace fioio {
     //Where fioname tokens are stored
     typedef multi_index<"fionames"_n, fioname,
             indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
-            indexed_by<"byexpiration"_n, const_mem_fun < fioname, uint64_t, &fioname::by_expiration>>
+    indexed_by<"byexpiration"_n, const_mem_fun<fioname, uint64_t, &fioname::by_expiration>>,
+    indexed_by<"byowner"_n, const_mem_fun<fioname, uint64_t, &fioname::by_owner>>
     >
     fionames_table;
 
