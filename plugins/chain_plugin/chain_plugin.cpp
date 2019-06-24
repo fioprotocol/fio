@@ -1336,7 +1336,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
-                    string to_fiopub = fioname_result.rows[0]["addresses"][static_cast<int>(0)].as_string();
+                    string to_fiopub = fioname_result.rows[0]["owner"].as_string();
                     uint64_t key_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
 
                     read_only::get_table_rows_result account_result;
@@ -1485,8 +1485,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
-                    string fiopub = fioname_result.rows[0]["addresses"][static_cast<int>(0)].as_string();
-                    dlog("fio pub: '${size}'", ("size", fiopub));
+                    string fiopub = fioname_result.rows[0]["owner"].as_string();
+                    dlog("fio pub OWNER: '${size}'", ("size", fiopub));
                     uint64_t key_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
                     dlog("fio add hash: '${size}'", ("size", address_hash));
 
