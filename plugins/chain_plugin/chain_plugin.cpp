@@ -1571,7 +1571,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound    = boost::lexical_cast<string>(address),
                     .upper_bound    = boost::lexical_cast<string>(address + 1),
                     .key_type       = "i64",
-                    .index_position = "2"};
+                    .index_position = "1"};
 
             account_result =
                     get_table_rows_by_seckey<index64_index, uint64_t>(

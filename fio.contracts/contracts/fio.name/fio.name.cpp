@@ -248,6 +248,11 @@ namespace fioio {
             // Issue, create and transfer fioname token
             // DO SOMETHING
 
+            auto key_iter = eosionames.find(actor.value);
+            uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
+            print("OWNER:", actor, "...Value:", actor.value, "...Key:", key_iter->clientkey, "...hash:", ownerHash,
+                  "\n");
+
             // Add fioname entry in fionames table
             fionames.emplace(_self, [&](struct fioname &a) {
                 a.name = fa.fioaddress;
@@ -260,7 +265,6 @@ namespace fioio {
                 a.bundleeligiblecountdown = 10000;
             });
 
-            auto key_iter = eosionames.find(actor.value);
             uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
                                                     true, tpid);
 
