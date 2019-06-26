@@ -1337,10 +1337,10 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
                     uint64_t to_fiopub = fioname_result.rows[0]["owner"].as_uint64();
-                    //uint64_t key_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
+                    uint64_t key_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
 
                     read_only::get_table_rows_result account_result;
-                    GetFIOAccount(to_fiopub, account_result);
+                    GetFIOAccount(key_hash, account_result);
 
                     FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
                                    fioio::ErrorPubAddressNotFound);
@@ -1487,11 +1487,11 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
                     uint64_t fiopub = fioname_result.rows[0]["owner"].as_uint64();
                     dlog("fio pub OWNER: '${size}'", ("size", fiopub));
-                    //uint64_t key_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
+                    uint64_t key_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
                     dlog("fio add hash: '${size}'", ("size", address_hash));
 
                     read_only::get_table_rows_result account_result;
-                    GetFIOAccount(fiopub, account_result);
+                    GetFIOAccount(key_hash, account_result);
 
                     FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
                                    fioio::ErrorPubAddressNotFound);
