@@ -26,7 +26,7 @@ namespace fioio {
         string domain = nullptr;
         uint64_t domainhash = 0;
         uint64_t expiration;
-        uint64_t owner;
+        uint64_t owner_account;
         // Chain specific keys
         std::vector <string> addresses;
         uint64_t bundleeligiblecountdown = 0;
@@ -36,9 +36,9 @@ namespace fioio {
         uint64_t by_domain() const { return domainhash; }
         uint64_t by_expiration() const { return expiration; }
 
-        uint64_t by_owner() const { return owner; }
+        uint64_t by_owner() const { return owner_account; }
 
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(owner)(addresses)(
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(owner_account)(addresses)(
                 bundleeligiblecountdown)
         )
     };
@@ -89,30 +89,6 @@ namespace fioio {
     };
 
     typedef multi_index<"chains"_n, chainList> chains_table;
-
-    // Structures/table for mapping chain key to FIO name
-    // @abi table keynames i64
-    struct [[eosio::action]] key_name {
-        uint64_t id;
-        string key = nullptr;       // user key on a chain
-        uint64_t keyhash = 0;       // chainkey hash
-        uint64_t chaintype;         // maps to chain_control vector position
-        string name = nullptr;      // FIO name
-        uint64_t namehash;          //use this index for searches when burning or whenever useful.
-        uint32_t expiration;        //expiration of the fioname.
-
-        uint64_t primary_key() const { return id; }
-        uint64_t by_keyhash() const { return keyhash; }
-        uint64_t by_namehash() const { return namehash; }
-
-        EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(namehash)(expiration)
-        )
-    };
-
-    typedef multi_index<"keynames"_n, key_name,
-            indexed_by<"bykey"_n, const_mem_fun < key_name, uint64_t, &key_name::by_keyhash> >,
-            indexed_by<"bynamehash"_n, const_mem_fun < key_name, uint64_t, &key_name::by_namehash> > >
-    keynames_table;
 
     // Maps client wallet generated public keys to EOS user account names.
     // @abi table eosionames i64

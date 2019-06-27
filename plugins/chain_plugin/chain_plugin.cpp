@@ -1595,21 +1595,21 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
 
             dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash));
-            get_table_rows_params table_row_params = get_table_rows_params{
-                    .json        = true,
-                    .code        = fio_system_code,
-                    .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
-                    .key_type       = "i64",
-                    .index_position ="2"};
-
-            // Do secondary key lookup
-            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi,
-                                                                                  [](uint64_t v) -> uint64_t {
-                                                                                      return v;
-                                                                                  });
+            //get_table_rows_params table_row_params = get_table_rows_params{
+            //        .json        = true,
+            //        .code        = fio_system_code,
+            //        .scope       = fio_system_scope,
+            //        .table       = fio_key_lookup_table,
+            //        .lower_bound = boost::lexical_cast<string>(key_hash),
+            //        .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+            //        .key_type       = "i64",
+            //        .index_position ="2"};
+//
+            //// Do secondary key lookup
+            //get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi,
+            //                                                                      [](uint64_t v) -> uint64_t {
+            //                                                                          return v;
+            //                                                                      });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
             FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);

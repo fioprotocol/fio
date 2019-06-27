@@ -21,8 +21,8 @@
           "name": "expiration",
           "type": "uint64"
         },{
-          "name": "owner",
-          "type": "uint64"
+          "name": "owner_account",
+          "type": "name"
         },{
           "name": "addresses",
           "type": "string[]"
@@ -63,32 +63,6 @@
         }
       ]
     },{
-      "name": "key_name",
-      "base": "",
-      "fields": [{
-          "name": "id",
-          "type": "uint64"
-        },{
-          "name": "key",
-          "type": "string"
-        },{
-          "name": "keyhash",
-          "type": "uint64"
-        },{
-          "name": "chaintype",
-          "type": "uint64"
-        },{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "namehash",
-          "type": "uint64"
-        },{
-          "name": "expiration",
-          "type": "uint32"
-        }
-      ]
-     },{
       "name": "eosio_name",
       "base": "",
       "fields": [{
@@ -363,16 +337,6 @@
         "string"
       ],
       "type": "chainList"
-    },{
-      "name": "keynames",
-      "index_type": "i64",
-      "key_names": [
-        "id"
-      ],
-      "key_types": [
-        "uint64"
-      ],
-      "type": "key_name"
     },{
       "name": "eosionames",
       "index_type": "i64",
