@@ -46,6 +46,7 @@ namespace fioio {
 
     static const name FeeContract = name(FEE_CONTRACT);    // account hosting the fee contract
     static const name SystemContract = name(FIO_SYSTEM);
+    static const name TPIDContract = name("fio.tpid");
 
     struct config {
         name tokencontr; // owner of the token contract
