@@ -23,10 +23,13 @@ namespace fioio {
         fiofee_table fiofees;
         eosio_names_table eosionames;
         tpids_table tpids;
+        eosiosystem::voters_table voters;
         config appConfig;
 
 
+
         const name TokenContract = name("fio.token");
+
 
     public:
         using contract::contract;
@@ -38,7 +41,8 @@ namespace fioio {
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         eosionames(_self, _self.value),
                                                                         chains(_self, _self.value),
-                                                                        tpids(_self, _self.value) {
+                                                                        tpids(TPIDContract, TPIDContract.value),
+                                                                        voters(SystemContract, SystemContract.value){
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -182,9 +186,27 @@ namespace fioio {
             }
         }
 
-        inline bool check_tpid(const string &tpid) {
-          auto iter = tpids.find(string_to_uint64_hash(tpid.c_str()));
-          return iter == tpids.end();
+        inline void process_tpid(const string &tpid, name owner) {
+
+            uint64_t hashname = string_to_uint64_hash(tpid.c_str());
+            print("process tpid hash of name ", tpid, " is value ", hashname ,"\n");
+
+            auto iter = tpids.find(hashname);
+            if (iter == tpids.end()){
+                print("process tpid, tpid not found ","\n");
+                //tpid does not exist. do nothing.
+            }
+            else{
+                print("process tpid, found a tpid ","\n");
+                //tpid exists, use the info to find the owner of the tpid
+                auto iternm = fionames.find(iter->fioaddhash);
+                if (iternm != fionames.end()) {
+                    print("process found the fioname associated with the TPID in the fionames ","\n");
+                    name proxy_name = name(iternm->owner);
+                    //do the auto proxy
+                    // autoproxy(proxy_name,owner);
+                }
+            }
         }
 
 
@@ -510,13 +532,71 @@ namespace fioio {
 
         /********* CONTRACT ACTIONS ********/
 
+        // this action will perform the logic of checking the voter_info,
+        // and setting the proxy and auto proxy for auto proxy.
+        inline void autoproxy(name proxy_name, name owner_name )
+        {
+
+            print(" called autoproxy","\n");
+            //check the voter_info table for a record matching owner_name.
+            auto viter = voters.find(owner_name.value);
+            if (viter == voters.end())
+            {
+                print(" autoproxy voter info not found, calling crautoproxy","\n");
+                //if the record is not there then send inline action to crautoprx (a new action in the system contract).
+                //note this action will set the auto proxy and is_aut_proxy, so return after.
+                // Buy ram for account.
+
+                action(
+                        permission_level{get_self(), "active"_n},
+                        "eosio"_n,
+                        "crautoproxy"_n,
+                        std::make_tuple(proxy_name, owner_name)
+                ).send();
+
+                return;
+
+            }
+            else
+            {
+                //check if the record has auto proxy and proxy matching proxy_name, set has_proxy. if so return.
+                if (viter->is_auto_proxy)
+                {
+                    if (proxy_name == viter->proxy) {
+                        //nothing to do here
+                        return;
+                    }
+                }
+                else if ((viter->proxy) || (viter->producers.size() > 0))
+                {
+                    //check if the record has another proxy or producers. if so return.
+                    return;
+                }
+
+                //invoke the fio.system contract action to set auto proxy and proxy name.
+                action(
+                        permission_level{get_self(), "active"_n},
+                        "eosio"_n,
+                        "setautoproxy"_n,
+                        std::make_tuple(proxy_name, owner_name)
+                ).send();
+
+
+
+            }
+
+
+
+        }
+
         [[eosio::action]]
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
 
             if(!tpid.empty()) {
-              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+              process_tpid(tpid, actor);
             }
+
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
 
@@ -578,7 +658,7 @@ namespace fioio {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
             if(!tpid.empty()) {
-              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+              process_tpid(tpid, actor);
             }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
@@ -643,7 +723,7 @@ namespace fioio {
 
             // Split the fio name and domain portions
             if(!tpid.empty()) {
-              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+              process_tpid(tpid, actor);
             }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
@@ -747,7 +827,7 @@ namespace fioio {
         void
         renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
             if(!tpid.empty()) {
-              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+              process_tpid(tpid,actor);
             }
             // Split the fio name and domain portions
             FioAddress fa;
@@ -1139,7 +1219,7 @@ namespace fioio {
         addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
                    const name &actor,const string &tpid) {
              if(!tpid.empty()) {
-               fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
+               process_tpid(tpid, actor);
              }
 
             FioAddress fa;

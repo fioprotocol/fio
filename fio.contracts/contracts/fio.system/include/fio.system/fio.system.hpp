@@ -209,6 +209,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
      */
     double proxied_vote_weight = 0; /// the total vote weight delegated to this voter as a proxy
     bool is_proxy = 0; /// whether the voter is a proxy for others
+    bool is_auto_proxy = 0;
 
 
     uint32_t flags1 = 0;
@@ -598,6 +599,12 @@ public:
 
     [[eosio::action]]
     void voteproducer(const name voter, const name proxy, const std::vector <name> &producers);
+
+    [[eosio::action]]
+    void setautoproxy(name proxy,name owner);
+
+    [[eosio::action]]
+    void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
     void regproxy(const name proxy, bool isproxy);

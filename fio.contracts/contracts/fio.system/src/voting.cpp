@@ -129,6 +129,8 @@ namespace eosiosystem {
         }
     }
 
+
+
     double stake2vote(int64_t staked) {
        //in EOS the weighting of a vote is strengthened each week. in FIO we remove this ever increasing vote strength
        //and we just always use the amount staked.
@@ -334,6 +336,43 @@ namespace eosiosystem {
             av.producers = producers;
             av.proxy = proxy;
         });
+    }
+
+    void system_contract::setautoproxy(name proxy,name owner)
+    {
+        //first verify that the proxy exists and is registered as a proxy.
+        //look it up and check it.
+        //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
+        auto itervi = _voters.find(proxy.value);
+        check(itervi != _voters.end(), "specified proxy not found.");
+        check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
+
+
+        itervi = _voters.find(owner.value);
+        check(itervi != _voters.end(), "specified owner not found.");
+        _voters.modify(itervi, same_payer, [&](auto &av) {
+            av.is_auto_proxy = true;
+            av.proxy = proxy;
+        });
+
+    }
+
+
+    void system_contract::crautoproxy(name proxy,name owner)
+    {
+        //first verify that the proxy exists and is registered as a proxy.
+        //look it up and check it.
+        //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
+        auto itervi = _voters.find(proxy.value);
+        check(itervi != _voters.end(), "specified proxy not found.");
+        check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
+
+        _voters.emplace(owner, [&](auto &p) {
+            p.owner = owner;
+            p.is_auto_proxy = true;
+            p.proxy = proxy;
+        });
+
     }
 
     /**
