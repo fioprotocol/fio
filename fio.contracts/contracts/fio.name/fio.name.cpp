@@ -202,7 +202,7 @@ namespace fioio {
                 auto iternm = fionames.find(iter->fioaddhash);
                 if (iternm != fionames.end()) {
                     print("process found the fioname associated with the TPID in the fionames ","\n");
-                    name proxy_name = name(iternm->owner);
+                    name proxy_name = name(iternm->owner_account);
                     //do the auto proxy
                     // autoproxy(proxy_name,owner);
                 }
@@ -278,7 +278,7 @@ namespace fioio {
                 a.domain = fa.fiodomain;
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
-                a.owner = actor.value;
+                a.owner_account = actor.value;
                 a.bundleeligiblecountdown = 10000;
             });
 
@@ -361,7 +361,7 @@ namespace fioio {
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
 
-            uint64_t account = fioname_iter->owner;
+            uint64_t account = fioname_iter->owner_account;
             //      print("account: ", account, " actor: ", actor, "\n");
             fio_403_assert(account == actor.value, ErrorSignature);
 
@@ -996,7 +996,7 @@ namespace fioio {
                         a.domain = domain;
                         a.domainhash = domainHash;
                         a.expiration = expiration_time;
-                        a.owner = actor.value;
+                        a.owner_account = actor.value;
                         a.bundleeligiblecountdown = 10000;
                     });
                     countAdded++;
