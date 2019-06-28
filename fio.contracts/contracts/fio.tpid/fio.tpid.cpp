@@ -26,12 +26,11 @@ namespace fioio {
 
    uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
 
-   auto tpidfound = tpids.find(fioaddhash);
    auto fionamefound = fionames.find(fioaddhash);
+   fio_400_assert(fionamefound != fionames.end(), "TPID", tpid,
+                  "Invalid TPID", InvalidTPID);
 
-     fio_400_assert(fionamefound != fionames.end(), "TPID", tpid,
-                    "Invalid TPID", InvalidTPID);
-
+   auto tpidfound = tpids.find(fioaddhash);
        if (tpidfound == tpids.end()) {
          print("Creating new TPID.", "\n");
          tpids.emplace(_self, [&](struct tpid &f) {
@@ -56,18 +55,22 @@ namespace fioio {
 
 
      uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
-
-     auto tpidfound = tpids.find(fioaddhash);
-     if (tpidfound == tpids.end()) {
-       print("TPID does not exist. Creating TPID.", "\n");
-       createtpid(tpid);
-       updatetpid(tpid, amount);
-   }
-   else {
-     print("Updating TPID.", "\n");
-     tpids.modify(tpidfound, _self, [&](struct tpid &f) {
-       f.rewards.amount += amount;
-     });
+     auto fionamefound = fionames.find(fioaddhash);
+     if (fionamefound != fionames.end()) {
+       auto tpidfound = tpids.find(fioaddhash);
+       if (tpidfound == tpids.end()) {
+         print("TPID does not exist. Creating TPID.", "\n");
+         createtpid(tpid);
+         updatetpid(tpid, amount);
+       }
+       else {
+         print("Updating TPID.", "\n");
+         tpids.modify(tpidfound, _self, [&](struct tpid &f) {
+           f.rewards.amount += amount;
+         });
+       }
+    } else {
+      print("Cannot register TPID, FIO Address not found. The transaction will continue without TPID payment.","\n");
     }
   } //updatetpid
 
