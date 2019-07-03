@@ -748,7 +748,7 @@ namespace eosio {
 
             friend struct resolver_factory<read_only>;
 
-            void GetFIOAccount(uint64_t address, get_table_rows_result &account_result) const;
+            void GetFIOAccount(name account, get_table_rows_result &account_result) const;
         };
 
         class read_write {

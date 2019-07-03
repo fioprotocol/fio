@@ -143,7 +143,6 @@ namespace eosio {
         qty.amount = i64;
         qty.symbol = symbol("FIO", 9);
 
-
         ///BEGIN new account management logic!!!!
 
         //first check the pub key for validity.
