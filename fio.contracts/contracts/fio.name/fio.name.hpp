@@ -90,50 +90,23 @@ namespace fioio {
 
     typedef multi_index<"chains"_n, chainList> chains_table;
 
-    // Structures/table for mapping chain key to FIO name
-    // @abi table keynames i64
-    struct [[eosio::action]] key_name {
-        uint64_t id;
-        string key = nullptr;       // user key on a chain
-        uint64_t keyhash = 0;       // chainkey hash
-        uint64_t chaintype;         // maps to chain_control vector position
-        string name = nullptr;      // FIO name
-        uint64_t namehash;          //use this index for searches when burning or whenever useful.
-        uint32_t expiration;        //expiration of the fioname.
-
-        uint64_t primary_key() const { return id; }
-        uint64_t by_keyhash() const { return keyhash; }
-        uint64_t by_namehash() const { return namehash; }
-
-        EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(namehash)(expiration)
-        )
-    };
-
-    typedef multi_index<"keynames"_n, key_name,
-            indexed_by<"bykey"_n, const_mem_fun < key_name, uint64_t, &key_name::by_keyhash> >,
-            indexed_by<"bynamehash"_n, const_mem_fun < key_name, uint64_t, &key_name::by_namehash> > >
-    keynames_table;
-
     // Maps client wallet generated public keys to EOS user account names.
     // @abi table eosionames i64
     struct [[eosio::action]] eosio_name {
 
         uint64_t account = 0;
-        uint64_t accounthash = 0;
         string clientkey = nullptr;
         uint64_t keyhash = 0;
 
         uint64_t primary_key() const { return account; }
         uint64_t by_keyhash() const { return keyhash; }
-        uint64_t by_accounthash() const { return accounthash; }
 
-        EOSLIB_SERIALIZE(eosio_name, (account)(accounthash)(clientkey)(keyhash)
+        EOSLIB_SERIALIZE(eosio_name, (account)(clientkey)(keyhash)
         )
     };
 
-    typedef multi_index<"eosionames"_n, eosio_name,
-            indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint64_t, &eosio_name::by_keyhash>>,
-    indexed_by<"byaccount"_n, const_mem_fun<eosio_name, uint64_t, &eosio_name::by_accounthash>
-    >>
+    typedef multi_index<"accountmap"_n, eosio_name,
+            indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint64_t, &eosio_name::by_keyhash>>
+    >
     eosio_names_table;
 }

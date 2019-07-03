@@ -63,40 +63,11 @@
         }
       ]
     },{
-      "name": "key_name",
-      "base": "",
-      "fields": [{
-          "name": "id",
-          "type": "uint64"
-        },{
-          "name": "key",
-          "type": "string"
-        },{
-          "name": "keyhash",
-          "type": "uint64"
-        },{
-          "name": "chaintype",
-          "type": "uint64"
-        },{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "namehash",
-          "type": "uint64"
-        },{
-          "name": "expiration",
-          "type": "uint32"
-        }
-      ]
-     },{
       "name": "eosio_name",
       "base": "",
       "fields": [{
           "name": "account",
           "type": "name"
-        },{
-          "name": "accounthash",
-          "type": "uint64"
         },{
           "name": "clientkey",
           "type": "string"
@@ -364,17 +335,7 @@
       ],
       "type": "chainList"
     },{
-      "name": "keynames",
-      "index_type": "i64",
-      "key_names": [
-        "id"
-      ],
-      "key_types": [
-        "uint64"
-      ],
-      "type": "key_name"
-    },{
-      "name": "eosionames",
+      "name": "accountmap",
       "index_type": "i64",
       "key_names": [
         "account"

@@ -1232,7 +1232,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
       const name fio_fees_table = N(fiofees); // FIO fees Table
       const name fio_domains_table = N(domains); // FIO Domains Table
       const name fio_chains_table = N(chains); // FIO Chains Table
-        const name fio_accounts_table = N(eosionames); // FIO Chains Table
+        const name fio_accounts_table = N(accountmap); // FIO Chains Table
 
       /***
         * get pending fio requests.
@@ -1241,44 +1241,46 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         */
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
-            // assert if empty fio name
-            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+          // assert if empty fio name
+          FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
-            string account_name;
-            fioio::key_to_account(p.fio_public_key, account_name);
-            //get the public address.
-          uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str());
+          string account_name;
+          fioio::key_to_account(p.fio_public_key, account_name);
+          //get the public address.
 
-            get_pending_fio_requests_result result;
+          name account = name{account_name};
 
-            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+          dlog("account: '${size}'", ("size", account));
+          dlog("account_name: '${size}'", ("size", account_name));
 
-            //lookup the public address in the key_names table.
-            string fio_key_lookup_table = "keynames";   // table name
+          get_pending_fio_requests_result result;
 
-            dlog("Lookup fio public key in key names using key hash: '${key_hash}'", ("key_hash", key_hash));
-            get_table_rows_params table_row_params = get_table_rows_params{
-                    .json        = true,
-                    .code        = fio_system_code,
-                    .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
-                    .key_type       = "i64",
-                    .index_position ="2"};
-            // Do secondary key lookup
-            get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    table_row_params, system_abi, [](uint64_t v) -> uint64_t {
-                        return v;
-                    });
-            dlog("key names row count : '${size}'", ("size", keynames_rows_result.rows.size()));
-            FIO_404_ASSERT(!keynames_rows_result.rows.empty(), "No pending FIO Requests",
-                           fioio::ErrorNoFioRequestsFound);
+          const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+          const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
 
-            for (size_t knpos = 0; knpos < keynames_rows_result.rows.size(); knpos++) {
+          dlog("SENT ACCOUNT NAME: '${key_hash}'", ("key_hash", account));
+          get_table_rows_params table_row_params = get_table_rows_params{
+                  .json        = true,
+                  .code        = fio_system_code,
+                  .scope       = fio_system_scope,
+                  .table       = fio_address_table,
+                  .lower_bound = boost::lexical_cast<string>(account.value),
+                  .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                  .key_type       = "i64",
+                  .index_position = "4"};
+          // Do secondary key lookup
+          get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                  table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                      return v;
+                  });
+
+          dlog("NAMES row count : '${size}'", ("size", names_rows_result.rows.size()));
+          FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
+                         fioio::ErrorNoFioRequestsFound);
+
+          for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
                 //get the fio address associated with this public address
-                string fio_address = (string) keynames_rows_result.rows[knpos]["name"].as_string();
+              string fio_address = (string) names_rows_result.rows[knpos]["name"].as_string();
                 //get the name of the from associated with the request without looking up the
                 //hashed value. tricky.
                 string from_fioadd = fio_address;
@@ -1336,11 +1338,10 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
-                    uint64_t to_fiopub = fioname_result.rows[0]["owner"].as_uint64();
-                    //uint64_t key_hash = ::eosio::string_to_uint64_t(to_fiopub.c_str());
+                    name account = name{fioname_result.rows[0]["owner_account"].as_string()};
 
                     read_only::get_table_rows_result account_result;
-                    GetFIOAccount(to_fiopub, account_result);
+                    GetFIOAccount(account, account_result);
 
                     FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
                                    fioio::ErrorPubAddressNotFound);
@@ -1401,39 +1402,40 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
             //get the public address.
-            uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str());
+
+            name account = name{account_name};
+
+            dlog("account: '${size}'", ("size", account));
+            dlog("account_name: '${size}'", ("size", account_name));
 
             get_sent_fio_requests_result result;
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
 
-            //lookup the public address in the key_names table.
-            string fio_key_lookup_table = "keynames";   // table name
-
-            dlog("Lookup fio public key in key names using key hash: '${key_hash}'", ("key_hash", key_hash));
+            dlog("SENT ACCOUNT NAME: '${key_hash}'", ("key_hash", account));
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_system_code,
                     .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .table       = fio_address_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
                     .key_type       = "i64",
-                    .index_position = "2"};
+                    .index_position = "4"};
             // Do secondary key lookup
-            get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+            get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     table_row_params, system_abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
-            dlog("key names row count : '${size}'", ("size", keynames_rows_result.rows.size()));
-            FIO_404_ASSERT(!keynames_rows_result.rows.empty(), "No FIO Requests",
+            dlog("NAMES row count : '${size}'", ("size", names_rows_result.rows.size()));
+            FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
                            fioio::ErrorNoFioRequestsFound);
 
-            for (size_t knpos = 0; knpos < keynames_rows_result.rows.size(); knpos++) {
+            for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
                 //get the fio address associated with this public address
-                string fio_address = keynames_rows_result.rows[knpos]["name"].as_string();
+                string fio_address = names_rows_result.rows[knpos]["name"].as_string();
                 string to_fioadd = fio_address;
                 uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
@@ -1485,13 +1487,11 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
-                    uint64_t fiopub = fioname_result.rows[0]["owner"].as_uint64();
-                    dlog("fio pub OWNER: '${size}'", ("size", fiopub));
-                    //uint64_t key_hash = ::eosio::string_to_uint64_t(fiopub.c_str());
-                    dlog("fio add hash: '${size}'", ("size", address_hash));
+                    name account = name{fioname_result.rows[0]["owner_account"].as_string()};
+                    dlog("STRING : '${size}'", ("size", account));
 
                     read_only::get_table_rows_result account_result;
-                    GetFIOAccount(fiopub, account_result);
+                    GetFIOAccount(account, account_result);
 
                     FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
                                    fioio::ErrorPubAddressNotFound);
@@ -1560,24 +1560,21 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             return result;
         }
 
-        void read_only::GetFIOAccount(uint64_t address, read_only::get_table_rows_result &account_result) const {
+        void read_only::GetFIOAccount(name account, read_only::get_table_rows_result &account_result) const {
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            get_table_rows_params eosio_table_row_params = get_table_rows_params{
+            get_table_rows_params fio_table_row_params = get_table_rows_params{
                     .json           = true,
                     .code           = fio_system_code,
                     .scope          = fio_system_scope,
                     .table          = fio_accounts_table,
-                    .lower_bound    = boost::lexical_cast<string>(address),
-                    .upper_bound    = boost::lexical_cast<string>(address + 1),
+                    .lower_bound    = boost::lexical_cast<string>(account.value),
+                    .upper_bound    = boost::lexical_cast<string>(account.value + 1),
                     .key_type       = "i64",
-                    .index_position = "2"};
+                    .index_position = "1"};
 
             account_result =
-                    get_table_rows_by_seckey<index64_index, uint64_t>(
-                            eosio_table_row_params, system_abi, [](uint64_t v) -> uint64_t {
-                                return v;
-                            });
+                    get_table_rows_ex<key_value_index>(fio_table_row_params, system_abi);
         }
         // get_sent_fio_requests
 
@@ -1594,34 +1591,32 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
-
-            string fio_key_lookup_table = "keynames";   // table name
+            name account = name{account_name};
 
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
 
-            dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash));
+            dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", account));
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_system_code,
                     .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .table       = fio_address_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
                     .key_type       = "i64",
-                    .index_position ="2"};
+                    .index_position ="4"};
 
-            // Do secondary key lookup
-            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi,
-                                                                                  [](uint64_t v) -> uint64_t {
-                                                                                      return v;
-                                                                                  });
+            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
             FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
             std::string nam, namexpiration;
-            int chainindex = 0;
 
             // Look through the keynames lookup results and push the fio_addresses into results
             for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
@@ -1629,8 +1624,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 nam = (string) table_rows_result.rows[pos]["name"].as_string();
                 if (nam.find('.') != std::string::npos)  { //if it's not a domain record in the keynames table (no '.'),
                     namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
-                    chainindex = table_rows_result.rows[pos]["chaintype"].as_int64();
-                    FIO_404_ASSERT(chainindex == 0, "No FIO names", fioio::ErrorNoFIONames);
                     fioaddress_record fa{nam, namexpiration};
                     //then push the address record result
                     result.fio_addresses.push_back(fa);
@@ -1656,7 +1649,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
 
             if (domain_result.rows.empty()) {
-                FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names3",
+                FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names",
                                fioio::ErrorNoFIONames);
             return result; }
 
