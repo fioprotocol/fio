@@ -35,7 +35,7 @@ namespace fioio {
         fa.fioname = "";
         fa.fiodomain = "";
 
-        size_t pos = p.find('.');
+        size_t pos = p.find(':');
         fa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
