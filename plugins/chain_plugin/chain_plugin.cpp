@@ -1232,7 +1232,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
       const name fio_fees_table = N(fiofees); // FIO fees Table
       const name fio_domains_table = N(domains); // FIO Domains Table
       const name fio_chains_table = N(chains); // FIO Chains Table
-        const name fio_accounts_table = N(eosionames); // FIO Chains Table
+        const name fio_accounts_table = N(accountmap); // FIO Chains Table
 
       /***
         * get pending fio requests.

@@ -69,9 +69,6 @@
           "name": "account",
           "type": "name"
         },{
-          "name": "accounthash",
-          "type": "uint64"
-        },{
           "name": "clientkey",
           "type": "string"
         },{
@@ -338,7 +335,7 @@
       ],
       "type": "chainList"
     },{
-      "name": "eosionames",
+      "name": "accountmap",
       "index_type": "i64",
       "key_names": [
         "account"

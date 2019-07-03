@@ -20,7 +20,7 @@ namespace fioio {
         chains_table chains;
         fionames_table fionames;
         fiofee_table fiofees;
-        eosio_names_table eosionames;
+        eosio_names_table accountmap;
         tpids_table tpids;
         config appConfig;
 
@@ -34,7 +34,7 @@ namespace fioio {
                                                                         domains(_self, _self.value),
                                                                         fionames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
-                                                                        eosionames(_self, _self.value),
+                                                                        accountmap(_self, _self.value),
                                                                         chains(_self, _self.value),
                                                                         tpids(_self, _self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
@@ -53,9 +53,9 @@ namespace fioio {
                 //check that the account exists, and use the account.
                 bool accountExists = is_account(actor);
 
-                auto other = eosionames.find(actor.value);
+                auto other = accountmap.find(actor.value);
 
-                fio_400_assert(other != eosionames.end(), "owner_account", actor.to_string(),
+                fio_400_assert(other != accountmap.end(), "owner_account", actor.to_string(),
                                "Account is not bound on the fio chain",
                                ErrorPubAddressExist);
                 fio_400_assert(accountExists, "owner_account", actor.to_string(),
@@ -65,7 +65,7 @@ namespace fioio {
                 owner_account_name = actor;
 
             } else {
-                //check the owner_fio_public_key, if its empty then go and lookup the actor in the eosionames table
+                //check the owner_fio_public_key, if its empty then go and lookup the actor in the accountmap table
                 //and use this as the owner_fio_public_key.
                 eosio_assert(owner_fio_public_key.length() == 53, "Length of publik key should be 53");
 
@@ -95,21 +95,21 @@ namespace fioio {
 
                 print("hashed account name from the owner_fio_public_key ", owner_account, "\n");
 
-                //see if the payee_actor is in the eosionames table.
+                //see if the payee_actor is in the accountmap table.
                 eosio_assert(owner_account.length() == 12, "Length of account name should be 12");
 
                 bool accountExists = is_account(owner_account_name);
 
-                auto other = eosionames.find(owner_account_name.value);
+                auto other = accountmap.find(owner_account_name.value);
 
-                if (other == eosionames.end()) { //the name is not in the table.
+                if (other == accountmap.end()) { //the name is not in the table.
                     // if account does exist on the chain this is an error. DANGER account was created without binding!
                     fio_400_assert(!accountExists, "owner_account", owner_account,
-                                   "Account exists on FIO chain but is not bound in eosionames",
+                                   "Account exists on FIO chain but is not bound in accountmap",
                                    ErrorPubAddressExist);
 
                     //the account does not exist on the fio chain yet, and the binding does not exists
-                    //yet, so create the account and then and add it to the eosionames table.
+                    //yet, so create the account and then and add it to the accountmap table.
                     const auto owner_pubkey = abieos::string_to_public_key(owner_fio_public_key);
 
                     eosiosystem::key_weight pubkey_weight = {
@@ -144,9 +144,8 @@ namespace fioio {
 
                     uint64_t nmi = owner_account_name.value;
 
-                    eosionames.emplace(_self, [&](struct eosio_name &p) {
+                    accountmap.emplace(_self, [&](struct eosio_name &p) {
                         p.account = nmi;
-                        p.accounthash = string_to_uint64_hash(owner_account_name.to_string().c_str());
                         p.clientkey = owner_fio_public_key;
                         p.keyhash = string_to_uint64_hash(owner_fio_public_key.c_str());
                     });
@@ -155,9 +154,9 @@ namespace fioio {
                 } else {
                     //if account does not on the chain this is an error. DANGER binding was recorded without the associated account.
                     fio_400_assert(accountExists, "owner_account", owner_account,
-                                   "Account does not exist on FIO chain but is bound in eosionames",
+                                   "Account does not exist on FIO chain but is bound in accountmap",
                                    ErrorPubAddressExist);
-                    //if the payee public key doesnt match whats in the eosionames table this is an error,it means there is a collision on hashing!
+                    //if the payee public key doesnt match whats in the accountmap table this is an error,it means there is a collision on hashing!
                     eosio_assert_message_code(owner_fio_public_key == other->clientkey, "FIO account already bound",
                                               ErrorPubAddressExist);
                 }
@@ -246,7 +245,7 @@ namespace fioio {
             // Issue, create and transfer fioname token
             // DO SOMETHING
 
-            auto key_iter = eosionames.find(actor.value);
+            auto key_iter = accountmap.find(actor.value);
             uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
             print("OWNER:", actor, "...Value:", actor.value, "...Key:", key_iter->clientkey, "...hash:", ownerHash,
                   "\n");
@@ -1177,16 +1176,15 @@ namespace fioio {
             //        of fio.system, or that this line of code be removed. this needs more thought in the future.
             // require_auth(name(FIO_SYSTEM));
 
-            auto other = eosionames.find(account.value);
-            if (other != eosionames.end()) {
+            auto other = accountmap.find(account.value);
+            if (other != accountmap.end()) {
                 eosio_assert_message_code(existing && client_key == other->clientkey, "EOSIO account already bound",
                                           ErrorPubAddressExist);
                 // name in the table and it matches
             } else {
                 eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
-                eosionames.emplace(_self, [&](struct eosio_name &p) {
+                accountmap.emplace(_self, [&](struct eosio_name &p) {
                     p.account = account.value;
-                    p.accounthash = string_to_uint64_hash(account.to_string().c_str());
                     p.clientkey = client_key;
                     p.keyhash = string_to_uint64_hash(client_key.c_str());
                 });
