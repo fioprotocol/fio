@@ -133,7 +133,7 @@ namespace fioio {
 //NOTE -- this needs revised to make this to be the real value.
     asset rambytes_price(uint32_t bytes) {
 
-        return asset(10000, symbol("FIO", 4));
+        return asset(10000, symbol("FIO", 9));
     }
 
 }

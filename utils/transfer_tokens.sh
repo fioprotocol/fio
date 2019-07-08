@@ -16,7 +16,7 @@ wPort=9899
 hostname="localhost"
 
 if [ -z "$1" ]; then
-    domain="casey.dapix"
+    domain="casey:dapix"
 else
     domain=$1
 fi
@@ -36,7 +36,7 @@ dataJson="{
   \"amount\": \"100000000000\",
   \"max_fee\":\"2000000000\",
   \"actor\": \"${fioactor}\",
-  \"tpid\": \"adam.dapix\",
+  \"tpid\": \"adam:dapix\",
 }"
 
 expectedPackedData=056461706978104208414933a95b
