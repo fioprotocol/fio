@@ -19,10 +19,9 @@
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
-#include <eosio/chain/fioio/fio_common_validator.hpp>
-#include <eosio/chain/fioio/json_helper.hpp>
 #include <eosio/chain/fioio/keyops.hpp>
 #include <eosio/chain/eosio_contract.hpp>
+#include <fio.common/fio_common_validator.hpp>
 
 #include <boost/signals2/connection.hpp>
 #include <boost/algorithm/string.hpp>
@@ -1500,14 +1499,6 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     dlog("fio key: '${size}'", ("size", payer_fio_public_key));
 
                     address_hash = ::eosio::string_to_uint64_t(to_fioadd.c_str());
-
-                    dlog("fio account: '${size}'", ("size", address_hash));
-                    //read_only::get_table_rows_result account_result2;
-                    //GetFIOAccount(address_hash, account_result2);
-
-                    //FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found1",
-                    //               fioio::ErrorPubAddressNotFound);
-
                     string from_fioadd = fioname_result.rows[0]["name"].as_string(); //incorrect
                     string payee_fio_public_key = p.fio_public_key;
                     //account_result2.rows[0]["clientkey"].as_string();

@@ -315,36 +315,6 @@ namespace fioio {
                 d.expiration = expiration_time;
                 d.account = actor.value;
             });
-            // insert/update key into key-name table for reverse lookup
-            //auto idx = keynames.get_index<"bykey"_n>();
-            //auto keyhash = string_to_uint64_hash(owner_fio_public_key.c_str());
-            //auto matchingItem = idx.lower_bound(keyhash);
-            //auto domain_iter = domains.find(domainHash);
-//
-            //uint32_t domain_expiration = domain_iter->expiration;
-            //// TODO: Is there a fee for adding a domain ?
-//
-            //// Advance to the first entry matching the specified address and chain
-            //while (matchingItem != idx.end() && matchingItem->keyhash == keyhash) {
-            //    matchingItem++;
-            //}
-//
-            //uint64_t namehash = string_to_uint64_hash(domain_iter->name.c_str());
-            //if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
-            //    keynames.emplace(_self, [&](struct key_name &k) {
-            //        k.id = keynames.available_primary_key();        // use next available primary key
-            //        k.key = owner_fio_public_key;                             // persist key
-            //        k.keyhash = keyhash;                            // persist key hash
-            //        k.chaintype = 0;                       // specific chain type
-            //        k.name = domain_iter->name;    // FIO name
-            //        k.namehash = namehash;
-            //        k.expiration = domain_expiration;
-            //    });
-            //} else {
-            //    idx.modify(matchingItem, _self, [&](struct key_name &k) {
-            //        k.name = domain_iter->name;    // FIO name
-            //    });
-            //}
             return expiration_time;
         }
         //adddomain
@@ -363,10 +333,7 @@ namespace fioio {
             uint32_t present_time = now();
 
             uint64_t account = fioname_iter->owner_account;
-            //      print("account: ", account, " actor: ", actor, "\n");
             fio_403_assert(account == actor.value, ErrorSignature);
-
-            //print("name_expiration: ", name_expiration, ", present_time: ", present_time, "\n");
             fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
@@ -397,38 +364,6 @@ namespace fioio {
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
             });
-
-            // insert/update key into key-name table for reverse lookup
-            //auto idx = keynames.get_index<"bykey"_n>();
-            //auto keyhash = string_to_uint64_hash(pubaddress.c_str());
-            //auto matchingItem = idx.lower_bound(keyhash);
-            //auto oldItem = idx.lower_bound(oldkeyhash);
-//
-            //// Advance to the first entry matching the specified address and chain
-            //while (matchingItem != idx.end() && matchingItem->keyhash == keyhash) {
-            //    matchingItem++;
-            //}
-//
-            //if ((oldItem)->chaintype == (chain_iter)->by_index() && oldItem != idx.end() &&
-            //    fioaddress == (oldItem)->name) {
-            //    idx.erase(oldItem);
-            //}
-
-            //if (matchingItem == idx.end() || matchingItem->keyhash != keyhash) {
-            //    keynames.emplace(_self, [&](struct key_name &k) {
-            //        k.id = keynames.available_primary_key();        // use next available primary key
-            //        k.key = pubaddress;                             // persist key
-            //        k.keyhash = keyhash;                            // persist key hash
-            //        k.chaintype = (chain_iter)->by_index();                       // specific chain type
-            //        k.name = fioname_iter->name;                    // FIO name
-            //        k.namehash = nameHash;
-            //        k.expiration = name_expiration;
-            //    });
-            //} else {
-            //    idx.modify(matchingItem, _self, [&](struct key_name &k) {
-            //        k.name = fioname_iter->name;    // FIO name
-            //    });
-            //}
 
             //begin new fees, bundle eligible fee logic
             uint64_t endpoint_hash = string_to_uint64_hash("add_pub_address");
@@ -790,34 +725,12 @@ namespace fioio {
                     a.expiration = new_expiration_time;
             });
 
-
-            //update keynames
-            //auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
-            //auto keynameiter = keynamesbynamehashidx.lower_bound(domainHash);
-            //while (keynameiter != keynamesbynamehashidx.end()) {
-            //    uint64_t id = keynameiter->id;
-            //    uint64_t namehashl = keynameiter->namehash;
-            //    if (namehashl == domainHash) {
-            //        //ids.push_back(id);
-            //        keynamesbynamehashidx.modify(keynameiter, _self, [&](struct key_name &a) {
-            //            a.expiration = new_expiration_time;
-            //        });
-            //    }
-            //    else {
-            //        break; //stop whenever its larger than the nameHash.
-            //    }
-//
-            //    keynameiter++;
-            //}
-
-
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    new_expiration_time},
                                    {"fee_collected", reg_amount}};
 
             send_response(json.dump().c_str());
         }
-
 
         /*
         * This action will renew the specified address.
@@ -910,26 +823,6 @@ namespace fioio {
                 a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown;
             });
 
-            ////update keynames
-            //auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
-            //auto keynameiter = keynamesbynamehashidx.lower_bound(nameHash);
-            //while (keynameiter != keynamesbynamehashidx.end()) {
-            //    uint64_t id = keynameiter->id;
-            //    uint64_t namehashl = keynameiter->namehash;
-            //    if (namehashl == nameHash) {
-            //        //ids.push_back(id);
-            //        keynamesbynamehashidx.modify(keynameiter, _self, [&](struct key_name &a) {
-            //            a.expiration = new_expiration_time;
-            //        });
-            //    }
-            //    else {
-            //        break; //stop whenever its larger than the nameHash.
-            //    }
-//
-            //    keynameiter++;
-            //}
-
-
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    new_expiration_time},
                                    {"fee_collected", reg_amount}};
@@ -1001,22 +894,6 @@ namespace fioio {
                         a.bundleeligiblecountdown = 10000;
                     });
                     countAdded++;
-
-
-                    //set up a couple entries in the key names table for this name
-
-                    //string pubkey1 = address_prefix + to_string(i) + "a1" + address_prefix + to_string(i) + "a1";
-                    //uint64_t pubkey1hash = string_to_uint64_hash(pubkey1.c_str());
-//
-                    // keynames.emplace(_self, [&](struct key_name &k) {
-                    //     k.id = keynames.available_primary_key();        // use next available primary key
-                    //     k.key = pubkey1;                             // persist key
-                    //     k.keyhash = pubkey1hash;                            // persist key hash
-                    //     k.chaintype = 0;                       // specific chain type
-                    //     k.name = name;                    // FIO name
-                    //     k.namehash = nameHash;
-                    //     k.expiration = expiration_time;
-                    // });
                 }
 
                 if (countAdded == number_addresses_to_add){
@@ -1152,35 +1029,6 @@ namespace fioio {
                 //to call erase we need to have the primary key, get the list of primary keys out of keynames
                 vector <uint64_t> ids;
 
-                //auto keynameiter = keynamesbynamehashidx.lower_bound(burner);
-                //while (keynameiter != keynamesbynamehashidx.end()) {
-                //    uint64_t id = keynameiter->id;
-                //    uint64_t namehash = keynameiter->namehash;
-                //    if (namehash == burner) {
-                //        ids.push_back(id);
-                //    }
-                //    else {
-                //        break; //stop whenever its larger than the burner.
-                //    }
-//
-                //    keynameiter++;
-                //}
-
-
-                ////remove the ids from keynames
-                //for (int i = 0; i < ids.size(); i++) {
-//
-                //    print("removing id ",ids[i]," from keynames","\n");
-                //    auto iter2 = keynames.find(ids[i]);
-                //    if(iter2 == keynames.end())
-                //    {
-                //        //should never get here!
-                //        print ("could not find keynames id ",to_string(ids[i]),"\n");
-                //    }
-                //    else {
-                //        keynames.erase(iter2);
-                //    }
-                //}
                 //remove the items from the fionames
                 auto fionamesiter = fionames.find(burner);
                 if (fionamesiter != fionames.end()) {
