@@ -225,7 +225,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     };
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(staked)(last_vote_weight)(proxied_vote_weight)(is_proxy)(
+    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(staked)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(
             flags1)(reserved2)(reserved3)
     )
 };
@@ -364,7 +364,7 @@ public:
     static constexpr eosio::name saving_account{"eosio.saving"_n};
     static constexpr eosio::name rex_account{"eosio.rex"_n};
     static constexpr eosio::name null_account{"eosio.null"_n};
-    static constexpr symbol ramcore_symbol = symbol(symbol_code("RAMCORE"), 4);
+    static constexpr symbol ramcore_symbol = symbol(symbol_code("FIO"),9);
     static constexpr symbol ram_symbol = symbol(symbol_code("RAM"), 0);
     static constexpr symbol rex_symbol = symbol(symbol_code("REX"), 4);
 

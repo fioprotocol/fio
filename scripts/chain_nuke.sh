@@ -5,11 +5,14 @@ pkill nodeos
 echo $'Deleting Logs...\n'
 rm -rf ../node1.txt
 rm -rf ../node2.txt
+rm -rf ../node3.txt
 rm -rf ../walletkey.ini
 
 cd ~/opt/eosio/bin
 echo $'Deleting Node Data...\n'
-if [ -d ~/node2 ]; then rm -rf ~/node2; fi # Mac OS
+rm -rf ~/node1
+rm -rf ~/node2
+rm -rf ~/node3
 
 echo $'Deleting Chain Data...\n'
 if [ -d ~/Library/Application\ Support/eosio/nodeos ]; then rm -rf ~/Library/Application\ Support/eosio/nodeos; fi # Mac OS
