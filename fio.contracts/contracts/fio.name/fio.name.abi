@@ -41,6 +41,9 @@
           "name": "domainhash",
           "type": "uint64"
         },{
+          "name": "isPublic",
+          "type": "bool"
+        },{
           "name": "expiration",
           "type": "uint32"
         },{
