@@ -34,6 +34,7 @@ namespace fioio {
         fiosystemActions.push_back("renewdomain");
         fiosystemActions.push_back("renewaddress");
         fiosystemActions.push_back("expdomain");
+        fiosystemActions.push_back("setdomainpub");
         fiosystemActions.push_back("expaddresses");
         fiosystemActions.push_back("bind2eosio");
         fiosystemActions.push_back("burnexpired");
@@ -82,17 +83,9 @@ namespace fioio {
         string name;
         uint64_t requestor;
     };
-
-    //struct addaddress {
-    //    string fioaddress;
-    //    string tokencode;
-    //    string pubaddress;
-    //    uint64_t actor;
-    //};
 }
 
 FC_REFLECT(fioio::regaddress, (name)(requestor)
 )
 FC_REFLECT(fioio::regdomain, (name)(requestor)
 )
-//FC_REFLECT( fioio::addaddress, (fioaddress)(tokencode)(pubaddress)(actor) )

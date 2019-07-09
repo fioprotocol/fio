@@ -1083,6 +1083,21 @@ namespace fioio {
 
         } //addaddress
 
+        [[eosio::action]]
+        void
+        setdomainpub(const string &fio_domain, uint64_t max_fee, const name &actor, const string &tpid) {
+            uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+            auto domain_iter = domains.find(domainHash);
+
+            uint64_t fee_amount = max_fee;
+            uint64_t expiration = domain_iter->expiration;
+
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"expiration",    expiration},
+                                   {"fee_collected", fee_amount}};
+            send_response(json.dump().c_str());
+        }
+
         /**
          *
          * Separate out the management of platform-specific identities from the fio names
@@ -1150,5 +1165,7 @@ namespace fioio {
         }
     }; // class FioNameLookup
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(expaddresses)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(
+            expaddresses)(setdomainpub)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)
+    (bind2eosio))
 }

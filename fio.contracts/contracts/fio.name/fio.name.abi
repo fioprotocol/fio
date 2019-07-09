@@ -41,6 +41,9 @@
           "name": "domainhash",
           "type": "uint64"
         },{
+          "name": "isPublic",
+          "type": "bool"
+        },{
           "name": "expiration",
           "type": "uint32"
         },{
@@ -208,14 +211,31 @@
           "name": "domain",
           "type": "string"
         },{
-          "name": "address_prefix",
-          "type": "string"
+          "name": "actor",
+          "type": "name"
         },{
-          "name": "number_addresses_to_add",
-          "type": "uint64"
+          "name": "tpid",
+          "type": "string"
         }
       ]
   },{
+          "name": "setdomainpub",
+          "base": "",
+          "fields": [{
+              "name": "fio_domain",
+              "type": "string"
+            },{
+              "name": "max_fee",
+              "type": "uint64"
+            },{
+              "name": "address_prefix",
+              "type": "string"
+            },{
+              "name": "number_addresses_to_add",
+              "type": "uint64"
+            }
+          ]
+      },{
        "name": "burnexpired",
        "base": "",
        "fields": [
