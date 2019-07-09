@@ -199,18 +199,16 @@ namespace eosio {
             const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
             const auto rbprice = rambytes_price(3 * 1024);
 
-            // Create account.
-            action(
-                    permission_level{get_self(), "active"_n},
-                    "eosio"_n,
-                    "newaccount"_n,
-                    std::make_tuple(get_self(), new_account_name, owner_auth, owner_auth)
-            ).send();
+            INLINE_ACTION_SENDER(call::eosio, newaccount)
+                    ("eosio"_n, {{_self, "active"_n}},
+                     {_self, new_account_name, owner_auth, owner_auth}
+                     );
 
             // Buy ram for account.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
                     ("eosio"_n, {{_self, "active"_n}},
                      {_self, new_account_name, rbprice});
+
             // Replace lost ram.
             INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
                     ("eosio"_n, {{_self, "active"_n}},
@@ -245,6 +243,7 @@ namespace eosio {
         //special note, though we have created the account and can use it herein,
         //the account is not yet officially on the chain and is_account will return false.
         //require_recipient will also fail.
+
 
         //begin new fees, logic for Mandatory fees.
         uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_pub_key");
@@ -302,6 +301,7 @@ namespace eosio {
 
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
+
         send_response(json.dump().c_str());
     }
 

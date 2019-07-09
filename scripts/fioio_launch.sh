@@ -215,7 +215,10 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["mnvcf4v1flnn","1000.000000000 FIO","memo"]' -p eosio@active
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999996000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.treasury","1.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
+
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999995899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
         ./cleos -u http://localhost:8879 push action eosio setprods "{ \"schedule\": [{\"producer_name\": \"inita\",\"block_signing_key\": \"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\"}]}" -p eosio@active
@@ -268,8 +271,11 @@ if [ $mChoice == 1 ]; then
           #make the fio.reqobt into a privileged account
           ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
 
-          ./cleos -u http://localhost:8879 set account permission r41zuwovtn44 active '{"threshold":1,"keys":[{"key":"FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82","weight":1}],"accounts":[{"permission":{"actor":"eosio","permission":"eosio.code"},"weight":1}]}' owner -p r41zuwovtn44@owner
+
+          ./cleos -u http://localhost:8879 set account permission r41zuwovtn44 active '{"threshold":1,"keys":[{"key":"FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82","weight":1}],"accounts":[{"permission":{"actor":"r41zuwovtn44","permission":"eosio.code"},"weight":1}]}' owner -p r41zuwovtn44@owner
           ./cleos -u http://localhost:8879 push action eosio setpriv '["r41zuwovtn44",1]' -p eosio@active
+
+
 
      fi
 
@@ -298,7 +304,7 @@ if [ $mChoice == 1 ]; then
     #Create Account Name
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":""}' --permission htjonrkf1lgs@active
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":"adam.dapix"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":"adam:dapix"}' --permission htjonrkf1lgs@active
 
 elif [ $mChoice == 3 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. Yes 2. No): ' bChoice

@@ -123,15 +123,12 @@ namespace fioio {
 
                     const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
                     const auto rbprice = rambytes_price(3 * 1024);
-
-                    // Create account.
-                    action(
-                            permission_level{get_self(), "active"_n},
-                            "eosio"_n,
-                            "newaccount"_n,
-                            std::make_tuple(get_self(), owner_account_name, owner_auth, owner_auth)
-                    ).send();
-
+                    
+                    //create account
+                    INLINE_ACTION_SENDER(call::eosio, newaccount)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {_self, owner_account_name, owner_auth, owner_auth}
+                            );
 
                     // Buy ram for account.
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
@@ -1117,6 +1114,7 @@ namespace fioio {
                     p.keyhash = string_to_uint64_hash(client_key.c_str());
                 });
             }
+            print ("bind of account is done processing","\n");
         }
 
         void removename() {

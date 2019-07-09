@@ -365,8 +365,8 @@ public:
     static constexpr eosio::name rex_account{"eosio.rex"_n};
     static constexpr eosio::name null_account{"eosio.null"_n};
     static constexpr symbol ramcore_symbol = symbol(symbol_code("FIO"),9);
-    static constexpr symbol ram_symbol = symbol(symbol_code("RAM"), 0);
-    static constexpr symbol rex_symbol = symbol(symbol_code("REX"), 4);
+    static constexpr symbol ram_symbol = symbol(symbol_code("FIO"), 9);
+    static constexpr symbol rex_symbol = symbol(symbol_code("FIO"), 9);
 
     system_contract(name s, name code, datastream<const char *> ds);
 
