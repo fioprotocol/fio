@@ -1086,15 +1086,56 @@ namespace fioio {
         void
         setdomainpub(const string &fio_domain, const bool public_domain, uint64_t max_fee, const name &actor,
                      const string &tpid) {
+            if (!tpid.empty()) {
+                process_tpid(tpid, actor);
+            }
+
+            FioAddress fa;
+            getFioAddressStruct(fio_domain, fa);
+            register_errors(fa, true);
+
             uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
             auto domain_iter = domains.find(domainHash);
+
+            fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
+                           ErrorInvalidFioNameFormat);
+
+            uint64_t expiration = domain_iter->expiration;
+            uint32_t present_time = now();
+            fio_400_assert(present_time <= expiration, "fio_domain", fa.fiodomain, "FIO Domain expired",
+                           ErrorDomainExpired);
 
             domains.modify(domain_iter, _self, [&](struct domain &a) {
                 a.public_domain = public_domain;
             });
 
-            uint64_t fee_amount = max_fee;
-            uint64_t expiration = domain_iter->expiration;
+            uint64_t endpoint_hash = string_to_uint64_hash("set_fio_domain_public");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            uint64_t fee_type = fee_iter->type;
+            int64_t reg_amount = fee_iter->suf_amount;
+
+            uint64_t fee_amount = fee_iter->suf_amount;
+            fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            asset reg_fee_asset;
+            //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
+            //or should we do as this code does and not do a transaction when the fees are 0.
+            reg_fee_asset.symbol = symbol("FIO", 9);
+            reg_fee_asset.amount = reg_amount;
+            print(reg_fee_asset.amount);
+            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
+            fio_fees(actor, reg_fee_asset);
+            if (!tpid.empty()) {
+                action(
+                        permission_level{get_self(), "active"_n},
+                        "fio.tpid"_n,
+                        "updatetpid"_n,
+                        std::make_tuple(tpid, reg_amount / 10)
+                ).send();
+            }
 
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    expiration},
