@@ -41,15 +41,15 @@
           "name": "domainhash",
           "type": "uint64"
         },{
-          "name": "public_domain",
-          "type": "bool"
-        },{
           "name": "expiration",
           "type": "uint32"
         },{
           "name": "account",
           "type": "uint64"
-         }
+         },{
+          "name": "public_domain",
+          "type": "bool"
+        }
       ]
     },{
       "name": "chainList",

@@ -58,7 +58,7 @@ namespace eosio {
 
             string fio_domain;
             string expiration;
-
+            bool public_domain;
         };
 
         struct fioaddress_record {
@@ -1079,6 +1079,7 @@ FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_result, (public_addr
 );
 
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)
+(public_domain)
 )
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)
 )

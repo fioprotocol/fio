@@ -1630,7 +1630,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
                     .upper_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str()) + 1),
                     .key_type       = "i64",
-                    .index_position ="2"};
+                    .index_position = "2"};
 
             get_table_rows_result domain_result = get_table_rows_by_seckey<index64_index, uint64_t>(domain_row_params, abi,
                                                                                   [](uint64_t v) -> uint64_t {
@@ -1645,11 +1645,13 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             return result; }
 
             std::string domexpiration, dom;
+            bool public_domain;
 
             for (size_t pos = 0; pos < domain_result.rows.size(); pos++) {
                 dom = ((string)domain_result.rows[pos]["name"].as_string());
                 domexpiration = domain_result.rows[pos]["expiration"].as_string();
-                fiodomain_record d{dom, domexpiration};
+                public_domain = domain_result.rows[pos]["public_domain"].as_bool();
+                fiodomain_record d{dom, domexpiration, public_domain};
                 result.fio_domains.push_back(d);    //pushback results in domain
             }
 
