@@ -55,7 +55,7 @@ namespace fioio {
     struct [[eosio::action]] domain {
         string name;
         uint64_t domainhash;
-        bool isPublic = false;
+        bool public_domain = false;
         uint64_t expiration;
         uint64_t account;
 
@@ -63,7 +63,7 @@ namespace fioio {
         uint64_t by_account() const { return account; }
         uint64_t by_expiration() const { return expiration; }
 
-        EOSLIB_SERIALIZE(domain, (name)(domainhash)(isPublic)(expiration)(account)
+        EOSLIB_SERIALIZE(domain, (name)(domainhash)(public_domain)(expiration)(account)
         )
     };
 

@@ -41,7 +41,7 @@
           "name": "domainhash",
           "type": "uint64"
         },{
-          "name": "isPublic",
+          "name": "public_domain",
           "type": "bool"
         },{
           "name": "expiration",
@@ -317,6 +317,10 @@
     },{
       "name": "rmvaddress",
       "type": "rmvaddress",
+      "ricardian_contract": ""
+    },{
+      "name": "setdomainpub",
+      "type": "setdomainpub",
       "ricardian_contract": ""
     },{
     "name": "bind2eosio",

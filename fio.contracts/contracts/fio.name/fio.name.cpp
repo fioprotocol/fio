@@ -949,7 +949,6 @@ namespace fioio {
             //fio domains by expiration
             auto domainexpidx = domains.get_index<"byexpiration"_n>();
             auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
-            //auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
 
             //using this instead of now time will place everything in the to be burned list, for testing only.
             uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
@@ -1085,9 +1084,14 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        setdomainpub(const string &fio_domain, uint64_t max_fee, const name &actor, const string &tpid) {
+        setdomainpub(const string &fio_domain, const bool public_domain, uint64_t max_fee, const name &actor,
+                     const string &tpid) {
             uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
             auto domain_iter = domains.find(domainHash);
+
+            domains.modify(domain_iter, _self, [&](struct domain &a) {
+                a.public_domain = public_domain;
+            });
 
             uint64_t fee_amount = max_fee;
             uint64_t expiration = domain_iter->expiration;
