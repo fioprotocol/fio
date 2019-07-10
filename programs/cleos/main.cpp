@@ -749,7 +749,7 @@ asset to_asset(account_name code, const string &s) {
 }
 
 inline asset to_asset(const string &s) {
-    return to_asset(N(eosio.token), s);
+    return to_asset(N(fio.token), s);
 }
 
 struct set_account_permission_subcommand {
