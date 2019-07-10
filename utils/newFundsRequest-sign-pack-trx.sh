@@ -30,7 +30,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson="{\"payer_fio_address\":\"casey.dapix\",\"payee_fio_address\":\"adam.dapix\",\"content\":\"gobblegobble\",\"max_fee\":\"40000000000\",\"actor\":\"${fioactor}\",\"tpid\":\"adam.dapix\"}"
+dataJson="{\"payer_fio_address\":\"casey:dapix\",\"payee_fio_address\":\"adam:dapix\",\"content\":\"gobblegobble\",\"max_fee\":\"40000000000\",\"actor\":\"${fioactor}\",\"tpid\":\"adam:dapix\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.reqobt newfundsreq '$dataJson'"
 echo CMD: $cmd

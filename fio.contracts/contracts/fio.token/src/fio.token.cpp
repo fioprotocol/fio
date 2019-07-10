@@ -197,23 +197,11 @@ namespace eosio {
             };
 
             const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
-            const auto rbprice = rambytes_price(3 * 1024);
 
             INLINE_ACTION_SENDER(call::eosio, newaccount)
                     ("eosio"_n, {{_self, "active"_n}},
                      {_self, new_account_name, owner_auth, owner_auth}
                      );
-
-            // Buy ram for account.
-            INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                    ("eosio"_n, {{_self, "active"_n}},
-                     {_self, new_account_name, rbprice});
-
-            // Replace lost ram.
-            INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                    ("eosio"_n, {{_self, "active"_n}},
-                     {_self, _self, rbprice});
-
 
             print("created the account!!!!", new_account_name, "\n");
 
@@ -307,7 +295,6 @@ namespace eosio {
 
     void token::sub_balance(name owner, asset value) {
         accounts from_acnts(_self, owner.value);
-
         const auto &from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
 
         fio_400_assert(from.balance.amount >= value.amount, "amount", to_string(value.amount),

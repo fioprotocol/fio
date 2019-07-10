@@ -160,12 +160,14 @@ namespace eosio {
                         auto max_user_use_in_window =
                                 (virtual_network_capacity_in_window * user_weight) / all_user_weight;
 
+                        /* Ed commented out to usurp staking
                         EOS_ASSERT(cpu_used_in_window <= max_user_use_in_window,
                                    tx_cpu_usage_exceeded,
                                    "authorizing account '${n}' has insufficient cpu resources for this transaction",
                                    ("n", name(a))
                                            ("cpu_used_in_window", cpu_used_in_window)
                                            ("max_user_use_in_window", max_user_use_in_window));
+                                           */
                     }
 
                     if (net_weight >= 0 && state.total_net_weight > 0) {
@@ -181,12 +183,14 @@ namespace eosio {
                         auto max_user_use_in_window =
                                 (virtual_network_capacity_in_window * user_weight) / all_user_weight;
 
+                        /* Ed commented out to usurp staking
                         EOS_ASSERT(net_used_in_window <= max_user_use_in_window,
                                    tx_net_usage_exceeded,
                                    "authorizing account '${n}' has insufficient net resources for this transaction",
                                    ("n", name(a))
                                            ("net_used_in_window", net_used_in_window)
                                            ("max_user_use_in_window", max_user_use_in_window));
+                                           */
 
                     }
                 }
@@ -229,9 +233,11 @@ namespace eosio {
                 const auto &usage = _db.get<resource_usage_object, by_owner>(account);
 
                 if (ram_bytes >= 0) {
+                    /* EDEDED usurp staking
                     EOS_ASSERT(usage.ram_usage <= static_cast<uint64_t>(ram_bytes), ram_usage_exceeded,
                                "account ${account} has insufficient ram; needs ${needs} bytes has ${available} bytes",
                                ("account", account)("needs", usage.ram_usage)("available", ram_bytes));
+                               */
                 }
             }
 

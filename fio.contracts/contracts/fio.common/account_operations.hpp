@@ -130,10 +130,5 @@ namespace fioio {
         return DecodeBase58(str.c_str(), vch);
     }
 
-//NOTE -- this needs revised to make this to be the real value.
-    asset rambytes_price(uint32_t bytes) {
-
-        return asset(1000000000, symbol("FIO", 9));
-    }
 
 }
