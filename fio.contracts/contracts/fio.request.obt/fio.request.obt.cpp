@@ -19,8 +19,6 @@
 
 namespace fioio {
 
-    const static name TokenContract = name("fio.token");
-
 
     class [[eosio::contract("FioRequestObt")]]  FioRequestObt : public eosio::contract {
 
@@ -443,7 +441,7 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-            
+
 
             string payer_fio_address = fioname_iter->name;
 

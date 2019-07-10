@@ -20,7 +20,8 @@ namespace fioio {
   void createtpid(const string& tpid) {
 
     eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || (has_auth("fio.reqobt"_n)),
- "missing required authority of fio.system, fio.token, or fio.reqobt");
+      "missing required authority of fio.system, fio.token, or fio.reqobt");
+
 
     //see if FIO Address already exists before creating TPIDController
 
@@ -74,8 +75,24 @@ namespace fioio {
     }
   } //updatetpid
 
+  //@abi action
+  [[eosio::action]]
+  void rewardspaid(const string& tpid) {
+    require_auth("fio.treasury"_n); //This action can only be called by fio.treasury after successful rewards payment to tpid
+    uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
+    auto tpidfound = tpids.find(fioaddhash);
+
+    if (tpidfound != tpids.end()) {
+      tpids.modify(tpidfound, _self, [&](struct tpid &f) {
+        f.rewards.amount = 0;
+      });
+    }
+
+  }
+
+
   }; //class TPIDController
 
 
-  EOSIO_DISPATCH(TPIDController, (createtpid)(updatetpid))
+  EOSIO_DISPATCH(TPIDController, (createtpid)(updatetpid)(rewardspaid))
 }

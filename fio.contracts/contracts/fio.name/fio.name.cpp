@@ -27,9 +27,6 @@ namespace fioio {
 
 
 
-        const name TokenContract = name("fio.token");
-
-
     public:
         using contract::contract;
 

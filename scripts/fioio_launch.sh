@@ -95,6 +95,12 @@ if [ $mChoice == 1 ]; then
             echo 'No wasm file found at $PWD/build/contracts/fio.tpid'
     fi
 
+    if [ -f ../fio.contracts/build/contracts/fio.treasury/fio.treasury.wasm ]; then
+            fio_treasury_name_path="$PWD/../fio.contracts/build/contracts/fio.treasury"
+        else
+            echo 'No wasm file found at $PWD/build/contracts/fio.treasury'
+    fi
+
     sleep 2s
     cd ~/opt/eosio/bin
 
@@ -137,6 +143,7 @@ if [ $mChoice == 1 ]; then
         ./cleos wallet import --private-key 5JDGpznJSJw8cKQYtEuctobAu2zVmD3Rw3fWwPzDuF4XbriseLy -n fio
         ./cleos wallet import --private-key 5JiSAASb4PZTajemTr4KTgeNBWUxrz6SraHGUvNihSskDA9aY5b -n fio
         ./cleos wallet import --private-key 5JwttkBMpCijBWiLx75hHTkYGgDm5gmny7nvnss4s1FoZWPxNui -n fio
+        ./cleos wallet import --private-key 5JsWbwAiPWb4gk1Mox4VZrLvfFhnNRWCq1PpuSKLfGcVD9MjHAX -n fio
     fi
 
     #Start Both Nodes
@@ -196,6 +203,8 @@ if [ $mChoice == 1 ]; then
         sleep 3s
         ./cleos -u http://localhost:8879 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
         sleep 3s
+        ./cleos -u http://localhost:8889 set contract -j fio.treasury $fio_treasury_name_path fio.treasury.wasm fio.treasury.abi --permission fio.treasury@active
+                sleep 3s
 
         echo creating accounts
         ./cleos -u http://localhost:8879 create account eosio r41zuwovtn44 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
@@ -277,6 +286,10 @@ if [ $mChoice == 1 ]; then
 
 
 
+          ./cleos -u http://localhost:8889 set account permission r41zuwovtn44 claimer '{"threshold":1,"keys":[{"key":"FIO7r4p2mtV4RvDHuKMsDgmQtE6KtKwho3BnzLMUibSmiWpUR7mq3","weight":1}]}' "active" -p r41zuwovtn44@active
+          ./cleos -u http://localhost:8889 set account permission fio.treasury active --add-code
+          ./cleos -u http://localhost:8889 set action permission r41zuwovtn44 fio.treasury tpidclaim claimer
+
      fi
 
     #create fees for the fio protocol
@@ -302,9 +315,12 @@ if [ $mChoice == 1 ]; then
     sleep 5
 
     #Create Account Name
+
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":""}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":"adam:dapix"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":"smooshface"}' --permission htjonrkf1lgs@active
+
 
 elif [ $mChoice == 3 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. Yes 2. No): ' bChoice

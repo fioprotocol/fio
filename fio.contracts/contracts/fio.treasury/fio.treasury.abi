@@ -1,0 +1,23 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Jun 13 20:29:09 2019",
+    "version": "eosio::abi/1.1",
+    "structs": [{
+              "name": "tpidclaim",
+              "base": "",
+              "fields": [{
+              "name": "actor",
+              "type": "name"
+              }]
+              },
+          ],
+    "types": [],
+    "actions": [{
+         "name": "tpidclaim",
+         "type": "tpidclaim",
+         "ricardian_contract": ""
+       }],
+    "tables": [],
+    "ricardian_clauses": [],
+    "variants": [],
+    "abi_extensions": []
+}

@@ -17,16 +17,23 @@
               "type": "string"
               }]
               },{
-                "name": "updatetpid",
-                "base": "",
-                "fields": [{
-                "name": "tpid",
-                "type": "string"
-                },{
-                "name": "amount",
-                "type": "uint64"
-                }]
-                }
+              "name": "updatetpid",
+              "base": "",
+              "fields": [{
+              "name": "tpid",
+              "type": "string"
+              },{
+              "name": "amount",
+              "type": "uint64"
+              }]
+              },{
+              "name": "rewardspaid",
+              "base": "",
+              "fields": [{
+              "name": "tpid",
+              "type": "string"
+              }]
+              }
           ],
     "types": [],
     "actions": [{
@@ -37,7 +44,11 @@
           "name": "updatetpid",
           "type": "updatetpid",
           "ricardian_contract": ""
-        }],
+        },{
+          "name": "rewardspaid",
+          "type": "rewardspaid",
+          "ricardian_contract": ""
+         }],
     "tables": [{
         "name": "tpids",
         "index_type": "i64",
