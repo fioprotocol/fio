@@ -8,7 +8,7 @@
 #include "fio.name.hpp"
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
-#include <fio.tpid/fio.tpid.hpp>
+#include <fio.token/include/fio.token/fio.token.hpp>
 #include <eosiolib/asset.hpp>
 
 namespace fioio {
@@ -25,9 +25,6 @@ namespace fioio {
         eosiosystem::voters_table voters;
         config appConfig;
 
-
-
-        const name TokenContract = name("fio.token");
 
 
     public:
@@ -122,27 +119,12 @@ namespace fioio {
                     };
 
                     const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
-                    const auto rbprice = rambytes_price(3 * 1024);
-
-                    // Create account.
-                    action(
-                            permission_level{get_self(), "active"_n},
-                            "eosio"_n,
-                            "newaccount"_n,
-                            std::make_tuple(get_self(), owner_account_name, owner_auth, owner_auth)
-                    ).send();
-
-
-                    // Buy ram for account.
-                    INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
+                   
+                    //create account
+                    INLINE_ACTION_SENDER(call::eosio, newaccount)
                             ("eosio"_n, {{_self, "active"_n}},
-                             {_self, owner_account_name, rbprice});
-
-                    // Replace lost ram.
-                    INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                            ("eosio"_n, {{_self, "active"_n}},
-                             {_self, _self, rbprice});
-
+                             {_self, owner_account_name, owner_auth, owner_auth}
+                            );
 
                     print("created the account!!!!", owner_account_name, "\n");
 
@@ -169,12 +151,16 @@ namespace fioio {
         }
 
 
+
+        static constexpr eosio::name token_account{"fio.token"_n};
+        static constexpr eosio::name treasury_account{"fio.treasury"_n};
+
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
 
                 action(permission_level{actor, "active"_n},
-                       TokenContract, "transfer"_n,
-                       make_tuple(actor, name("fio.treasury"), fee,
+                       token_account, "transfer"_n,
+                       make_tuple(actor, treasury_account, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
 
@@ -532,6 +518,7 @@ namespace fioio {
             if(!tpid.empty()) {
               process_tpid(tpid, actor);
             }
+
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
@@ -1180,6 +1167,7 @@ namespace fioio {
                     p.keyhash = string_to_uint64_hash(client_key.c_str());
                 });
             }
+            print ("bind of account is done processing","\n");
         }
 
         void removename() {

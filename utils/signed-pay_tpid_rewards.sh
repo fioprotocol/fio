@@ -7,12 +7,6 @@ nPort=8889
 wPort=9899
 hostname="localhost"
 
-if [ -z "$1" ]; then
-    domain="eddie:dapix"
-else
-    domain=$1
-fi
-
 echo ------------------------------------------
 
 
@@ -22,15 +16,11 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 #NOTE -- set the owner_fio_public_key to "" to have the owner be the account that is signing the TX
 echo ------------------------------------------
 dataJson="{
-  \"fio_address\": \"${domain}\",
-  \"actor\": \"${fioactor}\",
-  \"max_fee\":\"40000000000\",
-  \"owner_fio_public_key\":\"FIO6vRt3FzoRJYx1dxWigXzgkbnoZXg2zAfiofh4E3eCtNvJZhvWY\",
-  \"tpid\":\"adam:dapix\",
+  \"actor\": \"${fioactor}\"
 }"
 
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system regaddress '${dataJson}'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.treasury tpidclaim '${dataJson}'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -73,8 +63,8 @@ unsignedRequest='{
     "delay_sec": 0,
     "context_free_actions": [],
     "actions": [{
-        "account":"fio.system",
-        "name": "regaddress"
+        "account":"fio.treasury",
+        "name": "tpidclaim"
         "authorization":[{
              "actor":"'${fioactor}'",
              "permission":"active"

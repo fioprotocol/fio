@@ -884,6 +884,17 @@ namespace eosio {
 
             void new_funds_request(const new_funds_request_params &params,
                                    chain::plugin_interface::next_function <new_funds_request_results> next);
+
+           //Begin Added for new funds request api method
+           using pay_tpid_rewards_params = fc::variant_object;
+
+           struct pay_tpid_rewards_results {
+               fc::variant processed;
+           };
+
+           void pay_tpid_rewards(const pay_tpid_rewards_params &params,
+                                  chain::plugin_interface::next_function <pay_tpid_rewards_results> next);
+
             //End added for new funds request api method.
 
             using push_transactions_params  = vector<push_transaction_params>;
@@ -1124,7 +1135,8 @@ FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results,(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed)
 )
-
+FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (processed)
+)
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit)
 (reverse))
