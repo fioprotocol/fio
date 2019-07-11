@@ -55,15 +55,15 @@ namespace fioio {
     struct [[eosio::action]] domain {
         string name;
         uint64_t domainhash;
+        bool public_domain = false;
         uint64_t expiration;
         uint64_t account;
-        bool public_domain = false;
 
         uint64_t primary_key() const { return domainhash; }
         uint64_t by_account() const { return account; }
         uint64_t by_expiration() const { return expiration; }
 
-        EOSLIB_SERIALIZE(domain, (name)(domainhash)(public_domain)(expiration)(account)(public_domain)
+        EOSLIB_SERIALIZE(domain, (name)(domainhash)(public_domain)(expiration)(account)
         )
     };
 
