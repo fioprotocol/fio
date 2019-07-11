@@ -58,7 +58,7 @@ namespace eosio {
 
             string fio_domain;
             string expiration;
-
+            bool public_domain;
         };
 
         struct fioaddress_record {
@@ -783,6 +783,15 @@ namespace eosio {
             void register_fio_address(const register_fio_address_params &params,
                                       chain::plugin_interface::next_function <register_fio_address_results> next);
 
+            using set_fio_domain_public_params = fc::variant_object;
+            struct set_fio_domain_public_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void set_fio_domain_public(const set_fio_domain_public_params &params,
+                                       chain::plugin_interface::next_function <set_fio_domain_public_results> next);
+
             using register_fio_domain_params = fc::variant_object;
             struct register_fio_domain_results {
                 chain::transaction_id_type transaction_id;
@@ -1081,6 +1090,7 @@ FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_result, (public_addr
 );
 
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)
+(public_domain)
 )
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)
 )
@@ -1103,6 +1113,8 @@ FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain)
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration)
 );
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::set_fio_domain_public_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_results, (transaction_id)(processed)
 )

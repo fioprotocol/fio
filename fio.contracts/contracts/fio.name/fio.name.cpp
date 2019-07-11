@@ -231,7 +231,14 @@ namespace fioio {
             fio_400_assert(domains_iter != domains.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
-            // TODO check if domain permission is valid.
+            bool isPublic = domains_iter->public_domain;
+            uint64_t domain_owner = domains_iter->account;
+
+            if (!isPublic) {
+                fio_400_assert(domain_owner == actor.value, "fio_address", fa.fioaddress,
+                               "FIO Domain is not public. Only owner can create FIO Addresses.",
+                               ErrorInvalidFioNameFormat);
+            }
 
             //check if the domain is expired.
             uint32_t domain_expiration = domains_iter->expiration;
@@ -485,7 +492,6 @@ namespace fioio {
                 if (viter->is_auto_proxy)
                 {
                     if (proxy_name == viter->proxy) {
-                        //nothing to do here
                         return;
                     }
                 }
@@ -502,13 +508,7 @@ namespace fioio {
                         "setautoproxy"_n,
                         std::make_tuple(proxy_name, owner_name)
                 ).send();
-
-
-
             }
-
-
-
         }
 
         [[eosio::action]]
@@ -936,7 +936,6 @@ namespace fioio {
             //fio domains by expiration
             auto domainexpidx = domains.get_index<"byexpiration"_n>();
             auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
-            //auto keynamesbynamehashidx = keynames.get_index<"bynamehash"_n>();
 
             //using this instead of now time will place everything in the to be burned list, for testing only.
             uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
@@ -1070,6 +1069,70 @@ namespace fioio {
 
         } //addaddress
 
+        [[eosio::action]]
+        void
+        setdomainpub(const string &fio_domain, const bool public_domain, uint64_t max_fee, const name &actor,
+                     const string &tpid) {
+            if (!tpid.empty()) {
+                process_tpid(tpid, actor);
+            }
+
+            FioAddress fa;
+            getFioAddressStruct(fio_domain, fa);
+            register_errors(fa, true);
+
+            uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+            auto domain_iter = domains.find(domainHash);
+
+            fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
+                           ErrorInvalidFioNameFormat);
+
+            uint64_t expiration = domain_iter->expiration;
+            uint32_t present_time = now();
+            fio_400_assert(present_time <= expiration, "fio_domain", fa.fiodomain, "FIO Domain expired",
+                           ErrorDomainExpired);
+
+            domains.modify(domain_iter, _self, [&](struct domain &a) {
+                a.public_domain = public_domain;
+            });
+
+            uint64_t endpoint_hash = string_to_uint64_hash("set_fio_domain_public");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            uint64_t fee_type = fee_iter->type;
+            int64_t reg_amount = fee_iter->suf_amount;
+
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t fee_amount = fee_iter->suf_amount;
+            fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            asset reg_fee_asset;
+            //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
+            //or should we do as this code does and not do a transaction when the fees are 0.
+            reg_fee_asset.symbol = symbol("FIO", 9);
+            reg_fee_asset.amount = reg_amount;
+            print(reg_fee_asset.amount);
+            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
+            fio_fees(actor, reg_fee_asset);
+            if (!tpid.empty()) {
+                action(
+                        permission_level{get_self(), "active"_n},
+                        "fio.tpid"_n,
+                        "updatetpid"_n,
+                        std::make_tuple(tpid, reg_amount / 10)
+                ).send();
+            }
+
+            nlohmann::json json = {{"status",        "OK"},
+                                   {"expiration",    expiration},
+                                   {"fee_collected", fee_amount}};
+            send_response(json.dump().c_str());
+        }
+
         /**
          *
          * Separate out the management of platform-specific identities from the fio names
@@ -1138,5 +1201,7 @@ namespace fioio {
         }
     }; // class FioNameLookup
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(expaddresses)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)(bind2eosio))
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(
+            expaddresses)(setdomainpub)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)
+    (bind2eosio))
 }
