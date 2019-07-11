@@ -136,7 +136,9 @@ namespace eosio {
                                      CHAIN_RW_CALL_ASYNC(reject_funds_request,
                                                          chain_apis::read_write::reject_funds_request_results, 202),
                                      CHAIN_RW_CALL_ASYNC(new_funds_request,
-                                                         chain_apis::read_write::new_funds_request_results, 202)
+                                                         chain_apis::read_write::new_funds_request_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(set_fio_domain_public,
+                                                         chain_apis::read_write::set_fio_domain_public_results, 202),
 
                              });
     }

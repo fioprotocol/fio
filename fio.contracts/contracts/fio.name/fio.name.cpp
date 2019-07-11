@@ -499,7 +499,6 @@ namespace fioio {
                 if (viter->is_auto_proxy)
                 {
                     if (proxy_name == viter->proxy) {
-                        //nothing to do here
                         return;
                     }
                 }
@@ -516,13 +515,7 @@ namespace fioio {
                         "setautoproxy"_n,
                         std::make_tuple(proxy_name, owner_name)
                 ).send();
-
-
-
             }
-
-
-
         }
 
         [[eosio::action]]
@@ -1115,6 +1108,9 @@ namespace fioio {
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             uint64_t fee_type = fee_iter->type;
             int64_t reg_amount = fee_iter->suf_amount;
+
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t fee_amount = fee_iter->suf_amount;
             fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
