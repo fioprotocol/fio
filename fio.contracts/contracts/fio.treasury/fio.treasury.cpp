@@ -8,22 +8,25 @@ namespace fioio {
   private:
     tpids_table tpids;
     fionames_table fionames;
-
+    uint64_t lastrun;
   public:
     using contract::contract;
 
+
       FIOTreasury(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                     tpids(TPIDContract, TPIDContract.value),
-                                                                    fionames(SystemContract, SystemContract.value) {
+                                                                fionames(SystemContract, SystemContract.value) {
       }
 
   // @abi action
   [[eosio::action]]
   void tpidclaim(const name& actor) {
 
+
   require_auth(actor);
 
   unsigned long long tpids_paid = 0;
+
 
     for(auto &itr : tpids){
       if (itr.rewards.amount >= 100000000)  {  //100 FIO (100,000,000,000 SUF)
@@ -52,8 +55,6 @@ namespace fioio {
      nlohmann::json json = {{"status",        "OK"},
                             {"tpids_paid",    tpids_paid}};
      send_response(json.dump().c_str());
-
-
 
    } //tpid_claim
 
