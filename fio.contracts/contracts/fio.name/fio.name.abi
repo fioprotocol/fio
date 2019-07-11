@@ -214,7 +214,7 @@
           "name": "address_prefix",
           "type": "string"
         },{
-          "name": "mumber_addresses_to_add",
+          "name": "number_addresses_to_add",
           "type": "uint64"
         }
       ]
