@@ -245,7 +245,14 @@ namespace fioio {
             fio_400_assert(domains_iter != domains.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
-            // TODO check if domain permission is valid.
+            bool isPublic = domains_iter->public_domain;
+            uint64_t domain_owner = domains_iter->account;
+
+            if (!isPublic) {
+                fio_400_assert(domain_owner == actor.value, "fio_address", fa.fioaddress,
+                               "FIO Domain is not public. Only owner can create FIO Addresses.",
+                               ErrorInvalidFioNameFormat);
+            }
 
             //check if the domain is expired.
             uint32_t domain_expiration = domains_iter->expiration;
