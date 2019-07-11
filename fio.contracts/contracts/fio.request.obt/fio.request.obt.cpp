@@ -76,9 +76,9 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            if(!tpid.empty()) {
-              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
-            }
+                if(!tpid.empty()) {
+                  process_tpid(tpid, name(actor));
+                }
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found in obt json blob", ErrorInvalidJsonInput);
@@ -229,9 +229,27 @@ namespace fioio {
             }
         }
 
-        inline bool check_tpid(const string &tpid) {
-          auto iter = tpids.find(string_to_uint64_hash(tpid.c_str()));
-          return iter == tpids.end();
+        inline void process_tpid(const string &tpid, name owner) {
+
+            uint64_t hashname = string_to_uint64_hash(tpid.c_str());
+            print("process tpid hash of name ", tpid, " is value ", hashname ,"\n");
+
+            auto iter = tpids.find(hashname);
+            if (iter == tpids.end()){
+                print("process tpid, tpid not found ","\n");
+                //tpid does not exist. do nothing.
+            }
+            else{
+                print("process tpid, found a tpid ","\n");
+                //tpid exists, use the info to find the owner of the tpid
+                auto iternm = fionames.find(iter->fioaddhash);
+                if (iternm != fionames.end()) {
+                    print("process found the fioname associated with the TPID in the fionames ","\n");
+                    name proxy_name = name(iternm->owner_account);
+                    //do the auto proxy
+                    // autoproxy(proxy_name,owner);
+                }
+            }
         }
 
         /***
@@ -247,9 +265,10 @@ namespace fioio {
                 uint64_t max_fee,
                 const string &actor,
                 const string &tpid) {
-                if(!tpid.empty()) {
-                  fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
-                }
+
+              if(!tpid.empty()) {
+                process_tpid(tpid, name(actor));
+              }
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not specified",
@@ -392,9 +411,10 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
-            if(!tpid.empty()) {
-              fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
-            }
+          if(!tpid.empty()) {
+            process_tpid(tpid, name(actor));
+          }
+
             print("call new funds request\n");
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",

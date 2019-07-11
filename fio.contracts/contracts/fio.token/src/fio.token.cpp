@@ -134,9 +134,11 @@ namespace eosio {
                              uint64_t max_fee,
                              name actor,
                              const string &tpid) {
-        if(!tpid.empty()) {
-          fio_400_assert(check_tpid(tpid), "TPID", tpid, "Invalid TPID", InvalidTPID);
-        }
+       if(!tpid.empty()) {
+         process_tpid(tpid, actor);
+       }
+
+
         asset qty;
         //we assume the amount is in fio sufs.
         int64_t i64 = stoi(amount.c_str());
