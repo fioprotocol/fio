@@ -319,7 +319,7 @@ if [ $mChoice == 1 ]; then
     #Create Account Name
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam.dapix"}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"smooshface"}' --permission r41zuwovtn44@active
 
 elif [ $mChoice == 3 ]; then
