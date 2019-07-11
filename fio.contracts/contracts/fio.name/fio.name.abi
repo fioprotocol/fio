@@ -211,11 +211,11 @@
           "name": "domain",
           "type": "string"
         },{
-          "name": "actor",
-          "type": "name"
-        },{
-          "name": "tpid",
+          "name": "address_prefix",
           "type": "string"
+        },{
+          "name": "mumber_addresses_to_add",
+          "type": "uint64"
         }
       ]
   },{
