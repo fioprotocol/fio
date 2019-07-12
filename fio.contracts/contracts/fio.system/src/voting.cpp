@@ -403,7 +403,6 @@ namespace eosiosystem {
     void system_contract::regproxy(const name proxy, bool isproxy) {
        // require_auth(proxy);
 
-        print("EDEDEDEDEDEDEDED call to reg proxy ", proxy," ",isproxy,"\n");
         auto pitr = _voters.find(proxy.value);
         if (pitr != _voters.end()) {
             check(isproxy != pitr->is_proxy, "action has no effect");
