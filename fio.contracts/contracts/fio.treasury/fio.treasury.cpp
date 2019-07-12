@@ -37,7 +37,7 @@ namespace fioio {
 
           for(auto &itr : tpids) {
 
-            if (itr.rewards >= 100000000)  {  //100 FIO (100,000,000,000 SUF)
+            if (itr.rewards >= 100000000000)  {  //100 FIO (100,000,000,000 SUF)
 
                print(itr.fioaddress, " has ",itr.rewards ," rewards.\n");
 
