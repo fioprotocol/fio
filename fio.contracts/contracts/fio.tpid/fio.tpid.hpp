@@ -12,7 +12,7 @@ namespace fioio{
 
     uint64_t fioaddhash;
     string fioaddress;
-    asset rewards;
+    uint64_t rewards;
 
     uint64_t primary_key() const {return fioaddhash;}
 

@@ -38,8 +38,7 @@ namespace fioio {
 
            f.fioaddress  = tpid;
            f.fioaddhash = fioaddhash;
-           f.rewards.amount = 0;
-           f.rewards.symbol = symbol("FIO",9);
+           f.rewards = 0;
          });
        } else {
          print("TPID already exists.", "\n");
@@ -67,7 +66,7 @@ namespace fioio {
        else {
          print("Updating TPID.", "\n");
          tpids.modify(tpidfound, _self, [&](struct tpid &f) {
-           f.rewards.amount += amount;
+           f.rewards += amount;
          });
        }
     } else {
@@ -84,7 +83,7 @@ namespace fioio {
 
     if (tpidfound != tpids.end()) {
       tpids.modify(tpidfound, _self, [&](struct tpid &f) {
-        f.rewards.amount = 0;
+        f.rewards = 0;
       });
     }
 

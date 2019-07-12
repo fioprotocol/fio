@@ -37,15 +37,15 @@ namespace fioio {
 
           for(auto &itr : tpids) {
 
-            if (itr.rewards.amount >= 100000000)  {  //100 FIO (100,000,000,000 SUF)
+            if (itr.rewards >= 100000000)  {  //100 FIO (100,000,000,000 SUF)
 
-               print(itr.fioaddress, " has ",itr.rewards.amount ," rewards.\n");
+               print(itr.fioaddress, " has ",itr.rewards ," rewards.\n");
 
                auto itrfio = fionames.find(string_to_uint64_hash(itr.fioaddress.c_str()));
 
                     action(permission_level{get_self(), "active"_n},
                           "fio.token"_n, "transfer"_n,
-                          make_tuple("fio.treasury"_n, name(itrfio->owner_account), itr.rewards,
+                          make_tuple("fio.treasury"_n, name(itrfio->owner_account), asset(itr.rewards,symbol("FIO",9)),
                           string("Paying TPID from treasury."))
                    ).send();
 
