@@ -142,8 +142,8 @@ namespace fioio {
               auto tpidfound = tpids.find(fioaddhash);
               if (tpidfound == tpids.end()) {
                   print("TPID does not exist. Creating TPID.", "\n");
-                  crtpid(tpid,owner);
-                  updtpid(tpid,owner, amount);
+                  createtpid(tpid,owner);
+                  updatetpid(tpid,owner, amount);
               }
               else {
                   print("Updating TPID.", "\n");
