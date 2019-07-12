@@ -1103,7 +1103,7 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             uint64_t fee_type = fee_iter->type;
-            int64_tIl reg_amount = fee_iter->suf_amount;
+            int64_t reg_amount = fee_iter->suf_amount;
 
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
