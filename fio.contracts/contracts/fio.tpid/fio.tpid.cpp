@@ -166,7 +166,7 @@ namespace fioio {
 
     if (tpidfound != tpids.end()) {
       tpids.modify(tpidfound, _self, [&](struct tpid &f) {
-        f.rewards.amount = 0;
+        f.rewards = 0;
       });
     }
 

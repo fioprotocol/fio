@@ -7,7 +7,7 @@
             "fields": [
                 {"name":"fioaddhash", "type":"uint64"},
                 {"name":"fioaddress", "type":"string"},
-                {"name":"rewards", "type":"asset"}
+                {"name":"rewards", "type":"uint64"}
             ]
             },{
               "name": "createtpid",
