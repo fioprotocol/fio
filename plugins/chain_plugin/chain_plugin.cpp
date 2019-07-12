@@ -1786,7 +1786,9 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 dlog("Lookup for fio name, row count: ‘${size}‘", ("size", names_table_rows_result.rows.size()));
 
                 bool isInvalid = (names_table_rows_result.rows.empty() &&
-                  ( p.fio_address.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890.") != std::string::npos));
+                                  (p.fio_address.find_first_not_of(
+                                          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890:") !=
+                                   std::string::npos));
 
 
                 FIO_400_ASSERT(!isInvalid, "fio_address", p.fio_address, "Invalid FIO Address",
