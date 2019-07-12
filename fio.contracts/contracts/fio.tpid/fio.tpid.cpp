@@ -87,7 +87,7 @@ namespace fioio {
 
       // @abi action
       [[eosio::action]]
-      void crtpid(const string& tpid, name owner) {
+      void createtpid(const string& tpid, name owner) {
 
           eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || (has_auth("fio.reqobt"_n)),
                        "missing required authority of fio.system, fio.token, or fio.reqobt");
@@ -131,7 +131,7 @@ namespace fioio {
 
       //@abi action
       [[eosio::action]]
-      void updtpid(const string& tpid,  const name owner, const uint64_t& amount) {
+      void updatetpid(const string& tpid,  const name owner, const uint64_t& amount) {
 
           print ("calling updtpid with tpid ",tpid," owner ",owner," amount ", amount,"\n");
 
@@ -176,5 +176,5 @@ namespace fioio {
   }; //class TPIDController
 
 
-  EOSIO_DISPATCH(TPIDController, (crtpid)(updtpid)(rewardspaid))
+  EOSIO_DISPATCH(TPIDController, (createtpid)(updatetpid)(rewardspaid))
 }

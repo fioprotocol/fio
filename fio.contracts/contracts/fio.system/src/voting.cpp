@@ -365,8 +365,8 @@ namespace eosiosystem {
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
         auto itervi = _voters.find(proxy.value);
-        //check(itervi != _voters.end(), "specified proxy not found.");
-        //check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
+        check(itervi != _voters.end(), "specified proxy not found.");
+        check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
         if (itervi != _voters.end() &&
            itervi->is_proxy) {

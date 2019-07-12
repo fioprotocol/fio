@@ -199,7 +199,7 @@ namespace fioio {
                   action(
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
-                  "updtpid"_n,
+                  "updatetpid"_n,
                   std::make_tuple(tpid, aactor, fee_amount / 10)
                   ).send();
                 }
@@ -362,7 +362,7 @@ namespace fioio {
                   action(
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
-                  "updtpid"_n,
+                  "updatetpid"_n,
                   std::make_tuple(tpid, aActor, fee_amount / 10)
                   ).send();
                 }
@@ -500,7 +500,7 @@ namespace fioio {
                   action(
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
-                  "updtpid"_n,
+                  "updatetpid"_n,
                   std::make_tuple(tpid,aactor, fee_amount / 10)
                   ).send();
                 }

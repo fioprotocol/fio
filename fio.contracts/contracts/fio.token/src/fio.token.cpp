@@ -267,7 +267,7 @@ namespace eosio {
           action(
           permission_level{get_self(),"active"_n},
           "fio.tpid"_n,
-          "updtpid"_n,
+          "updatetpid"_n,
           std::make_tuple(tpid, new_account_name, reg_amount / 10)
           ).send();
         }

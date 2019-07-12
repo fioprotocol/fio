@@ -384,7 +384,7 @@ namespace fioio {
                   action(
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
-                  "updtpid"_n,
+                  "updatetpid"_n,
                   std::make_tuple(tpid, actor, reg_amount / 10)
                   ).send();
                 }
@@ -438,49 +438,6 @@ namespace fioio {
 
         /********* CONTRACT ACTIONS ********/
 
-        // this action will perform the logic of checking the voter_info,
-        // and setting the proxy and auto proxy for auto proxy.
-        inline void autoproxy(name proxy_name, name owner_name )
-        {
-
-            print(" called autoproxy","\n");
-            //check the voter_info table for a record matching owner_name.
-            auto viter = voters.find(owner_name.value);
-            if (viter == voters.end())
-            {
-                print(" autoproxy voter info not found, calling crautoproxy","\n");
-                //if the record is not there then send inline action to crautoprx (a new action in the system contract).
-                //note this action will set the auto proxy and is_aut_proxy, so return after.
-                INLINE_ACTION_SENDER(eosiosystem::system_contract, crautoproxy)(
-                        "eosio"_n, {{get_self(), "active"_n}},
-                        {proxy_name, owner_name} );
-
-                return;
-            }
-            else
-            {
-                //check if the record has auto proxy and proxy matching proxy_name, set has_proxy. if so return.
-                if (viter->is_auto_proxy)
-                {
-                    if (proxy_name == viter->proxy) {
-                        return;
-                    }
-                }
-                else if ((viter->proxy) || (viter->producers.size() > 0))
-                {
-                    //check if the record has another proxy or producers. if so return.
-                    return;
-                }
-
-                //invoke the fio.system contract action to set auto proxy and proxy name.
-                action(
-                        permission_level{get_self(), "active"_n},
-                        "eosio"_n,
-                        "setautoproxy"_n,
-                        std::make_tuple(proxy_name, owner_name)
-                ).send();
-            }
-        }
 
         [[eosio::action]]
         void
@@ -527,7 +484,7 @@ namespace fioio {
               action(
                      permission_level{get_self(),"active"_n},
                      "fio.tpid"_n,
-                     "updtpid"_n,
+                     "updatetpid"_n,
                      std::make_tuple(tpid, nm, reg_amount / 10)
               ).send();
             }
@@ -589,7 +546,7 @@ namespace fioio {
               action(
               permission_level{get_self(),"active"_n},
               "fio.tpid"_n,
-              "updtpid"_n,
+              "updatetpid"_n,
               std::make_tuple(tpid,actor, reg_amount / 10)
               ).send();
             }
@@ -663,7 +620,7 @@ namespace fioio {
                 action(
                         permission_level{get_self(),"active"_n},
                         "fio.tpid"_n,
-                        "updtpid"_n,
+                        "updatetpid"_n,
                         std::make_tuple(tpid, actor, reg_amount / 10)
                 ).send();
             }
@@ -760,7 +717,7 @@ namespace fioio {
               action(
               permission_level{get_self(),"active"_n},
               "fio.tpid"_n,
-              "updtpid"_n,
+              "updatetpid"_n,
               std::make_tuple(tpid, actor, reg_amount / 10)
               ).send();
             }
@@ -1087,7 +1044,7 @@ namespace fioio {
                 action(
                         permission_level{get_self(), "active"_n},
                         "fio.tpid"_n,
-                        "updtpid"_n,
+                        "updatetpid"_n,
                         std::make_tuple(tpid, actor, reg_amount / 10)
                 ).send();
             }
