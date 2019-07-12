@@ -81,6 +81,3 @@ var/lib/node_*
 .idea/
 *.iws
 .DS_Store
-/node3.txt
-/node2.txt
-/node1.txt
