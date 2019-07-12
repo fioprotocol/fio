@@ -8,15 +8,48 @@
               "name": "actor",
               "type": "name"
               }]
-              },
+              },{
+              "name": "updateclock",
+              "base": "",
+              "fields": []
+              },{
+              "name": "startclock",
+              "base": "",
+              "fields": []
+              },{
+              "name": "treasurystate",
+              "base": "",
+              "fields": [
+                 {"name":"lastpayout", "type":"uint64"},
+              ]
+             }
           ],
     "types": [],
     "actions": [{
          "name": "tpidclaim",
          "type": "tpidclaim",
          "ricardian_contract": ""
-       }],
-    "tables": [],
+       },{
+          "name": "updateclock",
+          "type": "updateclock",
+          "ricardian_contract": ""
+        }{
+          "name": "startclock",
+          "type": "startclock",
+          "ricardian_contract": ""
+         }
+       ],
+   "tables": [{
+        "name": "clockstate",
+        "index_type": "i64",
+        "key_names": [
+           "lastrun"
+        ],
+        "key_types": [
+           "uint64"
+        ],
+        "type": "treasurystate"
+    }],
     "ricardian_clauses": [],
     "variants": [],
     "abi_extensions": []
