@@ -134,10 +134,6 @@ namespace eosio {
                              uint64_t max_fee,
                              name actor,
                              const string &tpid) {
-       if(!tpid.empty()) {
-         process_tpid(tpid, actor);
-       }
-
 
         asset qty;
         //we assume the amount is in fio sufs.
@@ -271,8 +267,8 @@ namespace eosio {
           action(
           permission_level{get_self(),"active"_n},
           "fio.tpid"_n,
-          "updatetpid"_n,
-          std::make_tuple(tpid, reg_amount / 10)
+          "updtpid"_n,
+          std::make_tuple(tpid, new_account_name, reg_amount / 10)
           ).send();
         }
 

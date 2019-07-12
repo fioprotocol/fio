@@ -6,7 +6,7 @@
 
 namespace fioio{
   using namespace eosio;
-
+  
   // @abi table tpids i64
   struct [[eosio::action]] tpid {
 

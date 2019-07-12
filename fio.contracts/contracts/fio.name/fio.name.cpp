@@ -169,28 +169,6 @@ namespace fioio {
             }
         }
 
-        inline void process_tpid(const string &tpid, name owner) {
-
-            uint64_t hashname = string_to_uint64_hash(tpid.c_str());
-            print("process tpid hash of name ", tpid, " is value ", hashname ,"\n");
-
-            auto iter = tpids.find(hashname);
-            if (iter == tpids.end()){
-                print("process tpid, tpid not found ","\n");
-                //tpid does not exist. do nothing.
-            }
-            else{
-                print("process tpid, found a tpid ","\n");
-                //tpid exists, use the info to find the owner of the tpid
-                auto iternm = fionames.find(iter->fioaddhash);
-                if (iternm != fionames.end()) {
-                    print("process found the fioname associated with the TPID in the fionames ","\n");
-                    name proxy_name = name(iternm->owner_account);
-                    //do the auto proxy
-                    // autoproxy(proxy_name,owner);
-                }
-            }
-        }
 
 
         inline void register_errors(const FioAddress &fa, bool domain) const {
@@ -407,8 +385,8 @@ namespace fioio {
                   action(
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
-                  "updatetpid"_n,
-                  std::make_tuple(tpid, reg_amount / 10)
+                  "updtpid"_n,
+                  std::make_tuple(tpid, actor, reg_amount / 10)
                   ).send();
                 }
             }
@@ -474,17 +452,11 @@ namespace fioio {
                 print(" autoproxy voter info not found, calling crautoproxy","\n");
                 //if the record is not there then send inline action to crautoprx (a new action in the system contract).
                 //note this action will set the auto proxy and is_aut_proxy, so return after.
-                // Buy ram for account.
-
-                action(
-                        permission_level{get_self(), "active"_n},
-                        "eosio"_n,
-                        "crautoproxy"_n,
-                        std::make_tuple(proxy_name, owner_name)
-                ).send();
+                INLINE_ACTION_SENDER(eosiosystem::system_contract, crautoproxy)(
+                        "eosio"_n, {{get_self(), "active"_n}},
+                        {proxy_name, owner_name} );
 
                 return;
-
             }
             else
             {
@@ -514,11 +486,6 @@ namespace fioio {
         [[eosio::action]]
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
-
-            if(!tpid.empty()) {
-              process_tpid(tpid, actor);
-            }
-
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
@@ -559,10 +526,10 @@ namespace fioio {
 
             if (!tpid.empty()) {
               action(
-              permission_level{get_self(),"active"_n},
-              "fio.tpid"_n,
-              "updatetpid"_n,
-              std::make_tuple(tpid, reg_amount / 10)
+                     permission_level{get_self(),"active"_n},
+                     "fio.tpid"_n,
+                     "updtpid"_n,
+                     std::make_tuple(tpid, nm, reg_amount / 10)
               ).send();
             }
 
@@ -577,12 +544,11 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regdomain(const string &fio_domain, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
+        regdomain(const string &fio_domain, const string &owner_fio_public_key,
+                uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
-            if(!tpid.empty()) {
-              process_tpid(tpid, actor);
-            }
+
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -612,18 +578,20 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
-            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
+
             reg_fee_asset.symbol = symbol("FIO",9);
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
-            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
+
+
+
             fio_fees(actor, reg_fee_asset);
             if (!tpid.empty()) {
               action(
               permission_level{get_self(),"active"_n},
               "fio.tpid"_n,
-              "updatetpid"_n,
-              std::make_tuple(tpid, reg_amount / 10)
+              "updtpid"_n,
+              std::make_tuple(tpid,actor, reg_amount / 10)
               ).send();
             }
             //end new fees, logic for Mandatory fees.
@@ -645,9 +613,6 @@ namespace fioio {
         renewdomain(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
 
             // Split the fio name and domain portions
-            if(!tpid.empty()) {
-              process_tpid(tpid, actor);
-            }
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -692,14 +657,16 @@ namespace fioio {
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
 
+
+
             fio_fees(actor, reg_fee_asset);
             if (!tpid.empty()) {
-              action(
-              permission_level{get_self(),"active"_n},
-              "fio.tpid"_n,
-              "updatetpid"_n,
-              std::make_tuple(tpid, reg_amount / 10)
-              ).send();
+                action(
+                        permission_level{get_self(),"active"_n},
+                        "fio.tpid"_n,
+                        "updtpid"_n,
+                        std::make_tuple(tpid, actor, reg_amount / 10)
+                ).send();
             }
 
             //end new fees, logic for Mandatory fees.
@@ -727,9 +694,7 @@ namespace fioio {
         [[eosio::action]]
         void
         renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
-            if(!tpid.empty()) {
-              process_tpid(tpid,actor);
-            }
+
             // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
@@ -790,12 +755,14 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
+
+
             if (!tpid.empty()) {
               action(
               permission_level{get_self(),"active"_n},
               "fio.tpid"_n,
-              "updatetpid"_n,
-              std::make_tuple(tpid, reg_amount / 10)
+              "updtpid"_n,
+              std::make_tuple(tpid, actor, reg_amount / 10)
               ).send();
             }
 
@@ -1053,9 +1020,7 @@ namespace fioio {
         void
         addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
                    const name &actor,const string &tpid) {
-             if(!tpid.empty()) {
-               process_tpid(tpid, actor);
-             }
+
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
@@ -1073,15 +1038,13 @@ namespace fioio {
         void
         setdomainpub(const string &fio_domain, const bool public_domain, uint64_t max_fee, const name &actor,
                      const string &tpid) {
-            if (!tpid.empty()) {
-                process_tpid(tpid, actor);
-            }
 
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
             uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+
             auto domain_iter = domains.find(domainHash);
 
             fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
@@ -1118,12 +1081,13 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
+
             if (!tpid.empty()) {
                 action(
                         permission_level{get_self(), "active"_n},
                         "fio.tpid"_n,
-                        "updatetpid"_n,
-                        std::make_tuple(tpid, reg_amount / 10)
+                        "updtpid"_n,
+                        std::make_tuple(tpid, actor, reg_amount / 10)
                 ).send();
             }
 

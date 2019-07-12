@@ -280,6 +280,12 @@ if [ $mChoice == 1 ]; then
           #make the fio.reqobt into a privileged account
           ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
 
+          #set permissions on tpid and make it a privileged system account, permit cross communication with fio.system
+          #and other contracts.
+          ./cleos -u http://localhost:8879 set account permission fio.tpid active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.tpid","permission":"eosio.code"},"weight":1}]}}' owner -p fio.tpid@owner
+          #make the fio.system into a privileged account
+          ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.tpid",1]' -p eosio@active
+
 
           ./cleos -u http://localhost:8879 set account permission r41zuwovtn44 active '{"threshold":1,"keys":[{"key":"FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82","weight":1}],"accounts":[{"permission":{"actor":"r41zuwovtn44","permission":"eosio.code"},"weight":1}]}' owner -p r41zuwovtn44@owner
           ./cleos -u http://localhost:8879 push action eosio setpriv '["r41zuwovtn44",1]' -p eosio@active
@@ -310,17 +316,23 @@ if [ $mChoice == 1 ]; then
     sleep 1
     dom=1
     retries=3
-
+    echo regdomain
     ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 5
-    #./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","public_domain":true,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
+    echo setdomainpub
+    ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","public_domain":true,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 2
 
     #Create Account Name
+    echo casey
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
+    echo adam
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":""}' --permission htjonrkf1lgs@active
+    echo ed
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"euwdcp13zlrj","tpid":"adam:dapix"}' --permission euwdcp13zlrj@active
+    echo ada
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"smooshface"}' --permission r41zuwovtn44@active
+
 
 elif [ $mChoice == 3 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. Yes 2. No): ' bChoice

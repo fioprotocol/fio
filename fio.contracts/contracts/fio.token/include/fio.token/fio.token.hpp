@@ -45,28 +45,6 @@ using namespace fioio;
 
         inline void fio_fees(const name &actor, const asset &fee);
 
-        inline void process_tpid(const string &tpid, name owner) {
-
-            uint64_t hashname = string_to_uint64_hash(tpid.c_str());
-            print("process tpid hash of name ", tpid, " is value ", hashname ,"\n");
-
-            auto iter = tpids.find(hashname);
-            if (iter == tpids.end()){
-                print("process tpid, tpid not found ","\n");
-                //tpid does not exist. do nothing.
-            }
-            else{
-                print("process tpid, found a tpid ","\n");
-                //tpid exists, use the info to find the owner of the tpid
-                auto iternm = fionames.find(iter->fioaddhash);
-                if (iternm != fionames.end()) {
-                    print("process found the fioname associated with the TPID in the fionames ","\n");
-                    name proxy_name = name(iternm->owner_account);
-                    //do the auto proxy
-                    // autoproxy(proxy_name,owner);
-                }
-            }
-        }
 
         [[eosio::action]]
         void retire(asset quantity, string memo);

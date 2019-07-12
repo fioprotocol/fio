@@ -360,18 +360,34 @@ namespace eosiosystem {
 
     void system_contract::crautoproxy(name proxy,name owner)
     {
+        print ("call to set auto proxy for voter ",owner," to proxy ",proxy,"\n");
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
         auto itervi = _voters.find(proxy.value);
-        check(itervi != _voters.end(), "specified proxy not found.");
-        check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
+        //check(itervi != _voters.end(), "specified proxy not found.");
+        //check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
-        _voters.emplace(owner, [&](auto &p) {
-            p.owner = owner;
-            p.is_auto_proxy = true;
-            p.proxy = proxy;
-        });
+        if (itervi != _voters.end() &&
+           itervi->is_proxy) {
+
+            auto itervoter = _voters.find(owner.value);
+            if (itervoter == _voters.end()) {
+                _voters.emplace(owner, [&](auto &p) {
+                    p.owner = owner;
+                    p.is_auto_proxy = true;
+                    p.proxy = proxy;
+                });
+                print("new proxy has been set to tpid ", proxy, "\n");
+            } else if (itervoter->is_auto_proxy && itervoter->proxy != proxy) {
+                _voters.modify(itervoter, _self, [&](struct voter_info &a) {
+                    a.proxy = proxy;
+                });
+                print("auto proxy was updated to be tpid ",proxy,"\n");
+            }
+        }else{
+            print("could not find the tpid ",proxy, " in the voters table","\n");
+        }
 
     }
 
@@ -385,8 +401,9 @@ namespace eosiosystem {
      *  @pre new state must be different than current state
      */
     void system_contract::regproxy(const name proxy, bool isproxy) {
-        require_auth(proxy);
+       // require_auth(proxy);
 
+        print("EDEDEDEDEDEDEDED call to reg proxy ", proxy," ",isproxy,"\n");
         auto pitr = _voters.find(proxy.value);
         if (pitr != _voters.end()) {
             check(isproxy != pitr->is_proxy, "action has no effect");

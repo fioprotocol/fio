@@ -27,6 +27,19 @@
               "type": "uint64"
               }]
               },{
+                             "name": "updtpid",
+                             "base": "",
+                             "fields": [{
+                             "name": "tpid",
+                             "type": "string"
+                             },{
+                             "name": "owner",
+                             "type": "name"
+                             },{
+                             "name": "amount",
+                             "type": "uint64"
+                             }]
+                             },{
               "name": "rewardspaid",
               "base": "",
               "fields": [{
@@ -45,6 +58,10 @@
           "type": "updatetpid",
           "ricardian_contract": ""
         },{
+                   "name": "updtpid",
+                   "type": "updtpid",
+                   "ricardian_contract": ""
+                 },{
           "name": "rewardspaid",
           "type": "rewardspaid",
           "ricardian_contract": ""
