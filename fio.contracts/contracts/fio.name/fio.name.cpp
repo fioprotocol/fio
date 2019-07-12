@@ -1078,17 +1078,19 @@ namespace fioio {
             }
 
             FioAddress fa;
+            uint32_t present_time = now();
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
             uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
             auto domain_iter = domains.find(domainHash);
 
+            fio_400_assert(domains_iter != domains.end(), "fio_domain", fa.fioaddress, "Invalid FIO domain",
+                           ErrorDomainNotRegistered);
             fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
 
             uint64_t expiration = domain_iter->expiration;
-            uint32_t present_time = now();
             fio_400_assert(present_time <= expiration, "fio_domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
 
