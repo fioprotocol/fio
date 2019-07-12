@@ -285,10 +285,10 @@ if [ $mChoice == 1 ]; then
           ./cleos -u http://localhost:8879 push action eosio setpriv '["r41zuwovtn44",1]' -p eosio@active
 
 
-
-          ./cleos -u http://localhost:8889 set account permission r41zuwovtn44 claimer '{"threshold":1,"keys":[{"key":"FIO7r4p2mtV4RvDHuKMsDgmQtE6KtKwho3BnzLMUibSmiWpUR7mq3","weight":1}]}' "active" -p r41zuwovtn44@active
           ./cleos -u http://localhost:8889 set account permission fio.treasury active --add-code
-          ./cleos -u http://localhost:8889 set action permission r41zuwovtn44 fio.treasury tpidclaim claimer
+          sleep 1s
+          ./cleos -u http://localhost:8889 push action fio.treasury startclock '{"":""}' -p fio.treasury@active
+
 
      fi
 
