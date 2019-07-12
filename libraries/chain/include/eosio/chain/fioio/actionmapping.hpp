@@ -22,6 +22,7 @@ namespace fioio {
     vector <string> fioFinanceActions;
     vector <string> fioRequestObtActions;
     vector <string> fioTokenActions;
+    vector <string> fioTreasuryActions;
 
     static void Set_map(void) {
         //eosio actions
@@ -38,6 +39,8 @@ namespace fioio {
         fiosystemActions.push_back("expaddresses");
         fiosystemActions.push_back("bind2eosio");
         fiosystemActions.push_back("burnexpired");
+
+        fioTreasuryActions.push_back("tpidclaim");
 
         //fio.token actions
         fioTokenActions.push_back("trnsfiopubky");
@@ -62,6 +65,9 @@ namespace fioio {
         }
         if (find(fioTokenActions.begin(), fioTokenActions.end(), t) != fioTokenActions.end()) {
             return "fio.token";
+        }
+        if (find(fioTreasuryActions.begin(), fioTreasuryActions.end(), t) != fioTreasuryActions.end()) {
+            return "fio.treasury";
         }
         return "eosio";
     }
