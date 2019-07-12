@@ -1085,7 +1085,7 @@ namespace fioio {
             uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
             auto domain_iter = domains.find(domainHash);
 
-            fio_400_assert(domain_iter != domain.end(), "fio_domain", fa.fioaddress, "Invalid FIO domain",
+            fio_400_assert(domain_iter != domains.end(), "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorDomainNotRegistered);
             fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
