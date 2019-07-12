@@ -216,7 +216,8 @@ namespace fioio {
                            ErrorChainAddressEmpty);
         }
 
-        uint32_t fio_address_update(const name &actor, uint64_t max_fee, const FioAddress &fa, const string &tpid) {
+        uint32_t fio_address_update(const name &owneractor, const name &actor, uint64_t max_fee, const FioAddress &fa,
+                                    const string &tpid) {
             // will not check the contents of tpid here, it was already checked at the beginning of regaddress that called this method
 
             uint32_t expiration_time = 0;
@@ -235,7 +236,7 @@ namespace fioio {
             uint64_t domain_owner = domains_iter->account;
 
             if (!isPublic) {
-                fio_400_assert(domain_owner == actor.value, "fio_address", fa.fioaddress,
+                fio_400_assert(domain_owner == owneractor.value, "fio_address", fa.fioaddress,
                                "FIO Domain is not public. Only owner can create FIO Addresses.",
                                ErrorInvalidFioNameFormat);
             }
@@ -519,7 +520,6 @@ namespace fioio {
               process_tpid(tpid, actor);
             }
 
-
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
 
@@ -528,7 +528,7 @@ namespace fioio {
             register_errors(fa, false);
             name nm = name{owner_account_name};
 
-            uint32_t expiration_time = fio_address_update(nm, max_fee, fa, tpid);
+            uint32_t expiration_time = fio_address_update(actor, nm, max_fee, fa, tpid);
 
             //begin new fees, logic for Mandatory fees.
             uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
@@ -1103,7 +1103,7 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             uint64_t fee_type = fee_iter->type;
-            int64_t reg_amount = fee_iter->suf_amount;
+            int64_tIl reg_amount = fee_iter->suf_amount;
 
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
