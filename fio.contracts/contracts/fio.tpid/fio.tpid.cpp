@@ -28,12 +28,13 @@ namespace fioio {
           auto viter = voters.find(owner_name.value);
           if (viter == voters.end())
           {
-              print(" autoproxy voter info not found, calling crautoproxy","\n");
-              //if the record is not there then send inline action to crautoprx (a new action in the system contract).
-              //note this action will set the auto proxy and is_aut_proxy, so return after.
-              INLINE_ACTION_SENDER(eosiosystem::system_contract, crautoproxy)(
-                      "eosio"_n, {{get_self(), "active"_n}},
-                      {proxy_name, owner_name} );
+
+                  print(" autoproxy voter info not found, calling crautoproxy", "\n");
+                  //if the record is not there then send inline action to crautoprx (a new action in the system contract).
+                  //note this action will set the auto proxy and is_aut_proxy, so return after.
+                  INLINE_ACTION_SENDER(eosiosystem::system_contract, crautoproxy)(
+                          "eosio"_n, {{get_self(), "active"_n}},
+                          {proxy_name, owner_name});
 
               return;
           }
@@ -46,7 +47,7 @@ namespace fioio {
                       return;
                   }
               }
-              else if ((viter->proxy) || (viter->producers.size() > 0))
+              else if ((viter->proxy) || (viter->producers.size() > 0) || viter->is_proxy)
               {
                   //check if the record has another proxy or producers. if so return.
                   return;

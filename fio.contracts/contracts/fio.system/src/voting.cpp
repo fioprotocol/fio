@@ -407,14 +407,25 @@ namespace eosiosystem {
        //stronger security on this call...
        // require_auth(proxy);
 
+       print ("called regproxy with proxy ",proxy, " isproxy ", isproxy,"\n");
+
         auto pitr = _voters.find(proxy.value);
         if (pitr != _voters.end()) {
             //commented out these lines to create the newly desired behavior as described in the above comments.
+            //we dont want exceptions if the proxy has a proxy specified, we just move along.
             //check(isproxy != pitr->is_proxy, "action has no effect");
-           // check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
-            _voters.modify(pitr, same_payer, [&](auto &p) {
-                p.is_proxy = isproxy;
-            });
+            //check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
+            if (isproxy && !pitr->proxy) {
+                _voters.modify(pitr, same_payer, [&](auto &p) {
+                    p.is_proxy = isproxy;
+                });
+            }else if (!isproxy) { //this is how we undo a proxy
+                name nm;
+                _voters.modify(pitr, same_payer, [&](auto &p) {
+                    p.is_proxy = isproxy;
+                    p.proxy = nm;
+                });
+            }
             propagate_weight_change(*pitr);
         } else {
             _voters.emplace(proxy, [&](auto &p) {
