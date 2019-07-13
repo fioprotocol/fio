@@ -392,21 +392,26 @@ namespace eosiosystem {
     }
 
     /**
-     *  An account marked as a proxy can vote with the weight of other accounts which
-     *  have selected it as a proxy. Other accounts must refresh their voteproducer to
-     *  update the proxy's weight.
+     * this action will allow a caller to register a proxy for use in voting going forward.
+     * or it will allow a caller to register as a proxy for use by others going forward.
+     * to register the use of a proxy call this with the desired proxy and false
+     * to register as a proxy going forward call this with the desired proxy and true.
      *
      *  @param isproxy - true if proxy wishes to vote on behalf of others, false otherwise
      *  @pre proxy must have something staked (existing row in voters table)
      *  @pre new state must be different than current state
      */
     void system_contract::regproxy(const name proxy, bool isproxy) {
+       //this was commented out to allow this to be called by others
+       //this needs examined more closely at lock down to see if we need
+       //stronger security on this call...
        // require_auth(proxy);
 
         auto pitr = _voters.find(proxy.value);
         if (pitr != _voters.end()) {
-            check(isproxy != pitr->is_proxy, "action has no effect");
-            check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
+            //commented out these lines to create the newly desired behavior as described in the above comments.
+            //check(isproxy != pitr->is_proxy, "action has no effect");
+           // check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
             _voters.modify(pitr, same_payer, [&](auto &p) {
                 p.is_proxy = isproxy;
             });
