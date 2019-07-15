@@ -365,8 +365,10 @@ namespace eosiosystem {
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
         auto itervi = _voters.find(proxy.value);
-        check(itervi != _voters.end(), "specified proxy not found.");
-        check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
+        //this needs to be silent. so comment out this following check. remove after uat.
+        //check(itervi != _voters.end(), "specified proxy not found.");
+       //this needs to be silent. so comment out this following check. remove after uat.
+       // check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
         if (itervi != _voters.end() &&
            itervi->is_proxy) {
@@ -386,7 +388,7 @@ namespace eosiosystem {
                 print("auto proxy was updated to be tpid ",proxy,"\n");
             }
         }else{
-            print("could not find the tpid ",proxy, " in the voters table","\n");
+            print("could not find the tpid ",proxy, " in the voters table or this voter is not a proxy","\n");
         }
 
     }
@@ -419,15 +421,20 @@ namespace eosiosystem {
                 _voters.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
                 });
-            }else if (!isproxy) { //this is how we undo a proxy
+            }else if (!isproxy) { //this is how we undo/clear a proxy
                 name nm;
                 _voters.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
-                    p.proxy = nm;
+                    p.proxy = nm; //set to a null state, an uninitialized name,
+                                  //we need to be sure this returns true on (!proxy) so other logic
+                                  //areas work correctly.
                 });
             }
             propagate_weight_change(*pitr);
-        } else {
+        } else if (isproxy){  //only do the emplace if isproxy is true,
+                              //it makes no sense to emplace a voter record when isproxy is false,
+                              // this means making a voting record with no votes, and not a proxy,
+                              //and not having a proxy, its kind of a null vote, so dont emplace unless isproxy is true.
             _voters.emplace(proxy, [&](auto &p) {
                 p.owner = proxy;
                 p.is_proxy = isproxy;
