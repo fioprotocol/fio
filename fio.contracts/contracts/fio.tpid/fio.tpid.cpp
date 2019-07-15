@@ -101,14 +101,6 @@ namespace fioio {
           auto fionamefound = fionames.find(fioaddhash);
           fio_400_assert(fionamefound != fionames.end(), "TPID", tpid,
                          "Invalid TPID", InvalidTPID);
-          //get the account owner, register the proxy in the voters table.
-          name proxy_name = name(fionamefound->owner_account);
-          //call register proxy on the system contract
-          print ("calling regproxy for name ",proxy_name);
-          INLINE_ACTION_SENDER(eosiosystem::system_contract, regproxy)(
-                  "eosio"_n, {{get_self(), "active"_n}},
-                  {proxy_name, true} );
-
 
           auto tpidfound = tpids.find(fioaddhash);
           if (tpidfound == tpids.end()) {
