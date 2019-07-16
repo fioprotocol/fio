@@ -8,10 +8,11 @@ namespace fioio {
     private:
       tpids_table tpids;
       fionames_table fionames;
-      treasury_table clockstate;
+      rewards_table clockstate;
       bprewards_table bprewards;
+      eosiosystem::producers_table producers;
 
-      uint64_t lastpayout;
+      uint64_t lasttpidpayout;
 
     public:
       using contract::contract;
@@ -21,7 +22,8 @@ namespace fioio {
                                                                       tpids(TPIDContract, TPIDContract.value),
                                                                       fionames(SystemContract, SystemContract.value),
                                                                       bprewards(_self, _self.value),
-                                                                      clockstate(_self, _self.value) {
+                                                                      clockstate(_self, _self.value),
+                                                                      producers("eosio"_n, name("eosio").value) {
         }
 
 
@@ -37,7 +39,7 @@ namespace fioio {
 
       //This contract should only be able to iterate throughout the entire tpids table to
       //to check for rewards once every x blocks.
-       if( now() > clockiter->lastpayout + 60 ) {
+       if( now() > clockiter->lasttpidpayout + 60 ) {
 
           for(auto &itr : tpids) {
 
@@ -92,7 +94,7 @@ namespace fioio {
             ).send();
         }
 
-      } //end if lastpayout < now() 30
+      } //end if lasttpidpayout < now() 30
 
        nlohmann::json json = {{"status",        "OK"},
                               {"tpids_paid",    tpids_paid}};
@@ -100,6 +102,42 @@ namespace fioio {
 
     } //tpid_claim
 
+
+    // @abi action
+    [[eosio::action]]
+    void bpclaim(const name& actor) {
+
+    require_auth(actor);
+
+    uint64_t bps_paid = 0;
+    //If the contract has not been invoked yet, this will execute and set the initial block time
+    auto clockiter = clockstate.begin();
+
+    //This contract should only be able to iterate throughout the entire tpids table to
+    //to check for rewards once every x blocks.
+     if( now() > clockiter->lastbppayout + 172800 ) {
+
+
+
+      for(auto &itr : producers) {
+
+        print("Test output","\n");
+
+
+        bps_paid++;
+        if (bps_paid >= 100) break;
+      }
+
+
+
+
+
+        nlohmann::json json = {{"status",        "OK"},
+                               {"tpids_paid",    bps_paid}};
+        send_response(json.dump().c_str());
+
+
+   } //bpclaim
 
     // @abi action
     [[eosio::action]]
@@ -111,7 +149,7 @@ namespace fioio {
       clockstate.erase(clockiter);
 
       clockstate.emplace(_self, [&](struct treasurystate& entry) {
-      entry.lastpayout = now();
+      entry.lasttpidpayout = now();
     });
     }
 
@@ -123,9 +161,13 @@ namespace fioio {
       unsigned int size = std::distance(clockstate.begin(),clockstate.end());
       if (size == 0)  {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
-          entry.lastpayout = now();
+          entry.lasttpidpayout = now() - 56;
+          entry.lastbppayout = now() - 172780;
         });
+
       }
+
+
 
       bprewdupdate(0);
 
@@ -154,7 +196,6 @@ namespace fioio {
         });
        }
 
-
     }
 
 
@@ -169,7 +210,7 @@ namespace fioio {
     auto clockiter = clockstate.begin();
 
     // Maintenance check can be run every 1200000 blocks
-     if( now() > clockiter->lastpayout + 1200000 ) {
+     if( now() > clockiter->lasttpidpayout + 1200000 ) {
 
 
        for(auto &itr : tpids) {

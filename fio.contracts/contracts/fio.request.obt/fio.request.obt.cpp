@@ -197,14 +197,8 @@ namespace fioio {
 
                 fio_fees(aactor, reg_fee_asset);
 
-                if (!tpid.empty()) {
-                  action(
-                  permission_level{get_self(),"active"_n},
-                  "fio.tpid"_n,
-                  "updatetpid"_n,
-                  std::make_tuple(tpid, fee_amount / 10)
-                  ).send();
-                }
+                process_rewards(tpid, fee_amount, get_self());
+
 
             }
             //end new fees, bundle eligible fee logic
@@ -385,14 +379,8 @@ namespace fioio {
                 reg_fee_asset.amount = fee_amount;
 
                 fio_fees(aActor, reg_fee_asset);
-                if (!tpid.empty()) {
-                  action(
-                  permission_level{get_self(),"active"_n},
-                  "fio.tpid"_n,
-                  "updatetpid"_n,
-                  std::make_tuple(tpid, fee_amount / 10)
-                  ).send();
-                }
+                process_rewards(tpid, fee_amount, get_self());
+
             }
             //end new fees, bundle eligible fee logic
 
@@ -526,14 +514,8 @@ namespace fioio {
 
                 fio_fees(aactor, reg_fee_asset);
 
-                if (!tpid.empty()) {
-                  action(
-                  permission_level{get_self(),"active"_n},
-                  "fio.tpid"_n,
-                  "updatetpid"_n,
-                  std::make_tuple(tpid, fee_amount / 10)
-                  ).send();
-                }
+                process_rewards(tpid, fee_amount, get_self());
+
             }
             //end new fees, bundle eligible fee logic
 

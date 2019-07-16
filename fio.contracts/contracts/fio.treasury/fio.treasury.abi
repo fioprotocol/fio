@@ -17,10 +17,19 @@
               "base": "",
               "fields": []
               },{
+              "name": "bpclaim",
+              "base": "",
+              "fields": [{
+              "name": "actor",
+              "type": "name"
+              }]
+              },{
               "name": "treasurystate",
               "base": "",
               "fields": [
-                 {"name":"lastpayout",
+                 {"name":"lasttpidpayout",
+                  "type":"uint64"},
+                 {"name":"lastbppayout",
                   "type":"uint64"},
               ]
               },{
@@ -38,10 +47,14 @@
          "type": "tpidclaim",
          "ricardian_contract": ""
        },{
+          "name": "bpclaim",
+          "type": "bpclaim",
+          "ricardian_contract": ""
+       },{
           "name": "updateclock",
           "type": "updateclock",
           "ricardian_contract": ""
-        }{
+       },{
           "name": "startclock",
           "type": "startclock",
           "ricardian_contract": ""
