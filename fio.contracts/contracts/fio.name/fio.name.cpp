@@ -32,7 +32,7 @@ namespace fioio {
 
         FioNameLookup(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                         domains(_self, _self.value),
-                                                                        fionames(s, s.value),
+                                                                        fionames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         accountmap(_self, _self.value),
                                                                         chains(_self, _self.value),
@@ -877,7 +877,7 @@ namespace fioio {
                     print(" found expired domain ",domainiter->name," expiration ",domainiter->expiration, " domain hash ",domainiter->domainhash,"\n");
 
                     auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
-                    auto nmiter = fionamesbydomainhashidx.find(domainhash);
+                    auto nmiter = fionamesbydomainhashidx.lower_bound(domainhash);
                     bool processed_all_in_domain = false;
 
                     while (nmiter != fionamesbydomainhashidx.end()) {
@@ -893,8 +893,6 @@ namespace fioio {
                             nmiter++;
 
                         } else {
-                            print(" got result on secondary index that isnt the searched value  ", nmiter->name, " expiration ",
-                                  nmiter->expiration, "\n");
                             processed_all_in_domain = true;
                             break;
                         }
