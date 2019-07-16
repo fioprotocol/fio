@@ -20,10 +20,18 @@
               "name": "treasurystate",
               "base": "",
               "fields": [
-                 {"name":"lastpayout", "type":"uint64"},
+                 {"name":"lastpayout",
+                  "type":"uint64"},
+              ]
+              },{
+              "name": "bpreward",
+              "base": "",
+              "fields": [
+                 {"name":"rewards",
+                  "type":"uint64"},
               ]
              }
-          ],
+           ],
     "types": [],
     "actions": [{
          "name": "tpidclaim",
@@ -49,7 +57,17 @@
            "uint64"
         ],
         "type": "treasurystate"
-    }],
+    },{
+         "name": "bprewards",
+         "index_type": "i64",
+         "key_names": [
+            "rewards"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "bpreward"
+     }],
     "ricardian_clauses": [],
     "variants": [],
     "abi_extensions": []
