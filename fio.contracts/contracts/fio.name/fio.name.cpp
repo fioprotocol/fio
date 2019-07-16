@@ -880,13 +880,21 @@ namespace fioio {
                     break;
                 } else {   //add up to 100 addresses, add all addresses in domain until 100 is hit, or all are added.
                     auto domainhash = domainiter->domainhash;
+                    //print(" found expired domain ",domainiter->name," expiration ",domainiter->expiration, " domain hash ",domainiter->domainhash,"\n");
+
                     auto nmiter = fionamesbydomainhashidx.find(domainhash);
 
                     while (nmiter != fionamesbydomainhashidx.end()) {
                         //look at all addresses in this domain, add until 100
-                        burnlist.push_back(nmiter->namehash);
-                        if (burnlist.size() >= numbertoburn) {
-                            break;
+                        if(nmiter->domainhash == domainhash) {
+                            burnlist.push_back(nmiter->namehash);
+                            //print(" adding name to burn from expired domain ", nmiter->name, " expiration ",
+                            //      nmiter->expiration, "\n");
+
+                            if (burnlist.size() >= numbertoburn) {
+                                break;
+                            }
+
                         }
                         nmiter++;
                     }
@@ -894,7 +902,8 @@ namespace fioio {
                     //if we processed all the addresses inside a domain then add the domain itself to the list
                     //to be burned. since its in the fionames table.
                     if (nmiter == fionamesbydomainhashidx.end()) {
-                        burnlist.push_back(domainnamehash);
+                        //print(" adding domain to burn list ",domainiter->name," expiration ",domainiter->expiration,"\n");
+                        //print(" adding domain to domain burn list", domainnamehash, "\n");
                         domainburnlist.push_back(domainnamehash);
                     }
 
@@ -923,6 +932,8 @@ namespace fioio {
                         //get duplicate names attempted to be inserted, keep the duplicates out.
                         if (!(std::find(burnlist.begin(), burnlist.end(), nameiter->namehash) != burnlist.end())) {
                             burnlist.push_back(nameiter->namehash);
+                            //print(" adding address to burn list ",nameiter->name," expiration ",nameiter->expiration,"\n");
+
                             if (burnlist.size() >= numbertoburn) {
                                 break;
                             }
@@ -941,23 +952,26 @@ namespace fioio {
                 //remove the items from the fionames
                 auto fionamesiter = fionames.find(burner);
                 if (fionamesiter != fionames.end()) {
+                    //print(" erasing fioname ",fionamesiter->name," expiration ",fionamesiter->expiration,"\n");
                     fionames.erase(fionamesiter);
                 }
 
             }
 
             for (int i = 0; i < domainburnlist.size(); i++) {
-                uint64_t burner = burnlist[i];
+                uint64_t burner = domainburnlist[i];
+                //print(" looking to erase domain ",burner,"\n");
 
                 auto domainsiter = domains.find(burner);
                 if (domainsiter != domains.end()) {
+                    //print(" erasing domain ",domainsiter->name," expiration ",domainsiter->expiration,"\n");
                     domains.erase(domainsiter);
                 }
             }
 
             //done with burning, return the result.
             nlohmann::json json = {{"status", "OK"},
-                                   {"items_burned",burnlist.size()}
+                                   {"items_burned",(burnlist.size()+domainburnlist.size())}
             };
 
             send_response(json.dump().c_str());
