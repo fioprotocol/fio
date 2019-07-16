@@ -127,16 +127,36 @@ namespace fioio {
         });
       }
 
-      size = std::distance(bprewards.begin(),bprewards.end());
-      if (size == 0)  {
-        bprewards.emplace(_self, [&](struct bpreward& entry) {
-          entry.rewards = 0;
-       });
+      bprewdupdate(0);
 
-      }
+    }
+
+    // @abi action
+    [[eosio::action]]
+    void bprewdupdate(uint64_t amount) {
+
+      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
+        "missing required authority of fio.system, fio.token, or fio.reqobt");
+
+        uint64_t size = std::distance(bprewards.begin(),bprewards.end());
+        if (size == 0)  {
+          bprewards.emplace(_self, [&](struct bpreward& entry) {
+            entry.rewards = amount;
+         });
+
+       } else {
+         auto bpfound = bprewards.begin();
+         uint64_t reward = bpfound->rewards;
+         reward += amount;
+         bprewards.erase(bpfound);
+         bprewards.emplace(_self, [&](struct bpreward& entry) {
+           entry.rewards = reward;
+        });
+       }
 
 
     }
+
 
     // maintain
     // Can only iterate through tpids table to be called once every 1200000 blocks
@@ -167,5 +187,5 @@ namespace fioio {
 
 
 
-  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(maintain))
+  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(maintain))
 }

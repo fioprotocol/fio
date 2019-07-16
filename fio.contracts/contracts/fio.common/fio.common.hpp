@@ -48,7 +48,7 @@ namespace fioio {
     static const name SystemContract = name(FIO_SYSTEM);
     static const name TPIDContract = name("fio.tpid");
     static const name TokenContract = name("fio.token");
-    
+
     struct config {
         name tokencontr; // owner of the token contract
         bool pmtson = true; // enable/disable payments
@@ -115,6 +115,36 @@ namespace fioio {
         }
 
         return value;
+    }
+
+    void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
+      if (!tpid.empty()) {
+        action(
+        permission_level{actor,"active"_n},
+        "fio.tpid"_n,
+        "updatetpid"_n,
+        std::make_tuple(tpid, amount / 10)
+        ).send();
+
+
+        action(
+        permission_level{actor,"active"_n},
+        "fio.treasury"_n,
+        "bprewdupdate"_n,
+        std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
+        ).send();
+
+    } else {
+
+      action(
+      permission_level{actor,"active"_n},
+      "fio.treasury"_n,
+      "bprewdupdate"_n,
+      std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
+      ).send();
+
+    }
+
     }
 
 } // namespace fioio
