@@ -32,7 +32,7 @@ namespace fioio {
 
         FioNameLookup(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                         domains(_self, _self.value),
-                                                                        fionames(_self, _self.value),
+                                                                        fionames(s, s.value),
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         accountmap(_self, _self.value),
                                                                         chains(_self, _self.value),
@@ -853,16 +853,10 @@ namespace fioio {
             uint64_t nowtime = now();
             //the minimum expiration to look for in searching for expired items
             uint32_t minexpiration = get_now_minus_years(windowmaxyears);
-
-            //fio names by expiration.
-            auto nameexpidx = fionames.get_index<"byexpiration"_n>();
-            //fio domains by expiration
-            auto domainexpidx = domains.get_index<"byexpiration"_n>();
-            auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
-
             //using this instead of now time will place everything in the to be burned list, for testing only.
             uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
 
+            auto domainexpidx = domains.get_index<"byexpiration"_n>();
             //first find all domains with expiration greater than or equal to minexpiration.
             //since the index returns values in ascending order we get the oldest expired first.
             //this is a good order to burn them in which is oldest to youngest.
@@ -880,9 +874,11 @@ namespace fioio {
                     break;
                 } else {   //add up to 100 addresses, add all addresses in domain until 100 is hit, or all are added.
                     auto domainhash = domainiter->domainhash;
-                    //print(" found expired domain ",domainiter->name," expiration ",domainiter->expiration, " domain hash ",domainiter->domainhash,"\n");
+                    print(" found expired domain ",domainiter->name," expiration ",domainiter->expiration, " domain hash ",domainiter->domainhash,"\n");
 
+                    auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
                     auto nmiter = fionamesbydomainhashidx.find(domainhash);
+                    bool processed_all_in_domain = false;
 
                     while (nmiter != fionamesbydomainhashidx.end()) {
                         //look at all addresses in this domain, add until 100
@@ -894,14 +890,20 @@ namespace fioio {
                             if (burnlist.size() >= numbertoburn) {
                                 break;
                             }
+                            nmiter++;
 
+                        } else {
+                            print(" got result on secondary index that isnt the searched value  ", nmiter->name, " expiration ",
+                                  nmiter->expiration, "\n");
+                            processed_all_in_domain = true;
+                            break;
                         }
-                        nmiter++;
+
                     }
 
                     //if we processed all the addresses inside a domain then add the domain itself to the list
                     //to be burned. since its in the fionames table.
-                    if (nmiter == fionamesbydomainhashidx.end()) {
+                    if (processed_all_in_domain) {
                         //print(" adding domain to burn list ",domainiter->name," expiration ",domainiter->expiration,"\n");
                         //print(" adding domain to domain burn list", domainnamehash, "\n");
                         domainburnlist.push_back(domainnamehash);
@@ -918,6 +920,7 @@ namespace fioio {
             //check if we have enough to remove already, if not move on to the addresses
             if (burnlist.size() < numbertoburn) {
 
+                auto nameexpidx = fionames.get_index<"byexpiration"_n>();
                 //add addresses to the burn list until 100 total. if 100 total continue the loop. or exahaust the expired addresses
                 auto nameiter = nameexpidx.lower_bound(minexpiration);
 

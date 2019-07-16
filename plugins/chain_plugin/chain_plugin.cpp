@@ -1530,13 +1530,25 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     string status = "requested";
 
                     if (!(request_status_rows_result.rows.empty())) {
-                        uint64_t statusintV = request_status_rows_result.rows[0]["status"].as_uint64();
-                        if (statusintV == 0) {
-                            status = "requested";
-                        } else if (statusintV == 1) {
-                            status = "rejected";
-                        } else if (statusintV == 2) {
-                            status = "sent_to_blockchain";
+                        for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
+                           uint64_t reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
+                           uint64_t statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+
+                          if (reqid == fio_request_id) {
+                             dlog("request status of item : '${size}'", ("size", statusintV));
+
+                             if (statusintV == 0) {
+                                status = "requested";
+                             } else if (statusintV == 1) {
+                                status = "rejected";
+                             } else if (statusintV == 2) {
+                                status = "sent_to_blockchain";
+                             }
+                             break; //exit the loop after finding the first.
+
+                          } else{
+                             dlog("index table search on secondary index returned fio request id: '${size}' instead of '${reqid}", ("size", reqid)("reqid",fio_request_id));
+                          }
                         }
                     }
 
@@ -1544,9 +1556,11 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                              payee_fio_public_key, content, time_stamp, status};
 
                     result.requests.push_back(rr);
+
+
                 } // Get request statuses
             }
-
+            
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             return result;
         }
