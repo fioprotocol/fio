@@ -263,14 +263,9 @@ namespace eosio {
 
         fio_fees(actor, reg_fee_asset);
 
-        if (!tpid.empty()) {
-          action(
-          permission_level{get_self(),"active"_n},
-          "fio.tpid"_n,
-          "updatetpid"_n,
-          std::make_tuple(tpid, new_account_name, reg_amount / 10)
-          ).send();
-        }
+        process_rewards(tpid, reg_amount, get_self());
+
+
 
         require_recipient(actor);
         //require recipient if the account was found on the chain.

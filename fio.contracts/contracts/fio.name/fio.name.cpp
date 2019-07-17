@@ -119,7 +119,7 @@ namespace fioio {
                     };
 
                     const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
-                   
+
                     //create account
                     INLINE_ACTION_SENDER(call::eosio, newaccount)
                             ("eosio"_n, {{_self, "active"_n}},
@@ -380,14 +380,8 @@ namespace fioio {
                 print(reg_fee_asset.amount);
                 //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
                 fio_fees(actor, reg_fee_asset);
-                if (!tpid.empty()) {
-                  action(
-                  permission_level{get_self(),"active"_n},
-                  "fio.tpid"_n,
-                  "updatetpid"_n,
-                  std::make_tuple(tpid, actor, reg_amount / 10)
-                  ).send();
-                }
+                process_rewards(tpid, reg_amount, get_self());
+
             }
 
             return fee_amount;
@@ -440,8 +434,7 @@ namespace fioio {
 
 
         [[eosio::action]]
-        void
-        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
+        void regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor, const string &tpid) {
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
@@ -479,15 +472,8 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
+            process_rewards(tpid, reg_amount, get_self());
 
-            if (!tpid.empty()) {
-              action(
-                     permission_level{get_self(),"active"_n},
-                     "fio.tpid"_n,
-                     "updatetpid"_n,
-                     std::make_tuple(tpid, nm, reg_amount / 10)
-              ).send();
-            }
 
             //end new fees, logic for Mandatory fees.
 
@@ -542,14 +528,8 @@ namespace fioio {
 
 
             fio_fees(actor, reg_fee_asset);
-            if (!tpid.empty()) {
-              action(
-              permission_level{get_self(),"active"_n},
-              "fio.tpid"_n,
-              "updatetpid"_n,
-              std::make_tuple(tpid,actor, reg_amount / 10)
-              ).send();
-            }
+            process_rewards(tpid, reg_amount, get_self());
+
             //end new fees, logic for Mandatory fees.
 
             nlohmann::json json = {{"status",        "OK"},
@@ -616,14 +596,9 @@ namespace fioio {
 
 
             fio_fees(actor, reg_fee_asset);
-            if (!tpid.empty()) {
-                action(
-                        permission_level{get_self(),"active"_n},
-                        "fio.tpid"_n,
-                        "updatetpid"_n,
-                        std::make_tuple(tpid, actor, reg_amount / 10)
-                ).send();
-            }
+
+            process_rewards(tpid, reg_amount, get_self());
+
 
             //end new fees, logic for Mandatory fees.
 
@@ -710,17 +685,8 @@ namespace fioio {
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
 
-            fio_fees(actor, reg_fee_asset);
 
-
-            if (!tpid.empty()) {
-              action(
-              permission_level{get_self(),"active"_n},
-              "fio.tpid"_n,
-              "updatetpid"_n,
-              std::make_tuple(tpid, actor, reg_amount / 10)
-              ).send();
-            }
+            process_rewards(tpid, reg_amount, get_self());
 
             //end new fees, logic for Mandatory fees.
 
@@ -1054,15 +1020,7 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
-
-            if (!tpid.empty()) {
-                action(
-                        permission_level{get_self(), "active"_n},
-                        "fio.tpid"_n,
-                        "updatetpid"_n,
-                        std::make_tuple(tpid, actor, reg_amount / 10)
-                ).send();
-            }
+            process_rewards(tpid, reg_amount, get_self());
 
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    expiration},
