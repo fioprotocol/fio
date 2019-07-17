@@ -94,7 +94,7 @@ namespace fioio {
             ).send();
         }
 
-      } //end if lasttpidpayout < now() 30
+      } //end if lasttpidpayout < now() 60
 
        nlohmann::json json = {{"status",        "OK"},
                               {"tpids_paid",    tpids_paid}};
@@ -128,7 +128,7 @@ namespace fioio {
         if (bps_paid >= 100) break;
       }
 
-
+    }
 
 
 
@@ -215,14 +215,13 @@ namespace fioio {
 
        for(auto &itr : tpids) {
 
-
-
        }
 
 
 
-    }
-  }
+     }
+   }
+
 
   }; //class TPIDController
 

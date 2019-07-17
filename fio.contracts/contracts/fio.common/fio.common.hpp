@@ -123,7 +123,7 @@ namespace fioio {
         permission_level{actor,"active"_n},
         "fio.tpid"_n,
         "updatetpid"_n,
-        std::make_tuple(tpid, amount / 10)
+        std::make_tuple(tpid, actor, amount / 10)
         ).send();
 
 
