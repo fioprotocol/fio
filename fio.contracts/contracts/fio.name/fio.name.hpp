@@ -45,7 +45,7 @@ namespace fioio {
 
     //Where fioname tokens are stored
     typedef multi_index<"fionames"_n, fioname,
-            indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
+    indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
     indexed_by<"byexpiration"_n, const_mem_fun<fioname, uint64_t, &fioname::by_expiration>>,
     indexed_by<"byowner"_n, const_mem_fun<fioname, uint64_t, &fioname::by_owner>>
     >

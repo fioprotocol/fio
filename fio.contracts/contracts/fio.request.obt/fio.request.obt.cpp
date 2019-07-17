@@ -76,9 +76,7 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-                if(!tpid.empty()) {
-                  process_tpid(tpid, name(actor));
-                }
+
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found in obt json blob", ErrorInvalidJsonInput);
@@ -202,7 +200,7 @@ namespace fioio {
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
                   "updatetpid"_n,
-                  std::make_tuple(tpid, fee_amount / 10)
+                  std::make_tuple(tpid, aactor, fee_amount / 10)
                   ).send();
                 }
 
@@ -229,29 +227,6 @@ namespace fioio {
             }
         }
 
-        inline void process_tpid(const string &tpid, name owner) {
-
-            uint64_t hashname = string_to_uint64_hash(tpid.c_str());
-            print("process tpid hash of name ", tpid, " is value ", hashname ,"\n");
-
-            auto iter = tpids.find(hashname);
-            if (iter == tpids.end()){
-                print("process tpid, tpid not found ","\n");
-                //tpid does not exist. do nothing.
-            }
-            else{
-                print("process tpid, found a tpid ","\n");
-                //tpid exists, use the info to find the owner of the tpid
-                auto iternm = fionames.find(iter->fioaddhash);
-                if (iternm != fionames.end()) {
-                    print("process found the fioname associated with the TPID in the fionames ","\n");
-                    name proxy_name = name(iternm->owner_account);
-                    //do the auto proxy
-                    // autoproxy(proxy_name,owner);
-                }
-            }
-        }
-
         /***
         * this action will record a send using Obt. the input json will be verified, if verification fails an exception will be thrown.
         * if verification succeeds then status tables will be updated...
@@ -266,9 +241,7 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-              if(!tpid.empty()) {
-                process_tpid(tpid, name(actor));
-              }
+
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not specified",
@@ -335,6 +308,8 @@ namespace fioio {
                 frc.payee_fio_address = toHash;
                 frc.content = content;
                 frc.time_stamp = currentTime;
+                frc.payer_fio_addr = payer_fio_address;
+                frc.payee_fio_addr = payee_fio_address;
             });
 
 
@@ -390,7 +365,7 @@ namespace fioio {
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
                   "updatetpid"_n,
-                  std::make_tuple(tpid, fee_amount / 10)
+                  std::make_tuple(tpid, aActor, fee_amount / 10)
                   ).send();
                 }
             }
@@ -411,9 +386,6 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
-          if(!tpid.empty()) {
-            process_tpid(tpid, name(actor));
-          }
 
             print("call new funds request\n");
 
@@ -531,7 +503,7 @@ namespace fioio {
                   permission_level{get_self(),"active"_n},
                   "fio.tpid"_n,
                   "updatetpid"_n,
-                  std::make_tuple(tpid, fee_amount / 10)
+                  std::make_tuple(tpid,aactor, fee_amount / 10)
                   ).send();
                 }
             }

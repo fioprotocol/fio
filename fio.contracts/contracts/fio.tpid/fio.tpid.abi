@@ -16,17 +16,20 @@
               "name": "tpid",
               "type": "string"
               }]
-              },{
+            },{
               "name": "updatetpid",
               "base": "",
-              "fields": [{
-              "name": "tpid",
-              "type": "string"
-              },{
-              "name": "amount",
-              "type": "uint64"
-              }]
-              },{
+                "fields": [{
+                    "name": "tpid",
+                    "type": "string"
+                },{
+                    "name": "owner",
+                    "type": "name"
+                },{
+                    "name": "amount",
+                    "type": "uint64"
+                }]
+            },{
               "name": "rewardspaid",
               "base": "",
               "fields": [{

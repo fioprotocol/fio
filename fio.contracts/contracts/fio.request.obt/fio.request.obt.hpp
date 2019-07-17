@@ -35,6 +35,8 @@ namespace fioio {
         uint64_t payee_fio_address;    // requestor fio address of the fio request
         string content;      // encrypted content
         uint64_t time_stamp;      // FIO blockchain request received timestamp
+        string payer_fio_addr;
+        string payee_fio_addr;
 
         uint64_t primary_key() const { return fio_request_id; }
 
@@ -43,7 +45,7 @@ namespace fioio {
         uint64_t by_originator() const { return payee_fio_address; }
 
         EOSLIB_SERIALIZE(fioreqctxt,
-        (fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp)
+        (fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp)(payer_fio_addr)(payee_fio_addr)
         )
     };
 

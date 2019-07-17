@@ -1460,12 +1460,13 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
-                // Look through the keynames lookup results and push the fio_addresses into results
                 for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                     uint64_t payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
                     uint64_t payee_hash_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
+                    string payer_address = requests_rows_result.rows[pos]["payer_fio_addr"].as_string();
+                    string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                     string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
@@ -1482,27 +1483,28 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     get_table_rows_result fioname_result =
                             get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
 
-                    FIO_404_ASSERT(!fioname_result.rows.empty(), "No FIO Requests",
-                                   fioio::ErrorNoFioRequestsFound);
-
-                    dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
-                    name account = name{fioname_result.rows[0]["owner_account"].as_string()};
-                    dlog("STRING : '${size}'", ("size", account));
-
-                    read_only::get_table_rows_result account_result;
-                    GetFIOAccount(account, account_result);
-
-                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                   fioio::ErrorPubAddressNotFound);
-
-                    string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-                    dlog("fio key: '${size}'", ("size", payer_fio_public_key));
-
-                    address_hash = ::eosio::string_to_uint64_t(to_fioadd.c_str());
-                    string from_fioadd = fioname_result.rows[0]["name"].as_string(); //incorrect
                     string payee_fio_public_key = p.fio_public_key;
-                    //account_result2.rows[0]["clientkey"].as_string();
+                    string payer_fio_public_key = "NotFound";
+                    address_hash = ::eosio::string_to_uint64_t(to_fioadd.c_str());
+                    if (fioname_result.rows.empty()){
 
+                    }
+                    else {  //get the payer public key, if the payer account was burned this becomes impossible
+
+                        dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
+                        name account = name{fioname_result.rows[0]["owner_account"].as_string()};
+                        dlog("STRING : '${size}'", ("size", account));
+
+                        read_only::get_table_rows_result account_result;
+                        GetFIOAccount(account, account_result);
+
+                        FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
+                                       fioio::ErrorPubAddressNotFound);
+
+                        payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
+                        dlog("fio key: '${size}'", ("size", payer_fio_public_key));
+
+                    }
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
@@ -1530,23 +1532,37 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     string status = "requested";
 
                     if (!(request_status_rows_result.rows.empty())) {
-                        uint64_t statusintV = request_status_rows_result.rows[0]["status"].as_uint64();
-                        if (statusintV == 0) {
-                            status = "requested";
-                        } else if (statusintV == 1) {
-                            status = "rejected";
-                        } else if (statusintV == 2) {
-                            status = "sent_to_blockchain";
+                        for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
+                           uint64_t reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
+                           uint64_t statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+
+                          if (reqid == fio_request_id) {
+                             dlog("request status of item : '${size}'", ("size", statusintV));
+
+                             if (statusintV == 0) {
+                                status = "requested";
+                             } else if (statusintV == 1) {
+                                status = "rejected";
+                             } else if (statusintV == 2) {
+                                status = "sent_to_blockchain";
+                             }
+                             break; //exit the loop after finding the first.
+
+                          } else{
+                             dlog("index table search on secondary index returned fio request id: '${size}' instead of '${reqid}", ("size", reqid)("reqid",fio_request_id));
+                          }
                         }
                     }
 
-                    request_status_record rr{fio_request_id, from_fioadd, to_fioadd, payer_fio_public_key,
+                    request_status_record rr{fio_request_id, payer_address, payee_address, payer_fio_public_key,
                                              payee_fio_public_key, content, time_stamp, status};
 
                     result.requests.push_back(rr);
+
+
                 } // Get request statuses
             }
-
+            
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             return result;
         }
