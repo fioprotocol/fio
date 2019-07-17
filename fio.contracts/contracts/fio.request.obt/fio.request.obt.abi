@@ -20,7 +20,13 @@
         },{
           "name": "time_stamp",
           "type": "uint64"
-        }
+        },{
+          "name": "payer_fio_addr",
+          "type": "string"
+        },{
+          "name": "payee_fio_addr",
+          "type": "string"
+         }
       ]
     },{
       "name": "fioreqsts",

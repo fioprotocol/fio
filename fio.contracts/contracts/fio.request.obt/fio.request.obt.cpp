@@ -308,6 +308,8 @@ namespace fioio {
                 frc.payee_fio_address = toHash;
                 frc.content = content;
                 frc.time_stamp = currentTime;
+                frc.payer_fio_addr = payer_fio_address;
+                frc.payee_fio_addr = payee_fio_address;
             });
 
 
