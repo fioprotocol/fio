@@ -134,10 +134,6 @@ namespace eosio {
                              uint64_t max_fee,
                              name actor,
                              const string &tpid) {
-       if(!tpid.empty()) {
-         process_tpid(tpid, actor);
-       }
-
 
         asset qty;
         //we assume the amount is in fio sufs.
@@ -268,6 +264,7 @@ namespace eosio {
         fio_fees(actor, reg_fee_asset);
 
         process_rewards(tpid, reg_amount, get_self());
+
 
 
         require_recipient(actor);
