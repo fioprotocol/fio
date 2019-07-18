@@ -472,7 +472,7 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
-            process_rewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self());
 
 
             //end new fees, logic for Mandatory fees.
@@ -528,7 +528,7 @@ namespace fioio {
 
 
             fio_fees(actor, reg_fee_asset);
-            process_rewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self());
 
             //end new fees, logic for Mandatory fees.
 
@@ -597,7 +597,7 @@ namespace fioio {
 
             fio_fees(actor, reg_fee_asset);
 
-            process_rewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self());
 
 
             //end new fees, logic for Mandatory fees.
@@ -686,7 +686,7 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
 
-            process_rewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self());
 
             //end new fees, logic for Mandatory fees.
 

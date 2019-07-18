@@ -13,6 +13,7 @@
 #include "fio_common_validator.hpp"
 #include "chain_control.hpp"
 #include "account_operations.hpp"
+#include "fio.rewards.hpp"
 
 #ifndef FEE_CONTRACT
 #define FEE_CONTRACT "fio.fee"
@@ -117,44 +118,6 @@ namespace fioio {
         return value;
     }
 
-    void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
-      action(
-      permission_level{actor,"active"_n},
-      "fio.treasury"_n,
-      "fdtnrwdupdat"_n,
-      std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
-      ).send();
-
-
-
-      if (!tpid.empty()) {
-        action(
-        permission_level{actor,"active"_n},
-        "fio.tpid"_n,
-        "updatetpid"_n,
-        std::make_tuple(tpid, actor, amount / 10)
-        ).send();
-
-
-        action(
-        permission_level{actor,"active"_n},
-        "fio.treasury"_n,
-        "bprewdupdate"_n,
-        std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
-        ).send();
-
-    } else {
-
-      action(
-      permission_level{actor,"active"_n},
-      "fio.treasury"_n,
-      "bprewdupdate"_n,
-      std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
-      ).send();
-
-    }
-
-    }
 
 } // namespace fioio

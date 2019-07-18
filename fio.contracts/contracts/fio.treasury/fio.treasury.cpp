@@ -10,6 +10,7 @@ namespace fioio {
       fionames_table fionames;
       rewards_table clockstate;
       bprewards_table bprewards;
+      bpbucketpool_table bucketrewards;
       fdtnrewards_table fdtnrewards;
       eosiosystem::producers_table producers;
 
@@ -25,7 +26,8 @@ namespace fioio {
                                                                       bprewards(_self, _self.value),
                                                                       clockstate(_self, _self.value),
                                                                       producers("eosio"_n, name("eosio").value),
-                                                                      fdtnrewards(_self, _self.value) {
+                                                                      fdtnrewards(_self, _self.value),
+                                                                      bucketrewards(_self, _self.value) {
         }
 
 
@@ -202,6 +204,31 @@ namespace fioio {
 
     // @abi action
     [[eosio::action]]
+    void bppoolupdate(uint64_t amount) {
+
+      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
+        "missing required authority of fio.system, fio.token, or fio.reqobt");
+
+        uint64_t size = std::distance(bucketrewards.begin(),bucketrewards.end());
+        if (size == 0)  {
+          bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
+            entry.rewards = amount;
+         });
+
+       } else {
+         auto found = bucketrewards.begin();
+         uint64_t reward = found->rewards;
+         reward += amount;
+         bucketrewards.erase(found);
+         bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
+           entry.rewards = reward;
+        });
+       }
+
+    }
+
+    // @abi action
+    [[eosio::action]]
     void fdtnrwdupdat(uint64_t amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
@@ -253,5 +280,5 @@ namespace fioio {
 
 
 
-  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(maintain))
+  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)(maintain))
 }
