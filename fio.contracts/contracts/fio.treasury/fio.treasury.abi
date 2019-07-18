@@ -39,7 +39,14 @@
                  {"name":"rewards",
                   "type":"uint64"},
               ]
-             }
+             },{
+             "name": "fdtnreward",
+             "base": "",
+             "fields": [
+                {"name":"rewards",
+                 "type":"uint64"},
+             ]
+            }
            ],
     "types": [],
     "actions": [{
@@ -80,7 +87,17 @@
             "uint64"
          ],
          "type": "bpreward"
-     }],
+     },{
+          "name": "fdtnrewards",
+          "index_type": "i64",
+          "key_names": [
+             "rewards"
+          ],
+          "key_types": [
+             "uint64"
+          ],
+          "type": "fdtnreward"
+      }],
     "ricardian_clauses": [],
     "variants": [],
     "abi_extensions": []

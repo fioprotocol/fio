@@ -118,6 +118,16 @@ namespace fioio {
     }
 
     void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
+
+      action(
+      permission_level{actor,"active"_n},
+      "fio.treasury"_n,
+      "fdtnrwdupdat"_n,
+      std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
+      ).send();
+
+
+
       if (!tpid.empty()) {
         action(
         permission_level{actor,"active"_n},
