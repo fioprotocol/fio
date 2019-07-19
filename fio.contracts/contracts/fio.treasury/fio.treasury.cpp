@@ -13,6 +13,7 @@ namespace fioio {
       bpbucketpool_table bucketrewards;
       fdtnrewards_table fdtnrewards;
       eosiosystem::producers_table producers;
+      bool rewardspaid;
 
       uint64_t lasttpidpayout;
 
@@ -28,6 +29,7 @@ namespace fioio {
                                                                       producers("eosio"_n, name("eosio").value),
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
+
         }
 
 
@@ -77,7 +79,6 @@ namespace fioio {
 
                  }
 
-
                action(permission_level{get_self(), "active"_n},
                       "fio.tpid"_n, "rewardspaid"_n,
                       make_tuple(itr.fioaddress)
@@ -111,28 +112,63 @@ namespace fioio {
     [[eosio::action]]
     void bpclaim(const name& actor) {
 
-    require_auth(actor);
+      require_auth(actor);
 
-    uint64_t bps_paid = 0;
-    //If the contract has not been invoked yet, this will execute and set the initial block time
-    auto clockiter = clockstate.begin();
+      uint64_t bps_paid = 0;
+      //If the contract has not been invoked yet, this will execute and set the initial block time
+      auto clockiter = clockstate.begin();
 
-    //This contract should only be able to iterate throughout the entire tpids table to
-    //to check for rewards once every x blocks.
-     if( now() > clockiter->lastbppayout + 172800 ) {
+      //This contract should only be able to iterate throughout the entire tpids table to
+      //to check for rewards once every x blocks.
+    //   if( now() > clockiter->lastbppayout ) { // + 172800
 
 
+      uint64_t size = std::distance(producers.begin(),producers.end());
 
       for(auto &itr : producers) {
+        auto rewarditer = bprewards.begin();
+        uint64_t reward = rewarditer->rewards;
+        uint64_t payout = reward / size;
+        
+        //  print(rewarditer->rewards, " ", payout, " ", itr.owner, "--");
 
-        print("Test output","\n");
+          action(permission_level{get_self(), "active"_n},
+                "fio.token"_n, "transfer"_n,
+                make_tuple("fio.treasury"_n, name(itr.owner), asset(payout, symbol("FIO",9)),
+                string("Paying producer from treasury."))
+            ).send();
 
+      // Reduce the block producer reward equal to payout
+
+      reward -= payout;
+      bprewards.erase(rewarditer);
+      bprewards.emplace(_self, [&](struct bpreward& entry) {
+        entry.rewards = reward;
+     });
+
+     // PAY FOUNDATION //
+      auto fdtniter = fdtnrewards.begin();
+      if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
+          action(permission_level{get_self(), "active"_n},
+                "fio.token"_n, "transfer"_n,
+                make_tuple("fio.treasury"_n, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
+                string("Paying foundation from treasury."))
+              ).send();
+
+        //Clear the foundation rewards counter
+
+           fdtnrewards.erase(fdtniter);
+           fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
+             entry.rewards = 0;
+          });
+
+      }
 
         bps_paid++;
         if (bps_paid >= 100) break;
       }
 
-    }
+//    } //endif now() > clockiter
 
 
 
@@ -179,7 +215,7 @@ namespace fioio {
 
     // @abi action
     [[eosio::action]]
-    void bprewdupdate(uint64_t amount) {
+    void bprewdupdate(const uint64_t &amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
         "missing required authority of fio.system, fio.token, or fio.reqobt");
@@ -204,7 +240,7 @@ namespace fioio {
 
     // @abi action
     [[eosio::action]]
-    void bppoolupdate(uint64_t amount) {
+    void bppoolupdate(const uint64_t &amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
         "missing required authority of fio.system, fio.token, or fio.reqobt");
@@ -229,7 +265,7 @@ namespace fioio {
 
     // @abi action
     [[eosio::action]]
-    void fdtnrwdupdat(uint64_t amount) {
+    void fdtnrwdupdat(const uint64_t &amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
         "missing required authority of fio.system, fio.token, or fio.reqobt");
@@ -251,6 +287,28 @@ namespace fioio {
        }
 
     }
+
+
+    // @abi action
+    [[eosio::action]]
+    void fdtnrwdreset(const bool &paid) {
+
+      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
+        "missing required authority of fio.system, fio.token, or fio.reqobt");
+
+        if (!paid) {
+
+
+
+
+          rewardspaid = true;
+
+        }
+
+
+
+    }
+
 
     // maintain
     // Can only iterate through tpids table to be called once every 1200000 blocks
@@ -280,5 +338,5 @@ namespace fioio {
 
 
 
-  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)(maintain))
+  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)(bpclaim)(maintain))
 }
