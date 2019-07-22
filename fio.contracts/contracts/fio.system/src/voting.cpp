@@ -393,6 +393,11 @@ namespace eosiosystem {
 
     }
 
+    void system_contract::regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee ) {
+        //need to verify the account that owns the address is the actor.
+        regiproxy(actor,true);
+    }
+
     /**
      * this action will allow a caller to register a proxy for use in voting going forward.
      * or it will allow a caller to register as a proxy for use by others going forward.
@@ -401,11 +406,11 @@ namespace eosiosystem {
      *
      *  @param isproxy - true if proxy wishes to vote on behalf of others, false otherwise
      */
-    void system_contract::regproxy(const name proxy, bool isproxy) {
+    void system_contract::regiproxy(const name proxy, bool isproxy) {
 
        require_auth(proxy);
 
-       print ("called regproxy with proxy ",proxy, " isproxy ", isproxy,"\n");
+       print ("called regiproxy with proxy ",proxy, " isproxy ", isproxy,"\n");
 
         auto pitr = _voters.find(proxy.value);
         if (pitr != _voters.end()) {
