@@ -6,6 +6,7 @@
 #include "voting.cpp"
 #include "exchange_state.cpp"
 #include <fio.name/fio.name.hpp>
+#include <fio.fee/fio.fee.hpp>
 
 namespace eosiosystem {
 
@@ -19,7 +20,8 @@ namespace eosiosystem {
               _global3(_self, _self.value),
               _rammarket(_self, _self.value),
               _fionames(SystemContract, SystemContract.value),
-              _domains(SystemContract, SystemContract.value){
+              _domains(SystemContract, SystemContract.value),
+              _fiofees(FeeContract, FeeContract.value){
         //print( "construct system\n" );
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
         _gstate2 = _global2.exists() ? _global2.get() : eosio_global_state2{};
