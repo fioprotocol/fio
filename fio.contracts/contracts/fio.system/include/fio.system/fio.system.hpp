@@ -607,7 +607,10 @@ public:
     void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
-    void regproxy(const name proxy, bool isproxy);
+    void regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+
+    [[eosio::action]]
+    void regiproxy(const name proxy, bool isproxy);
 
     [[eosio::action]]
     void setparams(const eosio::blockchain_parameters &params);
@@ -666,6 +669,7 @@ public:
     using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;
     using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
+    using regiproxy_action = eosio::action_wrapper<"regiproxy"_n, &system_contract::regiproxy>;
     using crautoproxy_action = eosio::action_wrapper<"crautoproxy"_n, &system_contract::crautoproxy>;
     using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
     using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
