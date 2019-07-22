@@ -8,6 +8,7 @@
 #include <eosiolib/time.hpp>
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
+#include <fio.name/fio.name.hpp>
 #include "native.hpp"
 #include "exchange_state.hpp"
 
@@ -351,6 +352,8 @@ private:
     eosio_global_state2 _gstate2;
     eosio_global_state3 _gstate3;
     rammarket _rammarket;
+    fioio::fionames_table _fionames;
+    fioio::domains_table _domains;
 
 public:
     static constexpr eosio::name active_permission{"active"_n};
