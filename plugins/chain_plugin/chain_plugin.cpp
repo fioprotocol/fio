@@ -2869,6 +2869,134 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
         }
 
         /***
+* unregister_proxy - This enpoint will set the specified fio address account to no longer be a proxy.
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+        void read_write::unregister_proxy(const read_write::unregister_proxy_params &params,
+                                        next_function <read_write::unregister_proxy_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("unregister_proxy called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                        next(read_write::unregister_proxy_results{output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+
+
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+
+        /***
+ * register_proxy - This enpoint will set the specified fio address account to be a proxy.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::register_proxy(const read_write::register_proxy_params &params,
+                                      next_function <read_write::register_proxy_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("register_proxy called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                        next(read_write::register_proxy_results{output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+
+
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+        void read_write::register_producer(const read_write::register_producer_params &params,
+                                           next_function <read_write::register_producer_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("register_proxy called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::register_producer_results{output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        /***
  * renew_domain - This endpoint will renew the specified domain.
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)

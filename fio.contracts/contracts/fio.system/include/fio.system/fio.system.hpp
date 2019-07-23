@@ -8,6 +8,8 @@
 #include <eosiolib/time.hpp>
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
+#include <fio.name/fio.name.hpp>
+#include <fio.fee/fio.fee.hpp>
 #include "native.hpp"
 #include "exchange_state.hpp"
 
@@ -351,6 +353,10 @@ private:
     eosio_global_state2 _gstate2;
     eosio_global_state3 _gstate3;
     rammarket _rammarket;
+    fioio::fionames_table _fionames;
+    fioio::domains_table _domains;
+    fioio::fiofee_table _fiofees;
+    fioio::eosio_names_table _accountmap;
 
 public:
     static constexpr eosio::name active_permission{"active"_n};
@@ -586,7 +592,11 @@ public:
     // functions defined in voting.cpp
 
     [[eosio::action]]
-    void regproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location);
+    void regiproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location);
+
+    [[eosio::action]]
+    void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
+                     uint16_t max_fee);
 
     [[eosio::action]]
     void unregprod(const name producer);
@@ -607,7 +617,13 @@ public:
     void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
-    void regproxy(const name proxy, bool isproxy);
+    void unregproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+
+    [[eosio::action]]
+    void regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+
+    [[eosio::action]]
+    void regiproxy(const name proxy, const string &fio_address, bool isproxy);
 
     [[eosio::action]]
     void setparams(const eosio::blockchain_parameters &params);
@@ -661,11 +677,13 @@ public:
     using sellram_action = eosio::action_wrapper<"sellram"_n, &system_contract::sellram>;
     using refund_action = eosio::action_wrapper<"refund"_n, &system_contract::refund>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
+    using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
     using setram_action = eosio::action_wrapper<"setram"_n, &system_contract::setram>;
     using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;
     using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
+    using regiproxy_action = eosio::action_wrapper<"regiproxy"_n, &system_contract::regiproxy>;
     using crautoproxy_action = eosio::action_wrapper<"crautoproxy"_n, &system_contract::crautoproxy>;
     using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
     using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
