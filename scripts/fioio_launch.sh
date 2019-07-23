@@ -153,7 +153,7 @@ if [ $mChoice == 1 ]; then
     fi
 
     #start the bios node, this starts up, and eventually goes into dormancy.
-    ./nodeos --http-server-address localhost:8879 --p2p-listen-endpoint localhost:9876 --config-dir=$HOME/node1 --http-validate-host=0 --enable-stale-production --producer-name eosio --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin  --contracts-console 2> $oldpath/../node1.txt &
+    ./nodeos --max-transaction-time=6000 --http-server-address localhost:8879 --p2p-listen-endpoint localhost:9876 --config-dir=$HOME/node1 --http-validate-host=0 --enable-stale-production --producer-name eosio --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin  --contracts-console 2> $oldpath/../node1.txt &
     sleep 3s
     #start the first BP node
     ./nodeos --max-transaction-time=6000 --producer-name inita --producer-name fioproducerd --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8889 --http-validate-host=0 --p2p-listen-endpoint :9877 --p2p-peer-address localhost:9876 --config-dir $HOME/node2 --data-dir $HOME/node2 --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node2.txt &
