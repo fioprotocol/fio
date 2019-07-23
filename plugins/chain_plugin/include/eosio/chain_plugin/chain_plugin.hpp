@@ -1163,9 +1163,8 @@ FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
 )
 
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (processed)
-
+)
 FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results,(processed)
-
 )
 FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results,(processed)
 )
