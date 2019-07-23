@@ -153,7 +153,7 @@ if [ $mChoice == 1 ]; then
     fi
 
     #start the bios node, this starts up, and eventually goes into dormancy.
-    ./nodeos --http-server-address localhost:8879 --p2p-listen-endpoint localhost:9876 --config-dir=$HOME/node1 --http-validate-host=0 --enable-stale-production --producer-name eosio --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin  --contracts-console 2> $oldpath/../node1.txt &
+    ./nodeos --max-transaction-time=6000 --http-server-address localhost:8879 --p2p-listen-endpoint localhost:9876 --config-dir=$HOME/node1 --http-validate-host=0 --enable-stale-production --producer-name eosio --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin  --contracts-console 2> $oldpath/../node1.txt &
     sleep 3s
     #start the first BP node
     ./nodeos --max-transaction-time=6000 --producer-name inita --producer-name fioproducerd --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8889 --http-validate-host=0 --p2p-listen-endpoint :9877 --p2p-peer-address localhost:9876 --config-dir $HOME/node2 --data-dir $HOME/node2 --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node2.txt &
@@ -313,6 +313,7 @@ if [ $mChoice == 1 ]; then
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"set_fio_domain_public","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_producer","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_proxy","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"unregister_proxy","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
 
 
     echo setting accounts
@@ -335,6 +336,13 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"euwdcp13zlrj","tpid":"adam:dapix"}' --permission euwdcp13zlrj@active
     echo ada
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"smooshface"}' --permission r41zuwovtn44@active
+
+    #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
+    #then we give that record some votes...after doing this we can run the register_proxy signing script and this
+    #tests the logic when there is already a record in the voters table for this account....
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"1"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"0"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 system voteproducer prods htjonrkf1lgs fioproducera fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
 
 
 elif [ $mChoice == 3 ]; then

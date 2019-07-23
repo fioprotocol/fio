@@ -617,10 +617,13 @@ public:
     void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
+    void unregproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+
+    [[eosio::action]]
     void regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
 
     [[eosio::action]]
-    void regiproxy(const name proxy, bool isproxy);
+    void regiproxy(const name proxy, const string &fio_address, bool isproxy);
 
     [[eosio::action]]
     void setparams(const eosio::blockchain_parameters &params);

@@ -865,6 +865,16 @@ namespace eosio {
             void register_producer(const register_producer_params &params,
                                    chain::plugin_interface::next_function <register_producer_results> next);
             //end register_producer
+          
+            //begin unregister_proxy
+            using unregister_proxy_params = fc::variant_object;
+            struct unregister_proxy_results {
+                fc::variant processed;
+            };
+
+            void unregister_proxy(const unregister_proxy_params &params,
+                                chain::plugin_interface::next_function <unregister_proxy_results> next);
+            //end unregister_proxy
 
             //begin register_proxy
             using register_proxy_params = fc::variant_object;
@@ -1151,7 +1161,11 @@ FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (tran
 )
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
 )
+
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (processed)
+
+FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results,(processed)
+
 )
 FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results,(processed)
 )

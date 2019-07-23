@@ -130,6 +130,8 @@ namespace eosio {
                                                          chain_apis::read_write::burn_expired_results, 202),
                                      CHAIN_RW_CALL_ASYNC(register_producer,
                                                          chain_apis::read_write::register_producer_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(unregister_proxy,
+                                                         chain_apis::read_write::unregister_proxy_results, 202),
                                      CHAIN_RW_CALL_ASYNC(register_proxy,
                                                          chain_apis::read_write::register_proxy_results, 202),
                                      CHAIN_RW_CALL_ASYNC(renew_fio_domain,
