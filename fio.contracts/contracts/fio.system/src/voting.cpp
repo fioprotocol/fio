@@ -489,6 +489,9 @@ namespace eosiosystem {
             //commented out these lines to create the newly desired behavior as described in the above comments.
             //we dont want exceptions if the proxy has a proxy specified, we just move along.
             //check(isproxy != pitr->is_proxy, "action has no effect");
+            //if the values are equal and isproxy false
+            fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "public_address", "",
+                           "Already registered as proxy. ", ErrorPubAddressExist);
             //check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
             if (isproxy && !pitr->proxy) {
                 _voters.modify(pitr, same_payer, [&](auto &p) {
