@@ -432,7 +432,7 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        regiproxy(actor,true);
+        regiproxy(actor,fio_address,true);
 
         //begin new fees, logic for Mandatory fees.
         uint64_t endpoint_hash = string_to_uint64_hash("register_proxy");
@@ -478,7 +478,7 @@ namespace eosiosystem {
      *
      *  @param isproxy - true if proxy wishes to vote on behalf of others, false otherwise
      */
-    void system_contract::regiproxy(const name proxy, bool isproxy) {
+    void system_contract::regiproxy(const name proxy, const string &fio_address, bool isproxy) {
 
        require_auth(proxy);
 
@@ -486,11 +486,9 @@ namespace eosiosystem {
 
         auto pitr = _voters.find(proxy.value);
         if (pitr != _voters.end()) {
-            //commented out these lines to create the newly desired behavior as described in the above comments.
-            //we dont want exceptions if the proxy has a proxy specified, we just move along.
-            //check(isproxy != pitr->is_proxy, "action has no effect");
-            //if the values are equal and isproxy false
-            fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "public_address", "",
+
+            //if the values are equal and isproxy, then show this error.
+            fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "public_address", fio_address,
                            "Already registered as proxy. ", ErrorPubAddressExist);
             //check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
             if (isproxy && !pitr->proxy) {
