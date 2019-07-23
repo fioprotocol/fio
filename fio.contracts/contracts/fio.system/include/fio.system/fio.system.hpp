@@ -356,6 +356,7 @@ private:
     fioio::fionames_table _fionames;
     fioio::domains_table _domains;
     fioio::fiofee_table _fiofees;
+    fioio::eosio_names_table _accountmap;
 
 public:
     static constexpr eosio::name active_permission{"active"_n};
@@ -591,7 +592,11 @@ public:
     // functions defined in voting.cpp
 
     [[eosio::action]]
-    void regproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location);
+    void regiproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location);
+
+    [[eosio::action]]
+    void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
+                     uint16_t max_fee);
 
     [[eosio::action]]
     void unregprod(const name producer);
@@ -672,6 +677,7 @@ public:
     using sellram_action = eosio::action_wrapper<"sellram"_n, &system_contract::sellram>;
     using refund_action = eosio::action_wrapper<"refund"_n, &system_contract::refund>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
+    using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
     using setram_action = eosio::action_wrapper<"setram"_n, &system_contract::setram>;
     using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;

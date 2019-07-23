@@ -241,14 +241,14 @@ if [ $mChoice == 1 ]; then
 
         echo did eosio init
         sleep 5
-        echo calling regproducer
+        echo calling regiproducer
         #register the desired producers, note this does not yet turn on block production because teh necessary amount of
         #fio is not yet in circulation, and there are no votes.
         #it just registers these BP.
-        ./cleos -u http://localhost:8879 push action eosio regproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducera
-        ./cleos -u http://localhost:8879 push action eosio regproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerb
-        ./cleos -u http://localhost:8879 push action eosio regproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerc
-        ./cleos -u http://localhost:8879 push action eosio regproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerd
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducera
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerb
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerc
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerd
         sleep 5
         ./cleos -u http://localhost:8879 system listproducers
 
@@ -311,6 +311,7 @@ if [ $mChoice == 1 ]; then
      ./cleos -u http://localhost:8879 push action -j fio.fee create '{"end_point":"reject_funds_request","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8879 push action -j fio.fee create '{"end_point":"record_send","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"set_fio_domain_public","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_producer","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_proxy","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"unregister_proxy","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
 
