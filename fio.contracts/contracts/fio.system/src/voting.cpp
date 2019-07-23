@@ -76,7 +76,18 @@ namespace eosiosystem {
             });
         }
     }
+    
+    static constexpr eosio::name token_account{"fio.token"_n};
+    static constexpr eosio::name treasury_account{"fio.treasury"_n};
 
+    inline void fio_fees(const name &actor, const asset &fee)  {
+            action(permission_level{actor, "active"_n},
+                   token_account, "transfer"_n,
+                   make_tuple(actor, treasury_account, fee,
+                              string("FIO API fees. Thank you."))
+            ).send();
+    }
+    
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
                                  uint16_t max_fee) {
@@ -107,7 +118,7 @@ namespace eosiosystem {
                        ErrorDomainExpired);
 
         auto key_iter = _accountmap.find(account);
-        const auto owner_pubkey = abieos::string_to_public_key(key_iter->owner);
+        const auto owner_pubkey = abieos::string_to_public_key(key_iter->clientkey);
 
         regiproducer(actor, owner_pubkey, url, location);
 
@@ -458,18 +469,6 @@ namespace eosiosystem {
         }else{
             print("could not find the tpid ",proxy, " in the voters table or this voter is not a proxy","\n");
         }
-
-    }
-
-    static constexpr eosio::name token_account{"fio.token"_n};
-    static constexpr eosio::name treasury_account{"fio.treasury"_n};
-
-    inline void fio_fees(const name &actor, const asset &fee)  {
-            action(permission_level{actor, "active"_n},
-                   token_account, "transfer"_n,
-                   make_tuple(actor, treasury_account, fee,
-                              string("FIO API fees. Thank you."))
-            ).send();
 
     }
 
