@@ -393,6 +393,18 @@ namespace eosiosystem {
 
     }
 
+    static constexpr eosio::name token_account{"fio.token"_n};
+    static constexpr eosio::name treasury_account{"fio.treasury"_n};
+
+    inline void fio_fees(const name &actor, const asset &fee)  {
+            action(permission_level{actor, "active"_n},
+                   token_account, "transfer"_n,
+                   make_tuple(actor, treasury_account, fee,
+                              string("FIO API fees. Thank you."))
+            ).send();
+
+    }
+
     void system_contract::regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee ) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
@@ -421,7 +433,42 @@ namespace eosiosystem {
                        ErrorDomainExpired);
 
         regiproxy(actor,true);
+
+        //begin new fees, logic for Mandatory fees.
+        uint64_t endpoint_hash = string_to_uint64_hash("register_proxy");
+
+        auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
+        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+        //if the fee isnt found for the endpoint, then 400 error.
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_proxy",
+                       "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+        uint64_t reg_amount = fee_iter->suf_amount;
+        uint64_t fee_type = fee_iter->type;
+
+        //if its not a mandatory fee then this is an error.
+        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                       "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
+                       ErrorNoEndpoint);
+
+        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                       ErrorMaxFeeExceeded);
+
+        asset reg_fee_asset;
+        reg_fee_asset.symbol = symbol("FIO",9);
+        reg_fee_asset.amount = reg_amount;
+        print(reg_fee_asset.amount);
+
+        fio_fees(actor, reg_fee_asset);
+
+        //end new fees, logic for Mandatory fees.
+
+        nlohmann::json json = {{"status",        "OK"},
+                               {"fee_collected", reg_amount}};
+        send_response(json.dump().c_str());
     }
+
+
 
     /**
      * this action will allow a caller to register a proxy for use in voting going forward.

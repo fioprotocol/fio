@@ -9,6 +9,7 @@
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
 #include <fio.name/fio.name.hpp>
+#include <fio.fee/fio.fee.hpp>
 #include "native.hpp"
 #include "exchange_state.hpp"
 
@@ -354,6 +355,7 @@ private:
     rammarket _rammarket;
     fioio::fionames_table _fionames;
     fioio::domains_table _domains;
+    fioio::fiofee_table _fiofees;
 
 public:
     static constexpr eosio::name active_permission{"active"_n};
