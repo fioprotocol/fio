@@ -21,6 +21,7 @@ namespace eosiosystem {
               _rammarket(_self, _self.value),
               _fionames(SystemContract, SystemContract.value),
               _domains(SystemContract, SystemContract.value),
+              _accountmap(SystemContact, SystemContract.value),
               _fiofees(FeeContract, FeeContract.value){
         //print( "construct system\n" );
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
@@ -471,7 +472,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         // delegate_bandwidth.cpp
         (buyrambytes)(buyram)(sellram)(delegatebw)(undelegatebw)(refund)
         // voting.cpp
-        (regproducer)(unregprod)(voteproducer)(setautoproxy)(crautoproxy)(regiproxy)(regproxy)
+        (regproducer)(regiproducer)(unregprod)(voteproducer)(setautoproxy)(crautoproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)
 (claimrewards)

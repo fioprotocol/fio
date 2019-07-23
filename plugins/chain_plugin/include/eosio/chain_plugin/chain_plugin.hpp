@@ -856,6 +856,16 @@ namespace eosio {
 
             //end burn_expired
 
+            //begin register_producer
+            using register_producer_params = fc::variant_object;
+            struct register_producer_results {
+                fc::variant processed;
+            };
+
+            void register_producer(const register_producer_params &params,
+                                   chain::plugin_interface::next_function <register_producer_results> next);
+            //end register_producer
+
             //begin register_proxy
             using register_proxy_params = fc::variant_object;
             struct register_proxy_results {
@@ -1140,6 +1150,8 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results,(processed)
 )
