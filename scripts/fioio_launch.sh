@@ -335,6 +335,13 @@ if [ $mChoice == 1 ]; then
     echo ada
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"smooshface"}' --permission r41zuwovtn44@active
 
+    #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
+    #then we give that record some votes...after doing this we can run the register_proxy signing script and this
+    #tests the logic when there is already a record in the voters table for this account....
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","isproxy":"1"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","isproxy":"0"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 system voteproducer prods htjonrkf1lgs fioproducera fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
+
 
 elif [ $mChoice == 3 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. Yes 2. No): ' bChoice
