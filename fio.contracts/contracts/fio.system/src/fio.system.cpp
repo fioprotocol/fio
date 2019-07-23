@@ -21,7 +21,7 @@ namespace eosiosystem {
               _rammarket(_self, _self.value),
               _fionames(SystemContract, SystemContract.value),
               _domains(SystemContract, SystemContract.value),
-              _accountmap(SystemContact, SystemContract.value),
+              _accountmap(SystemContract, SystemContract.value),
               _fiofees(FeeContract, FeeContract.value){
         //print( "construct system\n" );
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
