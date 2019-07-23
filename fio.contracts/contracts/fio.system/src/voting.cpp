@@ -493,11 +493,13 @@ namespace eosiosystem {
             if (isproxy && !pitr->proxy) {
                 _voters.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
+                    p.is_auto_proxy = false;
                 });
             }else if (!isproxy) { //this is how we undo/clear a proxy
                 name nm;
                 _voters.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
+                    p.is_auto_proxy = false;
                     p.proxy = nm; //set to a null state, an uninitialized name,
                                   //we need to be sure this returns true on (!proxy) so other logic
                                   //areas work correctly.
