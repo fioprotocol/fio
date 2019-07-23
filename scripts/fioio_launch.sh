@@ -338,8 +338,8 @@ if [ $mChoice == 1 ]; then
     #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
     #then we give that record some votes...after doing this we can run the register_proxy signing script and this
     #tests the logic when there is already a record in the voters table for this account....
-    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","isproxy":"1"}' --permission htjonrkf1lgs@active
-    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","isproxy":"0"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"1"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"0"}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 system voteproducer prods htjonrkf1lgs fioproducera fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
 
 
