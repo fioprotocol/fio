@@ -612,6 +612,9 @@ public:
     void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
+    void unregproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+
+    [[eosio::action]]
     void regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
 
     [[eosio::action]]
