@@ -481,7 +481,9 @@ namespace eosiosystem {
 
         //need to verify the account that owns the address is the actor.
         auto fioname_iter = _fionames.find(nameHash);
-        fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+
+        fio_400_assert(fioname_iter != _fionames.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -545,7 +547,9 @@ namespace eosiosystem {
 
         //need to verify the account that owns the address is the actor.
         auto fioname_iter = _fionames.find(nameHash);
-        fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        fio_400_assert(fioname_iter != _fionames.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
+
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
