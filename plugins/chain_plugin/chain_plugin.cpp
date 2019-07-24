@@ -2220,69 +2220,76 @@ fc::variant get_global_row( const database& db, const abi_def& abi, const abi_se
    return abis.binary_to_variant(abis.get_table_type(N(global)), data, abi_serializer_max_time_ms, shorten_abi_errors );
 }
 
-read_only::get_producers_result read_only::get_producers( const read_only::get_producers_params& p ) const try {
-   const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
-   const auto table_type = get_table_type(abi, N(producers));
-   const abi_serializer abis{ abi, abi_serializer_max_time };
-   EOS_ASSERT(table_type == KEYi64, chain::contract_table_query_exception, "Invalid table type ${type} for table producers", ("type",table_type));
+        read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const try {
+            const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
+            const auto table_type = get_table_type(abi, N(producers));
+            const abi_serializer abis{abi, abi_serializer_max_time};
+            EOS_ASSERT(table_type == KEYi64, chain::contract_table_query_exception,
+                       "Invalid table type ${type} for table producers", ("type", table_type));
 
-   const auto& d = db.db();
-   const auto lower = name{p.lower_bound};
+            const auto &d = db.db();
+            const auto lower = name{p.lower_bound};
 
-   static const uint8_t secondary_index_num = 0;
-   const auto* const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-           boost::make_tuple(config::system_account_name, config::system_account_name, N(producers)));
-   const auto* const secondary_table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-           boost::make_tuple(config::system_account_name, config::system_account_name, N(producers) | secondary_index_num));
-   EOS_ASSERT(table_id && secondary_table_id, chain::contract_table_query_exception, "Missing producers table");
+            static const uint8_t secondary_index_num = 0;
+            const auto *const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(config::system_account_name, config::system_account_name, N(producers)));
+            const auto *const secondary_table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(config::system_account_name, config::system_account_name,
+                                      N(producers) | secondary_index_num));
+            EOS_ASSERT(table_id && secondary_table_id, chain::contract_table_query_exception,
+                       "Missing producers table");
 
-   const auto& kv_index = d.get_index<key_value_index, by_scope_primary>();
-   const auto& secondary_index = d.get_index<index_double_index>().indices();
-   const auto& secondary_index_by_primary = secondary_index.get<by_primary>();
-   const auto& secondary_index_by_secondary = secondary_index.get<by_secondary>();
+            const auto &kv_index = d.get_index<key_value_index, by_scope_primary>();
+            const auto &secondary_index = d.get_index<index_double_index>().indices();
+            const auto &secondary_index_by_primary = secondary_index.get<by_primary>();
+            const auto &secondary_index_by_secondary = secondary_index.get<by_secondary>();
 
-   read_only::get_producers_result result;
-   const auto stopTime = fc::time_point::now() + fc::microseconds(1000 * 10); // 10ms
-   vector<char> data;
+            read_only::get_producers_result result;
+            const auto stopTime = fc::time_point::now() + fc::microseconds(1000 * 10); // 10ms
+            vector<char> data;
 
-   auto it = [&]{
-      if(lower.value == 0)
-         return secondary_index_by_secondary.lower_bound(
-            boost::make_tuple(secondary_table_id->id, to_softfloat64(std::numeric_limits<double>::lowest()), 0));
-      else
-         return secondary_index.project<by_secondary>(
-            secondary_index_by_primary.lower_bound(
-               boost::make_tuple(secondary_table_id->id, lower.value)));
-   }();
+            auto it = [&] {
+                if (lower.value == 0)
+                    return secondary_index_by_secondary.lower_bound(
+                            boost::make_tuple(secondary_table_id->id,
+                                              to_softfloat64(std::numeric_limits<double>::lowest()), 0));
+                else
+                    return secondary_index.project<by_secondary>(
+                            secondary_index_by_primary.lower_bound(
+                                    boost::make_tuple(secondary_table_id->id, lower.value)));
+            }();
 
-   for( ; it != secondary_index_by_secondary.end() && it->t_id == secondary_table_id->id; ++it ) {
-      if (result.rows.size() >= p.limit || fc::time_point::now() > stopTime) {
-         result.more = name{it->primary_key}.to_string();
-         break;
-      }
-      copy_inline_row(*kv_index.find(boost::make_tuple(table_id->id, it->primary_key)), data);
-      if (p.json)
-         result.rows.emplace_back( abis.binary_to_variant( abis.get_table_type(N(producers)), data, abi_serializer_max_time, shorten_abi_errors ) );
-      else
-         result.rows.emplace_back(fc::variant(data));
-   }
+            for (; it != secondary_index_by_secondary.end() && it->t_id == secondary_table_id->id; ++it) {
+                if (result.producers.size() >= p.limit || fc::time_point::now() > stopTime) {
+                    result.more = name{it->primary_key}.to_string();
+                    break;
+                }
+                copy_inline_row(*kv_index.find(boost::make_tuple(table_id->id, it->primary_key)), data);
+                if (p.json)
+                    result.producers.emplace_back(
+                            abis.binary_to_variant(abis.get_table_type(N(producers)), data, abi_serializer_max_time,
+                                                   shorten_abi_errors));
+                else
+                    result.producers.emplace_back(fc::variant(data));
+            }
 
-   result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time, shorten_abi_errors)["total_producer_vote_weight"].as_double();
-   return result;
+            result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time,
+                                                               shorten_abi_errors)["total_producer_vote_weight"].as_double();
+            return result;
 } catch (...) {
-   read_only::get_producers_result result;
+            read_only::get_producers_result result;
 
-   for (auto p : db.active_producers().producers) {
-      fc::variant row = fc::mutable_variant_object()
-         ("owner", p.producer_name)
-         ("producer_key", p.block_signing_key)
-         ("url", "")
-         ("total_votes", 0.0f);
+            for (auto p : db.active_producers().producers) {
+                fc::variant row = fc::mutable_variant_object()
+                        ("fio_address", p.producer_name)
+                        ("producer_key", p.block_signing_key)
+                        ("url", "")
+                        ("total_votes", 0.0f);
 
-      result.rows.push_back(row);
-   }
+                result.producers.push_back(row);
+            }
 
-   return result;
+            return result;
 }
 
 read_only::get_producer_schedule_result read_only::get_producer_schedule( const read_only::get_producer_schedule_params& p ) const {

@@ -1385,7 +1385,7 @@ struct list_producers_subcommand {
                 return;
             }
             auto result = rawResult.as<eosio::chain_apis::read_only::get_producers_result>();
-            if (result.rows.empty()) {
+            if (result.producers.empty()) {
                 std::cout << "No producers found" << std::endl;
                 return;
             }
@@ -1393,7 +1393,7 @@ struct list_producers_subcommand {
             if (!weight)
                 weight = 1;
             printf("%-13s %-57s %-59s %s\n", "Producer", "Producer key", "Url", "Scaled votes");
-            for (auto &row : result.rows)
+            for (auto &row : result.producers)
                 printf("%-13.13s %-57.57s %-59.59s %1.4f\n",
                        row["owner"].as_string().c_str(),
                        row["producer_key"].as_string().c_str(),

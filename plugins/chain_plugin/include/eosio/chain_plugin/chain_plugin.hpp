@@ -501,13 +501,13 @@ namespace eosio {
             fc::variant get_currency_stats(const get_currency_stats_params &params) const;
 
             struct get_producers_params {
-                bool json = false;
+                bool json = true;
                 string lower_bound;
                 uint32_t limit = 50;
             };
 
             struct get_producers_result {
-                vector <fc::variant> rows; ///< one row per item, either encoded as hex string or JSON object
+                vector <fc::variant> producers; ///< one row per item, either encoded as hex string or JSON object
                 double total_producer_vote_weight;
                 string more; ///< fill lower_bound with this value to fetch more rows
             };
@@ -1197,7 +1197,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_result, (supply)(ma
 
 FC_REFLECT( eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)
 (limit))
-FC_REFLECT( eosio::chain_apis::read_only::get_producers_result, (rows)(total_producer_vote_weight)
+FC_REFLECT( eosio::chain_apis::read_only::get_producers_result, (producers)(total_producer_vote_weight)
 (more));
 
 FC_REFLECT_EMPTY( eosio::chain_apis::read_only::get_producer_schedule_params )
