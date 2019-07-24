@@ -53,6 +53,17 @@
                {"name":"rewards",
                 "type":"uint64"},
             ]
+           },{
+           "name": "bppaysched",
+           "base": "",
+           "fields": [
+              {"name":"owner",
+               "type":"name"},
+              {"name":"votepay_share",
+               "type":"uint64"},
+               {"name":"votes",
+               "type":"uint64"}
+           ]
            }
            ],
     "types": [],
@@ -114,7 +125,17 @@
               "uint64"
            ],
            "type": "bucketpool"
-       }],
+       },{
+            "name": "voteshares",
+            "index_type": "i64",
+            "key_names": [
+               "owner"
+            ],
+            "key_types": [
+               "uint64"
+            ],
+            "type": "bppaysched"
+        }],
     "ricardian_clauses": [],
     "variants": [],
     "abi_extensions": []
