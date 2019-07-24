@@ -12,7 +12,9 @@ namespace fioio {
       bprewards_table bprewards;
       bpbucketpool_table bucketrewards;
       fdtnrewards_table fdtnrewards;
+      voteshares_table voteshares;
       eosiosystem::producers_table producers;
+
       bool rewardspaid;
 
       uint64_t lasttpidpayout;
@@ -26,6 +28,7 @@ namespace fioio {
                                                                       fionames(SystemContract, SystemContract.value),
                                                                       bprewards(_self, _self.value),
                                                                       clockstate(_self, _self.value),
+                                                                      voteshares(_self, _self.value),
                                                                       producers("eosio"_n, name("eosio").value),
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
@@ -115,6 +118,34 @@ namespace fioio {
       require_auth(actor);
 
       uint64_t bps_paid = 0;
+
+
+
+      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
+      if (sharesize == 0) {
+        //Create the payment schedule
+
+        auto itershares = voteshares.begin();
+        for(auto &itr : producers) {
+
+          if (sharesize > 0) {
+            if(itr.total_votes > itershares->votes ) {
+              itershares--;
+            }
+          }
+          //Take a producer and place in shares tables
+            voteshares.emplace(get_self(), [&](auto &p) {
+              p.owner = itr.owner;
+              p.votes = itr.total_votes;
+            });
+
+        }
+
+        return;
+      }
+
+
+
       //If the contract has not been invoked yet, this will execute and set the initial block time
       auto clockiter = clockstate.begin();
 
@@ -123,13 +154,13 @@ namespace fioio {
     //   if( now() > clockiter->lastbppayout ) { // + 172800
 
 
-      uint64_t size = std::distance(producers.begin(),producers.end());
+      uint64_t paysize = std::distance(producers.begin(),producers.end());
 
       for(auto &itr : producers) {
         auto rewarditer = bprewards.begin();
         uint64_t reward = rewarditer->rewards;
-        uint64_t payout = reward / size;
-        
+        uint64_t payout = reward / paysize;
+
         //  print(rewarditer->rewards, " ", payout, " ", itr.owner, "--");
 
           action(permission_level{get_self(), "active"_n},

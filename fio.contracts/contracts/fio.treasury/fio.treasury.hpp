@@ -20,4 +20,21 @@ namespace fioio{
   };
   typedef eosio::multi_index<"clockstate"_n,treasurystate> rewards_table;
 
+
+
+  //@abi table bppaysched
+  struct [[eosio::table]] bppaysched {
+
+    name owner;
+    double votepay_share = 0;
+    double votes;
+    uint64_t primary_key() const {return owner.value; }
+
+    EOSLIB_SERIALIZE( bppaysched, (owner)(votepay_share)(votes))
+
+  };
+
+  typedef eosio::multi_index<"voteshares"_n,bppaysched> voteshares_table;
+
+
 }
