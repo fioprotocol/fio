@@ -483,7 +483,7 @@ namespace eosiosystem {
         auto fioname_iter = _fionames.find(nameHash);
 
         fio_400_assert(fioname_iter != _fionames.end(), "fio_address", fio_address,
-                       "FIO Address not registered", ErrorFioNameNotRegistered);
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -492,7 +492,7 @@ namespace eosiosystem {
         uint64_t account = fioname_iter->owner_account;
         fio_403_assert(account == actor.value, ErrorSignature);
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
-                       "FIO Address expired", ErrorFioNameNotReg);
+                       "FIO Address expired", ErrorFioNameExpired);
 
         auto domains_iter = _domains.find(domainHash);
         fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
