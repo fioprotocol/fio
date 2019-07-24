@@ -33,7 +33,7 @@ namespace eosiosystem {
      */
     void
     system_contract::regiproducer(const name producer, const eosio::public_key &producer_key, const std::string &url,
-                                  uint16_t location) {
+                                  uint16_t location, string fio_address) {
         check(url.size() < 512, "url too long");
         check(producer_key != eosio::public_key(), "public key should not be the default value");
         require_auth(producer);
@@ -43,9 +43,10 @@ namespace eosiosystem {
 
         if (prod != _producers.end()) {
             _producers.modify(prod, producer, [&](producer_info &info) {
-                info.producer_key = producer_key;
+                info.producer_fio_public_key = producer_key;
                 info.is_active = true;
                 info.url = url;
+                info.fio_address = fio_address;
                 info.location = location;
                 if (info.last_claim_time == time_point())
                     info.last_claim_time = ct;
@@ -63,8 +64,9 @@ namespace eosiosystem {
         } else {
             _producers.emplace(producer, [&](producer_info &info) {
                 info.owner = producer;
+                info.fio_address = fio_address;
                 info.total_votes = 0;
-                info.producer_key = producer_key;
+                info.producer_fio_public_key = producer_key;
                 info.is_active = true;
                 info.url = url;
                 info.location = location;
@@ -120,7 +122,7 @@ namespace eosiosystem {
         auto key_iter = _accountmap.find(account);
         const auto owner_pubkey = abieos::string_to_public_key(key_iter->clientkey);
 
-        regiproducer(actor, owner_pubkey, url, location);
+        regiproducer(actor, owner_pubkey, url, location, fio_address);
 
         //TODO: REFACTOR FEE ( PROXY / PRODUCER )
         //begin new fees, logic for Mandatory fees.
@@ -137,7 +139,7 @@ namespace eosiosystem {
 
         //if its not a mandatory fee then this is an error.
         fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                       "register_fio_address unexpected fee type for endpoint register_producer, expected 0",
+                       "register_producer unexpected fee type for endpoint register_producer, expected 0",
                        ErrorNoEndpoint);
 
         fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
@@ -181,7 +183,7 @@ namespace eosiosystem {
         for (auto it = idx.cbegin();
              it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it) {
             top_producers.emplace_back(
-                    std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_key}, it->location}));
+                    std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_fio_public_key}, it->location}));
         }
 
         if (top_producers.size() < _gstate.last_producer_schedule_size) {

@@ -245,10 +245,10 @@ if [ $mChoice == 1 ]; then
         #register the desired producers, note this does not yet turn on block production because teh necessary amount of
         #fio is not yet in circulation, and there are no votes.
         #it just registers these BP.
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducera
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerb
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerc
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerd
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducera
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerb
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerc
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerd
         sleep 5
         ./cleos -u http://localhost:8879 system listproducers
 
