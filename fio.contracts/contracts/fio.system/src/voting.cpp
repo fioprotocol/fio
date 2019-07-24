@@ -619,7 +619,7 @@ namespace eosiosystem {
         if (pitr != _voters.end()) {
 
             //if the values are equal and isproxy, then show this error.
-            fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "public_address", fio_address,
+            fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "fio_address", fio_address,
                            "Already registered as proxy. ", ErrorPubAddressExist);
             //check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
             if (isproxy && !pitr->proxy) {

@@ -2,6 +2,7 @@
 
 nPort=8889
 wPort=9899
+#hostname="34.214.121.179"
 hostname="localhost"
 #34.214.170.140 Eds test AWS server for UAT
 #ACCOUNT r41zuwovtn44   --casey.dapix
