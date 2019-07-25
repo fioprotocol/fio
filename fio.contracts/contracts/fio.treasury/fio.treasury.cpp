@@ -113,50 +113,87 @@ namespace fioio {
 
     // @abi action
     [[eosio::action]]
-    void bpclaim(const name& actor) {
+    void bpclaim(const string &fio_address, const name& actor) {
 
       require_auth(actor);
       auto clockiter = clockstate.begin();
-      auto bpiter = voteshares.find(actor.value);
 
-      uint64_t bps_paid = 0;
-      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
+      auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
+      uint64_t producer = fioiter->owner_account;
+       print ("**************",fioiter->owner_account,"*******************");
+      if (fioiter == fionames.end()) {
+        print("Failed to locate producer.");
+        return;
+      }
+
+
+  
+      auto bpiter = voteshares.find(actor.value);
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay scheduler so a new one can be created.
 
-
-
+      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
       // If there is no pay schedule then create a new one
       if (sharesize == 0) {
         //Create the payment schedule
+        auto bpiter = voteshares.begin();
 
-        auto itershares = voteshares.begin();
         for(auto &itr : producers) {
 
-          if (sharesize > 0) {
-            if(itr.total_votes > itershares->votes ) {
-              itershares--;
-            }
-          }
-          //Take a producer and place in shares tables
+
+          //If active block producer
+          if(itr.is_active) {
+
+          //Take producer and place in shares tables
             voteshares.emplace(get_self(), [&](auto &p) {
               p.owner = itr.owner;
               p.votes = itr.total_votes;
               p.lastclaim = now();
             });
+          }
 
         }
 
         //Start 24 track for daily pay
         clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-          entry.lastbppayout = now();
+
+          entry.payschedtimer = now();
+
         });
         return;
       }
 
+      auto bpiter = voteshares.find(producer);
+      print ("**************",bpiter->owner,"*******************");
+        if (bpiter == voteshares.end()) {
+          print("Failed to locate producer.");
+          return;
+        }
+
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
+      uint64_t payout = 0;
+
+
+      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
+      // then erase the pay schedule so a new one can be created.
+      if(now() >= clockiter->payschedtimer + 17 ) { //+ 172800
+
+
+
+        if (bpiter != voteshares.end()) {
+          for(auto &iter : voteshares) {
+           bprewdupdate(iter.votepay_share);
+           voteshares.erase(iter);
+         }
+        }
+        return;
+      }
+
+
+
+      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
       uint64_t payout = 0;
 
       if( now() > bpiter->lastclaim + 17 ) { //+ 172800
@@ -201,6 +238,9 @@ namespace fioio {
 
       }
 
+      //remove the producer from payschedule
+      voteshares.erase(bpiter);
+
 
     } //endif now() > bpiter + 172800
 
@@ -236,12 +276,10 @@ namespace fioio {
       if (size == 0)  {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
           entry.lasttpidpayout = now() - 56;
-          entry.lastbppayout = now() - 172780;
+          entry.payschedtimer = now() - 172780;
         });
 
       }
-
-
 
       bprewdupdate(0);
 
