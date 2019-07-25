@@ -127,8 +127,6 @@ namespace fioio {
       }
 
 
-  
-      auto bpiter = voteshares.find(actor.value);
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay scheduler so a new one can be created.
@@ -137,7 +135,6 @@ namespace fioio {
       // If there is no pay schedule then create a new one
       if (sharesize == 0) {
         //Create the payment schedule
-        auto bpiter = voteshares.begin();
 
         for(auto &itr : producers) {
 
@@ -173,7 +170,7 @@ namespace fioio {
 
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
-      uint64_t payout = 0;
+
 
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
