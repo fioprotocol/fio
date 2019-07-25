@@ -228,6 +228,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.treasury","1.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
 
+
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999995899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
@@ -251,6 +252,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerc
         ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerd
         sleep 5
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["fioproducera","1000.000000000 FIO","memo"]' -p eosio@active //producer needs funds to create fio address
         ./cleos -u http://localhost:8879 system listproducers
 
         echo calling newaccount
@@ -337,6 +339,9 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","public_domain":true,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 2
 
+    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"fioproducera","tpid":""}' --permission fioproducera@active
+    sleep 5
+
     #Create Account Name
     echo casey
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
@@ -345,7 +350,9 @@ if [ $mChoice == 1 ]; then
     echo ed
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"euwdcp13zlrj","tpid":"adam:dapix"}' --permission euwdcp13zlrj@active
     echo ada
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"smooshface"}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
+    echo fioproducera
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"fioproducera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"fioproducera","tpid":"adam:dapix"}' --permission fioproducera@active
 
     #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
     #then we give that record some votes...after doing this we can run the register_proxy signing script and this
