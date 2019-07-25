@@ -172,6 +172,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 create account eosio fio.reqobt FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.tpid FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.treasury FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8879 create account eosio fio.foundatn FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio eosio.bpay FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio eosio.msig FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio eosio.ram FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
@@ -245,10 +246,10 @@ if [ $mChoice == 1 ]; then
         #register the desired producers, note this does not yet turn on block production because teh necessary amount of
         #fio is not yet in circulation, and there are no votes.
         #it just registers these BP.
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducera
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerb
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerc
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0}' -p fioproducerd
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducera
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerb
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerc
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerd
         sleep 5
         ./cleos -u http://localhost:8879 system listproducers
 
@@ -256,12 +257,21 @@ if [ $mChoice == 1 ]; then
 
         #create an account to do the voting for producers. while we are at it
         # be sure to put the necessary amount of fio into production in order to permit block production.
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "75000000.000000000 FIO" --stake-cpu "76000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt1 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "45000000.000000000 FIO" --stake-cpu "46000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt1 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "55000000.000000000 FIO" --stake-cpu "56000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt2 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "65000000.000000000 FIO" --stake-cpu "66000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt3 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "75000000.000000000 FIO" --stake-cpu "76000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt4 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+
         sleep 5
 
         echo calling voteproducer
         #vote for the producers, now block production may occur.
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt1 fioproducera fioproducerb fioproducerc fioproducerd  -p myvoteracnt1@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt1 fioproducera -p myvoteracnt1@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt2 fioproducerb -p myvoteracnt2@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt3 fioproducerc -p myvoteracnt3@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt4 fioproducerd -p myvoteracnt4@active
+
+
     fi
 
     if [ $restartneeded == 0 ]; then

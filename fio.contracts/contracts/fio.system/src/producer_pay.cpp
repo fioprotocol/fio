@@ -77,7 +77,7 @@ namespace eosiosystem {
 
     void system_contract::claimrewards(const name owner) {
         require_auth(owner);
-
+/*
         const auto &prod = _producers.get(owner.value);
         check(prod.active(), "producer does not have an active key");
 
@@ -203,7 +203,7 @@ namespace eosiosystem {
                                     {owner,        active_permission}},
                     {vpay_account, owner, asset(producer_per_vote_pay, core_symbol()), std::string("producer vote pay")}
             );
-        }
+        } */
     }
 
 } //namespace eosiosystem

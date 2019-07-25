@@ -154,8 +154,9 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
 
 struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     name owner;
+    string fio_address;
     double total_votes = 0;
-    eosio::public_key producer_key; /// a packed public key object
+    eosio::public_key producer_fio_public_key; /// a packed public key object
     bool is_active = true;
     std::string url;
     uint32_t unpaid_blocks = 0;
@@ -170,12 +171,12 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     bool active() const { return is_active; }
 
     void deactivate() {
-        producer_key = public_key();
+        producer_fio_public_key = public_key();
         is_active = false;
     }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( producer_info, (owner)(total_votes)(producer_key)(is_active)(url)
+    EOSLIB_SERIALIZE( producer_info, (owner)(fio_address)(total_votes)(producer_fio_public_key)(is_active)(url)
             (unpaid_blocks)(last_claim_time)(location)
     )
 };
@@ -592,7 +593,8 @@ public:
     // functions defined in voting.cpp
 
     [[eosio::action]]
-    void regiproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location);
+    void regiproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location,
+                      string fio_address);
 
     [[eosio::action]]
     void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
