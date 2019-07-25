@@ -2970,7 +2970,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("register_proxy called");
+                dlog("register_producer called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
