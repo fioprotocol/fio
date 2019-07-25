@@ -42,25 +42,8 @@ namespace eosiosystem {
         const auto ct = current_time_point();
 
         if (prod != _producers.end()) {
-            _producers.modify(prod, producer, [&](producer_info &info) {
-                info.producer_fio_public_key = producer_key;
-                info.is_active = true;
-                info.url = url;
-                info.fio_address = fio_address;
-                info.location = location;
-                if (info.last_claim_time == time_point())
-                    info.last_claim_time = ct;
-            });
-
-            auto prod2 = _producers2.find(producer.value);
-            if (prod2 == _producers2.end()) {
-                _producers2.emplace(producer, [&](producer_info2 &info) {
-                    info.owner = producer;
-                    info.last_votepay_share_update = ct;
-                });
-                update_total_votepay_share(ct, 0.0, prod->total_votes);
-                // When introducing the producer2 table row for the first time, the producer's votes must also be accounted for in the global total_producer_votepay_share at the same time.
-            }
+            fio_400_assert(false, "public_address", fio_address,
+                           "Already registered as producer", ErrorFioNameNotReg);
         } else {
             _producers.emplace(producer, [&](producer_info &info) {
                 info.owner = producer;
