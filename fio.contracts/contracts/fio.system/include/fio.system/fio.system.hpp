@@ -601,7 +601,7 @@ public:
                      uint64_t max_fee);
 
     [[eosio::action]]
-    void unregprod(const name producer);
+    void unregprod(const string fio_address, const name actor, uint64_t max_fee);
 
     [[eosio::action]]
     void setram(uint64_t max_ram_size);
