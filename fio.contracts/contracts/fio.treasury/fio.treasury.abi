@@ -29,7 +29,7 @@
               "fields": [
                  {"name":"lasttpidpayout",
                   "type":"uint64"},
-                 {"name":"lastbppayout",
+                 {"name":"payschedtimer",
                   "type":"uint64"},
               ]
               },{

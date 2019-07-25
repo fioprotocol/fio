@@ -12,11 +12,11 @@ namespace fioio{
   // @abi table clockstate i64
   struct [[eosio::table]] treasurystate {
       uint64_t lasttpidpayout;
-      uint64_t lastbppayout;
+      uint64_t payschedtimer;
 
       // Set the primary key to a constant value to store only one row
       uint64_t primary_key() const { return lasttpidpayout; }
-      EOSLIB_SERIALIZE(treasurystate,(lasttpidpayout)(lastbppayout))
+      EOSLIB_SERIALIZE(treasurystate,(lasttpidpayout)(payschedtimer))
   };
   typedef eosio::multi_index<"clockstate"_n,treasurystate> rewards_table;
 
