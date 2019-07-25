@@ -116,12 +116,18 @@ namespace fioio {
     void bpclaim(const name& actor) {
 
       require_auth(actor);
+      auto clockiter = clockstate.begin();
+      auto bpiter = voteshares.find(actor.value);
 
       uint64_t bps_paid = 0;
-
-
-
       uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
+
+      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
+      // then erase the pay scheduler so a new one can be created.
+
+
+
+      // If there is no pay schedule then create a new one
       if (sharesize == 0) {
         //Create the payment schedule
 
@@ -137,45 +143,45 @@ namespace fioio {
             voteshares.emplace(get_self(), [&](auto &p) {
               p.owner = itr.owner;
               p.votes = itr.total_votes;
+              p.lastclaim = now();
             });
 
         }
 
+        //Start 24 track for daily pay
+        clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+          entry.lastbppayout = now();
+        });
         return;
       }
 
 
+      //This contract should only allow the producer to be able to claim rewards once every x blocks.
+      uint64_t payout = 0;
 
-      //If the contract has not been invoked yet, this will execute and set the initial block time
-      auto clockiter = clockstate.begin();
-
-      //This contract should only be able to iterate throughout the entire tpids table to
-      //to check for rewards once every x blocks.
-    //   if( now() > clockiter->lastbppayout ) { // + 172800
+      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
 
 
-      uint64_t paysize = std::distance(producers.begin(),producers.end());
+        uint64_t paysize = std::distance(producers.begin(),producers.end());
 
-      for(auto &itr : producers) {
         auto rewarditer = bprewards.begin();
         uint64_t reward = rewarditer->rewards;
-        uint64_t payout = reward / paysize;
+        payout = reward / paysize;
 
-        //  print(rewarditer->rewards, " ", payout, " ", itr.owner, "--");
 
           action(permission_level{get_self(), "active"_n},
                 "fio.token"_n, "transfer"_n,
-                make_tuple("fio.treasury"_n, name(itr.owner), asset(payout, symbol("FIO",9)),
+                make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
                 string("Paying producer from treasury."))
             ).send();
 
       // Reduce the block producer reward equal to payout
 
-      reward -= payout;
-      bprewards.erase(rewarditer);
-      bprewards.emplace(_self, [&](struct bpreward& entry) {
-        entry.rewards = reward;
-     });
+        reward -= payout;
+        bprewards.erase(rewarditer);
+        bprewards.emplace(_self, [&](struct bpreward& entry) {
+          entry.rewards = reward;
+        });
 
      // PAY FOUNDATION //
       auto fdtniter = fdtnrewards.begin();
@@ -195,16 +201,13 @@ namespace fioio {
 
       }
 
-        bps_paid++;
-        if (bps_paid >= 100) break;
-      }
 
-//    } //endif now() > clockiter
+    } //endif now() > bpiter + 172800
 
 
 
         nlohmann::json json = {{"status",        "OK"},
-                               {"tpids_paid",    bps_paid}};
+                               {"amount",    payout}};
         send_response(json.dump().c_str());
 
 
