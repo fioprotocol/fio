@@ -184,7 +184,7 @@ namespace eosiosystem {
         const auto &prod = _producers.find(actor.value);
 
         fio_400_assert(prod != _producers.end(), "fio_address", fio_address,
-                       "Already registered as producer", ErrorFioNameNotReg);
+                       "Not registered as producer", ErrorFioNameNotReg);
 
         _producers.modify(prod, same_payer, [&](producer_info &info) {
             info.deactivate();
