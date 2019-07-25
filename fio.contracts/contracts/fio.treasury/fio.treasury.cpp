@@ -117,6 +117,7 @@ namespace fioio {
 
       require_auth(actor);
       auto clockiter = clockstate.begin();
+
       auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
       uint64_t producer = fioiter->owner_account;
        print ("**************",fioiter->owner_account,"*******************");
@@ -125,6 +126,12 @@ namespace fioio {
         return;
       }
 
+
+  
+      auto bpiter = voteshares.find(actor.value);
+
+      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
+      // then erase the pay scheduler so a new one can be created.
 
       uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
       // If there is no pay schedule then create a new one
@@ -150,11 +157,12 @@ namespace fioio {
 
         //Start 24 track for daily pay
         clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+
           entry.payschedtimer = now();
+
         });
         return;
       }
-
 
       auto bpiter = voteshares.find(producer);
       print ("**************",bpiter->owner,"*******************");
@@ -164,10 +172,14 @@ namespace fioio {
         }
 
 
+      //This contract should only allow the producer to be able to claim rewards once every x blocks.
+      uint64_t payout = 0;
+
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay schedule so a new one can be created.
       if(now() >= clockiter->payschedtimer + 17 ) { //+ 172800
+
 
 
         if (bpiter != voteshares.end()) {
@@ -207,7 +219,6 @@ namespace fioio {
         bprewards.emplace(_self, [&](struct bpreward& entry) {
           entry.rewards = reward;
         });
-
 
      // PAY FOUNDATION //
       auto fdtniter = fdtnrewards.begin();

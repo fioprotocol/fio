@@ -598,10 +598,10 @@ public:
 
     [[eosio::action]]
     void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                     uint16_t max_fee);
+                     uint64_t max_fee);
 
     [[eosio::action]]
-    void unregprod(const name producer);
+    void unregprod(const string fio_address, const name actor, uint64_t max_fee);
 
     [[eosio::action]]
     void setram(uint64_t max_ram_size);

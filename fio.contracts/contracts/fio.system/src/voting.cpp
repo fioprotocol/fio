@@ -42,24 +42,17 @@ namespace eosiosystem {
         const auto ct = current_time_point();
 
         if (prod != _producers.end()) {
-            _producers.modify(prod, producer, [&](producer_info &info) {
-                info.producer_fio_public_key = producer_key;
-                info.is_active = true;
-                info.url = url;
-                info.fio_address = fio_address;
-                info.location = location;
-                if (info.last_claim_time == time_point())
-                    info.last_claim_time = ct;
-            });
-
-            auto prod2 = _producers2.find(producer.value);
-            if (prod2 == _producers2.end()) {
-                _producers2.emplace(producer, [&](producer_info2 &info) {
-                    info.owner = producer;
-                    info.last_votepay_share_update = ct;
+            if (prod->is_active) {
+                fio_400_assert(false, "fio_address", fio_address,
+                               "Already registered as producer", ErrorFioNameNotReg);
+            } else {
+                _producers.modify(prod, producer, [&](producer_info &info) {
+                    info.is_active = true;
+                    info.url = url;
+                    info.location = location;
+                    if (info.last_claim_time == time_point())
+                        info.last_claim_time = ct;
                 });
-                update_total_votepay_share(ct, 0.0, prod->total_votes);
-                // When introducing the producer2 table row for the first time, the producer's votes must also be accounted for in the global total_producer_votepay_share at the same time.
             }
         } else {
             _producers.emplace(producer, [&](producer_info &info) {
@@ -92,7 +85,7 @@ namespace eosiosystem {
     
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                                 uint16_t max_fee) {
+                                 uint64_t max_fee) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -159,13 +152,76 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::unregprod(const name producer) {
-        require_auth(producer);
+    void system_contract::unregprod(const string fio_address, const name actor, uint64_t max_fee) {
+        require_auth(actor);
 
-        const auto &prod = _producers.get(producer.value, "producer not found");
+        FioAddress fa;
+        getFioAddressStruct(fio_address, fa);
+
+        uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+        uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+
+        //need to verify the account that owns the address is the actor.
+        auto fioname_iter = _fionames.find(nameHash);
+        fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+
+        //check that the name is not expired
+        uint32_t name_expiration = fioname_iter->expiration;
+        uint32_t present_time = now();
+
+        uint64_t account = fioname_iter->owner_account;
+        fio_403_assert(account == actor.value, ErrorSignature);
+        fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
+                       "FIO Address expired", ErrorFioNameExpired);
+
+        auto domains_iter = _domains.find(domainHash);
+        fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+
+        uint32_t expiration = domains_iter->expiration;
+        fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
+                       ErrorDomainExpired);
+
+        const auto &prod = _producers.find(actor.value);
+
+        fio_400_assert(prod != _producers.end(), "fio_address", fio_address,
+                       "Not registered as producer", ErrorFioNameNotReg);
+
         _producers.modify(prod, same_payer, [&](producer_info &info) {
             info.deactivate();
         });
+
+        //begin new fees, logic for Mandatory fees.
+        uint64_t endpoint_hash = string_to_uint64_hash("unregister_producer");
+
+        auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
+        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+        //if the fee isnt found for the endpoint, then 400 error.
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "unregister_producer",
+                       "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+        uint64_t reg_amount = fee_iter->suf_amount;
+        uint64_t fee_type = fee_iter->type;
+
+        //if its not a mandatory fee then this is an error.
+        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                       "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                       ErrorNoEndpoint);
+
+        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                       ErrorMaxFeeExceeded);
+
+        asset reg_fee_asset;
+        reg_fee_asset.symbol = symbol("FIO", 9);
+        reg_fee_asset.amount = reg_amount;
+        print(reg_fee_asset.amount);
+
+        fio_fees(actor, reg_fee_asset);
+
+        //end new fees, logic for Mandatory fees.
+
+        nlohmann::json json = {{"status",        "OK"},
+                               {"fee_collected", reg_amount}};
+        send_response(json.dump().c_str());
     }
 
     bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
