@@ -90,7 +90,7 @@ namespace eosiosystem {
     
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                                 uint16_t max_fee) {
+                                 uint64_t max_fee) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
