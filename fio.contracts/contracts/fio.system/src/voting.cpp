@@ -48,6 +48,7 @@ namespace eosiosystem {
             } else {
                 _producers.modify(prod, producer, [&](producer_info &info) {
                     info.is_active = true;
+                    info.fio_address = fio_address;
                     info.url = url;
                     info.location = location;
                     if (info.last_claim_time == time_point())
