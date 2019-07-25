@@ -42,7 +42,7 @@ namespace eosiosystem {
         const auto ct = current_time_point();
 
         if (prod != _producers.end()) {
-            fio_400_assert(false, "public_address", fio_address,
+            fio_400_assert(false, "fio_address", fio_address,
                            "Already registered as producer", ErrorFioNameNotReg);
         } else {
             _producers.emplace(producer, [&](producer_info &info) {
