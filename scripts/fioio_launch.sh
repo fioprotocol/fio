@@ -144,11 +144,7 @@ if [ $mChoice == 1 ]; then
         ./cleos wallet import --private-key 5JiSAASb4PZTajemTr4KTgeNBWUxrz6SraHGUvNihSskDA9aY5b -n fio
         ./cleos wallet import --private-key 5JwttkBMpCijBWiLx75hHTkYGgDm5gmny7nvnss4s1FoZWPxNui -n fio
         ./cleos wallet import --private-key 5JsWbwAiPWb4gk1Mox4VZrLvfFhnNRWCq1PpuSKLfGcVD9MjHAX -n fio
-        echo 'Importing producer private keys'
         ./cleos wallet import --private-key 5JMoj56cRYoST3fSyD3bDCNLu7WbMpeGAohmHoaKW8j1vEGfrv2 -n fio
-        ./cleos wallet import --private-key 5JDTPRtydu3gRpFYwZ1G8hG5HyFntXTLqRgcCcC1jLMa853cRpf -n fio
-        ./cleos wallet import --private-key 5K4NfUmkzV4EsBAPFBro7EYbJWJ6FGtgpfLXVJ5r9wk6PUeE1aZ -n fio
-        ./cleos wallet import --private-key 5KMFo5mRBAgmfm2BTgNVUDah5XdASMPMkXizDGtQ6h87Pt6CL83 -n fio
     fi
 
     #Start Both Nodes
@@ -164,7 +160,7 @@ if [ $mChoice == 1 ]; then
     ./nodeos --max-transaction-time=6000 --producer-name inita --producer-name fioproducerd --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8889 --http-validate-host=0 --p2p-listen-endpoint :9877 --p2p-peer-address localhost:9876 --config-dir $HOME/node2 --data-dir $HOME/node2 --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node2.txt &
     sleep 3s
     #start the second BP node
-    ./nodeos --max-transaction-time=6000 --producer-name fioproducera --producer-name fioproducerb --producer-name fioproducerc --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8890 --http-validate-host=0 --p2p-listen-endpoint :9878 --p2p-peer-address localhost:9877 --config-dir $HOME/node3 --data-dir $HOME/node3 --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node3.txt &
+    ./nodeos --max-transaction-time=6000 --producer-name 5spujqoyq4ie --producer-name fioproducerb --producer-name fioproducerc --plugin eosio::chain_api_plugin --plugin eosio::net_api_plugin --http-server-address 0.0.0.0:8890 --http-validate-host=0 --p2p-listen-endpoint :9878 --p2p-peer-address localhost:9877 --config-dir $HOME/node3 --data-dir $HOME/node3 --private-key [\"FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u\",\"5JMoj56cRYoST3fSyD3bDCNLu7WbMpeGAohmHoaKW8j1vEGfrv2\"] --private-key [\"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\",\"5JxUfAkXoCQdeZKNMhXEqRkFcZMYa3KR3vbie7SKsPv6rS3pCHg\"] --contracts-console 2> $oldpath/../node3.txt &
     sleep 6s
 
     if [ $restartneeded == 0 ]; then
@@ -210,7 +206,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
         sleep 3s
         ./cleos -u http://localhost:8889 set contract -j fio.treasury $fio_treasury_name_path fio.treasury.wasm fio.treasury.abi --permission fio.treasury@active
-        sleep 3s
+                sleep 3s
 
         echo creating accounts
         ./cleos -u http://localhost:8879 create account eosio r41zuwovtn44 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
@@ -219,9 +215,9 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 create account eosio mnvcf4v1flnn FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
         ./cleos -u http://localhost:8879 create account eosio inita FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
         ./cleos -u http://localhost:8879 create account eosio 5spujqoyq4ie FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u
-        ./cleos -u http://localhost:8879 create account eosio jylcbburbjfn FIO6TpKCKLjFypQCFf4DE43K2kNTWjW8iGwATaHb8H24RECU61twx FIO6TpKCKLjFypQCFf4DE43K2kNTWjW8iGwATaHb8H24RECU61twx
-        ./cleos -u http://localhost:8879 create account eosio jq2rjeaeasme FIO8AjJcRbxFMuBAbZLauRt6Zawi1SDzYaucA83SuY1tk65ZNhZzr FIO8AjJcRbxFMuBAbZLauRt6Zawi1SDzYaucA83SuY1tk65ZNhZzr
-        ./cleos -u http://localhost:8879 create account eosio 2stj4kbck5jh FIO7aVUqptxrjyEPmRWzST8ZhrqUYmsm8JDi7iX3w93YVdSbTQu8g FIO7aVUqptxrjyEPmRWzST8ZhrqUYmsm8JDi7iX3w93YVdSbTQu8g
+        ./cleos -u http://localhost:8879 create account eosio fioproducerb FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 create account eosio fioproducerc FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 create account eosio fioproducerd FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
 
         sleep 5
 
@@ -255,9 +251,9 @@ if [ $mChoice == 1 ]; then
         #fio is not yet in circulation, and there are no votes.
         #it just registers these BP.
         ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"5spujqoyq4ie", "producer_key":"FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u","url":"","location":0, "fio_address":""}' -p 5spujqoyq4ie
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"jylcbburbjfn", "producer_key":"FIO6TpKCKLjFypQCFf4DE43K2kNTWjW8iGwATaHb8H24RECU61twx","url":"","location":0, "fio_address":""}' -p jylcbburbjfn
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"jq2rjeaeasme", "producer_key":"FIO8AjJcRbxFMuBAbZLauRt6Zawi1SDzYaucA83SuY1tk65ZNhZzr","url":"","location":0, "fio_address":""}' -p jq2rjeaeasme
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"2stj4kbck5jh", "producer_key":"FIO7aVUqptxrjyEPmRWzST8ZhrqUYmsm8JDi7iX3w93YVdSbTQu8g","url":"","location":0, "fio_address":""}' -p 2stj4kbck5jh
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerb
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerc
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerd
         sleep 5
         ./cleos -u http://localhost:8879 system listproducers
 
@@ -275,9 +271,9 @@ if [ $mChoice == 1 ]; then
         echo calling voteproducer
         #vote for the producers, now block production may occur.
         ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt1 5spujqoyq4ie -p myvoteracnt1@active
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt2 jylcbburbjfn -p myvoteracnt2@active
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt3 jq2rjeaeasme -p myvoteracnt3@active
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt4 2stj4kbck5jh -p myvoteracnt4@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt2 fioproducerb -p myvoteracnt2@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt3 fioproducerc -p myvoteracnt3@active
+        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt4 fioproducerd -p myvoteracnt4@active
 
 
     fi
@@ -357,16 +353,15 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"euwdcp13zlrj","tpid":"adam:dapix"}' --permission euwdcp13zlrj@active
     echo ada
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
-    echo fioproducera
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"fioproducera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
+    echo 5spujqoyq4ie
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"5spujqoyq4ie:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
 
     #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
     #then we give that record some votes...after doing this we can run the register_proxy signing script and this
     #tests the logic when there is already a record in the voters table for this account....
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"1"}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"0"}' --permission htjonrkf1lgs@active
-    ./cleos -u http://localhost:8889 system voteproducer prods htjonrkf1lgs 5spujqoyq4ie jylcbburbjfn jq2rjeaeasme 2stj4kbck5jh  -p htjonrkf1lgs@active
-  
+    ./cleos -u http://localhost:8889 system voteproducer prods htjonrkf1lgs 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
 
 
 elif [ $mChoice == 3 ]; then
