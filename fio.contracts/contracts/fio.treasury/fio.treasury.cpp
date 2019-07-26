@@ -116,17 +116,16 @@ namespace fioio {
     void bpclaim(const string &fio_address, const name& actor) {
 
       require_auth(actor);
-      auto clockiter = clockstate.begin();
-
       auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
-      uint64_t producer = fioiter->owner_account;
-       print ("**************",fioiter->owner_account,"*******************");
+
+      //Replace with proper assertion from api spec
       if (fioiter == fionames.end()) {
-        print("Failed to locate producer.");
+        print("Failed to locate producer in fionames table.");
         return;
       }
+      uint64_t producer = fioiter->owner_account;
 
-
+      auto clockiter = clockstate.begin();
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay scheduler so a new one can be created.
@@ -142,11 +141,16 @@ namespace fioio {
           //If active block producer
           if(itr.is_active) {
 
+
+          //Determine the share amount
+
+
           //Take producer and place in shares tables
             voteshares.emplace(get_self(), [&](auto &p) {
               p.owner = itr.owner;
               p.votes = itr.total_votes;
               p.lastclaim = now();
+              p.votepay_share = itr.total_votes; //Changing to use the percentile
             });
           }
 
@@ -154,98 +158,45 @@ namespace fioio {
 
         //Start 24 track for daily pay
         clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-
           entry.payschedtimer = now();
-
         });
+        print("Voteshares processed","\n"); //To remove after testing
         return;
       }
 
       auto bpiter = voteshares.find(producer);
-      print ("**************",bpiter->owner,"*******************");
-        if (bpiter == voteshares.end()) {
-          print("Failed to locate producer.");
+      if (bpiter == voteshares.end()) {
+          print("Failed to locate producer in voteshares."); //To remove after testing
           return;
-        }
-
+      }
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
-
-
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay schedule so a new one can be created.
       if(now() >= clockiter->payschedtimer + 17 ) { //+ 172800
 
+        if (sharesize > 0) {
 
+          auto iter = voteshares.begin();
+          while (iter != voteshares.end()) {
 
-        if (bpiter != voteshares.end()) {
-          for(auto &iter : voteshares) {
-           bprewdupdate(iter.votepay_share);
-           voteshares.erase(iter);
-         }
+                auto found = bucketrewards.begin();
+                uint64_t reward = found->rewards;
+                reward += static_cast<uint64_t>(iter->votepay_share);
+                bucketrewards.erase(found);
+                bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
+                  entry.rewards = reward;
+                });
+
+              iter = voteshares.erase(iter);
+            }
         }
-        return;
-      }
+
+      return;
+     }
 
 
-
-      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
-      uint64_t payout = 0;
-
-      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
-
-
-        uint64_t paysize = std::distance(producers.begin(),producers.end());
-
-        auto rewarditer = bprewards.begin();
-        uint64_t reward = rewarditer->rewards;
-        payout = reward / paysize;
-
-
-          action(permission_level{get_self(), "active"_n},
-                "fio.token"_n, "transfer"_n,
-                make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
-                string("Paying producer from treasury."))
-            ).send();
-
-      // Reduce the block producer reward equal to payout
-
-        reward -= payout;
-        bprewards.erase(rewarditer);
-        bprewards.emplace(_self, [&](struct bpreward& entry) {
-          entry.rewards = reward;
-        });
-
-     // PAY FOUNDATION //
-      auto fdtniter = fdtnrewards.begin();
-      if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
-          action(permission_level{get_self(), "active"_n},
-                "fio.token"_n, "transfer"_n,
-                make_tuple("fio.treasury"_n, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
-                string("Paying foundation from treasury."))
-              ).send();
-
-        //Clear the foundation rewards counter
-
-           fdtnrewards.erase(fdtniter);
-           fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
-             entry.rewards = 0;
-          });
-
-      }
-
-      //remove the producer from payschedule
-      voteshares.erase(bpiter);
-
-
-    } //endif now() > bpiter + 172800
-
-
-
-        nlohmann::json json = {{"status",        "OK"},
-                               {"amount",    payout}};
-        send_response(json.dump().c_str());
 
 
    } //bpclaim

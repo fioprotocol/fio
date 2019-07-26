@@ -19,10 +19,12 @@
               },{
               "name": "bpclaim",
               "base": "",
-              "fields": [{
-              "name": "actor",
-              "type": "name"
-              }]
+              "fields": [
+                 {"name":"fio_address",
+                  "type":"string"},
+                 {"name":"actor",
+                  "type":"name"},
+              ]
               },{
               "name": "treasurystate",
               "base": "",
