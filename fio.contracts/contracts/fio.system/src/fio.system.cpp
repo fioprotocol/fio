@@ -410,15 +410,20 @@ namespace eosiosystem {
             }
         }
 
-        user_resources_table userres(_self, newact.value);
 
-        userres.emplace(newact, [&](auto &res) {
-            res.owner = newact;
-            res.net_weight = asset(0, system_contract::get_core_symbol());
-            res.cpu_weight = asset(0, system_contract::get_core_symbol());
-        });
+       //in the FIO protocol we want all of our accounts to be created with unlimited
+       //CPU NET and RAM. to do this we need our accounts to NOT have entrees in the
+       //resources table. our accounts will all be unlimited CPU NET and RAM for the
+       //foreseeable future of the FIO protocol.
+       // user_resources_table userres(_self, newact.value);
 
-        set_resource_limits(newact.value, 0, 0, 0);
+       // userres.emplace(newact, [&](auto &res) {
+       //     res.owner = newact;
+           // res.net_weight = asset(0, system_contract::get_core_symbol());
+           // res.cpu_weight = asset(0, system_contract::get_core_symbol());
+       // });
+
+       // set_resource_limits(newact.value, 0, 0, 0);
     }
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
