@@ -70,12 +70,13 @@ namespace eosiosystem {
                 info.last_votepay_share_update = ct;
             });
         }
-
+/* This adds a producer using the normal user typed account name to the account map table
         action{permission_level{_self, "active"_n},
                 "fio.system"_n,
                 "bind2eosio"_n,
           std::make_tuple(producer, producer_key, false)
-        }.send();
+        }.send(); */
+        
     }
 
     static constexpr eosio::name token_account{"fio.token"_n};

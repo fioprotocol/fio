@@ -144,6 +144,11 @@ if [ $mChoice == 1 ]; then
         ./cleos wallet import --private-key 5JiSAASb4PZTajemTr4KTgeNBWUxrz6SraHGUvNihSskDA9aY5b -n fio
         ./cleos wallet import --private-key 5JwttkBMpCijBWiLx75hHTkYGgDm5gmny7nvnss4s1FoZWPxNui -n fio
         ./cleos wallet import --private-key 5JsWbwAiPWb4gk1Mox4VZrLvfFhnNRWCq1PpuSKLfGcVD9MjHAX -n fio
+        echo 'Importing producer private keys'
+        ./cleos wallet import --private-key 5JMoj56cRYoST3fSyD3bDCNLu7WbMpeGAohmHoaKW8j1vEGfrv2 -n fio
+        ./cleos wallet import --private-key 5JDTPRtydu3gRpFYwZ1G8hG5HyFntXTLqRgcCcC1jLMa853cRpf -n fio
+        ./cleos wallet import --private-key 5K4NfUmkzV4EsBAPFBro7EYbJWJ6FGtgpfLXVJ5r9wk6PUeE1aZ -n fio
+        ./cleos wallet import --private-key 5KMFo5mRBAgmfm2BTgNVUDah5XdASMPMkXizDGtQ6h87Pt6CL83 -n fio
     fi
 
     #Start Both Nodes
@@ -205,7 +210,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
         sleep 3s
         ./cleos -u http://localhost:8889 set contract -j fio.treasury $fio_treasury_name_path fio.treasury.wasm fio.treasury.abi --permission fio.treasury@active
-                sleep 3s
+        sleep 3s
 
         echo creating accounts
         ./cleos -u http://localhost:8879 create account eosio r41zuwovtn44 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
@@ -213,16 +218,16 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 create account eosio euwdcp13zlrj FIO8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB FIO8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB
         ./cleos -u http://localhost:8879 create account eosio mnvcf4v1flnn FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY FIO5GpUwQtFrfvwqxAv24VvMJFeMHutpQJseTz8JYUBfZXP2zR8VY
         ./cleos -u http://localhost:8879 create account eosio inita FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 create account eosio fioproducera FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 create account eosio fioproducerb FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 create account eosio fioproducerc FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 create account eosio fioproducerd FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 create account eosio 5spujqoyq4ie FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u
+        ./cleos -u http://localhost:8879 create account eosio jylcbburbjfn FIO6TpKCKLjFypQCFf4DE43K2kNTWjW8iGwATaHb8H24RECU61twx FIO6TpKCKLjFypQCFf4DE43K2kNTWjW8iGwATaHb8H24RECU61twx
+        ./cleos -u http://localhost:8879 create account eosio jq2rjeaeasme FIO8AjJcRbxFMuBAbZLauRt6Zawi1SDzYaucA83SuY1tk65ZNhZzr FIO8AjJcRbxFMuBAbZLauRt6Zawi1SDzYaucA83SuY1tk65ZNhZzr
+        ./cleos -u http://localhost:8879 create account eosio 2stj4kbck5jh FIO7aVUqptxrjyEPmRWzST8ZhrqUYmsm8JDi7iX3w93YVdSbTQu8g FIO7aVUqptxrjyEPmRWzST8ZhrqUYmsm8JDi7iX3w93YVdSbTQu8g
 
         sleep 5
 
         echo issuing tokens
 
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["fioproducera","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["5spujqoyq4ie","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["r41zuwovtn44","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
@@ -249,10 +254,10 @@ if [ $mChoice == 1 ]; then
         #register the desired producers, note this does not yet turn on block production because teh necessary amount of
         #fio is not yet in circulation, and there are no votes.
         #it just registers these BP.
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducera", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducera
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerb", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerb
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerc
-        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerd
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"5spujqoyq4ie", "producer_key":"FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u","url":"","location":0, "fio_address":""}' -p 5spujqoyq4ie
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"jylcbburbjfn", "producer_key":"FIO6TpKCKLjFypQCFf4DE43K2kNTWjW8iGwATaHb8H24RECU61twx","url":"","location":0, "fio_address":""}' -p jylcbburbjfn
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"jq2rjeaeasme", "producer_key":"FIO8AjJcRbxFMuBAbZLauRt6Zawi1SDzYaucA83SuY1tk65ZNhZzr","url":"","location":0, "fio_address":""}' -p jq2rjeaeasme
+        ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"2stj4kbck5jh", "producer_key":"FIO7aVUqptxrjyEPmRWzST8ZhrqUYmsm8JDi7iX3w93YVdSbTQu8g","url":"","location":0, "fio_address":""}' -p 2stj4kbck5jh
         sleep 5
         ./cleos -u http://localhost:8879 system listproducers
 
@@ -340,7 +345,7 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","public_domain":true,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 2
 
-    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"fioproducera","tpid":""}' --permission fioproducera@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":""}' --permission 5spujqoyq4ie@active
     sleep 5
 
     #Create Account Name
@@ -353,7 +358,7 @@ if [ $mChoice == 1 ]; then
     echo ada
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
     echo fioproducera
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"fioproducera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"fioproducera","tpid":"adam:dapix"}' --permission fioproducera@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"fioproducera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
 
     #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
     #then we give that record some votes...after doing this we can run the register_proxy signing script and this
