@@ -354,7 +354,7 @@ if [ $mChoice == 1 ]; then
     echo ada
     ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
     echo 5spujqoyq4ie
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"5spujqoyq4ie:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
+    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"producera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
 
     #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
     #then we give that record some votes...after doing this we can run the register_proxy signing script and this
