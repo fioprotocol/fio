@@ -32,10 +32,10 @@ namespace eosiosystem {
      *
      */
     void
-    system_contract::regiproducer(const name producer, const eosio::public_key &producer_key, const std::string &url,
+    system_contract::regiproducer(const name producer, const string &producer_key, const std::string &url,
                                   uint16_t location, string fio_address) {
         check(url.size() < 512, "url too long");
-        check(producer_key != eosio::public_key(), "public key should not be the default value");
+        check(producer_key != "", "public key should not be the default value");
         require_auth(producer);
 
         auto prod = _producers.find(producer.value);
@@ -59,7 +59,7 @@ namespace eosiosystem {
                 info.owner = producer;
                 info.fio_address = fio_address;
                 info.total_votes = 0;
-                info.producer_fio_public_key = producer_key;
+                info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
                 info.is_active = true;
                 info.url = url;
                 info.location = location;
@@ -70,8 +70,14 @@ namespace eosiosystem {
                 info.last_votepay_share_update = ct;
             });
         }
+
+        action{permission_level{_self, "active"_n},
+                "fio.system"_n,
+                "bind2eosio"_n,
+          std::make_tuple(producer, producer_key, false)
+        }.send();
     }
-    
+
     static constexpr eosio::name token_account{"fio.token"_n};
     static constexpr eosio::name treasury_account{"fio.treasury"_n};
 
@@ -82,7 +88,7 @@ namespace eosiosystem {
                               string("FIO API fees. Thank you."))
             ).send();
     }
-    
+
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
                                  uint64_t max_fee) {
@@ -113,9 +119,8 @@ namespace eosiosystem {
                        ErrorDomainExpired);
 
         auto key_iter = _accountmap.find(account);
-        const auto owner_pubkey = abieos::string_to_public_key(key_iter->clientkey);
 
-        regiproducer(actor, owner_pubkey, url, location, fio_address);
+        regiproducer(actor, key_iter->clientkey, url, location, fio_address);
 
         //TODO: REFACTOR FEE ( PROXY / PRODUCER )
         //begin new fees, logic for Mandatory fees.

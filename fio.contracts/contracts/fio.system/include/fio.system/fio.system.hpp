@@ -593,7 +593,7 @@ public:
     // functions defined in voting.cpp
 
     [[eosio::action]]
-    void regiproducer(const name producer, const public_key &producer_key, const std::string &url, uint16_t location,
+    void regiproducer(const name producer, const string &producer_key, const std::string &url, uint16_t location,
                       string fio_address);
 
     [[eosio::action]]

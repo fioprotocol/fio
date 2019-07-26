@@ -221,6 +221,8 @@ if [ $mChoice == 1 ]; then
         sleep 5
 
         echo issuing tokens
+
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["fioproducera","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["r41zuwovtn44","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
@@ -229,7 +231,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
 
 
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999995899.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999994899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
         ./cleos -u http://localhost:8879 push action eosio setprods "{ \"schedule\": [{\"producer_name\": \"inita\",\"block_signing_key\": \"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\"}]}" -p eosio@active
@@ -252,7 +254,6 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerc", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerc
         ./cleos -u http://localhost:8879 push action eosio regiproducer '{"producer":"fioproducerd", "producer_key":"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU","url":"","location":0, "fio_address":""}' -p fioproducerd
         sleep 5
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["fioproducera","1000.000000000 FIO","memo"]' -p eosio@active //producer needs funds to create fio address
         ./cleos -u http://localhost:8879 system listproducers
 
         echo calling newaccount
