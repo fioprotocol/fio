@@ -138,12 +138,17 @@ namespace fioio {
         for(auto &itr : producers) {
 
 
+          //This is temporary and sets the voteshares and votes accordingly until some of the issues in the voting logic can be repurposed
+
           //If active block producer
           if(itr.is_active) {
 
 
-          //Determine the share amount
+          //increment total number of votes for all producers
 
+          bprewards.modify(bprewards.begin(),get_self(), [&](auto &entry) {
+            entry.schedvotetotal += itr.total_votes;
+          });
 
           //Take producer and place in shares tables
             voteshares.emplace(get_self(), [&](auto &p) {
@@ -164,13 +169,11 @@ namespace fioio {
         return;
       }
 
-      auto bpiter = voteshares.find(producer);
-      if (bpiter == voteshares.end()) {
-          print("Failed to locate producer in voteshares."); //To remove after testing
-          return;
-      }
+
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
+
+      // Pay schedule expiration
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay schedule so a new one can be created.
@@ -196,6 +199,71 @@ namespace fioio {
       return;
      }
 
+     //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
+     auto bpiter = voteshares.find(producer);
+     if (bpiter == voteshares.end()) {
+         print("Failed to locate producer in voteshares."); //To remove after testing
+         return;
+     }
+
+     //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
+     uint64_t payout = 0;
+
+     if( now() > bpiter->lastclaim + 17 ) { //+ 172800
+
+
+       uint64_t paysize = std::distance(producers.begin(),producers.end());
+
+       auto rewarditer = bprewards.begin();
+       uint64_t reward = rewarditer->rewards;
+       uint64_t schedvotetotal = rewarditer->schedvotetotal;
+       payout = reward / paysize;
+
+
+         action(permission_level{get_self(), "active"_n},
+               "fio.token"_n, "transfer"_n,
+               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
+               string("Paying producer from treasury."))
+           ).send();
+
+     // Reduce the block producer reward equal to payout
+
+       reward -= payout;
+       bprewards.erase(rewarditer);
+       bprewards.emplace(_self, [&](struct bpreward& entry) {
+         entry.rewards = reward;
+         entry.schedvotetotal = schedvotetotal;
+       });
+
+    // PAY FOUNDATION //
+     auto fdtniter = fdtnrewards.begin();
+     if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
+         action(permission_level{get_self(), "active"_n},
+               "fio.token"_n, "transfer"_n,
+               make_tuple("fio.treasury"_n, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
+               string("Paying foundation from treasury."))
+             ).send();
+
+       //Clear the foundation rewards counter
+
+          fdtnrewards.erase(fdtniter);
+          fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
+            entry.rewards = 0;
+         });
+
+     }
+
+     //remove the producer from payschedule
+     voteshares.erase(bpiter);
+
+
+   } //endif now() > bpiter + 172800
+
+
+
+     nlohmann::json json = {{"status",        "OK"},
+                            {"amount",    payout}};
+     send_response(json.dump().c_str());
 
 
 
@@ -249,10 +317,12 @@ namespace fioio {
        } else {
          auto found = bprewards.begin();
          uint64_t reward = found->rewards;
+         uint64_t schedvotetotal = found->schedvotetotal;
          reward += amount;
          bprewards.erase(found);
          bprewards.emplace(_self, [&](struct bpreward& entry) {
            entry.rewards = reward;
+           entry.schedvotetotal = schedvotetotal;
         });
        }
 

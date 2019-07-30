@@ -14,6 +14,7 @@ namespace fioio{
       uint64_t lasttpidpayout;
       uint64_t payschedtimer;
 
+
       // Set the primary key to a constant value to store only one row
       uint64_t primary_key() const { return lasttpidpayout; }
       EOSLIB_SERIALIZE(treasurystate,(lasttpidpayout)(payschedtimer))
