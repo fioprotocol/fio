@@ -130,11 +130,10 @@ namespace fioio {
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay scheduler so a new one can be created.
 
-      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
       // If there is no pay schedule then create a new one
-      if (sharesize == 0) {
+      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
+      if (sharesize == 0) { //if new payschedule
         //Create the payment schedule
-        double todaybucket = bucketrewards.begin()->rewards / 365;
 
         for(auto &itr : producers) {
 
@@ -168,19 +167,38 @@ namespace fioio {
 
         } // &itr : producers
 
-        uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
 
-        // All items are now in pay schedule, calculate the shares
-        for(auto &itr : voteshares) {
+          //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
 
-          double reward = bprewards.begin()->rewards;
-          double payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
-
-          voteshares.modify(itr,get_self(), [&](auto &entry) {
-            entry.votepay_share = payshare;
+          uint64_t temp = bucketrewards.begin()->rewards;
+          bucketrewards.erase(bucketrewards.begin());
+          bucketrewards.emplace(get_self(), [&](auto &p) {
+            p.rewards = temp + bprewards.begin()->rewards * .60;
           });
 
-        }
+
+          temp = bprewards.begin()->dailybucket;
+          bprewards.erase(bprewards.begin());
+          bprewards.emplace(get_self(), [&](auto &p) {
+              p.dailybucket = temp + bprewards.begin()->rewards * .40;
+              p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
+          });
+
+          // All items are now in pay schedule, calculate the shares
+          uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+          double todaybucket = bucketrewards.begin()->rewards / 365;
+
+          for(auto &itr : voteshares) {
+
+            double reward = bprewards.begin()->dailybucket / bpcount;
+      
+            double payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
+
+            voteshares.modify(itr,get_self(), [&](auto &entry) {
+              entry.votepay_share = payshare;
+            });
+
+          }
 
 
         //Start 24 track for daily pay
@@ -189,7 +207,8 @@ namespace fioio {
         });
         print("Voteshares processed","\n"); //To remove after testing
         return;
-      }
+
+      } //if new payschedule
 
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
