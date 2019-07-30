@@ -177,10 +177,10 @@ namespace fioio {
           });
 
 
-          temp = bprewards.begin()->dailybucket;
+          temp = bprewards.begin()->dailybucket + bprewards.begin()->rewards * .40;
           bprewards.erase(bprewards.begin());
           bprewards.emplace(get_self(), [&](auto &p) {
-              p.dailybucket = temp + bprewards.begin()->rewards * .40;
+              p.dailybucket = temp;
               p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
           });
 
@@ -191,7 +191,7 @@ namespace fioio {
           for(auto &itr : voteshares) {
 
             double reward = bprewards.begin()->dailybucket / bpcount;
-      
+
             double payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
 
             voteshares.modify(itr,get_self(), [&](auto &entry) {
