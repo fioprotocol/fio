@@ -134,6 +134,7 @@ namespace fioio {
       // If there is no pay schedule then create a new one
       if (sharesize == 0) {
         //Create the payment schedule
+        double todaybucket = bucketrewards.begin()->rewards / 365;
 
         for(auto &itr : producers) {
 
@@ -143,23 +144,44 @@ namespace fioio {
           //If active block producer
           if(itr.is_active) {
 
-
-          //increment total number of votes for all producers
-
-          clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-            entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
-          });
+            //increment total number of votes for all producers placed into voteshares table
+            // This iteration and the schedvotetotal table entry in clockstate will not be necessary to calculate a schedule
+            // vote total if total_producer_votes can accumulate a total at producer vote time
+            /* clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+               This is correct setting of accumulated votes of all producers but value in total_votes will need adjusting first
+               entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
+            }); */
 
           //Take producer and place in shares tables
             voteshares.emplace(get_self(), [&](auto &p) {
               p.owner = itr.owner;
-              p.votes = itr.total_votes;
+              p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
               p.lastclaim = now();
-              p.votepay_share = itr.total_votes; //Changing to use the percentile
             });
+
+            //temporary ()
+            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+              entry.schedvotetotal += 2; // entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
+            });
+
           }
 
+        } // &itr : producers
+
+        uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+
+        // All items are now in pay schedule, calculate the shares
+        for(auto &itr : voteshares) {
+
+          double reward = bprewards.begin()->rewards;
+          double payshare = (todaybucket / bpcount) + (reward * (itr.votes / clockiter->schedvotetotal));
+
+          voteshares.modify(itr,get_self(), [&](auto &entry) {
+            entry.votepay_share = payshare;
+          });
+
         }
+
 
         //Start 24 track for daily pay
         clockstate.modify(clockiter, get_self(), [&](auto &entry) {
@@ -168,7 +190,6 @@ namespace fioio {
         print("Voteshares processed","\n"); //To remove after testing
         return;
       }
-
 
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
@@ -201,6 +222,8 @@ namespace fioio {
               entry.schedvotetotal = 0;
             });
 
+            print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
+            bpclaim(fio_address, actor); // Call self to create a new pay schedule
         }
 
       return;
@@ -209,7 +232,7 @@ namespace fioio {
      //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
      auto bpiter = voteshares.find(producer);
      if (bpiter == voteshares.end()) {
-         print("Failed to locate producer in voteshares."); //To remove after testing
+         print("Failed to locate producer in voteshares or producer already paid."); //To remove after testing
          return;
      }
 
@@ -218,24 +241,16 @@ namespace fioio {
 
      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
 
-
-       uint64_t paysize = std::distance(producers.begin(),producers.end());
-
-       auto rewarditer = bprewards.begin();
-       uint64_t reward = rewarditer->rewards;
-       payout = reward / paysize;
-
-
-         action(permission_level{get_self(), "active"_n},
+             action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
+               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(bpiter->votepay_share, symbol("FIO",9)),
                string("Paying producer from treasury."))
            ).send();
 
      // Reduce the block producer reward equal to payout
-
-       reward -= payout;
-       bprewards.erase(rewarditer);
+       double reward = bprewards.begin()->rewards;
+       reward -= bpiter->votes / clockiter->schedvotetotal; //reduce the amount calculated to be subtracted from bprewards_table
+       bprewards.erase(bprewards.begin());
        bprewards.emplace(_self, [&](struct bpreward& entry) {
          entry.rewards = reward;
        });
