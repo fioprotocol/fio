@@ -174,7 +174,7 @@ namespace fioio {
         for(auto &itr : voteshares) {
 
           double reward = bprewards.begin()->rewards;
-          double payshare = (todaybucket / bpcount) + (reward * (itr.votes / clockiter->schedvotetotal));
+          double payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
 
           voteshares.modify(itr,get_self(), [&](auto &entry) {
             entry.votepay_share = payshare;
