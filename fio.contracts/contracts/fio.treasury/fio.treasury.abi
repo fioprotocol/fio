@@ -33,6 +33,8 @@
                   "type":"uint64"},
                  {"name":"payschedtimer",
                   "type":"uint64"},
+                 {"name":"schedvotetotal",
+                  "type":"uint64"},
               ]
               },{
               "name": "bpreward",
@@ -40,8 +42,7 @@
               "fields": [
                  {"name":"rewards",
                   "type":"uint64"},
-                 {"name":"schedvotetotal",
-                 "type":"uint64"},
+
               ]
              },{
              "name": "fdtnreward",

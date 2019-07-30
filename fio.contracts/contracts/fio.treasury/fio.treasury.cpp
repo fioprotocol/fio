@@ -146,8 +146,8 @@ namespace fioio {
 
           //increment total number of votes for all producers
 
-          bprewards.modify(bprewards.begin(),get_self(), [&](auto &entry) {
-            entry.schedvotetotal += itr.total_votes;
+          clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+            entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
           });
 
           //Take producer and place in shares tables
@@ -176,7 +176,7 @@ namespace fioio {
       // Pay schedule expiration
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
-      // then erase the pay schedule so a new one can be created.
+      // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
       if(now() >= clockiter->payschedtimer + 17 ) { //+ 172800
 
         if (sharesize > 0) {
@@ -194,6 +194,13 @@ namespace fioio {
 
               iter = voteshares.erase(iter);
             }
+
+            // reset total schedule vote shares, needs to be recalculated when spawning new pay schedule
+
+            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+              entry.schedvotetotal = 0;
+            });
+
         }
 
       return;
@@ -216,7 +223,6 @@ namespace fioio {
 
        auto rewarditer = bprewards.begin();
        uint64_t reward = rewarditer->rewards;
-       uint64_t schedvotetotal = rewarditer->schedvotetotal;
        payout = reward / paysize;
 
 
@@ -232,7 +238,6 @@ namespace fioio {
        bprewards.erase(rewarditer);
        bprewards.emplace(_self, [&](struct bpreward& entry) {
          entry.rewards = reward;
-         entry.schedvotetotal = schedvotetotal;
        });
 
     // PAY FOUNDATION //
@@ -317,12 +322,10 @@ namespace fioio {
        } else {
          auto found = bprewards.begin();
          uint64_t reward = found->rewards;
-         uint64_t schedvotetotal = found->schedvotetotal;
          reward += amount;
          bprewards.erase(found);
          bprewards.emplace(_self, [&](struct bpreward& entry) {
            entry.rewards = reward;
-           entry.schedvotetotal = schedvotetotal;
         });
        }
 

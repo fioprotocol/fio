@@ -12,10 +12,11 @@ namespace fioio {
 
       uint64_t rewards;
       uint64_t dailybucket;
-      uint64_t schedvotetotal = 0; //total number of votes of all producers
+
       uint64_t primary_key() const {return rewards;}
 
-      EOSLIB_SERIALIZE(bpreward, (rewards)(dailybucket)(schedvotetotal))
+      EOSLIB_SERIALIZE(bpreward, (rewards)(dailybucket))
+
 
     };
 
