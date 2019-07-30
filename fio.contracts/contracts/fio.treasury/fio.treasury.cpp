@@ -241,17 +241,15 @@ namespace fioio {
 
      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
 
-       uint64_t payout = bpiter->votepay_share;
-
              action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
+               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(bpiter->votepay_share, symbol("FIO",9)),
                string("Paying producer from treasury."))
            ).send();
 
      // Reduce the block producer reward equal to payout
        double reward = bprewards.begin()->rewards;
-       reward -= payout;
+       reward -= bpiter->votes / clockiter->schedvotetotal; //reduce the amount calculated to be subtracted from bprewards_table
        bprewards.erase(bprewards.begin());
        bprewards.emplace(_self, [&](struct bpreward& entry) {
          entry.rewards = reward;
