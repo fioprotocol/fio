@@ -148,7 +148,9 @@ namespace eosio {
                                      CHAIN_RW_CALL_ASYNC(set_fio_domain_public,
                                                          chain_apis::read_write::set_fio_domain_public_results, 202),
                                      CHAIN_RW_CALL_ASYNC(pay_tpid_rewards,
-                                                         chain_apis::read_write::pay_tpid_rewards_results, 202)
+                                                         chain_apis::read_write::pay_tpid_rewards_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(claim_bp_rewards,
+                                                         chain_apis::read_write::claim_bp_rewards_results, 202)
 
                              });
     }

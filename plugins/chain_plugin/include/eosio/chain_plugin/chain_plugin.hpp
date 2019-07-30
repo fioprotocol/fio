@@ -875,7 +875,7 @@ namespace eosio {
             void register_producer(const register_producer_params &params,
                                    chain::plugin_interface::next_function <register_producer_results> next);
             //end register_producer
-          
+
             //begin unregister_proxy
             using unregister_proxy_params = fc::variant_object;
             struct unregister_proxy_results {
@@ -927,7 +927,7 @@ namespace eosio {
             void new_funds_request(const new_funds_request_params &params,
                                    chain::plugin_interface::next_function <new_funds_request_results> next);
 
-           //Begin Added for new funds request api method
+           //Begin Added for new pay_tpid_rewards  api method
            using pay_tpid_rewards_params = fc::variant_object;
 
            struct pay_tpid_rewards_results {
@@ -937,7 +937,20 @@ namespace eosio {
            void pay_tpid_rewards(const pay_tpid_rewards_params &params,
                                   chain::plugin_interface::next_function <pay_tpid_rewards_results> next);
 
-            //End added for new funds request api method.
+            //End added for new pay_tpid_rewards api method.
+
+            //Begin Added for new claim_bp_rewards  api method
+            using claim_bp_rewards_params = fc::variant_object;
+
+            struct claim_bp_rewards_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void claim_bp_rewards(const claim_bp_rewards_params &params,
+                                   chain::plugin_interface::next_function <claim_bp_rewards_results> next);
+
+             //End added for new claim_bp_rewards api method.
 
             using push_transactions_params  = vector<push_transaction_params>;
             using push_transactions_results = vector<push_transaction_results>;
@@ -1186,6 +1199,9 @@ FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results,(processed)
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (processed)
+)
+
+FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed)
 )
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit)

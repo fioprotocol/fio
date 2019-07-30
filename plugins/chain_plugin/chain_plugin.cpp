@@ -1562,7 +1562,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                 } // Get request statuses
             }
-            
+
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             return result;
         }
@@ -3176,6 +3176,45 @@ void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &par
     } CATCH_AND_CALL(next);
 }
 
+
+void read_write::claim_bp_rewards(const read_write::claim_bp_rewards_params& params, next_function<read_write::claim_bp_rewards_results> next) {
+
+   try {
+      auto pretty_input = std::make_shared<packed_transaction>();
+      auto resolver = make_resolver(this, abi_serializer_max_time);
+      transaction_metadata_ptr ptrx;
+      dlog("claim_bp_rewards called");
+
+      try {
+         abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+         ptrx = std::make_shared<transaction_metadata>( pretty_input );
+       }EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+         if (result.contains<fc::exception_ptr>()) {
+            next(result.get<fc::exception_ptr>());
+         } else {
+            auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+            try {
+               fc::variant output;
+               try {
+                  output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+               } catch( chain::abi_exception& ) {
+                  output = *trx_trace_ptr;
+               }
+
+               const chain::transaction_id_type& id = trx_trace_ptr->id;
+               next(read_write::claim_bp_rewards_results{id, output});
+            } CATCH_AND_CALL(next);
+         }
+      });
+
+
+   } catch ( boost::interprocess::bad_alloc& ) {
+      chain_plugin::handle_db_exhaustion();
+   } CATCH_AND_CALL(next);
+}
 
         static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
    auto wrapped_next = [=](const fc::static_variant<fc::exception_ptr, read_write::push_transaction_results>& result) {
