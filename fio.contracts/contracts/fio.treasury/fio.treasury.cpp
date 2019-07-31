@@ -151,12 +151,23 @@ namespace fioio {
                entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
             }); */
 
-          //Take producer and place in shares tables
-            voteshares.emplace(get_self(), [&](auto &p) {
-              p.owner = itr.owner;
-              p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
-              p.lastclaim = now();
-            });
+
+            if (std::distance(voteshares.begin(), voteshares.end()) % 2) { // *** delete this line - This is temporary until another method sets top21 bool of voteshares element
+            //Take producer and place in shares tables
+              voteshares.emplace(get_self(), [&](auto &p) {
+                p.owner = itr.owner;
+                p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
+                p.lastclaim = now();
+                p.top21 = true;
+              });
+            } else { // delete this line up *****
+              voteshares.emplace(get_self(), [&](auto &p) {
+                p.owner = itr.owner;
+                p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
+                p.lastclaim = now();
+                p.top21 = false;
+              });
+            } // to this line *****
 
             //temporary ()
             clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
@@ -189,16 +200,24 @@ namespace fioio {
           double todaybucket = bucketrewards.begin()->rewards / 365;
 
           for(auto &itr : voteshares) {
+            double payshare;
+              if (itr.top21) {
 
-            double reward = bprewards.begin()->dailybucket / bpcount;
+                double reward = bprewards.begin()->dailybucket / bpcount;
 
-            double payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
+                payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
 
-            voteshares.modify(itr,get_self(), [&](auto &entry) {
-              entry.votepay_share = payshare;
-            });
+              } else {
 
-          }
+                payshare = (todaybucket / bpcount); //itr.votes / clockiter->schedvotetotal
+
+              }
+
+              voteshares.modify(itr,get_self(), [&](auto &entry) {
+                entry.votepay_share = payshare;
+              });
+
+          } // &itr : voteshares
 
 
         //Start 24 track for daily pay
@@ -316,10 +335,9 @@ namespace fioio {
       auto clockiter = clockstate.begin();
 
       clockstate.erase(clockiter);
-
       clockstate.emplace(_self, [&](struct treasurystate& entry) {
-      entry.lasttpidpayout = now();
-    });
+        entry.lasttpidpayout = now();
+      });
     }
 
     // @abi action
