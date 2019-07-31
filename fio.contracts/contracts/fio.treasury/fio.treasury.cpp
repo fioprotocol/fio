@@ -130,11 +130,10 @@ namespace fioio {
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay scheduler so a new one can be created.
 
-      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
       // If there is no pay schedule then create a new one
-      if (sharesize == 0) {
+      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
+      if (sharesize == 0) { //if new payschedule
         //Create the payment schedule
-        double todaybucket = bucketrewards.begin()->rewards / 365;
 
         for(auto &itr : producers) {
 
@@ -152,12 +151,23 @@ namespace fioio {
                entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
             }); */
 
-          //Take producer and place in shares tables
-            voteshares.emplace(get_self(), [&](auto &p) {
-              p.owner = itr.owner;
-              p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
-              p.lastclaim = now();
-            });
+
+            if (std::distance(voteshares.begin(), voteshares.end()) % 2) { // *** delete this line - This is temporary until another method sets top21 bool of voteshares element
+            //Take producer and place in shares tables
+              voteshares.emplace(get_self(), [&](auto &p) {
+                p.owner = itr.owner;
+                p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
+                p.lastclaim = now();
+                p.top21 = true;
+              });
+            } else { // delete this line up *****
+              voteshares.emplace(get_self(), [&](auto &p) {
+                p.owner = itr.owner;
+                p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
+                p.lastclaim = now();
+                p.top21 = false;
+              });
+            } // to this line *****
 
             //temporary ()
             clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
@@ -168,19 +178,46 @@ namespace fioio {
 
         } // &itr : producers
 
-        uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
 
-        // All items are now in pay schedule, calculate the shares
-        for(auto &itr : voteshares) {
+          //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
 
-          double reward = bprewards.begin()->rewards;
-          double payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
-
-          voteshares.modify(itr,get_self(), [&](auto &entry) {
-            entry.votepay_share = payshare;
+          uint64_t temp = bucketrewards.begin()->rewards;
+          bucketrewards.erase(bucketrewards.begin());
+          bucketrewards.emplace(get_self(), [&](auto &p) {
+            p.rewards = temp + bprewards.begin()->rewards * .60;
           });
 
-        }
+
+          temp = bprewards.begin()->dailybucket + bprewards.begin()->rewards * .40;
+          bprewards.erase(bprewards.begin());
+          bprewards.emplace(get_self(), [&](auto &p) {
+              p.dailybucket = temp;
+              p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
+          });
+
+          // All items are now in pay schedule, calculate the shares
+          uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+          double todaybucket = bucketrewards.begin()->rewards / 365;
+
+          for(auto &itr : voteshares) {
+            double payshare;
+              if (itr.top21) {
+
+                double reward = bprewards.begin()->dailybucket / bpcount;
+
+                payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
+
+              } else {
+
+                payshare = (todaybucket / bpcount); //itr.votes / clockiter->schedvotetotal
+
+              }
+
+              voteshares.modify(itr,get_self(), [&](auto &entry) {
+                entry.votepay_share = payshare;
+              });
+
+          } // &itr : voteshares
 
 
         //Start 24 track for daily pay
@@ -189,7 +226,8 @@ namespace fioio {
         });
         print("Voteshares processed","\n"); //To remove after testing
         return;
-      }
+
+      } //if new payschedule
 
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
@@ -297,10 +335,9 @@ namespace fioio {
       auto clockiter = clockstate.begin();
 
       clockstate.erase(clockiter);
-
       clockstate.emplace(_self, [&](struct treasurystate& entry) {
-      entry.lasttpidpayout = now();
-    });
+        entry.lasttpidpayout = now();
+      });
     }
 
     // @abi action
