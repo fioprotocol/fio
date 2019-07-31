@@ -1,3 +1,11 @@
+/** FioTreasury implementation file
+ *  Description: FioTreasury smart contract controls block producer and tpid payments.
+ *  @author Adam Androulidakis
+ *  @modifedby
+ *  @file fio.treasury.cpp
+ *  @copyright Dapix
+ */
+
 #include "fio.treasury.hpp"
 
 namespace fioio {
@@ -152,7 +160,7 @@ namespace fioio {
             }); */
 
 
-            if (std::distance(voteshares.begin(), voteshares.end()) % 2) { // *** delete this line - This is temporary until another method sets top21 bool of voteshares element
+            if (std::distance(voteshares.begin(), voteshares.find(itr.owner.value)) % 2) { // *** delete this line - This is temporary until another method sets top21 bool of voteshares element
             //Take producer and place in shares tables
               voteshares.emplace(get_self(), [&](auto &p) {
                 p.owner = itr.owner;
@@ -196,20 +204,20 @@ namespace fioio {
           });
 
           // All items are now in pay schedule, calculate the shares
-          uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+          const uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end()); //temporary constant
           double todaybucket = bucketrewards.begin()->rewards / 365;
 
           for(auto &itr : voteshares) {
             double payshare;
               if (itr.top21) {
 
-                double reward = bprewards.begin()->dailybucket / bpcount;
+                double reward = bprewards.begin()->dailybucket / bpcount; // dailybucket / 21
 
-                payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); //itr.votes / clockiter->schedvotetotal
+                payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); // (todaybucket / 42) + (reward *(itr.votes / clockiter->schedvotetotal)
 
               } else {
 
-                payshare = (todaybucket / bpcount); //itr.votes / clockiter->schedvotetotal
+                payshare = (todaybucket / bpcount); //todaybucket / 42
 
               }
 
@@ -243,10 +251,9 @@ namespace fioio {
           auto iter = voteshares.begin();
           while (iter != voteshares.end()) {
 
-                auto found = bucketrewards.begin();
-                uint64_t reward = found->rewards;
+                uint64_t reward = bucketrewards.begin()->rewards;
                 reward += static_cast<uint64_t>(iter->votepay_share);
-                bucketrewards.erase(found);
+                bucketrewards.erase(bucketrewards.begin());
                 bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
                   entry.rewards = reward;
                 });
