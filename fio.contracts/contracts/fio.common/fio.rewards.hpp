@@ -1,3 +1,12 @@
+/** FioRewards header file
+ *  Description: FioRewards header is included in fio.common.hpp and contains tables and actions to issue rewards.
+ *    These actions should only be used by fee invoking transactions originating from the end user.
+ *  @author Adam Androulidakis
+ *  @modifedby
+ *  @file fio.rewards.hpp
+ *  @copyright Dapix
+ */
+
 #pragma once
 
 #include <vector>

@@ -1,3 +1,11 @@
+/** FioTreasury header file
+ *  Description: FioTreasury smart contract controls block producer and tpid payments.
+ *  @author Adam Androulidakis
+ *  @modifedby
+ *  @file fio.treasury.cpp
+ *  @copyright Dapix
+ */
+
 #include <fio.common/fio.common.hpp>
 #include <fio.common/fio.rewards.hpp>
 #include <fio.name/fio.name.hpp>
