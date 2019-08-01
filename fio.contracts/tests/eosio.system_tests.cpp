@@ -4677,8 +4677,8 @@ emplace_back( get_action(config::system_account_name, N(claimrewards), {{carol, 
 
 std::vector <account_name> prods = {carol, emily};
 trx.actions.
-emplace_back( get_action(config::system_account_name, N(voteproducer), {{alice, config::active_name}},
-                         mvo()("voter", alice)("proxy", name(0))("producers", prods))
+        emplace_back(get_action(config::system_account_name, N(vproducer), {{alice, config::active_name}},
+                                mvo()("voter", alice)("proxy", name(0))("producers", prods))
 );
 
 trx.actions.

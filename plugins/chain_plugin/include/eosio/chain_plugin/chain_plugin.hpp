@@ -876,6 +876,22 @@ namespace eosio {
                                    chain::plugin_interface::next_function <register_producer_results> next);
             //end register_producer
 
+            using vote_producer_params = fc::variant_object;
+            struct vote_producer_results {
+                fc::variant processed;
+            };
+
+            void vote_producer(const vote_producer_params &params,
+                               chain::plugin_interface::next_function <vote_producer_results> next);
+
+            using proxy_vote_params = fc::variant_object;
+            struct proxy_vote_results {
+                fc::variant processed;
+            };
+
+            void proxy_vote(const proxy_vote_params &params,
+                            chain::plugin_interface::next_function<proxy_vote_results> next);
+
             //begin unregister_proxy
             using unregister_proxy_params = fc::variant_object;
             struct unregister_proxy_results {
@@ -1187,6 +1203,10 @@ FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::proxy_vote_results, (processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results,(processed)
 )

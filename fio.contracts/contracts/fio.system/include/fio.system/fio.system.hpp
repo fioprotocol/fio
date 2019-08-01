@@ -598,10 +598,10 @@ public:
 
     [[eosio::action]]
     void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                     uint64_t max_fee);
+                     const uint64_t max_fee);
 
     [[eosio::action]]
-    void unregprod(const string fio_address, const name actor, uint64_t max_fee);
+    void unregprod(const string fio_address, const name actor, const uint64_t max_fee);
 
     [[eosio::action]]
     void setram(uint64_t max_ram_size);
@@ -610,7 +610,13 @@ public:
     void setramrate(uint16_t bytes_per_block);
 
     [[eosio::action]]
-    void voteproducer(const name voter, const name proxy, const std::vector <name> &producers);
+    void vproducer(const name voter, const name proxy, const std::vector<name> &producers); //server call
+
+    [[eosio::action]]
+    void voteproducer(const std::vector<name> &producers, const name actor, const uint64_t max_fee);
+
+    [[eosio::action]]
+    void voteproxy(const string fio_address, const name actor, const uint64_t max_fee);
 
     [[eosio::action]]
     void setautoproxy(name proxy,name owner);
@@ -619,10 +625,10 @@ public:
     void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
-    void unregproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+    void unregproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee);
 
     [[eosio::action]]
-    void regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee );
+    void regproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee);
 
     [[eosio::action]]
     void regiproxy(const name proxy, const string &fio_address, bool isproxy);
@@ -683,7 +689,9 @@ public:
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
     using setram_action = eosio::action_wrapper<"setram"_n, &system_contract::setram>;
     using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;
+    using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
     using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
+    using voteproxy_action = eosio::action_wrapper<"voteproxy"_n, &system_contract::voteproxy>;
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
     using regiproxy_action = eosio::action_wrapper<"regiproxy"_n, &system_contract::regiproxy>;
     using crautoproxy_action = eosio::action_wrapper<"crautoproxy"_n, &system_contract::crautoproxy>;

@@ -268,12 +268,12 @@ if [ $mChoice == 1 ]; then
 
         sleep 5
 
-        echo calling voteproducer
+        echo calling vproducer
         #vote for the producers, now block production may occur.
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt1 5spujqoyq4ie -p myvoteracnt1@active
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt2 fioproducerb -p myvoteracnt2@active
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt3 fioproducerc -p myvoteracnt3@active
-        ./cleos -u http://localhost:8889 system voteproducer prods myvoteracnt4 fioproducerd -p myvoteracnt4@active
+        ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt1 5spujqoyq4ie -p myvoteracnt1@active
+        ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt2 fioproducerb -p myvoteracnt2@active
+        ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt3 fioproducerc -p myvoteracnt3@active
+        ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt4 fioproducerd -p myvoteracnt4@active
 
 
     fi
@@ -329,6 +329,8 @@ if [ $mChoice == 1 ]; then
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"register_proxy","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"unregister_proxy","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"unregister_producer","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"proxy_vote","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"vote_producer","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
 
     echo setting accounts
     sleep 1
@@ -361,7 +363,7 @@ if [ $mChoice == 1 ]; then
     #tests the logic when there is already a record in the voters table for this account....
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"1"}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"0"}' --permission htjonrkf1lgs@active
-    ./cleos -u http://localhost:8889 system voteproducer prods htjonrkf1lgs 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 system vproducer prods htjonrkf1lgs 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
 
 
 elif [ $mChoice == 3 ]; then
