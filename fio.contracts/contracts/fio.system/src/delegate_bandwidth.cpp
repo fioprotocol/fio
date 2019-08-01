@@ -415,27 +415,43 @@ namespace eosiosystem {
                 );
             }
         }
-        update_voting_power(from, stake_net_delta + stake_cpu_delta);
+       // update_voting_power(from, stake_net_delta + stake_cpu_delta);
+       //MAS-522 remove staking from voting
+        updatepower(from, false);
     }
 
-    void system_contract::update_voting_power(const name &voter, const asset &total_update) {
+    //MAS-522 remove staking from voting.
+   // void system_contract::update_voting_power(const name &voter, const asset &total_update) {
+   void system_contract::updatepower(const name &voter,bool updateonly) {
+        print(" called update power.","\n");
         auto voter_itr = _voters.find(voter.value);
-        if (voter_itr == _voters.end()) {
+        if ((voter_itr == _voters.end())&& updateonly) {
+            print(" could not find voter.",voter,"\n");
+            //its not there so return.
+            return;
+        }
+        if ((voter_itr == _voters.end())&& !updateonly) {
             voter_itr = _voters.emplace(voter, [&](auto &v) {
                 v.owner = voter;
-                v.staked = total_update.amount;
-            });
-        } else {
-            _voters.modify(voter_itr, same_payer, [&](auto &v) {
-                v.staked += total_update.amount;
+                //MAS-522 remove stake from voting
+               // v.staked = total_update.amount;
             });
         }
+        //MAS-522 remove stake from voting
+        //else {
+           // _voters.modify(voter_itr, same_payer, [&](auto &v) {
+           //     v.staked += total_update.amount;
+          //  });
+       // }
 
-        check(0 <= voter_itr->staked, "stake for voting cannot be negative");
+       // check(0 <= voter_itr->staked, "stake for voting cannot be negative");
 
-        if (voter == "b1"_n) {
-            validate_b1_vesting(voter_itr->staked);
-        }
+       //NOTE -- lets leave this hear, we may need similar logic possibly for
+       //  FIO launch...
+       // if (voter == "b1"_n) {
+       //     validate_b1_vesting(voter_itr->staked);
+        //}
+        //MAS-522 remove stake from voting END
 
         if (voter_itr->producers.size() || voter_itr->proxy) {
             update_votes(voter, voter_itr->proxy, voter_itr->producers, false);

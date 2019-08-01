@@ -381,6 +381,15 @@ namespace fioio {
                 //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
                 fio_fees(actor, reg_fee_asset);
                 process_rewards(tpid, reg_amount, get_self());
+                //MAS-522 remove staking from voting.
+                if (reg_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {actor, true}
+                            );
+                }
+                //MAS-522 remove staking from voting.  END
 
             }
 
@@ -1021,6 +1030,14 @@ namespace fioio {
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
             process_rewards(tpid, reg_amount, get_self());
+            if (reg_amount > 0) {
+                //MAS-522 remove staking from voting.
+                INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                        ("eosio"_n, {{_self, "active"_n}},
+                         {actor, true}
+                        );
+            }
+            //MAS-522 remove staking from voting.  END
 
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    expiration},

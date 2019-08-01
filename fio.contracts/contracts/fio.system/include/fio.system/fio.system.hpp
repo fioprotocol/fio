@@ -616,6 +616,9 @@ public:
     void voteproducer(const std::vector<string> &producers, const name actor, const uint64_t max_fee);
 
     [[eosio::action]]
+    void updatepower(const name &voter, bool updateonly);
+
+    [[eosio::action]]
     void voteproxy(const string fio_address, const name actor, const uint64_t max_fee);
 
     [[eosio::action]]
@@ -731,7 +734,7 @@ private:
     void changebw(name from, name receiver,
                   asset stake_net_quantity, asset stake_cpu_quantity, bool transfer);
 
-    void update_voting_power(const name &voter, const asset &total_update);
+    //void update_voting_power(const name &voter, const asset &total_update);
 
     // defined in voting.hpp
     void update_elected_producers(block_timestamp timestamp);
