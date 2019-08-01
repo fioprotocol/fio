@@ -93,7 +93,7 @@ namespace eosiosystem {
 
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                                 uint64_t max_fee) {
+                                 const uint64_t max_fee) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -159,7 +159,7 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::unregprod(const string fio_address, const name actor, uint64_t max_fee) {
+    void system_contract::unregprod(const string fio_address, const name actor, const uint64_t max_fee) {
         require_auth(actor);
 
         FioAddress fa;
@@ -537,7 +537,7 @@ namespace eosiosystem {
 
     }
 
-    void system_contract::unregproxy(const std::string &fio_address,const name &actor,uint64_t max_fee ) {
+    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -603,7 +603,7 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::regproxy(const std::string &fio_address,const name &actor,uint64_t max_fee ) {
+    void system_contract::regproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
