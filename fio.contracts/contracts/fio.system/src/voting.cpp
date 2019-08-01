@@ -448,7 +448,7 @@ namespace eosiosystem {
         }
 
         auto voter = _voters.find(voter_name.value);
-        //check(voter != _voters.end(), "user must stake before they can vote"); /// staking creates voter object
+        check(voter != _voters.end(), "user must stake before they can vote"); /// staking creates voter object
         check(!proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
         /**
