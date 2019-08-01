@@ -359,10 +359,75 @@ namespace eosiosystem {
         update_votes(voter_name, proxy, producers, true);
     }
 
-    void system_contract::voteproducer(const std::vector<name> &producers, const name actor, const uint64_t max_fee) {
+    void system_contract::voteproducer(const std::vector<string> &producers, const name actor, const uint64_t max_fee) {
         require_auth(actor);
         name proxy;
-        update_votes(actor, proxy, producers, true);
+        std::vector<name> producers_accounts;
+
+        for (size_t i = 1; i < producers.size(); ++i) {
+            FioAddress fa;
+            getFioAddressStruct(producers[i], fa);
+
+            uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+            uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+
+            //need to verify the account that owns the address is the actor.
+            auto fioname_iter = _fionames.find(nameHash);
+            fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+
+            //check that the name is not expired
+            uint32_t name_expiration = fioname_iter->expiration;
+            uint32_t present_time = now();
+
+            uint64_t account = fioname_iter->owner_account;
+            fio_403_assert(account == actor.value, ErrorSignature);
+            fio_400_assert(present_time <= name_expiration, "fio_address", producers[i],
+                           "FIO Address expired", ErrorFioNameExpired);
+
+            auto domains_iter = _domains.find(domainHash);
+            fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+
+            uint32_t expiration = domains_iter->expiration;
+            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
+                           ErrorDomainExpired);
+
+            auto proxy_name = name{account};
+            producers_accounts.push_back(proxy_name);
+        }
+
+        update_votes(actor, proxy, producers_accounts, true);
+
+        //begin new fees, logic for Mandatory fees.
+        uint64_t endpoint_hash = string_to_uint64_hash("vote_producer");
+
+        auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
+        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+        //if the fee isnt found for the endpoint, then 400 error.
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "vote_producer",
+                       "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+        uint64_t reg_amount = fee_iter->suf_amount;
+        uint64_t fee_type = fee_iter->type;
+
+        //if its not a mandatory fee then this is an error.
+        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                       "vote_producer unexpected fee type for endpoint vote_producer, expected 0",
+                       ErrorNoEndpoint);
+
+        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                       ErrorMaxFeeExceeded);
+
+        asset reg_fee_asset;
+        reg_fee_asset.symbol = symbol("FIO", 9);
+        reg_fee_asset.amount = reg_amount;
+        print(reg_fee_asset.amount);
+
+        fio_fees(actor, reg_fee_asset);
+
+        //end new fees, logic for Mandatory fees.
+        nlohmann::json json = {{"status",        "OK"},
+                               {"fee_collected", reg_amount}};
+        send_response(json.dump().c_str());
     }
 
     void system_contract::voteproxy(const string fio_address, const name actor, const uint64_t max_fee) {
