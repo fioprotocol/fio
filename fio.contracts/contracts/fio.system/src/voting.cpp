@@ -350,7 +350,7 @@ namespace eosiosystem {
      *
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
-    void system_contract::voteproducer(const name voter_name, const name proxy, const std::vector <name> &producers) {
+    void system_contract::vproducer(const name voter_name, const name proxy, const std::vector <name> &producers) {
         require_auth(voter_name);
         update_votes(voter_name, proxy, producers, true);
     }
