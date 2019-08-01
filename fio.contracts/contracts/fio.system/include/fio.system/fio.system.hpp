@@ -613,7 +613,7 @@ public:
     void vproducer(const name voter, const name proxy, const std::vector<name> &producers); //server call
 
     [[eosio::action]]
-    void voteproducer(const string fio_address, const name actor, const uint64_t max_fee);
+    void voteproducer(const std::vector<name> &producers, const name actor, const uint64_t max_fee);
 
     [[eosio::action]]
     void voteproxy(const string fio_address, const name actor, const uint64_t max_fee);

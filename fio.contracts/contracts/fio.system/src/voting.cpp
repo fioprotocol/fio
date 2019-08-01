@@ -359,9 +359,10 @@ namespace eosiosystem {
         update_votes(voter_name, proxy, producers, true);
     }
 
-    void system_contract::voteproducer(const string fio_address, const name actor, const uint64_t max_fee) {
+    void system_contract::voteproducer(const std::vector<name> &producers, const name actor, const uint64_t max_fee) {
         require_auth(actor);
-        //update_votes(actor, proxy, producers, true);
+        name proxy;
+        update_votes(actor, proxy, producers, true);
     }
 
     void system_contract::voteproxy(const string fio_address, const name actor, const uint64_t max_fee) {
@@ -438,7 +439,7 @@ namespace eosiosystem {
         //validate input
         if (proxy) {
             check(producers.size() == 0, "cannot vote for producers and proxy at same time");
-            check(voter_name != proxy, "cannot proxy to self");
+            check(voter_name != proxy, "Invalid or duplicated producers");
         } else {
             check(producers.size() <= 30, "attempt to vote for too many producers");
             for (size_t i = 1; i < producers.size(); ++i) {
@@ -447,7 +448,7 @@ namespace eosiosystem {
         }
 
         auto voter = _voters.find(voter_name.value);
-        check(voter != _voters.end(), "user must stake before they can vote"); /// staking creates voter object
+        //check(voter != _voters.end(), "user must stake before they can vote"); /// staking creates voter object
         check(!proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
         /**
@@ -514,7 +515,7 @@ namespace eosiosystem {
             auto pitr = _producers.find(pd.first.value);
             if (pitr != _producers.end()) {
                 check(!voting || pitr->active() || !pd.second.second /* not from new set */,
-                      "producer is not currently registered");
+                      "Invalid or duplicated producers");
                 double init_total_votes = pitr->total_votes;
                 _producers.modify(pitr, same_payer, [&](auto &p) {
                     p.total_votes += pd.second.first;
@@ -547,7 +548,7 @@ namespace eosiosystem {
                     }
                 }
             } else {
-                check(!pd.second.second /* not from new set */, "producer is not registered"); //data corruption
+                check(!pd.second.second /* not from new set */, "Invalid or duplicated producers"); //data corruption
             }
         }
 
