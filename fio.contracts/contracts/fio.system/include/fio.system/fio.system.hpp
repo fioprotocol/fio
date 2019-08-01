@@ -610,7 +610,13 @@ public:
     void setramrate(uint16_t bytes_per_block);
 
     [[eosio::action]]
-    void vproducer(const name voter, const name proxy, const std::vector <name> &producers);
+    void vproducer(const name voter, const name proxy, const std::vector<name> &producers); //server call
+
+    [[eosio::action]]
+    void voteproducer(const string fio_address, const name actor, const uint64_t max_fee);
+
+    [[eosio::action]]
+    void voteproxy(const string fio_address, const name actor, const uint64_t max_fee);
 
     [[eosio::action]]
     void setautoproxy(name proxy,name owner);
@@ -684,6 +690,8 @@ public:
     using setram_action = eosio::action_wrapper<"setram"_n, &system_contract::setram>;
     using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;
     using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
+    using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
+    using voteproxy_action = eosio::action_wrapper<"voteproxy"_n, &system_contract::voteproxy>;
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
     using regiproxy_action = eosio::action_wrapper<"regiproxy"_n, &system_contract::regiproxy>;
     using crautoproxy_action = eosio::action_wrapper<"crautoproxy"_n, &system_contract::crautoproxy>;

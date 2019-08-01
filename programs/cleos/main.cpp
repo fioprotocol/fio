@@ -1226,7 +1226,7 @@ struct vote_producer_proxy_subcommand {
                     ("producers", std::vector < account_name > {});
             auto accountPermissions = get_account_permissions(tx_permission, {voter_str, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1252,7 +1252,7 @@ struct vote_producers_subcommand {
                     ("producers", producer_names);
             auto accountPermissions = get_account_permissions(tx_permission, {voter_str, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1307,7 +1307,7 @@ struct approve_producer_subcommand {
                     ("producers", prods);
             auto accountPermissions = get_account_permissions(tx_permission, {voter, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1362,7 +1362,7 @@ struct unapprove_producer_subcommand {
                     ("producers", prods);
             auto accountPermissions = get_account_permissions(tx_permission, {voter, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -4200,7 +4200,7 @@ int main(int argc, char **argv) {
     auto registerProducer = register_producer_subcommand(system);
     auto unregisterProducer = unregister_producer_subcommand(system);
 
-    auto voteProducer = system->add_subcommand("voteproducer", localized("Vote for a producer"));
+    auto voteProducer = system->add_subcommand("vproducer", localized("Vote for a producer"));
     voteProducer->require_subcommand();
     auto voteProxy = vote_producer_proxy_subcommand(voteProducer);
     auto voteProducers = vote_producers_subcommand(voteProducer);

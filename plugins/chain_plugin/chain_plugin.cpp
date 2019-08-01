@@ -3042,13 +3042,13 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
             } CATCH_AND_CALL(next);
         }
 
-        void read_write::vote_proxy(const read_write::vote_proxy_params &params,
-                                    next_function <read_write::vote_proxy_results> next) {
+        void read_write::proxy_vote(const read_write::proxy_vote_params &params,
+                                    next_function<read_write::proxy_vote_results> next) {
             try {
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("vote_proxy called");
+                dlog("proxy_vote called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3070,7 +3070,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::vote_proxy_results{output});
+                            next(read_write::proxy_vote_results{output});
                         } CATCH_AND_CALL(next);
                     }
                 });

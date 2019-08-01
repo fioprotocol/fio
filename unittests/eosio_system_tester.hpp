@@ -346,7 +346,7 @@ namespace eosio_system {
 
         action_result vote(const account_name &voter, const std::vector <account_name> &producers,
                            const account_name &proxy = name(0)) {
-            return push_action(voter, N(voteproducer), mvo()
+            return push_action(voter, N(vproducer), mvo()
                     ("voter", voter)
                     ("proxy", proxy)
                     ("producers", producers));
@@ -520,7 +520,7 @@ namespace eosio_system {
                                                      core_from_string("30000000.0000")));
                 BOOST_REQUIRE_EQUAL(success(),
                                     buyram("alice1111111", "alice1111111", core_from_string("30000000.0000")));
-                BOOST_REQUIRE_EQUAL(success(), push_action(N(alice1111111), N(voteproducer), mvo()
+                BOOST_REQUIRE_EQUAL(success(), push_action(N(alice1111111), N(vproducer), mvo()
                                             ("voter", "alice1111111")
                                             ("proxy", name(0).to_string())
                                             ("producers", vector<account_name>(producer_names.begin(), producer_names.begin() + 21))
@@ -554,7 +554,7 @@ namespace eosio_system {
                                                             ("transfer", 1)
                                          )
                 );
-                trx.actions.emplace_back(get_action(config::system_account_name, N(voteproducer),
+                trx.actions.emplace_back(get_action(config::system_account_name, N(vproducer),
                                                     vector < permission_level >
                                                     {{N(producer1111), config::active_name}},
                                                     mvo()

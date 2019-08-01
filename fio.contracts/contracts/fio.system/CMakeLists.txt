@@ -4,7 +4,8 @@ target_include_directories(fio.system
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../
-        ${CMAKE_CURRENT_SOURCE_DIR}/../fio.token/include)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../fio.token/include
+        )
 
 set_target_properties(fio.system
         PROPERTIES
