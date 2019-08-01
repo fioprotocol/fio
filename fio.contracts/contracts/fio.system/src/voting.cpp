@@ -436,6 +436,8 @@ namespace eosiosystem {
 
     void system_contract::update_votes(const name voter_name, const name proxy, const std::vector <name> &producers,
                                        bool voting) {
+
+        print("called update votes.","\n");
         //validate input
         if (proxy) {
             check(producers.size() == 0, "cannot vote for producers and proxy at same time");
@@ -456,15 +458,24 @@ namespace eosiosystem {
          * after total_activated_stake hits threshold, we can use last_vote_weight to determine that this is
          * their first vote and should consider their stake activated.
          */
-        if (voter->last_vote_weight <= 0.0) {
-            _gstate.total_activated_stake += voter->staked;
-            if (_gstate.total_activated_stake >= min_activated_stake &&
-                _gstate.thresh_activated_stake_time == time_point()) {
-                _gstate.thresh_activated_stake_time = current_time_point();
-            }
-        }
+         //MAS-522 eliminate stake from voting.
+       // if (voter->last_vote_weight <= 0.0) {
+           // _gstate.total_activated_stake += voter->staked;
+           // if (_gstate.total_activated_stake >= min_activated_stake &&
+           //     _gstate.thresh_activated_stake_time == time_point()) {
+           //     _gstate.thresh_activated_stake_time = current_time_point();
+           // }
+       // }
 
-        auto new_vote_weight = stake2vote(voter->staked);
+        //get fio balance for this account, thats the vote weight.
+
+        symbol sym_name = symbol("FIO", 9);
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,voter->owner, sym_name.code() );
+        uint64_t amount = my_balance.amount;
+
+
+        //instead of staked amount we use the amount in the account.
+        auto new_vote_weight = stake2vote(amount);
         if (voter->is_proxy) {
             new_vote_weight += voter->proxied_vote_weight;
         }
@@ -799,7 +810,13 @@ namespace eosiosystem {
 
     void system_contract::propagate_weight_change(const voter_info &voter) {
         check(!voter.proxy || !voter.is_proxy, "account registered as a proxy is not allowed to use a proxy");
-        double new_weight = stake2vote(voter.staked);
+
+        symbol sym_name = symbol("FIO", 9);
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,voter.owner, sym_name.code() );
+        uint64_t amount = my_balance.amount;
+        //double new_weight = stake2vote(voter.staked);
+        //instead of staked we use the voters current FIO balance MAS-522 eliminate stake from voting.
+        double new_weight = stake2vote(amount);
         if (voter.is_proxy) {
             new_weight += voter.proxied_vote_weight;
         }

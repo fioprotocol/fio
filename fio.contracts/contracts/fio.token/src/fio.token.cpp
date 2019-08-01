@@ -105,6 +105,24 @@ namespace eosio {
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
+
+        /*
+        //MAS-522 remove stake from voting
+        action(
+                permission_level{_self,"active"_n},
+                "eosio"_n,
+                "updatepower"_n,
+                std::make_tuple( from, true)
+        ).send();
+        //MAS-522 remove stake from voting
+        action(
+                permission_level{_self,"active"_n},
+                "eosio"_n,
+                "updatepower"_n,
+                std::make_tuple( to, true)
+        ).send();
+         */
+
     }
 
     inline void token::fio_fees(const name &actor, const asset &fee) {
@@ -279,6 +297,21 @@ namespace eosio {
 
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
+
+        //MAS-522 remove staking from voting.
+        INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                ("eosio"_n, {{_self, "active"_n}},
+                 {actor, true}
+                );
+
+        if (accountExists) {
+            INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                    ("eosio"_n, {{_self, "active"_n}},
+                     {new_account_name, true}
+                    );
+        }
+        //MAS-522 remove staking from voting.  END
+
 
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};

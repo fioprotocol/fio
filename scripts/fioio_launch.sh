@@ -232,7 +232,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
 
 
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999994899.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999990899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
         ./cleos -u http://localhost:8879 push action eosio setprods "{ \"schedule\": [{\"producer_name\": \"inita\",\"block_signing_key\": \"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\"}]}" -p eosio@active
@@ -261,10 +261,16 @@ if [ $mChoice == 1 ]; then
 
         #create an account to do the voting for producers. while we are at it
         # be sure to put the necessary amount of fio into production in order to permit block production.
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "45000000.000000000 FIO" --stake-cpu "46000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt1 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "55000000.000000000 FIO" --stake-cpu "56000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt2 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "65000000.000000000 FIO" --stake-cpu "66000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt3 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "75000000.000000000 FIO" --stake-cpu "76000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt4 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "44000000.000000000 FIO" --stake-cpu "45000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt1 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "54000000.000000000 FIO" --stake-cpu "55000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt2 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "64000000.000000000 FIO" --stake-cpu "65000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt3 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "74000000.000000000 FIO" --stake-cpu "75000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt4 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+
+        echo giving fio to new accounts
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt1","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt2","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt3","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt4","1000.000000000 FIO","memo"]' -p eosio@active
 
         sleep 5
 
@@ -274,6 +280,8 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt2 fioproducerb -p myvoteracnt2@active
         ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt3 fioproducerc -p myvoteracnt3@active
         ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt4 fioproducerd -p myvoteracnt4@active
+
+
 
 
     fi

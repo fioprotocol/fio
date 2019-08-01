@@ -197,6 +197,15 @@ namespace fioio {
 
                 process_rewards(tpid, fee_amount, get_self());
 
+                //MAS-522 remove staking from voting
+                if (fee_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {aactor, true}
+                            );
+                }
+
 
             }
             //end new fees, bundle eligible fee logic
@@ -356,6 +365,15 @@ namespace fioio {
                 fio_fees(aActor, reg_fee_asset);
                 process_rewards(tpid, fee_amount, get_self());
 
+                //MAS-522 remove staking from voting
+                if (fee_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {aActor, true}
+                            );
+                }
+
             }
             //end new fees, bundle eligible fee logic
 
@@ -487,6 +505,15 @@ namespace fioio {
                 fio_fees(aactor, reg_fee_asset);
 
                 process_rewards(tpid, fee_amount, get_self());
+
+                //MAS-522 remove staking from voting
+                if (fee_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {aactor, true}
+                            );
+                }
 
             }
             //end new fees, bundle eligible fee logic
