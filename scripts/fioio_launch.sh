@@ -371,7 +371,10 @@ if [ $mChoice == 1 ]; then
     #tests the logic when there is already a record in the voters table for this account....
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"1"}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"0"}' --permission htjonrkf1lgs@active
-    ./cleos -u http://localhost:8889 system vproducer prods htjonrkf1lgs 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"casey:dapix","isproxy":"1"}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"casey:dapix","isproxy":"0"}' --permission r41zuwovtn44@active
+
+    ./cleos -u http://localhost:8889 system vproducer prods htjonrkf1lgs r41zuwovtn44 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
 
 
 elif [ $mChoice == 3 ]; then
