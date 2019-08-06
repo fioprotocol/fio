@@ -181,6 +181,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     )
 };
 
+/* MAS-522 eliminate producer2 table.
 struct [[eosio::table, eosio::contract("fio.system")]] producer_info2 {
     name owner;
     double votepay_share = 0;
@@ -192,12 +193,13 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info2 {
     EOSLIB_SERIALIZE( producer_info2, (owner)(votepay_share)(last_votepay_share_update)
     )
 };
+ */
 
 struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     name owner;     /// the voter
     name proxy;     /// the proxy set by the voter, if any
     std::vector <name> producers; /// the producers approved by this voter if no proxy set
-    int64_t staked = 0;
+   // MAS-522 remove staked int64_t staked = 0;
 
     /**
      *  Every time a vote is cast we must first "undo" the last vote weight, before casting the
@@ -228,7 +230,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     };
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(staked)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(
+    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(
             flags1)(reserved2)(reserved3)
     )
 };
@@ -240,7 +242,7 @@ typedef eosio::multi_index<"producers"_n, producer_info,
         indexed_by<"prototalvote"_n, const_mem_fun < producer_info, double, &producer_info::by_votes> >
 >
 producers_table;
-typedef eosio::multi_index<"producers2"_n, producer_info2> producers_table2;
+//MAS-522 eliminate producers2 table typedef eosio::multi_index<"producers2"_n, producer_info2> producers_table2;
 
 typedef eosio::singleton<"global"_n, eosio_global_state> global_state_singleton;
 typedef eosio::singleton<"global2"_n, eosio_global_state2> global_state2_singleton;
@@ -346,7 +348,7 @@ class [[eosio::contract("fio.system")]] system_contract : public native {
 private:
     voters_table _voters;
     producers_table _producers;
-    producers_table2 _producers2;
+   //MAS-522 eliminate producers2 producers_table2 _producers2;
     global_state_singleton _global;
     global_state2_singleton _global2;
     global_state3_singleton _global3;
@@ -743,9 +745,10 @@ private:
 
     void propagate_weight_change(const voter_info &voter);
 
-    double update_producer_votepay_share(const producers_table2::const_iterator &prod_itr,
+    /* MAS-522 eliminate producers2 double update_producer_votepay_share(const producers_table2::const_iterator &prod_itr,
                                          time_point ct,
                                          double shares_rate, bool reset_to_zero = false);
+                                         */
 
     double update_total_votepay_share(time_point ct,
                                       double additional_shares_delta = 0.0, double shares_rate_delta = 0.0);
