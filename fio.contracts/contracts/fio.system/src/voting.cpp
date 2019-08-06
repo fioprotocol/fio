@@ -70,10 +70,12 @@ namespace eosiosystem {
                 info.location = location;
                 info.last_claim_time = ct;
             });
+            /* MAS-522 eliminate producers2 table
             _producers2.emplace(producer, [&](producer_info2 &info) {
                 info.owner = producer;
                 info.last_votepay_share_update = ct;
             });
+             */
         }
 /* This adds a producer using the normal user typed account name to the account map table
         action{permission_level{_self, "active"_n},
@@ -315,6 +317,7 @@ namespace eosiosystem {
         return _gstate2.total_producer_votepay_share;
     }
 
+    /* MAS-522 eliminate producers2 table
     double system_contract::update_producer_votepay_share(const producers_table2::const_iterator &prod_itr,
                                                           time_point ct,
                                                           double shares_rate,
@@ -337,6 +340,7 @@ namespace eosiosystem {
 
         return new_votepay_share;
     }
+     */
 
     /**
      *  @pre producers must be sorted from lowest to highest and must be registered and active
@@ -601,6 +605,8 @@ namespace eosiosystem {
                     _gstate.total_producer_vote_weight += pd.second.first;
                     //check( p.total_votes >= 0, "something bad happened" );
                 });
+
+                /* MAS-522 eliminate producers2 table
                 auto prod2 = _producers2.find(pd.first.value);
                 if (prod2 != _producers2.end()) {
                     const auto last_claim_plus_3days = pitr->last_claim_time + microseconds(3 * useconds_per_day);
@@ -623,9 +629,11 @@ namespace eosiosystem {
                         delta_change_rate -= init_total_votes;
                     }
                 }
+                 */
             } else {
-                check(!pd.second.second /* not from new set */, "Invalid or duplicated producers"); //data corruption
+                check(!pd.second.second , "Invalid or duplicated producers"); //data corruption
             }
+
         }
 
         update_total_votepay_share(ct, -total_inactive_vpay_share, delta_change_rate);
@@ -907,6 +915,8 @@ namespace eosiosystem {
                         p.total_votes += delta;
                         _gstate.total_producer_vote_weight += delta;
                     });
+
+                    /* MAS-522 eliminate producers2 table
                     auto prod2 = _producers2.find(acnt.value);
                     if (prod2 != _producers2.end()) {
                         const auto last_claim_plus_3days = prod.last_claim_time + microseconds(3 * useconds_per_day);
@@ -929,6 +939,7 @@ namespace eosiosystem {
                             delta_change_rate -= init_total_votes;
                         }
                     }
+                    */
                 }
 
                 update_total_votepay_share(ct, -total_inactive_vpay_share, delta_change_rate);
