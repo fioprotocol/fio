@@ -436,7 +436,6 @@ namespace eosiosystem {
 
     void system_contract::voteproxy(const string fio_address, const name actor, const uint64_t max_fee) {
         require_auth(actor);
-
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -452,7 +451,6 @@ namespace eosiosystem {
         uint32_t present_time = now();
 
         uint64_t account = fioname_iter->owner_account;
-        fio_403_assert(account == actor.value, ErrorSignature);
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
                        "FIO Address expired", ErrorFioNameExpired);
 
@@ -467,7 +465,15 @@ namespace eosiosystem {
         uint64_t proxy_account = fioname_iter->owner_account;
         auto proxy_name = name{proxy_account};
 
-        std::vector<name> producers; // Empty
+        std::vector<name> producers{}; // Empty
+
+        auto voter_iter = _voters.find(actor.value);
+
+        if (voter_iter == _voters.end()) {
+            _voters.emplace(actor, [&](auto &p) {
+                p.owner = actor;
+            });
+        }
         update_votes(actor, proxy_name, producers, true);
 
         //begin new fees, logic for Mandatory fees.
@@ -541,7 +547,6 @@ namespace eosiosystem {
         symbol sym_name = symbol("FIO", 9);
         const auto my_balance = eosio::token::get_balance("fio.token"_n,voter->owner, sym_name.code() );
         uint64_t amount = my_balance.amount;
-
 
         //instead of staked amount we use the amount in the account.
         auto new_vote_weight = stake2vote(amount);

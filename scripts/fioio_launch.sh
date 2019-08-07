@@ -224,7 +224,7 @@ if [ $mChoice == 1 ]; then
         echo issuing tokens
 
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["5spujqoyq4ie","1000.000000000 FIO","memo"]' -p eosio@active
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["r41zuwovtn44","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["r41zuwovtn44","100000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["htjonrkf1lgs","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["euwdcp13zlrj","1000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["mnvcf4v1flnn","1000.000000000 FIO","memo"]' -p eosio@active
@@ -232,7 +232,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
 
 
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999990899.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999891899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
         ./cleos -u http://localhost:8879 push action eosio setprods "{ \"schedule\": [{\"producer_name\": \"inita\",\"block_signing_key\": \"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\"}]}" -p eosio@active
@@ -383,7 +383,7 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"1"}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"adam:dapix","isproxy":"0"}' --permission htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"casey:dapix","isproxy":"1"}' --permission r41zuwovtn44@active
-    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"casey:dapix","isproxy":"0"}' --permission r41zuwovtn44@active
+   # ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"casey:dapix","isproxy":"0"}' --permission r41zuwovtn44@active
 
     ./cleos -u http://localhost:8889 system vproducer prods htjonrkf1lgs 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
     ./cleos -u http://localhost:8889 system vproducer prods r41zuwovtn44 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p r41zuwovtn44@active

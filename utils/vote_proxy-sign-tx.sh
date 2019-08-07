@@ -20,17 +20,17 @@ hostname="localhost"
 #fioprivatekey="5JDurZ7F9maZqDQ4Jn4N5ooBjdPWwzcxyggFbWke9WjeGhS5VECz"
 
 
-fiopubkey="FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
-fioprivatekey="5JLxoeRoMDGBbkLdXJjxuh3zHsSS7Lg6Ak9Ft8v8sSdYPkFuABF"
+fiopubkey="FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN"
+fioprivatekey="5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 echo ------------------------------------------
 
 
-dataJson="{\"producers\":[\"adam:dapix\"],\"actor\":\"r41zuwovtn44\",\"max_fee\":\"100000000000\"}"
+dataJson="{\"fio_address\":\"casey:dapix\",\"actor\":\"htjonrkf1lgs\",\"max_fee\":\"10000000\"}"
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data eosio voteproducer '$dataJson'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data eosio voteproxy '$dataJson'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -76,7 +76,7 @@ unsignedRequest='{
 "context_free_actions": [],
 "actions": [{
 "account":"eosio",
-"name": "voteproducer"
+"name": "voteproxy"
 "authorization":[{
 "actor":"'${fioactor}'",
 "permission":"active"
