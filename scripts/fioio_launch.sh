@@ -261,18 +261,29 @@ if [ $mChoice == 1 ]; then
 
         #create an account to do the voting for producers. while we are at it
         # be sure to put the necessary amount of fio into production in order to permit block production.
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "44000000.000000000 FIO" --stake-cpu "45000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt1 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "54000000.000000000 FIO" --stake-cpu "55000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt2 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "64000000.000000000 FIO" --stake-cpu "65000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt3 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 system newaccount  --transfer --stake-net "74000000.000000000 FIO" --stake-cpu "75000000.000000000 FIO" --buy-ram "50.000000000 FIO" eosio myvoteracnt4 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-
-        echo giving fio to new accounts
+        echo setting up myvotgeracnt1
+        ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt1 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt1","1000.000000000 FIO","memo"]' -p eosio@active
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt2","1000.000000000 FIO","memo"]' -p eosio@active
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt3","1000.000000000 FIO","memo"]' -p eosio@active
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt4","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt1","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt1@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt1","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt1@active
 
-        sleep 5
+        echo setting up myvotgeracnt2
+        ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt2 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt2","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt2","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt2@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt2","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt2@active
+
+        echo setting up myvotgeracnt3
+        ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt3 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt3","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt3","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt3@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt3","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt3@active
+
+        echo setting up myvotgeracnt4
+        ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt4 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt4","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt4","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt4@active
+        ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt4","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt4@active
 
         echo calling vproducer
         #vote for the producers, now block production may occur.
