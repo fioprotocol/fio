@@ -56,6 +56,7 @@ namespace eosiosystem {
         if (timestamp.slot - _gstate.last_producer_schedule_update.slot > 120) {
             update_elected_producers(timestamp);
 
+            /* MAS-522 eliminate bid logic for name bids.
             if ((timestamp.slot - _gstate.last_name_close.slot) > blocks_per_day) {
                 name_bid_table bids(_self, _self.value);
                 auto idx = bids.get_index<"highbid"_n>();
@@ -72,6 +73,7 @@ namespace eosiosystem {
                     });
                 }
             }
+             */
         }
     }
 
