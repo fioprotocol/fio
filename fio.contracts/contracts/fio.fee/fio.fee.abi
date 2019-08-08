@@ -11,6 +11,13 @@
             {"name":"suf_amount", "type":"uint64"}
         ]
       },{
+                "name": "setfeemult",
+                "base": "",
+                "fields": [
+                    {"name":"multiplier", "type":"uint64"},
+                    {"name":"actor", "type":"string"}
+                ]
+              },{
         "name": "fiofee",
         "base": "",
         "fields": [
@@ -24,8 +31,7 @@
         "name": "feevoter",
         "base": "",
         "fields": [
-           {"name":"block_producer_name", "type":"string"},
-           {"name":"block_producer_name_hash", "type":"uint64"},
+           {"name":"block_producer_name", "type":"name"},
            {"name":"fee_multiplier", "type":"uint64"},
            {"name":"lastvotetimestamp", "type":"uint64"}
         ]
@@ -33,7 +39,7 @@
         "name": "feevote",
         "base": "",
         "fields": [
-           {"name":"block_producer_name_hash", "type":"uint64"},
+           {"name":"block_producer_name", "type":"name"},
            {"name":"end_point", "type":"string"},
            {"name":"end_point_hash", "type":"uint64"}
            {"name":"suf_amount", "type":"uint64"}
@@ -43,7 +49,11 @@
          "name": "create",
          "type": "create",
          "ricardian_contract": ""
-       }],
+       },{
+                  "name": "setfeemult",
+                  "type": "setfeemult",
+                  "ricardian_contract": ""
+                }],
     "tables": [{
          "name": "fiofees",
          "index_type": "i64",
@@ -58,7 +68,7 @@
          "name": "feevoters",
          "index_type": "i64",
          "key_names": [
-            "block_producer_name_hash"
+            "block_producer_name"
          ],
          "key_types": [
             "uint64"
@@ -68,7 +78,7 @@
          "name": "feevotes",
          "index_type": "i64",
          "key_names": [
-            "block_producer_name_hash"
+            "block_producer_name"
          ],
          "key_types": [
             "uint64"

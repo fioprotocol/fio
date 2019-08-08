@@ -16,7 +16,10 @@ namespace fioio {
 
     private:
         fiofee_table fiofees;
-        // TODO: timer for driving elections and updating fees.
+        feevoters_table  feevoters;
+        feevotes_table   feevotes;
+        eosiosystem::producers_table producers;
+
 
     public:
 
@@ -24,7 +27,67 @@ namespace fioio {
         using contract::contract;
 
         FioFee(name s, name code, datastream<const char *> ds)
-                : contract(s, code, ds), fiofees(_self, _self.value) {
+                : contract(s, code, ds),
+                  fiofees(_self, _self.value),
+                  feevoters(_self, _self.value),
+                  feevotes(_self, _self.value),
+                  producers("eosio"_n, name("eosio").value) {
+        }
+
+
+        /***
+        * This action will create a new fee voter record if the specified block producer does not exist,
+         * it will verify that the producer making the request is a present block producer, it will update the voter
+         * record if a pre-existing voter record exists.
+        */
+        // @abi action
+        [[eosio::action]]
+        void setfeemult(
+                uint64_t multiplier,      // this fee multiplier to be used for all fee votes, this will
+                                          // be converted into a double value with 6 decimal places.
+                const string &actor       //this is the block producer account name. and needs to be the account
+                                          //associated with the signer of this request.
+        ) {
+
+            print("called setfeemult.", "\n");
+            require_auth(_self);
+
+            print("verifying that the actor is a registered producer  ", actor);
+
+            name aactor = name(actor.c_str());
+            auto prod_iter = producers.find(aactor.value);
+            //check if this actor is a registered producer.
+            fio_400_assert(prod_iter != producers.end(), "actor", actor,
+                           " is not a registered producer",
+                           ErrorFioNameNotReg);
+
+           uint32_t nowtime = now();
+
+            //next look in the feevoter table and see if there is already an entry.
+            //if there is then update it, if not then emplace it.
+
+            auto voter_iter = feevoters.find(aactor.value);
+           if (voter_iter != feevoters.end()) //update if it exists
+           {
+               uint32_t lastupdate = voter_iter->lastvotetimestamp;
+               if (lastupdate <= (nowtime - 120)) {
+                   feevoters.modify(voter_iter, _self, [&](struct feevoter &a) {
+                       a.block_producer_name = aactor;
+                       a.fee_multiplier = multiplier;
+                       a.lastvotetimestamp = nowtime;
+                   });
+               }
+
+           }else{ //emplace it if its not there
+               //emplace the values into the table
+               feevoters.emplace(_self, [&](struct feevoter &f) {
+                   f.block_producer_name = aactor;
+                   f.fee_multiplier = multiplier;
+                   f.lastvotetimestamp = nowtime;
+               });
+           }
+           
+            print("done setfeemult.", "\n");
         }
 
         /***
@@ -60,6 +123,6 @@ namespace fioio {
 
     }; // class FioFee
 
-    EOSIO_DISPATCH(FioFee, (create)
+    EOSIO_DISPATCH(FioFee, (setfeemult)(create)
     )
 } // namespace fioio
