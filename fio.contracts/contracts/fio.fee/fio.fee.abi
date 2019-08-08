@@ -20,6 +20,24 @@
            {"name":"type", "type":"uint64"},
            {"name":"suf_amount", "type":"uint64"}
         ]
+     },{
+        "name": "feevoter",
+        "base": "",
+        "fields": [
+           {"name":"block_producer_name", "type":"string"},
+           {"name":"block_producer_name_hash", "type":"uint64"},
+           {"name":"fee_multiplier", "type":"uint64"},
+           {"name":"lastvotetimestamp", "type":"uint64"}
+        ]
+     },{
+        "name": "feevote",
+        "base": "",
+        "fields": [
+           {"name":"block_producer_name_hash", "type":"uint64"},
+           {"name":"end_point", "type":"string"},
+           {"name":"end_point_hash", "type":"uint64"}
+           {"name":"suf_amount", "type":"uint64"}
+        ]
      }],
     "actions": [{
          "name": "create",
@@ -36,7 +54,27 @@
             "uint64"
          ],
          "type": "fiofee"
-     }],
+     },{
+         "name": "feevoters",
+         "index_type": "i64",
+         "key_names": [
+            "block_producer_name_hash"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "feevoter"
+     },{
+         "name": "feevotes",
+         "index_type": "i64",
+         "key_names": [
+            "block_producer_name_hash"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "feevote"
+      }],
     "ricardian_clauses": [],
     "error_messages": [],
     "abi_extensions": []

@@ -46,4 +46,47 @@ namespace fioio {
     fiofee_table;
 
 
+    // Structure for "feevoter" .
+    // @abi table feevoter i64
+    struct [[eosio::action]] feevoter {
+        string block_producer_name;     // name of the bp
+        uint64_t block_producer_name_hash;  // hash of the bp name for searching.
+        uint64_t fee_multiplier;    // this is the fee multiplier, will be converted to double with 6 decimal
+                                    // places so a value of 1000000 becomes 1.0
+        uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
+
+
+        uint64_t primary_key() const { return block_producer_name_hash; }
+
+        EOSLIB_SERIALIZE(feevoter, (block_producer_name)(block_producer_name_hash)(fee_multiplier)(lastvotetimestamp)
+        )
+    };
+
+    //  fee voters table
+    typedef multi_index<"feevoters"_n, feevoter> feevoters_table;
+
+    // Structure for "feevote" .
+    // @abi table feevote i64
+    struct [[eosio::action]] feevote {
+        uint64_t block_producer_name_hash;  // hash of the bp name for searching.
+        string end_point;    // this is the name of the fee end point
+        uint64_t end_point_hash;  // hash of the end point for searching.
+        uint64_t suf_amount;      // this is the amount of the fee in small units of FIO.
+        // 1 billion per fio as of 04/23/2019
+
+        uint64_t primary_key() const { return block_producer_name_hash; }
+
+        uint64_t by_endpoint() const { return end_point_hash; }
+
+        EOSLIB_SERIALIZE(feevote, (block_producer_name_hash)(end_point)(end_point_hash)(suf_amount)
+        )
+    };
+
+    //fee votes table
+    typedef multi_index<"feevotes"_n, feevote,
+            indexed_by<"byendpoint"_n, const_mem_fun < fiofee, uint64_t, &fiofee::by_endpoint>>
+    >
+    feevotes_table;
+
+
 } // namespace fioio
