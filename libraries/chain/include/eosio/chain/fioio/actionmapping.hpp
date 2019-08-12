@@ -20,6 +20,7 @@ namespace fioio {
     vector <string> eosioActions;
     vector <string> fiosystemActions;
     vector <string> fioFinanceActions;
+    vector <string> fioFeeActions;
     vector <string> fioRequestObtActions;
     vector <string> fioTokenActions;
     vector <string> fioTreasuryActions;
@@ -39,6 +40,10 @@ namespace fioio {
         fiosystemActions.push_back("expaddresses");
         fiosystemActions.push_back("bind2eosio");
         fiosystemActions.push_back("burnexpired");
+
+        //fio.fee actions
+        fioFeeActions.push_back("setfeemult");
+        fioFeeActions.push_back("setfeevote");
 
         fioTreasuryActions.push_back("tpidclaim");
 
@@ -68,6 +73,9 @@ namespace fioio {
         }
         if (find(fioTreasuryActions.begin(), fioTreasuryActions.end(), t) != fioTreasuryActions.end()) {
             return "fio.treasury";
+        }
+        if (find(fioFeeActions.begin(), fioFeeActions.end(), t) != fioFeeActions.end()) {
+            return "fio.fee";
         }
         return "eosio";
     }

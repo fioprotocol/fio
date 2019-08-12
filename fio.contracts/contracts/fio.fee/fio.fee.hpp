@@ -18,6 +18,13 @@ namespace fioio {
         // then a fee is applied
     };
 
+    struct feevalue {
+        string end_point;
+        uint64_t value;
+
+        EOSLIB_SERIALIZE( feevalue, (end_point) (value))
+    };
+
     // Structure for "FIO fee" .
     // @abi table fiofee i64
     struct [[eosio::action]] fiofee {        // FIO fee
@@ -67,23 +74,25 @@ namespace fioio {
     // Structure for "feevote" .
     // @abi table feevote i64
     struct [[eosio::action]] feevote {
+        uint64_t id;       //unique id
         name block_producer_name;  // bp name for searching.
         string end_point;    // this is the name of the fee end point
         uint64_t end_point_hash;  // hash of the end point for searching.
         uint64_t suf_amount;      // this is the amount of the fee in small units of FIO.
         // 1 billion per fio as of 04/23/2019
 
-        uint64_t primary_key() const { return block_producer_name.value; }
-
+        uint64_t primary_key() const { return id; }
         uint64_t by_endpoint() const { return end_point_hash; }
+        uint64_t by_bpname() const { return block_producer_name.value; }
 
-        EOSLIB_SERIALIZE(feevote, (block_producer_name)(end_point)(end_point_hash)(suf_amount)
+        EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)
         )
     };
 
     //fee votes table
     typedef multi_index<"feevotes"_n, feevote,
-            indexed_by<"byendpoint"_n, const_mem_fun < fiofee, uint64_t, &fiofee::by_endpoint>>
+            indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint64_t, &feevote::by_endpoint>>,
+            indexed_by<"bybpname"_n, const_mem_fun < feevote, uint64_t, &feevote::by_bpname>>
     >
     feevotes_table;
 
