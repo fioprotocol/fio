@@ -2528,7 +2528,8 @@ chain::plugin_interface::next_function<new_funds_request_results> next) {
                    output = *trx_trace_ptr;
                 }
 
-                next(read_write::new_funds_request_results{output});
+                 const chain::transaction_id_type &id = trx_trace_ptr->id;
+                 next(read_write::new_funds_request_results{id, output});
              } CATCH_AND_CALL(next);
           }
        });
@@ -2570,7 +2571,8 @@ chain::plugin_interface::next_function<reject_funds_request_results> next) {
                  output = *trx_trace_ptr;
               }
 
-              next(read_write::reject_funds_request_results{output});
+               const chain::transaction_id_type &id = trx_trace_ptr->id;
+               next(read_write::reject_funds_request_results{id, output});
            } CATCH_AND_CALL(next);
         }
      });
@@ -2612,7 +2614,8 @@ chain::plugin_interface::next_function<record_send_results> next) {
                  output = *trx_trace_ptr;
               }
 
-              next(read_write::record_send_results{output});
+               const chain::transaction_id_type &id = trx_trace_ptr->id;
+               next(read_write::record_send_results{id, output});
            } CATCH_AND_CALL(next);
         }
      });
@@ -2864,7 +2867,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::burn_expired_results{output});
+                            next(read_write::burn_expired_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -2907,8 +2910,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                         } catch (chain::abi_exception &) {
                            output = *trx_trace_ptr;
                         }
-                        const chain::transaction_id_type &id = trx_trace_ptr->id;
-                        next(read_write::unregister_proxy_results{output});
+                         const chain::transaction_id_type &id = trx_trace_ptr->id;
+                         next(read_write::unregister_proxy_results{id, output});
                      } CATCH_AND_CALL(next);
                   }
               });
@@ -2953,7 +2956,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                            output = *trx_trace_ptr;
                         }
                         const chain::transaction_id_type &id = trx_trace_ptr->id;
-                        next(read_write::register_proxy_results{output});
+                         next(read_write::register_proxy_results{id, output});
                      } CATCH_AND_CALL(next);
                   }
               });
@@ -2992,7 +2995,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::register_producer_results{output});
+                            next(read_write::register_producer_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -3031,7 +3034,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::vote_producer_results{output});
+                            next(read_write::vote_producer_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -3070,7 +3073,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::proxy_vote_results{output});
+                            next(read_write::proxy_vote_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -3188,7 +3191,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::unregister_producer_results{output});
+                            next(read_write::unregister_producer_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -3232,7 +3235,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                                 output = *trx_trace_ptr;
                             }
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::renew_fio_domain_results{output});
+                            next(read_write::renew_fio_domain_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
@@ -3277,7 +3280,7 @@ void read_write::renew_fio_address(const read_write::renew_fio_address_params &p
                         output = *trx_trace_ptr;
                     }
                     const chain::transaction_id_type &id = trx_trace_ptr->id;
-                    next(read_write::renew_fio_address_results{output});
+                    next(read_write::renew_fio_address_results{id, output});
                 } CATCH_AND_CALL(next);
             }
         });
@@ -3322,7 +3325,7 @@ void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &par
                         output = *trx_trace_ptr;
                     }
                     const chain::transaction_id_type &id = trx_trace_ptr->id;
-                    next(read_write::pay_tpid_rewards_results{output});
+                    next(read_write::pay_tpid_rewards_results{id, output});
                 } CATCH_AND_CALL(next);
             }
         });

@@ -825,6 +825,7 @@ namespace eosio {
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
             struct renew_fio_domain_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -836,6 +837,7 @@ namespace eosio {
             //begin renew_address
             using renew_fio_address_params = fc::variant_object;
             struct renew_fio_address_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -848,6 +850,7 @@ namespace eosio {
             //begin burn_expired
             using burn_expired_params = fc::variant_object;
             struct burn_expired_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -859,6 +862,7 @@ namespace eosio {
             //begin unregister_producer
             using unregister_producer_params = fc::variant_object;
             struct unregister_producer_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -869,6 +873,7 @@ namespace eosio {
             //begin register_producer
             using register_producer_params = fc::variant_object;
             struct register_producer_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -878,6 +883,7 @@ namespace eosio {
 
             using vote_producer_params = fc::variant_object;
             struct vote_producer_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -886,6 +892,7 @@ namespace eosio {
 
             using proxy_vote_params = fc::variant_object;
             struct proxy_vote_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -894,6 +901,7 @@ namespace eosio {
 
             using submit_fee_ratios_params = fc::variant_object;
             struct submit_fee_ratios_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -902,6 +910,7 @@ namespace eosio {
 
             using submit_fee_multiplier_params = fc::variant_object;
             struct submit_fee_multiplier_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -911,6 +920,7 @@ namespace eosio {
             //begin unregister_proxy
             using unregister_proxy_params = fc::variant_object;
             struct unregister_proxy_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -921,6 +931,7 @@ namespace eosio {
             //begin register_proxy
             using register_proxy_params = fc::variant_object;
             struct register_proxy_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -931,6 +942,7 @@ namespace eosio {
             //Begin Added for reject request api method
             using reject_funds_request_params = fc::variant_object;
             struct reject_funds_request_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -942,6 +954,7 @@ namespace eosio {
             using record_send_params = fc::variant_object;
 
             struct record_send_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -953,6 +966,7 @@ namespace eosio {
             using new_funds_request_params = fc::variant_object;
 
             struct new_funds_request_results {
+                chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
@@ -963,6 +977,7 @@ namespace eosio {
            using pay_tpid_rewards_params = fc::variant_object;
 
            struct pay_tpid_rewards_results {
+               chain::transaction_id_type transaction_id;
                fc::variant processed;
            };
 
@@ -1205,40 +1220,36 @@ FC_REFLECT(eosio::chain_apis::read_write::set_fio_domain_public_results, (transa
 )
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed)
 )
 
 FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results,(processed)
+FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::proxy_vote_results, (processed)
-)
-FC_REFLECT(eosio::chain_apis::read_write::submit_fee_ratios_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::proxy_vote_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::submit_fee_multiplier_results, (processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results,(processed)
+FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results,(processed)
+FC_REFLECT(eosio::chain_apis::read_write::renew_fio_domain_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::renew_fio_domain_results,(processed)
+FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results,(processed)
+FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (processed)
-)
-FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (processed)
+FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed)
 )
 
 FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed)

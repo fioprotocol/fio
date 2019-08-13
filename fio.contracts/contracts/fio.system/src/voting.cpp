@@ -368,7 +368,7 @@ namespace eosiosystem {
         name proxy;
         std::vector<name> producers_accounts;
 
-        for (size_t i = 1; i < producers.size(); ++i) {
+        for (size_t i = 0; i < producers.size(); i++) {
             FioAddress fa;
             getFioAddressStruct(producers[i], fa);
 
@@ -384,7 +384,7 @@ namespace eosiosystem {
             uint32_t present_time = now();
 
             uint64_t account = fioname_iter->owner_account;
-            fio_403_assert(account == actor.value, ErrorSignature);
+            //fio_403_assert(account == actor.value, ErrorSignature);
             fio_400_assert(present_time <= name_expiration, "fio_address", producers[i],
                            "FIO Address expired", ErrorFioNameExpired);
 
@@ -529,7 +529,7 @@ namespace eosiosystem {
         check(!proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
         /**
-         * The first time someone votes we calculate and set last_vote_weight, since they cannot unstake until
+         * The first time som   eone votes we calculate and set last_vote_weight, since they cannot unstake until
          * after total_activated_stake hits threshold, we can use last_vote_weight to determine that this is
          * their first vote and should consider their stake activated.
          */
@@ -576,7 +576,7 @@ namespace eosiosystem {
             auto new_proxy = _voters.find(proxy.value);
             check(new_proxy != _voters.end(),
                   "invalid proxy specified"); //if ( !voting ) { data corruption } else { wrong vote }
-            check(!voting || new_proxy->is_proxy, "proxy not found");
+            fio_403_assert(!voting || new_proxy->is_proxy, ErrorProxyNotFound);
             if (new_vote_weight >= 0) {
                 _voters.modify(new_proxy, same_payer, [&](auto &vp) {
                     vp.proxied_vote_weight += new_vote_weight;
