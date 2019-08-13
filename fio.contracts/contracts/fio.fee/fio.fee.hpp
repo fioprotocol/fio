@@ -57,8 +57,7 @@ namespace fioio {
     // @abi table feevoter i64
     struct [[eosio::action]] feevoter {
         name block_producer_name;     // name of the bp
-        uint64_t fee_multiplier;    // this is the fee multiplier, will be converted to double with 6 decimal
-                                    // places so a value of 1000000 becomes 1.0
+        double fee_multiplier;    // this is the fee multiplier,
         uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
 
 
@@ -80,12 +79,13 @@ namespace fioio {
         uint64_t end_point_hash;  // hash of the end point for searching.
         uint64_t suf_amount;      // this is the amount of the fee in small units of FIO.
         // 1 billion per fio as of 04/23/2019
+        uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
 
         uint64_t primary_key() const { return id; }
         uint64_t by_endpoint() const { return end_point_hash; }
         uint64_t by_bpname() const { return block_producer_name.value; }
 
-        EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)
+        EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)(lastvotetimestamp)
         )
     };
 
