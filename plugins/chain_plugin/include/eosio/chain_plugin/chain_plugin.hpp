@@ -899,6 +899,24 @@ namespace eosio {
             void proxy_vote(const proxy_vote_params &params,
                             chain::plugin_interface::next_function<proxy_vote_results> next);
 
+            using submit_fee_ratios_params = fc::variant_object;
+            struct submit_fee_ratios_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void submit_fee_ratios(const submit_fee_ratios_params &params,
+                            chain::plugin_interface::next_function<submit_fee_ratios_results> next);
+
+            using submit_fee_multiplier_params = fc::variant_object;
+            struct submit_fee_multiplier_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void submit_fee_multiplier(const submit_fee_multiplier_params &params,
+                            chain::plugin_interface::next_function<submit_fee_multiplier_results> next);
+
             //begin unregister_proxy
             using unregister_proxy_params = fc::variant_object;
             struct unregister_proxy_results {
@@ -1220,6 +1238,10 @@ FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transactio
 FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::proxy_vote_results, (transaction_id)(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::submit_fee_multiplier_results, (transaction_id)(processed)
+)
+FC_REFLECT(eosio::chain_apis::read_write::submit_fee_ratios_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results, (transaction_id)(processed)
 )

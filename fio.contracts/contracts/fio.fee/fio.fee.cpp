@@ -5,6 +5,9 @@
 #include <fio.common/fioerror.hpp>
 #include <eosio/native/intrinsics.hpp>
 #include <fio.common/json.hpp>
+#include <string>
+
+using std::string;
 
 namespace fioio {
 
@@ -35,11 +38,107 @@ namespace fioio {
         }
 
 
+
         /***
-        * This action will create a new fee voter record if the specified block producer does not exist,
-         * it will verify that the producer making the request is a present block producer, it will update the voter
-         * record if a pre-existing voter record exists.
-        */
+         * this action will record a send using Obt. the input json will be verified, if verification fails an exception will be thrown.
+         * if verification succeeds then status tables will be updated...
+         */
+        // @abi action
+        [[eosio::action]]
+        void setfeevote(const vector<feevalue>& fee_ratios, const string &actor) {
+
+
+            name aactor = name(actor.c_str());
+            auto prod_iter = producers.find(aactor.value);
+            //check if this actor is a registered producer.
+            fio_400_assert(prod_iter != producers.end(), "actor", actor,
+                           " Not an active BP",
+                           ErrorFioNameNotReg);
+
+            uint32_t nowtime = now();
+
+            //next look in the feevoter table and see if there is already an entry.
+            //if there is then update it, if not then emplace it.
+
+            auto voter_iter = feevoters.find(aactor.value);
+            fio_400_assert(voter_iter != feevoters.end(), "actor", actor,
+                           " does not exist in the feevoters table.",
+                           ErrorFioNameNotReg);
+
+            uint32_t lastupdate = voter_iter->lastvotetimestamp;
+
+
+            //be silent and dont update until 2 minutes goes by since last vote call.
+            if (lastupdate > (nowtime - 120)) {
+                return;
+            }
+
+
+
+           for(int i=0; i< fee_ratios.size();i++){
+               uint64_t endPointHash = string_to_uint64_hash(fee_ratios[i].end_point.c_str());
+               //look for this actor in the feevoters table, if not there error.
+               //look for this actor in the feevotes table, it not there add the record.
+               //  if there are records loop through the records, find teh matching endpoint and remove this record.
+
+               auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
+               auto vote_iter = feevotesbybpname.lower_bound(aactor.value);
+
+               uint64_t idtoremove;
+               bool found = false;
+               while(vote_iter != feevotesbybpname.end()) //update if it exists
+               {
+                   if (vote_iter->block_producer_name.value != aactor.value) {
+                       //exit loop if not found.
+                       break;
+                   }
+
+                   if (vote_iter->end_point_hash == endPointHash) {
+                       idtoremove = vote_iter->id;
+                       found = true;
+                       break;
+
+                   }
+                   vote_iter++;
+
+               }
+
+               if (found){
+                   auto myiter = feevotes.find(idtoremove);
+                   feevotes.erase(myiter);
+               }
+
+              feevotes.emplace(_self,[&] (struct feevote &fv){
+                   fv.id = feevotes.available_primary_key();
+                   fv.block_producer_name = aactor;
+                   fv.end_point = fee_ratios[i].end_point;
+                   fv.end_point_hash = endPointHash;
+                   fv.suf_amount = fee_ratios[i].value;
+               });
+
+
+           }
+
+            feevoters.modify(voter_iter, _self, [&](struct feevoter &a) {
+                a.lastvotetimestamp = nowtime;
+            });
+
+        }
+
+
+
+
+
+
+
+
+
+
+            /***
+            * This action will create a new fee voter record if the specified block producer does not exist,
+             * it will verify that the producer making the request is a present block producer, it will update the voter
+             * record if a pre-existing voter record exists.
+            */
         // @abi action
         [[eosio::action]]
         void setfeemult(
@@ -50,7 +149,7 @@ namespace fioio {
         ) {
 
             print("called setfeemult.", "\n");
-            require_auth(_self);
+           // require_auth(actor);
 
             print("verifying that the actor is a registered producer  ", actor);
 
@@ -58,7 +157,7 @@ namespace fioio {
             auto prod_iter = producers.find(aactor.value);
             //check if this actor is a registered producer.
             fio_400_assert(prod_iter != producers.end(), "actor", actor,
-                           " is not a registered producer",
+                           " Not an active BP",
                            ErrorFioNameNotReg);
 
            uint32_t nowtime = now();
@@ -123,6 +222,6 @@ namespace fioio {
 
     }; // class FioFee
 
-    EOSIO_DISPATCH(FioFee, (setfeemult)(create)
+    EOSIO_DISPATCH(FioFee, (setfeevote)(setfeemult)(create)
     )
 } // namespace fioio

@@ -11,13 +11,27 @@
             {"name":"suf_amount", "type":"uint64"}
         ]
       },{
-                "name": "setfeemult",
-                "base": "",
-                "fields": [
-                    {"name":"multiplier", "type":"uint64"},
-                    {"name":"actor", "type":"string"}
-                ]
-              },{
+             "name": "feevalue",
+             "base": "",
+             "fields": [
+                {"name":"end_point", "type":"string"},
+                {"name":"value", "type":"uint64"}
+             ]
+      },{
+        "name": "setfeevote",
+        "base": "",
+        "fields": [
+            {"name":"fee_ratios", "type":"feevalue[]"},
+            {"name":"actor", "type":"string"}
+        ]
+      },{
+        "name": "setfeemult",
+        "base": "",
+        "fields": [
+            {"name":"multiplier", "type":"uint64"},
+            {"name":"actor", "type":"string"}
+        ]
+      },{
         "name": "fiofee",
         "base": "",
         "fields": [
@@ -39,6 +53,7 @@
         "name": "feevote",
         "base": "",
         "fields": [
+           {"name":"id", "type":"uint64"},
            {"name":"block_producer_name", "type":"name"},
            {"name":"end_point", "type":"string"},
            {"name":"end_point_hash", "type":"uint64"}
@@ -50,10 +65,14 @@
          "type": "create",
          "ricardian_contract": ""
        },{
-                  "name": "setfeemult",
-                  "type": "setfeemult",
-                  "ricardian_contract": ""
-                }],
+         "name": "setfeevote",
+         "type": "setfeevote",
+         "ricardian_contract": ""
+       },{
+         "name": "setfeemult",
+         "type": "setfeemult",
+         "ricardian_contract": ""
+       }],
     "tables": [{
          "name": "fiofees",
          "index_type": "i64",
