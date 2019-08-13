@@ -3112,7 +3112,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                            output = *trx_trace_ptr;
                         }
                         const chain::transaction_id_type &id = trx_trace_ptr->id;
-                        next(read_write::submit_fee_ratios_results{output});
+                        next(read_write::submit_fee_ratios_results{id,output});
                      } CATCH_AND_CALL(next);
                   }
               });
@@ -3152,7 +3152,7 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                            output = *trx_trace_ptr;
                         }
                         const chain::transaction_id_type &id = trx_trace_ptr->id;
-                        next(read_write::submit_fee_multiplier_results{output});
+                        next(read_write::submit_fee_multiplier_results{id,output});
                      } CATCH_AND_CALL(next);
                   }
               });
