@@ -57,24 +57,6 @@ namespace fioio {
 
             uint32_t nowtime = now();
 
-            //next look in the feevoter table and see if there is already an entry.
-            //if there is then update it, if not then emplace it.
-
-            auto voter_iter = feevoters.find(aactor.value);
-            fio_400_assert(voter_iter != feevoters.end(), "actor", actor,
-                           " does not exist in the feevoters table.",
-                           ErrorFioNameNotReg);
-
-            uint32_t lastupdate = voter_iter->lastvotetimestamp;
-
-
-            //be silent and dont update until 2 minutes goes by since last vote call.
-            if (lastupdate > (nowtime - 120)) {
-                return;
-            }
-
-
-
            for(int i=0; i< fee_ratios.size();i++){
                uint64_t endPointHash = string_to_uint64_hash(fee_ratios[i].end_point.c_str());
                //look for this actor in the feevoters table, if not there error.
@@ -82,24 +64,35 @@ namespace fioio {
                //  if there are records loop through the records, find teh matching endpoint and remove this record.
 
                auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
-               auto vote_iter = feevotesbybpname.lower_bound(aactor.value);
+               auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
 
                uint64_t idtoremove;
                bool found = false;
-               while(vote_iter != feevotesbybpname.end()) //update if it exists
+               bool timeviolation = false;
+               while(votebyname_iter != feevotesbybpname.end()) //update if it exists
                {
-                   if (vote_iter->block_producer_name.value != aactor.value) {
+                   if (votebyname_iter->block_producer_name.value != aactor.value) {
                        //exit loop if not found.
                        break;
                    }
 
-                   if (vote_iter->end_point_hash == endPointHash) {
-                       idtoremove = vote_iter->id;
-                       found = true;
-                       break;
+                   if (votebyname_iter->end_point_hash == endPointHash) {
+                       //check the time, if the time is good then add to remove list
+                       uint32_t lastupdate = votebyname_iter->lastvotetimestamp;
+
+                       //be silent and dont update until 2 minutes goes by since last vote call.
+                       if (lastupdate > (nowtime - 120)) {
+                           timeviolation = true;
+                           break;
+                       }
+                       else {
+                           idtoremove = votebyname_iter->id;
+                           found = true;
+                           break;
+                       }
 
                    }
-                   vote_iter++;
+                   votebyname_iter++;
 
                }
 
@@ -108,20 +101,21 @@ namespace fioio {
                    feevotes.erase(myiter);
                }
 
-              feevotes.emplace(_self,[&] (struct feevote &fv){
-                   fv.id = feevotes.available_primary_key();
-                   fv.block_producer_name = aactor;
-                   fv.end_point = fee_ratios[i].end_point;
-                   fv.end_point_hash = endPointHash;
-                   fv.suf_amount = fee_ratios[i].value;
-               });
+               if (!timeviolation) {
+                   feevotes.emplace(_self, [&](struct feevote &fv) {
+                       fv.id = feevotes.available_primary_key();
+                       fv.block_producer_name = aactor;
+                       fv.end_point = fee_ratios[i].end_point;
+                       fv.end_point_hash = endPointHash;
+                       fv.suf_amount = fee_ratios[i].value;
+                       fv.lastvotetimestamp = nowtime;
+                   });
+               }
 
 
            }
 
-            feevoters.modify(voter_iter, _self, [&](struct feevoter &a) {
-                a.lastvotetimestamp = nowtime;
-            });
+
 
         }
 
@@ -142,8 +136,7 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void setfeemult(
-                uint64_t multiplier,      // this fee multiplier to be used for all fee votes, this will
-                                          // be converted into a double value with 6 decimal places.
+                double multiplier,      // this fee multiplier to be used for all fee votes, t
                 const string &actor       //this is the block producer account name. and needs to be the account
                                           //associated with the signer of this request.
         ) {

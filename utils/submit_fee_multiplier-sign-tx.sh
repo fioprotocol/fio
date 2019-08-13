@@ -35,7 +35,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson="{\"multiplier\":1000000,\"actor\":\"5spujqoyq4ie\"}"
+dataJson="{\"multiplier\":1.1,\"actor\":\"5spujqoyq4ie\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.fee setfeemult '$dataJson'"
 echo CMD: $cmd
