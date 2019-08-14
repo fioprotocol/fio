@@ -114,6 +114,10 @@ namespace fioio {
                }
            }
            updatefees();
+           
+            nlohmann::json json = {"status", "OK"};
+
+            send_response(json.dump().c_str());
         }
 
     void compute_median_and_update_fees(vector<uint64_t> feevalues, string fee_endpoint, uint64_t fee_endpoint_hash) {
@@ -296,6 +300,10 @@ namespace fioio {
            }
 
            updatefees();
+
+            nlohmann::json json = {"status", "OK"};
+
+            send_response(json.dump().c_str());
             print("done setfeemult.", "\n");
         }
 
