@@ -32,6 +32,11 @@
             {"name":"actor", "type":"string"}
         ]
       },{
+        "name": "updatefees",
+        "base": "",
+        "fields": [
+        ]
+      },{
         "name": "fiofee",
         "base": "",
         "fields": [
@@ -72,6 +77,10 @@
        },{
          "name": "setfeemult",
          "type": "setfeemult",
+         "ricardian_contract": ""
+       },{
+         "name": "updatefees",
+         "type": "updatefees",
          "ricardian_contract": ""
        }],
     "tables": [{

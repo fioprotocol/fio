@@ -35,8 +35,8 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson="{\"fee_ratios\":[{\"end_point\":\"foo1_endpoint\",\"value\":70},{\"end_point\":
-\"foo2_endpoint\", \"value\":80}],\"actor\":\"5spujqoyq4ie\"}"
+dataJson="{\"fee_ratios\":[{\"end_point\":\"add_pub_address\",\"value\":200000000},{\"end_point\":
+\"new_funds_request\", \"value\":300000000}],\"actor\":\"5spujqoyq4ie\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.fee setfeevote '$dataJson'"
 echo CMD: $cmd
