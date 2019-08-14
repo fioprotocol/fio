@@ -74,8 +74,6 @@ namespace eosio {
             string payee_fio_public_key;
             string content;             // this is encrypted content
             uint64_t time_stamp;    // FIO blockchain request received timestamp
-            string payer_fio_addr;
-            string payee_fio_addr;
         };
 
         struct request_status_record {
@@ -1181,7 +1179,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests
 )
 FC_REFLECT(eosio::chain_apis::request_record,
 (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)
-(time_stamp)(payer_fio_addr)(payee_fio_addr))
+(time_stamp))
 FC_REFLECT(eosio::chain_apis::request_status_record,
 (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(time_stamp)
 (status))
