@@ -114,8 +114,8 @@ namespace fioio {
                }
            }
            updatefees();
-           
-            nlohmann::json json = {"status", "OK"};
+
+            nlohmann::json json = {{"status", "OK"}};
 
             send_response(json.dump().c_str());
         }
@@ -301,7 +301,7 @@ namespace fioio {
 
            updatefees();
 
-            nlohmann::json json = {"status", "OK"};
+            nlohmann::json json = {{"status", "OK"}};
 
             send_response(json.dump().c_str());
             print("done setfeemult.", "\n");
