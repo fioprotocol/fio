@@ -65,9 +65,9 @@
               {"name":"owner",
                "type":"name"},
               {"name":"votepay_share",
-               "type":"uint64"},
+               "type":"float64"},
                {"name":"votes",
-               "type":"uint64"}
+               "type":"float64"}
            ]
            }
            ],

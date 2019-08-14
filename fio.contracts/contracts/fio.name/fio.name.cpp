@@ -753,9 +753,9 @@ namespace fioio {
 
                 string name;
                 if (i==0) {
-                   name = address_prefix + "." + domain;
+                   name = address_prefix + ":" + domain;
                 }else {
-                    name = address_prefix + to_string(i*2) + "." + domain;
+                    name = address_prefix + to_string(i*2) + ":" + domain;
                 }
 
                 int yearsago = 1;
