@@ -114,7 +114,7 @@ namespace fioio {
                }
            }
            updatefees();
-            //done with burning, return the result.
+           
             nlohmann::json json = {"status", "OK"};
 
             send_response(json.dump().c_str());
@@ -301,7 +301,6 @@ namespace fioio {
 
            updatefees();
 
-            //done with burning, return the result.
             nlohmann::json json = {"status", "OK"};
 
             send_response(json.dump().c_str());
