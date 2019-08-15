@@ -189,7 +189,11 @@ namespace fioio {
 
           // All items are now in pay schedule, calculate the shares
           uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+          uint64_t abpcount = 21;
           if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
+          if (bpcount <= 21) abpcount = bpcount;
+
+
           double todaybucket = bucketrewards.begin()->rewards / 365;
 
 
@@ -207,9 +211,9 @@ namespace fioio {
           bpcounter = 0;
           for(auto &itr : voteshares) {
             double payshare = 0;
-              if (bpcounter<= 21) {
+              if (bpcounter<= abpcount) {
 
-                double reward = bprewards.begin()->dailybucket / bpcount; // dailybucket / 21
+                double reward = bprewards.begin()->dailybucket / abpcount; // dailybucket / 21
 
                 payshare = (reward * (itr.votes / clockiter->schedvotetotal)); // (reward *(itr.votes / clockiter->schedvotetotal)
 
