@@ -21,6 +21,8 @@ namespace fioio {
       bpbucketpool_table bucketrewards;
       fdtnrewards_table fdtnrewards;
       voteshares_table voteshares;
+      topproducers_table topproducers;
+
       eosiosystem::producers_table producers;
 
       bool rewardspaid;
@@ -37,6 +39,7 @@ namespace fioio {
                                                                       bprewards(_self, _self.value),
                                                                       clockstate(_self, _self.value),
                                                                       voteshares(_self, _self.value),
+                                                                      topproducers(_self, _self.value),
                                                                       producers("eosio"_n, name("eosio").value),
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
@@ -143,6 +146,7 @@ namespace fioio {
       if (sharesize == 0) { //if new payschedule
         //Create the payment schedule
 
+        double schedvotetotal;
         for(auto &itr : producers) {
 
 
@@ -151,39 +155,19 @@ namespace fioio {
           //If active block producer
           if(itr.is_active) {
 
-            //increment total number of votes for all producers placed into voteshares table
-            // This iteration and the schedvotetotal table entry in clockstate will not be necessary to calculate a schedule
-            // vote total if total_producer_votes can accumulate a total at producer vote time
-            /* clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-               This is correct setting of accumulated votes of all producers but value in total_votes will need adjusting first
-               entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
-            }); */
 
-
-            if (std::distance(voteshares.begin(), voteshares.find(itr.owner.value)) % 2) { // *** delete this line - This is temporary until another method sets top21 bool of voteshares element
-            //Take producer and place in shares tables
               voteshares.emplace(get_self(), [&](auto &p) {
                 p.owner = itr.owner;
-                p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
+                p.votes = itr.total_votes;
                 p.lastclaim = now();
-                p.top21 = true;
               });
-            } else { // delete this line up *****
-              voteshares.emplace(get_self(), [&](auto &p) {
-                p.owner = itr.owner;
-                p.votes = 2; // p.votes = static_cast<uint64_t>(itr.total_votes);
-                p.lastclaim = now();
-                p.top21 = false;
-              });
-            } // to this line *****
+           // to this line *****
 
-            //temporary ()
-            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-              entry.schedvotetotal += 2; // entry.schedvotetotal += static_cast<uint64_t>(itr.total_votes);
-            });
-
+              schedvotetotal += itr.total_votes;
           }
-
+          clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+            entry.schedvotetotal = schedvotetotal;
+          });
         } // &itr : producers
 
 
@@ -204,27 +188,38 @@ namespace fioio {
           });
 
           // All items are now in pay schedule, calculate the shares
-          const uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end()); //temporary constant
+          uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+          if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
           double todaybucket = bucketrewards.begin()->rewards / 365;
 
+
+          //Create top 21 and top 42
+          uint64_t bpcounter = 0;
+          name pshares[42];
+          auto proditer = producers.begin();
+          while (bpcounter <= bpcount) {
+
+              pshares[bpcounter-1] = proditer->owner;
+
+            bpcounter++;
+          }
+
+          bpcounter = 0;
           for(auto &itr : voteshares) {
-            double payshare;
-              if (itr.top21) {
+            double payshare = 0;
+              if (bpcounter<= 21) {
 
                 double reward = bprewards.begin()->dailybucket / bpcount; // dailybucket / 21
 
-                payshare = (todaybucket / bpcount) + (reward * (2 / clockiter->schedvotetotal)); // (todaybucket / 42) + (reward *(itr.votes / clockiter->schedvotetotal)
-
-              } else {
-
-                payshare = (todaybucket / bpcount); //todaybucket / 42
+                payshare = (reward * (itr.votes / clockiter->schedvotetotal)); // (reward *(itr.votes / clockiter->schedvotetotal)
 
               }
+                payshare += (todaybucket / bpcount); //todaybucket / 42
 
               voteshares.modify(itr,get_self(), [&](auto &entry) {
                 entry.votepay_share = payshare;
               });
-
+              bpcounter++;
           } // &itr : voteshares
 
 
@@ -259,6 +254,10 @@ namespace fioio {
                 });
 
               iter = voteshares.erase(iter);
+            }
+
+            for (auto iter : topproducers) {
+              topproducers.erase(iter);
             }
 
             // reset total schedule vote shares, needs to be recalculated when spawning new pay schedule

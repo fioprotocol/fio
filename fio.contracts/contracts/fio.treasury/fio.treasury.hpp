@@ -37,7 +37,6 @@ namespace fioio{
     name owner;
     double votepay_share = 0;
     double votes;
-    bool top21 = false;
     uint64_t lastclaim = 0;
     uint64_t primary_key() const {return owner.value; }
 
@@ -47,5 +46,18 @@ namespace fioio{
 
   typedef eosio::multi_index<"voteshares"_n,bppaysched> voteshares_table;
 
+
+  //@abi table topprods
+  struct [[eosio::table]] topprods {
+
+    name producer;
+    double votepay_share = 0;
+    uint64_t primary_key() const {return producer.value; }
+
+    EOSLIB_SERIALIZE( topprods, (producer)(votepay_share))
+
+  };
+
+  typedef eosio::multi_index<"topproducers"_n,topprods> topproducers_table;
 
 }
