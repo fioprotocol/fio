@@ -280,10 +280,18 @@ namespace fioio {
 
             name aactor = name(actor.c_str());
             auto prod_iter = producers.find(aactor.value);
+            
             //check if this actor is a registered producer.
             fio_400_assert(prod_iter != producers.end(), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
+
+            //add logic to check is active.
+            bool is_active = prod_iter->is_active;
+            fio_400_assert(is_active, "actor", actor,
+                           " Not an active BP",
+                           ErrorFioNameNotReg);
+
 
             fio_400_assert(multiplier > 0, "multiplier", to_string(multiplier),
                            " Must be positive",
