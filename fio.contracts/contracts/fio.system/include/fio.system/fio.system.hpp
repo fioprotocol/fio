@@ -646,6 +646,9 @@ public:
     void claimrewards(const name owner);
 
     [[eosio::action]]
+    void resetclaim(const name producer);
+
+    [[eosio::action]]
     void setpriv(name account, uint8_t is_priv);
 
     [[eosio::action]]

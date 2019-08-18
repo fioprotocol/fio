@@ -8,13 +8,14 @@
 
 #include <fio.common/fio.common.hpp>
 #include <fio.common/fio.rewards.hpp>
+#include <eosiolib/time.hpp>
 #include <fio.name/fio.name.hpp>
 #include <fio.tpid/fio.tpid.hpp>
 #include <string>
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/asset.hpp>
 
-namespace fioio{
+namespace fioio {
   using namespace eosio;
 
   // @abi table clockstate i64
@@ -46,18 +47,5 @@ namespace fioio{
 
   typedef eosio::multi_index<"voteshares"_n,bppaysched> voteshares_table;
 
-
-  //@abi table topprods
-  struct [[eosio::table]] topprods {
-
-    name producer;
-    double votes = 0;
-    uint64_t primary_key() const {return producer.value; }
-
-    EOSLIB_SERIALIZE( topprods, (producer)(votes))
-
-  };
-
-  typedef eosio::multi_index<"topproducers"_n,topprods> topproducers_table;
 
 }

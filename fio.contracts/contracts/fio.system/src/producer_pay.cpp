@@ -210,4 +210,15 @@ namespace eosiosystem {
         } */
     }
 
+    void system_contract::resetclaim(const name producer) {
+      require_auth(get_self());
+        const auto &prod = _producers.get(producer.value);
+           // Reset producer claim info
+           _producers.modify(prod, get_self(), [&](auto &p) {
+               p.last_claim_time = time_point {microseconds{static_cast<int64_t>( current_time())}};
+               p.unpaid_blocks = 0;
+           });
+
+
+    }
 } //namespace eosiosystem
