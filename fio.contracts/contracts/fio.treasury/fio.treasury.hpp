@@ -51,10 +51,10 @@ namespace fioio{
   struct [[eosio::table]] topprods {
 
     name producer;
-    double votepay_share = 0;
+    double votes = 0;
     uint64_t primary_key() const {return producer.value; }
 
-    EOSLIB_SERIALIZE( topprods, (producer)(votepay_share))
+    EOSLIB_SERIALIZE( topprods, (producer)(votes))
 
   };
 

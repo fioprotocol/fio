@@ -163,12 +163,12 @@ namespace fioio {
               });
            // to this line *****
 
-              schedvotetotal += itr.total_votes;
-          }
-          clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-            entry.schedvotetotal = schedvotetotal;
-          });
-        } // &itr : producers
+                schedvotetotal += itr.total_votes;
+            }
+            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+              entry.schedvotetotal = schedvotetotal;
+            });
+          } // &itr : producers
 
 
           //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
@@ -199,14 +199,16 @@ namespace fioio {
 
           //Create top 21 and top 42
           uint64_t bpcounter = 0;
-          name pshares[42];
-          auto proditer = producers.begin();
-          while (bpcounter <= bpcount) {
-
-              pshares[bpcounter-1] = proditer->owner;
-
+          auto proditer = producers.get_index<"prototalvote"_n>();
+          for( const auto& prod : proditer ) {
+            topproducers.emplace(get_self(), [&](auto &p) {
+              p.producer = prod.owner;
+              p.votes = prod.total_votes;
+            });
             bpcounter++;
+            if (bpcounter > 42) break;
           }
+
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
