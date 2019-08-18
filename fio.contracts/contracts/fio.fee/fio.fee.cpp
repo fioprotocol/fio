@@ -51,10 +51,18 @@ namespace fioio {
 
             name aactor = name(actor.c_str());
             auto prod_iter = producers.find(aactor.value);
+
             //check if this actor is a registered producer.
             fio_400_assert(prod_iter != producers.end(), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
+
+            //add logic to check is active.
+            bool is_active = prod_iter->is_active;
+            fio_400_assert(is_active, "actor", actor,
+                           " Not an active BP",
+                           ErrorFioNameNotReg);
+
 
             uint32_t nowtime = now();
 
@@ -221,8 +229,14 @@ namespace fioio {
                              producer_fee_multipliers_map[vote_item.block_producer_name.to_string()],
                              " for ", vote_item.block_producer_name, "\n");
                    }
+
                    uint64_t voted_fee = (uint64_t)(producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
                            (double)vote_item.suf_amount);
+                   if(dbgout) {
+                       print(" fee suf amount is ",
+                             producer_fee_multipliers_map[vote_item.block_producer_name.to_string()],
+                             " for ", vote_item.block_producer_name, "\n");
+                   }
                    feevalues.push_back(voted_fee);
                }
 
@@ -264,13 +278,23 @@ namespace fioio {
             print("called setfeemult.", "\n");
            // require_auth(actor);
 
-            print("verifying that the actor is a registered producer  ", actor);
-
             name aactor = name(actor.c_str());
             auto prod_iter = producers.find(aactor.value);
+            
             //check if this actor is a registered producer.
             fio_400_assert(prod_iter != producers.end(), "actor", actor,
                            " Not an active BP",
+                           ErrorFioNameNotReg);
+
+            //add logic to check is active.
+            bool is_active = prod_iter->is_active;
+            fio_400_assert(is_active, "actor", actor,
+                           " Not an active BP",
+                           ErrorFioNameNotReg);
+
+
+            fio_400_assert(multiplier > 0, "multiplier", to_string(multiplier),
+                           " Must be positive",
                            ErrorFioNameNotReg);
 
            uint32_t nowtime = now();

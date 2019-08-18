@@ -41,6 +41,7 @@ if [ $mChoice == 2 ]; then
             cp ./contracts/fio.fee/fio.fee.abi ./build/contracts/fio.fee/fio.fee.abi
             cp ./contracts/fio.name/fio.name.abi ./build/contracts/fio.name/fio.name.abi
             cp ./contracts/fio.request.obt/fio.request.obt.abi ./build/contracts/fio.request.obt/fio.request.obt.abi
+            cp ./contracts/fio.whitelist/fio.whitelist.abi ./build/contracts/fio.whitelist/fio.whitelist.abi
     exit -1
 fi
 
@@ -100,6 +101,12 @@ if [ $mChoice == 1 ]; then
         else
             echo 'No wasm file found at $PWD/build/contracts/fio.treasury'
     fi
+
+     if [ -f ../fio.contracts/build/contracts/fio.whitelist/fio.whitelist.wasm ]; then
+                fio_whitelist_name_path="$PWD/../fio.contracts/build/contracts/fio.whitelist"
+            else
+                echo 'No wasm file found at $PWD/build/contracts/fio.whitelist'
+        fi
 
     sleep 2s
     cd ~/opt/eosio/bin
@@ -173,6 +180,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 create account eosio fio.reqobt FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.tpid FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.treasury FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8879 create account eosio fio.whitelst FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.foundatn FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio eosio.bpay FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio eosio.msig FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
@@ -206,7 +214,9 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 set contract -j fio.fee $fio_fee_name_path fio.fee.wasm fio.fee.abi --permission fio.fee@active
         sleep 3s
         ./cleos -u http://localhost:8889 set contract -j fio.treasury $fio_treasury_name_path fio.treasury.wasm fio.treasury.abi --permission fio.treasury@active
-                sleep 3s
+        sleep 3s
+        ./cleos -u http://localhost:8889 set contract -j fio.whitelst $fio_whitelist_name_path fio.whitelist.wasm fio.whitelist.abi --permission fio.whitelst@active
+        sleep 3s
 
         echo creating accounts
         ./cleos -u http://localhost:8879 create account eosio r41zuwovtn44 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82 FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82
@@ -312,7 +322,9 @@ if [ $mChoice == 1 ]; then
           ./cleos -u http://localhost:8879 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
           #make the fio.reqobt into a privileged account
           ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
-
+          ./cleos -u http://localhost:8879 set account permission fio.whitelst active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.whitelst","permission":"eosio.code"},"weight":1}]}}' owner -p fio.whitelst@owner
+          #make the fio.reqobt into a privileged account
+          ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.whitelst",1]' -p eosio@active
           #set permissions on tpid and make it a privileged system account, permit cross communication with fio.system
           #and other contracts.
           ./cleos -u http://localhost:8879 set account permission fio.tpid active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.tpid","permission":"eosio.code"},"weight":1}]}}' owner -p fio.tpid@owner
