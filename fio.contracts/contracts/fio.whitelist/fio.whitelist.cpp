@@ -81,6 +81,7 @@ namespace fioio {
               if (dbgout) {
                   print("pub key hash not found in whitelist, adding info to whitelist.", "\n");
               }
+
               //add it.
               whitelist.emplace(_self, [&](struct whitelist_info &wi) {
                   wi.owner = actor;
@@ -103,7 +104,7 @@ namespace fioio {
           auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
           auto fee_iter = fees_by_endpoint.find(endpoint_hash);
           //if the fee isnt found for the endpoint, then 400 error.
-          fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "record_send",
+          fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "add_to_whitelist",
                          "FIO fee not found for endpoint", ErrorNoEndpoint);
 
           uint64_t reg_amount = fee_iter->suf_amount;
@@ -111,7 +112,7 @@ namespace fioio {
 
           //if its not a bundleeligible fee then this is an error.
           fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
-                         "record_send unexpected fee type for endpoint record_send, expected 1", ErrorNoEndpoint);
+                         "record_send unexpected fee type for endpoint, expected 1", ErrorNoEndpoint);
 
 
           if (dbgout) {
@@ -179,18 +180,114 @@ namespace fioio {
 
        // @abi action
       [[eosio::action]]
-      void remwhitelist(const string &fio_public_key_hash,
+      void remwhitelist(uint64_t fio_public_key_hash,
                         uint64_t max_fee,
                         const string &tpid,
                         const name& actor) {
 
+
+          bool dbgout = true;
+
           require_auth(actor);
 
-          print("EDEDEDEDED remwhitelist.","\n");
+           auto whitelistbylookup = whitelist.get_index<"bylookupidx"_n>();
+           auto key_iter = whitelistbylookup.find(fio_public_key_hash);
+           if (dbgout) {
+               print("looking for pub key hash in whitelist.", "\n");
+           }
+           if (key_iter != whitelistbylookup.end()){
+               if (dbgout) {
+                   print("pub key hash found in whitelist, removing info from whitelist.", "\n");
+               }
 
-          nlohmann::json json = {{"status",        "OK"}};
-          send_response(json.dump().c_str());
+               //remove it.
+               whitelistbylookup.erase(key_iter);
+           }else {
+               if (dbgout) {
+                   print("pub key hash does not exists in whitelist.", "\n");
+               }
 
+           }
+
+           //begin new fees, bundle eligible fee logic
+           uint64_t endpoint_hash = string_to_uint64_hash("remove_from_whitelist");
+
+           if (dbgout) {
+               print("processing remove from whitelist fee.", "\n");
+           }
+           auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+           auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+           //if the fee isnt found for the endpoint, then 400 error.
+           fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "remove_from_whitelist",
+                          "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+           uint64_t reg_amount = fee_iter->suf_amount;
+           uint64_t fee_type = fee_iter->type;
+
+           //if its not a bundleeligible fee then this is an error.
+           fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                          " unexpected fee type for endpoint, expected 1", ErrorNoEndpoint);
+
+
+           if (dbgout) {
+               print("whitelist fee is. ", to_string(reg_amount), "\n");
+           }
+
+           auto fionames_byowner = fionames.get_index<"byowner"_n>();
+           auto fioname_iter = fionames_byowner.find(actor.value);
+           fio_404_assert(fioname_iter != fionames_byowner.end(), "FIO Address owner not found", ErrorFioNameNotRegistered);
+
+           uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+           string fio_address = fioname_iter->name;
+
+           uint64_t fee_amount = 0;
+
+           if (bundleeligiblecountdown > 0) {
+               //fee is zero, and decrement the counter.
+               fee_amount = 0;
+               if (dbgout) {
+                   print("calling decrcounter.", "\n");
+               }
+               action{
+                       permission_level{_self, "active"_n},
+                       "fio.system"_n,
+                       "decrcounter"_n,
+                       decrementcounter{
+                               .fio_address = fio_address
+                       }
+               }.send();
+
+           } else {
+               fee_amount = fee_iter->suf_amount;
+               fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                              ErrorMaxFeeExceeded);
+
+               //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
+               //or should we do as this code does and not do a transaction when the fees are 0.
+               asset reg_fee_asset = asset();
+               reg_fee_asset.amount = fee_amount;
+               reg_fee_asset.symbol = symbol("FIO", 9);
+
+               fio_fees(actor, reg_fee_asset);
+
+               process_rewards(tpid, fee_amount, get_self());
+
+               //MAS-522 remove staking from voting
+               if (fee_amount > 0) {
+                   //MAS-522 remove staking from voting.
+                   INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                           ("eosio"_n, {{_self, "active"_n}},
+                            {actor, true}
+                           );
+               }
+
+
+           }
+           //end new fees, bundle eligible fee logic
+
+           nlohmann::json json = {{"status",        "OK"},
+                                  {"fee_collected", fee_amount}};
+           send_response(json.dump().c_str());
       }
 
 
