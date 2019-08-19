@@ -242,7 +242,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
 
 
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999891899.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999885899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
         ./cleos -u http://localhost:8879 push action eosio setprods "{ \"schedule\": [{\"producer_name\": \"inita\",\"block_signing_key\": \"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\"}]}" -p eosio@active
@@ -279,19 +279,19 @@ if [ $mChoice == 1 ]; then
 
         echo setting up myvotgeracnt2
         ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt2 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt2","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt2","2000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt2","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt2@active
         ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt2","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt2@active
 
         echo setting up myvotgeracnt3
         ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt3 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt3","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt3","3000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt3","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt3@active
         ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt3","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt3@active
 
         echo setting up myvotgeracnt4
         ./cleos -u http://localhost:8879 system newaccount eosio myvoteracnt4 FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt4","1000.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["myvoteracnt4","4000.000000000 FIO","memo"]' -p eosio@active
         ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt4","fio_address":"n/a","isproxy":"1"}' --permission myvoteracnt4@active
         ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"myvoteracnt4","fio_address":"n/a","isproxy":"0"}' --permission myvoteracnt4@active
 
