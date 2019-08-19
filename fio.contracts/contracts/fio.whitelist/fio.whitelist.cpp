@@ -77,23 +77,19 @@ namespace fioio {
           if (dbgout) {
               print("looking for pub key hash in whitelist.", "\n");
           }
-          if (key_iter == whitelistbylookup.end()){
-              if (dbgout) {
-                  print("pub key hash not found in whitelist, adding info to whitelist.", "\n");
-              }
 
-              //add it.
-              whitelist.emplace(_self, [&](struct whitelist_info &wi) {
-                  wi.owner = actor;
-                  wi.lookupindex = fio_public_key_hash;
-                  wi.content = content;
-              });
-          }else {
-              if (dbgout) {
-                  print("pub key hash exists in whitelist.", "\n");
-              }
-
+          fio_400_assert(key_iter == whitelistbylookup.end(), "fio_public_key_ahsh", "add_to_whitelist",
+                         "FIO public key already in whitelist", ErrorNoEndpoint);
+          if (dbgout) {
+              print("pub key hash not found in whitelist, adding info to whitelist.", "\n");
           }
+
+          //add it.
+          whitelist.emplace(_self, [&](struct whitelist_info &wi) {
+              wi.owner = actor.value;
+              wi.lookupindex = fio_public_key_hash;
+              wi.content = content;
+          });
 
           //begin new fees, bundle eligible fee logic
           uint64_t endpoint_hash = string_to_uint64_hash("add_to_whitelist");

@@ -1225,8 +1225,11 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
       const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
       const name fio_fee_code = N(fio.fee);    // FIO fee account, init in the top of this class
       const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
+        const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
+        const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
 
 
+        const name fio_whitelist_table = N(whitelist); // FIO Address Table
       const name fio_address_table = N(fionames); // FIO Address Table
       const name fio_fees_table = N(fiofees); // FIO fees Table
       const name fio_domains_table = N(domains); // FIO Domains Table
@@ -1830,6 +1833,66 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             return result;
         } // get_fee
+
+
+        /*** v1/chain/get_whitelist
+    * Retrieves the whitelist associated with the specified public key
+    * @param p
+    * @return result
+    */
+        read_only::get_whitelist_result read_only::get_whitelist(const read_only::get_whitelist_params &p) const {
+           // assert if empty chain key
+           get_whitelist_result result;
+
+
+         //  FIO_400_ASSERT(!p.fio_public_key.empty(), "fio_public_key", "", "Invalid",
+         //                 fioio::ErrorNoEndpoint);
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            //get the public address.
+
+            name account = name{account_name};
+
+           //read the fees table.
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
+
+
+           dlog("Lookup using woner: ‘${owner}‘", ("owner", account));
+
+           get_table_rows_params table_row_params = get_table_rows_params{
+                   .json        = true,
+                   .code        = fio_whitelst_code,
+                   .scope       = fio_whitelst_scope,
+                   .table       = fio_whitelist_table,
+                   .lower_bound = boost::lexical_cast<string>(account.value),
+                   .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                   .key_type       = "i64",
+                   .index_position ="1"};
+
+
+           get_table_rows_result table_rows_result =
+                  get_table_rows_ex<key_value_index>(table_row_params, abi);
+
+           dlog("Lookup for whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
+
+           FIO_400_ASSERT(!table_rows_result.rows.empty(), "fio_public_key", p.fio_public_key, "No whitelist",
+                          fioio::ErrorNoFeesFoundForEndpoint);
+          // FIO_404_ASSERT(table_rows_result.rows.size() == 1, "Multiple fees found for endpoint", fioio::ErrorNoFeesFoundForEndpoint);
+
+           for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
+
+              //get all the attributes of the fio request
+              uint64_t lookup_index = table_rows_result.rows[pos]["lookupindex"].as_uint64();
+              string content = table_rows_result.rows[pos]["content"].as_string();
+
+              whitelist_info wi{lookup_index, content};
+              result.whitelisted_parties.push_back(wi);
+              }
+
+
+           return result;
+        }
 
         /***
         * Lookup address by FIO name.
