@@ -24,7 +24,6 @@ namespace fioio {
       eosiosystem::eosio_global_state gstate;
       eosiosystem::global_state_singleton global;
       eosiosystem::producers_table producers;
-
       bool rewardspaid;
 
       uint64_t lasttpidpayout;
@@ -268,10 +267,13 @@ namespace fioio {
          return;
      }
 
+     const auto &prod = producers.get(producer);
+
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
      uint64_t payout = 0;
 
      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
+       check(prod.active(), "producer does not have an active key");
 
              action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,

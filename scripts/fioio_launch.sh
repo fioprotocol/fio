@@ -362,6 +362,10 @@ if [ $mChoice == 1 ]; then
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"unregister_producer","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"proxy_vote","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"vote_producer","type":"0","suf_amount":"10000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"add_to_whitelist","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+     ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"remove_from_whitelist","type":"1","suf_amount":"100000000"}' --permission fio.fee@active
+
+
 
     echo setting accounts
     sleep 1
