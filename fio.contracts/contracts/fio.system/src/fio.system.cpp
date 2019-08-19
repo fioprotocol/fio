@@ -481,5 +481,5 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         unregproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)
-(claimrewards)
+(claimrewards)(resetclaim)
 )

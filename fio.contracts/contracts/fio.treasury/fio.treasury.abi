@@ -69,15 +69,6 @@
                {"name":"votes",
                "type":"float64"}
            ]
-           },{
-           "name": "topprods",
-           "base": "",
-           "fields": [
-              {"name":"producer",
-               "type":"name"},
-              {"name":"votepay_share",
-               "type":"float64"}
-           ]
            }
            ],
     "types": [],
@@ -149,17 +140,7 @@
                "uint64"
             ],
             "type": "bppaysched"
-        },{
-             "name": "topproducers",
-             "index_type": "i64",
-             "key_names": [
-                "producer"
-             ],
-             "key_types": [
-                "uint64"
-             ],
-             "type": "topprods"
-         }],
+        }],
     "ricardian_clauses": [],
     "variants": [],
     "abi_extensions": []
