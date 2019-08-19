@@ -21,7 +21,8 @@ namespace fioio {
       bpbucketpool_table bucketrewards;
       fdtnrewards_table fdtnrewards;
       voteshares_table voteshares;
-
+      eosiosystem::eosio_global_state gstate;
+      eosiosystem::global_state_singleton global;
       eosiosystem::producers_table producers;
 
       bool rewardspaid;
@@ -39,6 +40,7 @@ namespace fioio {
                                                                       clockstate(_self, _self.value),
                                                                       voteshares(_self, _self.value),
                                                                       producers("eosio"_n, name("eosio").value),
+                                                                      global("eosio"_n, name("eosio").value),
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
 
@@ -200,8 +202,8 @@ namespace fioio {
               if (bpcounter<= abpcount) {
 
                 double reward = bprewards.begin()->dailybucket / abpcount; // dailybucket / 21
-
-                payshare = (reward * (itr.votes / clockiter->schedvotetotal)); // (reward *(itr.votes / clockiter->schedvotetotal)
+                gstate = global.get();
+                payshare = (reward * (itr.votes / gstate.total_producer_vote_weight)); // (reward *(itr.votes / clockiter->schedvotetotal)
 
               }
                 payshare += (todaybucket / bpcount); //todaybucket / 42
