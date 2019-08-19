@@ -22,7 +22,6 @@ namespace fioio {
       fdtnrewards_table fdtnrewards;
       voteshares_table voteshares;
 
-
       eosiosystem::producers_table producers;
 
       bool rewardspaid;

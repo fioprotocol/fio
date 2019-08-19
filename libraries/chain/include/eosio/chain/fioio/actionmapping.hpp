@@ -46,7 +46,8 @@ namespace fioio {
         fioFeeActions.push_back("setfeevote");
 
         fioTreasuryActions.push_back("tpidclaim");
-
+        fioTreasuryActions.push_back("bpclaim");
+        
         //fio.token actions
         fioTokenActions.push_back("trnsfiopubky");
         //fio.finance actions
