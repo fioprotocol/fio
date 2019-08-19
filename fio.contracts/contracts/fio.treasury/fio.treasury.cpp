@@ -21,7 +21,7 @@ namespace fioio {
       bpbucketpool_table bucketrewards;
       fdtnrewards_table fdtnrewards;
       voteshares_table voteshares;
-      topproducers_table topproducers;
+
 
       eosiosystem::producers_table producers;
 
@@ -39,7 +39,6 @@ namespace fioio {
                                                                       bprewards(_self, _self.value),
                                                                       clockstate(_self, _self.value),
                                                                       voteshares(_self, _self.value),
-                                                                      topproducers(_self, _self.value),
                                                                       producers("eosio"_n, name("eosio").value),
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
@@ -147,14 +146,11 @@ namespace fioio {
         //Create the payment schedule
 
         double schedvotetotal;
-        for(auto &itr : producers) {
-
+        uint64_t bpcounter = 0;
+        auto proditer = producers.get_index<"prototalvote"_n>();
+        for( const auto& itr : proditer ) {
 
           //This is temporary and sets the voteshares and votes accordingly until some of the issues in the voting logic can be repurposed
-
-          //If active block producer
-          if(itr.is_active) {
-
 
               voteshares.emplace(get_self(), [&](auto &p) {
                 p.owner = itr.owner;
@@ -163,12 +159,14 @@ namespace fioio {
               });
            // to this line *****
 
-              schedvotetotal += itr.total_votes;
-          }
-          clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-            entry.schedvotetotal = schedvotetotal;
-          });
-        } // &itr : producers
+                schedvotetotal += itr.total_votes;
+            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
+              entry.schedvotetotal = schedvotetotal;
+            });
+
+            bpcounter++;
+            if (bpcounter > 42) break;
+          } // &itr : producers
 
 
           //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
@@ -196,17 +194,6 @@ namespace fioio {
 
           double todaybucket = bucketrewards.begin()->rewards / 365;
 
-
-          //Create top 21 and top 42
-          uint64_t bpcounter = 0;
-          name pshares[42];
-          auto proditer = producers.begin();
-          while (bpcounter <= bpcount) {
-
-              pshares[bpcounter-1] = proditer->owner;
-
-            bpcounter++;
-          }
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
@@ -260,10 +247,6 @@ namespace fioio {
               iter = voteshares.erase(iter);
             }
 
-            for (auto iter : topproducers) {
-              topproducers.erase(iter);
-            }
-
             // reset total schedule vote shares, needs to be recalculated when spawning new pay schedule
 
             clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
@@ -284,10 +267,13 @@ namespace fioio {
          return;
      }
 
+     const auto &prod = producers.get(producer);
+
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
      uint64_t payout = 0;
 
      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
+       check(prod.active(), "producer does not have an active key");
 
              action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
@@ -320,6 +306,13 @@ namespace fioio {
          });
 
      }
+
+
+     //Invoke system contract to reset producer last_claim_time and unpaid_blocks
+     action(permission_level{get_self(), "active"_n},
+           "fio.system"_n, "resetclaim"_n,
+           make_tuple(producer)
+         ).send();
 
      //remove the producer from payschedule
      voteshares.erase(bpiter);
