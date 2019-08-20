@@ -1841,18 +1841,15 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
     * @return result
     */
         read_only::get_whitelist_result read_only::get_whitelist(const read_only::get_whitelist_params &p) const {
-           // assert if empty chain key
+
            get_whitelist_result result;
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
-            //get the public address.
 
             name account = name{account_name};
 
-           //read the fees table.
            const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
-
 
            dlog("Lookup using woner: ‘${owner}‘", ("owner", account));
 
@@ -1874,18 +1871,14 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
            FIO_400_ASSERT(!table_rows_result.rows.empty(), "fio_public_key", p.fio_public_key, "No whitelist",
                           fioio::ErrorNoFeesFoundForEndpoint);
-          // FIO_404_ASSERT(table_rows_result.rows.size() == 1, "Multiple fees found for endpoint", fioio::ErrorNoFeesFoundForEndpoint);
 
            for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
-
-              //get all the attributes of the fio request
               uint64_t lookup_index = table_rows_result.rows[pos]["lookupindex"].as_uint64();
               string content = table_rows_result.rows[pos]["content"].as_string();
 
               whitelist_info wi{lookup_index, content};
               result.whitelisted_parties.push_back(wi);
               }
-
 
            return result;
         }
@@ -1897,14 +1890,13 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
    * @return result
    */
         read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
-           // assert if empty chain key
+
            check_whitelist_result result;
+
            result.in_whitelist = false;
 
            uint64_t fio_pub_key_hash = p.fio_public_key_hash;
 
-
-           //read the fees table.
            const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
 
 
@@ -3300,8 +3292,6 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                      } CATCH_AND_CALL(next);
                   }
               });
-
-
            } catch (boost::interprocess::bad_alloc &) {
               chain_plugin::handle_db_exhaustion();
            } CATCH_AND_CALL(next);
@@ -3340,8 +3330,6 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                      } CATCH_AND_CALL(next);
                   }
               });
-
-
            } catch (boost::interprocess::bad_alloc &) {
               chain_plugin::handle_db_exhaustion();
            } CATCH_AND_CALL(next);
