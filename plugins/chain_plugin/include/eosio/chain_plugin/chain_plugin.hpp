@@ -87,6 +87,11 @@ namespace eosio {
             string status;          //the status of the request.
         };
 
+        struct whitelist_info {
+            uint64_t fio_public_key_hash;
+            string content;
+        };
+
 
         template<typename>
         struct resolver_factory;
@@ -373,6 +378,28 @@ namespace eosio {
             get_sent_fio_requests_result
             get_sent_fio_requests(const get_sent_fio_requests_params &params) const;
             //end get sent fio requests
+
+            struct get_whitelist_params {
+                string fio_public_key;
+            };
+
+            struct get_whitelist_result {
+                vector <whitelist_info> whitelisted_parties;
+            };
+
+            get_whitelist_result
+            get_whitelist(const get_whitelist_params &params) const;
+
+            struct check_whitelist_params {
+                uint64_t fio_public_key_hash;
+            };
+
+            struct check_whitelist_result {
+                bool in_whitelist;
+            };
+
+            check_whitelist_result
+            check_whitelist(const check_whitelist_params &params) const;
 
             struct get_fio_names_params {
                 string fio_public_key;
@@ -1193,6 +1220,15 @@ FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_p
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)
+)
+FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key)
+)
+FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties)
+)
+FC_REFLECT(eosio::chain_apis::whitelist_info,(fio_public_key_hash)(content))
+FC_REFLECT(eosio::chain_apis::read_only::check_whitelist_params, (fio_public_key_hash)
+)
+FC_REFLECT(eosio::chain_apis::read_only::check_whitelist_result, (in_whitelist)
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)
 )
