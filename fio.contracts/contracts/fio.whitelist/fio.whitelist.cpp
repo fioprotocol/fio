@@ -78,7 +78,7 @@ namespace fioio {
               print("looking for pub key hash in whitelist.", "\n");
           }
 
-          fio_400_assert(key_iter == whitelistbylookup.end(), "fio_public_key_hash", "add_to_whitelist",
+          fio_400_assert(key_iter == whitelistbylookup.end(), "fio_public_key_hash", to_string(fio_public_key_hash),
                          "FIO public key already in whitelist", ErrorPublicKeyExists);
           if (dbgout) {
               print("pub key hash not found in whitelist, adding info to whitelist.", "\n");
