@@ -129,10 +129,10 @@ namespace fioio {
       auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
 
       //Replace with proper assertion from api spec
-      if (fioiter == fionames.end()) {
-        print("Failed to locate producer in fionames table.");
-        return;
-      }
+
+      fio_400_assert(fioiter == fionames.end(), fio_address.c_str(), "fio_address",
+        "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
+
       uint64_t producer = fioiter->owner_account;
 
       auto clockiter = clockstate.begin();
@@ -262,10 +262,9 @@ namespace fioio {
 
      //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
      auto bpiter = voteshares.find(producer);
-     if (bpiter == voteshares.end()) {
-         print("Failed to locate producer in voteshares or producer already paid."); //To remove after testing
-         return;
-     }
+
+     fio_400_assert(bpiter == voteshares.end(), fio_address.c_str(), "fio_address",
+       "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
      const auto &prod = producers.get(producer);
 
