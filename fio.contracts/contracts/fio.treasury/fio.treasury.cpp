@@ -201,11 +201,7 @@ namespace fioio {
 
 
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
-<<<<<<< HEAD
                   entry.abpayshare = static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight));
-=======
-                  entry.abpayshare = (reward * (itr.votes / gstate.total_producer_vote_weight));
->>>>>>> Venus_Semolina_v1
                 });
                 print("\npayout percent: ",itr.votes / gstate.total_producer_vote_weight);
                 print("\nreward: ", reward);
@@ -243,12 +239,8 @@ namespace fioio {
           while (iter != voteshares.end()) {
 
                 uint64_t reward = bucketrewards.begin()->rewards;
-<<<<<<< HEAD
                 reward += (iter->sbpayshare + iter->abpayshare);
                 print("reward: ",reward);
-=======
-                reward += static_cast<uint64_t>(iter->sbpayshare + iter->abpayshare);
->>>>>>> Venus_Semolina_v1
                 bucketrewards.erase(bucketrewards.begin());
                 bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
                   entry.rewards = reward;
@@ -282,11 +274,7 @@ namespace fioio {
 
              action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
-<<<<<<< HEAD
                make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
-=======
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(bpiter->abpayshare+bpiter->sbpayshare, symbol("FIO",9)),
->>>>>>> Venus_Semolina_v1
                string("Paying producer from treasury."))
            ).send();
 

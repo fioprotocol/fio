@@ -65,15 +65,9 @@
               {"name":"owner",
                "type":"name"},
               {"name":"abpayshare",
-<<<<<<< HEAD
                "type":"uint64"},
               {"name":"sbpayshare",
               "type":"uint64"},
-=======
-               "type":"float64"},
-              {"name":"sbpayshare",
-              "type":"float64"},
->>>>>>> Venus_Semolina_v1
                {"name":"votes",
                "type":"float64"}
            ]
