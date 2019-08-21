@@ -152,7 +152,6 @@ namespace fioio {
       if (sharesize == 0) { //if new payschedule
         //Create the payment schedule
 
-        double schedvotetotal;
         uint64_t bpcounter = 0;
         auto proditer = producers.get_index<"prototalvote"_n>();
         for( const auto& itr : proditer ) {
@@ -164,11 +163,6 @@ namespace fioio {
               });
            // to this line *****
 
-                schedvotetotal += itr.total_votes;
-            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-              entry.schedvotetotal = schedvotetotal;
-            });
-
             bpcounter++;
             if (bpcounter > 42) break;
           } // &itr : producers
@@ -176,17 +170,15 @@ namespace fioio {
 
           //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
 
-          uint64_t temp = bucketrewards.begin()->rewards;
           bucketrewards.erase(bucketrewards.begin());
           bucketrewards.emplace(get_self(), [&](auto &p) {
-            p.rewards = temp + bprewards.begin()->rewards * .60;
+            p.rewards = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
           });
 
-
-          temp = bprewards.begin()->dailybucket + bprewards.begin()->rewards * .40;
+          uint64_t temp = bprewards.begin()->rewards;
           bprewards.erase(bprewards.begin());
           bprewards.emplace(get_self(), [&](auto &p) {
-              p.dailybucket = temp;
+              p.dailybucket = static_cast<uint64_t>((temp) * .40);
               p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
           });
 
@@ -209,7 +201,7 @@ namespace fioio {
 
 
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.abpayshare = (reward * (itr.votes / gstate.total_producer_vote_weight));
+                  entry.abpayshare = static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight));
                 });
                 print("\npayout percent: ",itr.votes / gstate.total_producer_vote_weight);
                 print("\nreward: ", reward);
@@ -235,7 +227,7 @@ namespace fioio {
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
 
-      // Pay schedule expiration
+      /***************  Pay schedule expiration *******************/
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
@@ -247,7 +239,8 @@ namespace fioio {
           while (iter != voteshares.end()) {
 
                 uint64_t reward = bucketrewards.begin()->rewards;
-                reward += static_cast<uint64_t>(iter->sbpayshare + iter->abpayshare);
+                reward += (iter->sbpayshare + iter->abpayshare);
+                print("reward: ",reward);
                 bucketrewards.erase(bucketrewards.begin());
                 bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
                   entry.rewards = reward;
@@ -256,11 +249,6 @@ namespace fioio {
               iter = voteshares.erase(iter);
             }
 
-            // reset total schedule vote shares, needs to be recalculated when spawning new pay schedule
-
-            clockstate.modify(clockstate.begin(),get_self(), [&](auto &entry) {
-              entry.schedvotetotal = 0;
-            });
 
             print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
             bpclaim(fio_address, actor); // Call self to create a new pay schedule
@@ -279,14 +267,14 @@ namespace fioio {
 
      /******* Payouts *******/
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
-     uint64_t payout = 0;
+     uint64_t payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
 
      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
        check(prod.active(), "producer does not have an active key");
 
              action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(bpiter->abpayshare+bpiter->sbpayshare, symbol("FIO",9)),
+               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
                string("Paying producer from treasury."))
            ).send();
 
@@ -441,10 +429,9 @@ namespace fioio {
          });
 
        } else {
-         auto found = fdtnrewards.begin();
-         uint64_t reward = found->rewards;
+         uint64_t reward = fdtnrewards.begin()->rewards;
          reward += amount;
-         fdtnrewards.erase(found);
+         fdtnrewards.erase(fdtnrewards.begin());
          fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
            entry.rewards = reward;
         });

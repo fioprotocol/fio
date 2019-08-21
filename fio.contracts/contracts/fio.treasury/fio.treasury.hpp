@@ -23,11 +23,10 @@ namespace fioio {
   struct [[eosio::table]] treasurystate {
       uint64_t lasttpidpayout;
       uint64_t payschedtimer;
-      uint64_t schedvotetotal;
 
       // Set the primary key to a constant value to store only one row
       uint64_t primary_key() const { return lasttpidpayout; }
-      EOSLIB_SERIALIZE(treasurystate,(lasttpidpayout)(payschedtimer)(schedvotetotal))
+      EOSLIB_SERIALIZE(treasurystate,(lasttpidpayout)(payschedtimer))
   };
   typedef eosio::multi_index<"clockstate"_n,treasurystate> rewards_table;
 
@@ -37,8 +36,8 @@ namespace fioio {
   struct [[eosio::table]] bppaysched {
 
     name owner;
-    double abpayshare = 0;
-    double sbpayshare = 0;
+    uint64_t abpayshare = 0;
+    uint64_t sbpayshare = 0;
     double votes;
     uint64_t lastclaim = 0;
     uint64_t primary_key() const {return owner.value; }
