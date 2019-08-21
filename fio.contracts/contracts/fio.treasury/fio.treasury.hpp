@@ -36,8 +36,13 @@ namespace fioio {
   struct [[eosio::table]] bppaysched {
 
     name owner;
+<<<<<<< HEAD
     uint64_t abpayshare = 0;
     uint64_t sbpayshare = 0;
+=======
+    double abpayshare = 0;
+    double sbpayshare = 0;
+>>>>>>> Venus_Semolina_v1
     double votes;
     uint64_t lastclaim = 0;
     uint64_t primary_key() const {return owner.value; }

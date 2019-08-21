@@ -1626,15 +1626,24 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
             FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
-            std::string nam, namexpiration;
+            std::string nam;
+            uint64_t namexpiration;
+            time_t temptime;
+            struct tm *timeinfo;
+            char buffer[80];
 
             // Look through the keynames lookup results and push the fio_addresses into results
             for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
 
                 nam = (string) table_rows_result.rows[pos]["name"].as_string();
                 if (nam.find(':') != std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
-                    namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
-                    fioaddress_record fa{nam, namexpiration};
+                    namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+
+                    temptime = namexpiration;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                    fioaddress_record fa{nam, buffer};
                     //then push the address record result
                     result.fio_addresses.push_back(fa);
                 }
@@ -1663,14 +1672,20 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                fioio::ErrorNoFIONames);
             return result; }
 
-            std::string domexpiration, dom;
+            std::string dom;
+            uint64_t domexpiration;
             bool public_domain;
 
             for (size_t pos = 0; pos < domain_result.rows.size(); pos++) {
                 dom = ((string)domain_result.rows[pos]["name"].as_string());
-                domexpiration = domain_result.rows[pos]["expiration"].as_string();
-                public_domain = domain_result.rows[pos]["public_domain"].as_bool();
-                fiodomain_record d{dom, domexpiration, public_domain};
+                domexpiration = domain_result.rows[pos]["expiration"].as_uint64();
+                public_domain = domain_result.rows[pos]["is_public"].as_bool();
+
+                temptime = domexpiration;
+                timeinfo = gmtime(&temptime);
+                strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                fiodomain_record d{dom, buffer, public_domain};
                 result.fio_domains.push_back(d);    //pushback results in domain
             }
 

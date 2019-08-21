@@ -447,7 +447,6 @@ namespace eosiosystem {
 
         uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
         uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
-
         //need to verify the account that owns the address is the actor.
         auto fioname_iter = _fionames.find(nameHash);
         fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
@@ -472,7 +471,6 @@ namespace eosiosystem {
         auto proxy_name = name{proxy_account};
 
         std::vector<name> producers{}; // Empty
-
         auto voter_iter = _voters.find(actor.value);
 
         if (voter_iter == _voters.end()) {

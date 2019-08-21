@@ -1,6 +1,6 @@
 ##!/usr/bin/env bash
 
-pkill nodeos
+killall -9 nodeos
 
 echo $'Deleting Logs...\n'
 rm -rf ../node1.txt
