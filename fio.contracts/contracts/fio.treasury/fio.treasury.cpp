@@ -169,7 +169,7 @@ namespace fioio {
 
 
           //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
-
+          uint64_t temp = bucketrewards.begin()->rewards;
           bucketrewards.erase(bucketrewards.begin());
           bucketrewards.emplace(get_self(), [&](auto &p) {
             p.rewards = temp + static_cast<uint64_t>(bprewards.begin()->rewards * .60);
