@@ -170,12 +170,13 @@ namespace fioio {
 
           //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
 
+          uint64_t temp = bucketrewards.begin()->rewards;
           bucketrewards.erase(bucketrewards.begin());
           bucketrewards.emplace(get_self(), [&](auto &p) {
-            p.rewards = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
+            p.rewards = temp + static_cast<uint64_t>(bprewards.begin()->rewards * .60);
           });
 
-          uint64_t temp = bprewards.begin()->rewards;
+          temp = bprewards.begin()->rewards;
           bprewards.erase(bprewards.begin());
           bprewards.emplace(get_self(), [&](auto &p) {
               p.dailybucket = static_cast<uint64_t>((temp) * .40);
@@ -190,28 +191,48 @@ namespace fioio {
 
 
           double todaybucket = bucketrewards.begin()->rewards / 365;
-
+          print("\nToday bucket: ", todaybucket);
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
               if (bpcounter<= abpcount) {
-
+                print("\nBPCounter: ", bpcounter);
                 double reward = static_cast<double>(bprewards.begin()->dailybucket / abpcount); // dailybucket / 21
+                print("\reward: ", reward);
                 gstate = global.get();
-
 
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
                   entry.abpayshare = static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight));
                 });
+                print("\abpayshare:  ",static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight)));
                 print("\npayout percent: ",itr.votes / gstate.total_producer_vote_weight);
-                print("\nreward: ", reward);
+                print("\nreward after: ", reward);
               }
-
+              print("todaybucket: ",todaybucket);
+              print("bpcount: ",bpcount);
               voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.sbpayshare = (static_cast<double>(todaybucket / bpcount)); //todaybucket / 42
+                  entry.sbpayshare = (static_cast<uint64_t>(todaybucket / bpcount)); //todaybucket / 42
+              });
+              print("\nsbpayshare: ", static_cast<uint64_t>(todaybucket / bpcount));
+              bpcounter++;
+
+              // Reduce the producers share of dailybucket and bucketrewards
+
+              auto temp = bucketrewards.begin()->rewards;
+              bucketrewards.erase(bucketrewards.begin());
+              bucketrewards.emplace(get_self(), [&](auto &p) {
+                p.rewards = temp - itr.sbpayshare;
               });
 
-              bpcounter++;
+              temp = bprewards.begin()->rewards;
+              auto temp2 = bprewards.begin()->dailybucket;
+              bprewards.erase(bprewards.begin());
+              bprewards.emplace(get_self(), [&](auto &p) {
+                  p.dailybucket = temp2 - itr.abpayshare;
+                  p.rewards = temp;
+              });
+
+
           } // &itr : voteshares
 
 
@@ -239,19 +260,24 @@ namespace fioio {
           while (iter != voteshares.end()) {
 
                 uint64_t reward = bucketrewards.begin()->rewards;
+                print("\nReward initialized to: ", reward);
                 reward += (iter->sbpayshare + iter->abpayshare);
-                print("reward: ",reward);
+                print("\nspbayshare: ",iter->sbpayshare);
+                print("\nabpayshare: ", iter->abpayshare);
+                //reward = 100;
+                print("\nreward: ",reward);
+
                 bucketrewards.erase(bucketrewards.begin());
-                bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
-                  entry.rewards = reward;
+                bucketrewards.emplace(_self, [&](struct bucketpool &p) {
+                  p.rewards = reward;
                 });
 
-              iter = voteshares.erase(iter);
+                iter = voteshares.erase(iter);
+                print("\n\nDone\n\n\n\n");
             }
 
-
             print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
-            bpclaim(fio_address, actor); // Call self to create a new pay schedule
+          //  bpclaim(fio_address, actor); // Call self to create a new pay schedule
         }
 
       return;
@@ -278,19 +304,6 @@ namespace fioio {
                string("Paying producer from treasury."))
            ).send();
 
-     // Reduce the producers share of dailybucket and bucketrewards
-
-     bucketrewards.erase(bucketrewards.begin());
-     bucketrewards.emplace(get_self(), [&](auto &p) {
-       p.rewards -= bpiter->sbpayshare;
-     });
-
-     auto temp = bprewards.begin()->rewards;
-     bprewards.erase(bprewards.begin());
-     bprewards.emplace(get_self(), [&](auto &p) {
-         p.dailybucket -= bpiter->abpayshare;
-         p.rewards = temp;
-     });
 
     // PAY FOUNDATION //
      auto fdtniter = fdtnrewards.begin();
@@ -360,6 +373,10 @@ namespace fioio {
         });
 
       }
+
+      bucketrewards.emplace(get_self(), [&](auto &p) {
+        p.rewards = 0;
+      });
 
       bprewdupdate(0);
 
