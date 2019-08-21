@@ -205,15 +205,13 @@ namespace fioio {
               if (bpcounter<= abpcount) {
 
                 double reward = static_cast<double>(bprewards.begin()->dailybucket / abpcount); // dailybucket / 21
-                print("\ndailybucket: ",bprewards.begin()->dailybucket);
-                print("\nactive producer count: ",abpcount);
                 gstate = global.get();
-                print("\ntotal_producer_vote_weight: ",gstate.total_producer_vote_weight);
-                print("\nvotes: ",itr.votes);
+
 
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
                   entry.abpayshare = (reward * (itr.votes / gstate.total_producer_vote_weight));
                 });
+                print("\npayout percent: ",itr.votes / gstate.total_producer_vote_weight);
                 print("\nreward: ", reward);
               }
 
