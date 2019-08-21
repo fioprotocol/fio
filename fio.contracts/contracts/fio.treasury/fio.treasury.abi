@@ -33,14 +33,14 @@
                   "type":"uint64"},
                  {"name":"payschedtimer",
                   "type":"uint64"},
-                 {"name":"schedvotetotal",
-                  "type":"uint64"},
               ]
               },{
               "name": "bpreward",
               "base": "",
               "fields": [
                  {"name":"rewards",
+                  "type":"uint64"},
+                 {"name":"dailybucket",
                   "type":"uint64"},
 
               ]
@@ -65,9 +65,9 @@
               {"name":"owner",
                "type":"name"},
               {"name":"abpayshare",
-               "type":"float64"},
+               "type":"uint64"},
               {"name":"sbpayshare",
-              "type":"float64"},
+              "type":"uint64"},
                {"name":"votes",
                "type":"float64"}
            ]
