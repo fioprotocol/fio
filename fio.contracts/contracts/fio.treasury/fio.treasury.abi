@@ -64,8 +64,10 @@
            "fields": [
               {"name":"owner",
                "type":"name"},
-              {"name":"votepay_share",
+              {"name":"abpayshare",
                "type":"float64"},
+              {"name":"sbpayshare",
+              "type":"float64"},
                {"name":"votes",
                "type":"float64"}
            ]

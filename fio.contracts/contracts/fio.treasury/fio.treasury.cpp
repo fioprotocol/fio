@@ -16,6 +16,7 @@ namespace fioio {
     private:
       tpids_table tpids;
       fionames_table fionames;
+      domains_table domains;
       rewards_table clockstate;
       bprewards_table bprewards;
       bpbucketpool_table bucketrewards;
@@ -35,6 +36,7 @@ namespace fioio {
         FIOTreasury(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                       tpids(TPIDContract, TPIDContract.value),
                                                                       fionames(SystemContract, SystemContract.value),
+                                                                      domains(SystemContract, SystemContract.value),
                                                                       bprewards(_self, _self.value),
                                                                       clockstate(_self, _self.value),
                                                                       voteshares(_self, _self.value),
@@ -128,10 +130,15 @@ namespace fioio {
       require_auth(actor);
       auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
 
-      //Replace with proper assertion from api spec
-
-      fio_400_assert(fioiter == fionames.end(), fio_address.c_str(), "fio_address",
+      fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
         "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
+
+      auto domiter = domains.find(fioiter->domainhash);
+      fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
+        "FIO Domain expired", ErrorDomainExpired);
+
+      fio_400_assert(now() < fioiter->expiration, fio_address, "fio_address",
+        "FIO Address expired", ErrorFioNameExpired);
 
       uint64_t producer = fioiter->owner_account;
 
@@ -149,8 +156,6 @@ namespace fioio {
         uint64_t bpcounter = 0;
         auto proditer = producers.get_index<"prototalvote"_n>();
         for( const auto& itr : proditer ) {
-
-          //This is temporary and sets the voteshares and votes accordingly until some of the issues in the voting logic can be repurposed
 
               voteshares.emplace(get_self(), [&](auto &p) {
                 p.owner = itr.owner;
@@ -197,19 +202,25 @@ namespace fioio {
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
-            double payshare = 0;
               if (bpcounter<= abpcount) {
 
-                double reward = bprewards.begin()->dailybucket / abpcount; // dailybucket / 21
+                double reward = static_cast<double>(bprewards.begin()->dailybucket / abpcount); // dailybucket / 21
+                print("\ndailybucket: ",bprewards.begin()->dailybucket);
+                print("\nactive producer count: ",abpcount);
                 gstate = global.get();
-                payshare = (reward * (itr.votes / gstate.total_producer_vote_weight)); // (reward *(itr.votes / clockiter->schedvotetotal)
+                print("\ntotal_producer_vote_weight: ",gstate.total_producer_vote_weight);
+                print("\nvotes: ",itr.votes);
 
+                voteshares.modify(itr,get_self(), [&](auto &entry) {
+                  entry.abpayshare = (reward * (itr.votes / gstate.total_producer_vote_weight));
+                });
+                print("\nreward: ", reward);
               }
-                payshare += (todaybucket / bpcount); //todaybucket / 42
 
               voteshares.modify(itr,get_self(), [&](auto &entry) {
-                entry.votepay_share = payshare;
+                  entry.sbpayshare = (static_cast<double>(todaybucket / bpcount)); //todaybucket / 42
               });
+
               bpcounter++;
           } // &itr : voteshares
 
@@ -238,7 +249,7 @@ namespace fioio {
           while (iter != voteshares.end()) {
 
                 uint64_t reward = bucketrewards.begin()->rewards;
-                reward += static_cast<uint64_t>(iter->votepay_share);
+                reward += static_cast<uint64_t>(iter->sbpayshare + iter->abpayshare);
                 bucketrewards.erase(bucketrewards.begin());
                 bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
                   entry.rewards = reward;
@@ -263,11 +274,12 @@ namespace fioio {
      //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
      auto bpiter = voteshares.find(producer);
 
-     fio_400_assert(bpiter == voteshares.end(), fio_address.c_str(), "fio_address",
+     fio_400_assert(bpiter != voteshares.end(), fio_address, "fio_address",
        "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
      const auto &prod = producers.get(producer);
 
+     /******* Payouts *******/
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
      uint64_t payout = 0;
 
@@ -276,17 +288,23 @@ namespace fioio {
 
              action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(bpiter->votepay_share, symbol("FIO",9)),
+               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(bpiter->abpayshare+bpiter->sbpayshare, symbol("FIO",9)),
                string("Paying producer from treasury."))
            ).send();
 
-     // Reduce the block producer reward equal to payout
-       double reward = bprewards.begin()->rewards;
-       reward -= bpiter->votes / clockiter->schedvotetotal; //reduce the amount calculated to be subtracted from bprewards_table
-       bprewards.erase(bprewards.begin());
-       bprewards.emplace(_self, [&](struct bpreward& entry) {
-         entry.rewards = reward;
-       });
+     // Reduce the producers share of dailybucket and bucketrewards
+
+     bucketrewards.erase(bucketrewards.begin());
+     bucketrewards.emplace(get_self(), [&](auto &p) {
+       p.rewards -= bpiter->sbpayshare;
+     });
+
+     auto temp = bprewards.begin()->rewards;
+     bprewards.erase(bprewards.begin());
+     bprewards.emplace(get_self(), [&](auto &p) {
+         p.dailybucket -= bpiter->abpayshare;
+         p.rewards = temp;
+     });
 
     // PAY FOUNDATION //
      auto fdtniter = fdtnrewards.begin();
