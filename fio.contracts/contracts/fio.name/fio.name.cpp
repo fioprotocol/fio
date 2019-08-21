@@ -8,6 +8,7 @@
 #include "fio.name.hpp"
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
+#include <fio.common/fiotime.hpp>
 #include <fio.token/include/fio.token/fio.token.hpp>
 #include <eosiolib/asset.hpp>
 
@@ -24,8 +25,6 @@ namespace fioio {
         tpids_table tpids;
         eosiosystem::voters_table voters;
         config appConfig;
-
-
 
     public:
         using contract::contract;
@@ -208,7 +207,7 @@ namespace fioio {
             fio_400_assert(domains_iter != domains.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
-            bool isPublic = domains_iter->public_domain;
+            bool isPublic = domains_iter->is_public;
             uint64_t domain_owner = domains_iter->account;
 
             if (!isPublic) {
@@ -453,7 +452,11 @@ namespace fioio {
             register_errors(fa, false);
             name nm = name{owner_account_name};
 
-            uint32_t expiration_time = fio_address_update(actor, nm, max_fee, fa, tpid);
+            uint64_t expiration_time = fio_address_update(actor, nm, max_fee, fa, tpid);
+
+            struct tm timeinfo;
+            fioio::convertfiotime(expiration_time, &timeinfo);
+            std::string timebuffer = fioio::tmstringformat(timeinfo);
 
             //begin new fees, logic for Mandatory fees.
             uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
@@ -487,7 +490,7 @@ namespace fioio {
             //end new fees, logic for Mandatory fees.
 
             nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    expiration_time},
+                                   {"expiration",    timebuffer},
                                    {"fee_collected", reg_amount}};
             send_response(json.dump().c_str());
 
@@ -507,6 +510,10 @@ namespace fioio {
             name nm = name{owner_account_name};
 
             uint32_t expiration_time = fio_domain_update(fio_domain, owner_fio_public_key, actor, fa);
+
+            struct tm timeinfo;
+            fioio::convertfiotime(expiration_time, &timeinfo);
+            std::string timebuffer = fioio::tmstringformat(timeinfo);
 
             //begin new fees, logic for Mandatory fees.
             uint64_t endpoint_hash = string_to_uint64_hash("register_fio_domain");
@@ -542,7 +549,7 @@ namespace fioio {
             //end new fees, logic for Mandatory fees.
 
             nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    expiration_time},
+                                   {"expiration",    timebuffer},
                                    {"fee_collected", reg_amount}};
 
             send_response(json.dump().c_str());
@@ -615,12 +622,16 @@ namespace fioio {
 
             uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
+            struct tm timeinfo;
+            fioio::convertfiotime(new_expiration_time, &timeinfo);
+            std::string timebuffer = fioio::tmstringformat(timeinfo);
+
             domains.modify(domains_iter, _self, [&](struct domain &a) {
                     a.expiration = new_expiration_time;
             });
 
             nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    new_expiration_time},
+                                   {"expiration",    timebuffer},
                                    {"fee_collected", reg_amount}};
 
             send_response(json.dump().c_str());
@@ -703,13 +714,17 @@ namespace fioio {
 
             uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
+            struct tm timeinfo;
+            fioio::convertfiotime(new_expiration_time, &timeinfo);
+            std::string timebuffer = fioio::tmstringformat(timeinfo);
+
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
                 a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown;
             });
 
             nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    new_expiration_time},
+                                   {"expiration",    timebuffer},
                                    {"fee_collected", reg_amount}};
 
             send_response(json.dump().c_str());
@@ -982,7 +997,7 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        setdomainpub(const string &fio_domain, const bool public_domain, uint64_t max_fee, const name &actor,
+        setdomainpub(const string &fio_domain, const uint8_t is_public, uint64_t max_fee, const name &actor,
                      const string &tpid) {
 
             FioAddress fa;
@@ -1004,7 +1019,7 @@ namespace fioio {
                            ErrorDomainExpired);
 
             domains.modify(domain_iter, _self, [&](struct domain &a) {
-                a.public_domain = public_domain;
+                a.is_public = is_public;
             });
 
             uint64_t endpoint_hash = string_to_uint64_hash("set_fio_domain_public");

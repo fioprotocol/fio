@@ -58,7 +58,7 @@ namespace eosio {
 
             string fio_domain;
             string expiration;
-            bool public_domain;
+            uint8_t is_public;
         };
 
         struct fioaddress_record {
@@ -458,7 +458,7 @@ namespace eosio {
             };
 
             struct avail_check_result {
-                bool is_registered = false;
+                uint8_t is_registered = 0;
             };
 
             avail_check_result avail_check(const avail_check_params &params) const;
@@ -1245,7 +1245,7 @@ FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_result, (public_addr
 );
 
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)
-(public_domain)
+        (is_public)
 )
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)
 )
