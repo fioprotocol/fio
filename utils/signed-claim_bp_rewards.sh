@@ -10,7 +10,7 @@ hostname="localhost"
 echo ------------------------------------------
 
 
-fiopubkey="FIO77odcm3LYr6YduUxf83a4jp4pQ4YvKAjBkHJnLxq2SsgNSc13u"
+fiopubkey="FIO5oBUYbtGTxMS66pPkjC2p8pbA3zCtc8XD4dq9fMut867GRdh82"
 
 fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 #NOTE -- set the owner_fio_public_key to "" to have the owner be the account that is signing the TX
