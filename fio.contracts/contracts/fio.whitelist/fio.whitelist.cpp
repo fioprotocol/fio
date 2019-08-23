@@ -66,7 +66,7 @@ namespace fioio {
                         const string &tpid,
                         const name& actor) {
 
-          bool dbgout = true;
+          bool dbgout = false;
 
           print("called addwhitelist.","\n");
 
