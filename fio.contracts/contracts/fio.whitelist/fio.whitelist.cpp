@@ -66,7 +66,7 @@ namespace fioio {
                         const string &tpid,
                         const name& actor) {
 
-          bool dbgout = false;
+          bool dbgout = true;
 
           print("called addwhitelist.","\n");
 
@@ -84,8 +84,10 @@ namespace fioio {
               print("pub key hash not found in whitelist, adding info to whitelist.", "\n");
           }
 
+          uint64_t id = whitelist.available_primary_key();
           //add it.
           whitelist.emplace(_self, [&](struct whitelist_info &wi) {
+              wi.id = id;
               wi.owner = actor.value;
               wi.lookupindex = fio_public_key_hash;
               wi.content = content;

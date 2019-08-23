@@ -19,16 +19,19 @@ namespace fioio{
 
   // @abi table whitelist i64
   struct [[eosio::table]]  whitelist_info {
+      uint64_t id; //this is the id of the record
       uint64_t owner;     //this is the owner of this whitelist.
       uint64_t lookupindex;  //this is the hashed lookup index of whom is being whitelisted
       string content;   //this holds the encrypted json representation of the fio address and public key of
                         //of whom is being whitelisted
 
-      uint64_t primary_key() const { return owner; }
+      uint64_t primary_key() const { return id; }
+      uint64_t by_owner() const{return owner;}
       uint64_t by_lookupindex() const { return lookupindex; }
-      EOSLIB_SERIALIZE(whitelist_info,(owner)(lookupindex)(content))
+      EOSLIB_SERIALIZE(whitelist_info,(id)(owner)(lookupindex)(content))
   };
   typedef eosio::multi_index<"whitelist"_n,whitelist_info,
+          indexed_by<"byowner"_n, const_mem_fun < whitelist_info, uint64_t, &whitelist_info::by_owner>>,
     indexed_by<"bylookupidx"_n, const_mem_fun < whitelist_info, uint64_t, &whitelist_info::by_lookupindex>>
     >whitelist_table;
 

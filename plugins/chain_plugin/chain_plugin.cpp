@@ -1876,11 +1876,15 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                    .lower_bound = boost::lexical_cast<string>(account.value),
                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
                    .key_type       = "i64",
-                   .index_position ="1"};
+                   .index_position ="2"};
 
 
-           get_table_rows_result table_rows_result =
-                  get_table_rows_ex<key_value_index>(table_row_params, abi);
+           // Do secondary key lookup
+           get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                   table_row_params, abi, [](uint64_t v) -> uint64_t {
+                       return v;
+                   });
+
 
            dlog("Lookup for whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
@@ -1925,7 +1929,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                    .lower_bound = boost::lexical_cast<string>(fio_pub_key_hash),
                    .upper_bound = boost::lexical_cast<string>(fio_pub_key_hash + 1),
                    .key_type       = "i64",
-                   .index_position ="2"};
+                   .index_position ="3"};
 
 
            // Do secondary key lookup
