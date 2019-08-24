@@ -11,7 +11,6 @@ namespace fioio {
 
     using namespace eosio;
 
-
     enum class feetype {
         mandatory = 0,  // these fees are applied each time an operation takes place.
         bundleeligible = 1  // these fees are free until a predetermined number of operations takes place,
@@ -69,6 +68,21 @@ namespace fioio {
 
     //  fee voters table
     typedef multi_index<"feevoters"_n, feevoter> feevoters_table;
+
+    // Structure for "bundlevoter" .
+    // @abi table bundlevoter i64
+    struct [[eosio::action]] bundlevoter {
+        name block_producer_name;     // name of the bp
+        double bundledbvotenumber;
+        uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
+
+        uint64_t primary_key() const { return block_producer_name.value; }
+
+        EOSLIB_SERIALIZE(bundlevoter, (block_producer_name)(bundledbvotenumber)(lastvotetimestamp)
+        )
+    };
+
+    typedef multi_index<"bundlevoters"_n, bundlevoter> bundlevoters_table;
 
     // Structure for "feevote" .
     // @abi table feevote i64

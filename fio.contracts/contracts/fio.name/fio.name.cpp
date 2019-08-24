@@ -250,7 +250,7 @@ namespace fioio {
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
                 a.owner_account = actor.value;
-                a.bundleeligiblecountdown = 10000;
+                a.bundleeligiblecountdown = 10000; // TODO: CHANGE VALUE
             });
 
             uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
@@ -541,8 +541,6 @@ namespace fioio {
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
 
-
-
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
@@ -720,7 +718,7 @@ namespace fioio {
 
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
-                a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown;
+                a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown; //TODO: CHANGE VALUE
             });
 
             nlohmann::json json = {{"status",        "OK"},
@@ -791,7 +789,7 @@ namespace fioio {
                         a.domainhash = domainHash;
                         a.expiration = expiration_time;
                         a.owner_account = actor.value;
-                        a.bundleeligiblecountdown = 10000;
+                        a.bundleeligiblecountdown = 10000; // TODO: CHANGE VALUE
                     });
                     countAdded++;
                 }
