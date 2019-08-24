@@ -88,7 +88,7 @@ namespace eosio {
         };
 
         struct whitelist_info {
-            uint64_t fio_public_key_hash;
+            string fio_public_key_hash;
             string content;
         };
 
@@ -391,11 +391,11 @@ namespace eosio {
             get_whitelist(const get_whitelist_params &params) const;
 
             struct check_whitelist_params {
-                uint64_t fio_public_key_hash;
+                string fio_public_key_hash;
             };
 
             struct check_whitelist_result {
-                bool in_whitelist;
+                uint8_t in_whitelist;
             };
 
             check_whitelist_result

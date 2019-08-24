@@ -28,7 +28,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson="{\"fio_public_key_hash\":12345,\"max_fee\":\"4000\",\"tpid\":\"\",\"actor\":\"r41zuwovtn44\"}"
+dataJson="{\"fio_public_key_hash\":\"789904624503225467\",\"max_fee\":\"4000\",\"tpid\":\"\",\"actor\":\"r41zuwovtn44\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.whitelst remwhitelist '$dataJson'"
 echo CMD: $cmd
