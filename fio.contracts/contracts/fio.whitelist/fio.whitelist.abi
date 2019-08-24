@@ -7,14 +7,15 @@
               "fields": [
                  {"name":"id","type":"uint64"},
                  {"name":"owner","type":"name"},
-                 {"name":"lookupindex", "type":"uint64"},
+                 {"name":"lookupindex", "type":"string"},
+                 {"name":"lookupindex_hash", "type":"uint64"},
                  {"name":"content","type":"string"}
               ]
               },{
                 "name": "addwhitelist",
                 "base": "",
                 "fields": [
-                            {"name":"fio_public_key_hash","type":"uint64"},
+                            {"name":"fio_public_key_hash","type":"string"},
                             {"name":"content", "type":"string"},
                             {"name":"max_fee","type":"uint64"},
                             {"name":"tpid","type":"string"},
@@ -24,7 +25,7 @@
                 "name": "remwhitelist",
                 "base": "",
                 "fields": [
-                            {"name":"fio_public_key_hash","type":"uint64"},
+                            {"name":"fio_public_key_hash","type":"string"},
                             {"name":"max_fee","type":"uint64"},
                             {"name":"tpid","type":"string"},
                             {"name":"actor","type":"name"}

@@ -1892,7 +1892,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                           fioio::ErrorNoFeesFoundForEndpoint);
 
            for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
-              uint64_t lookup_index = table_rows_result.rows[pos]["lookupindex"].as_uint64();
+              string lookup_index = table_rows_result.rows[pos]["lookupindex"].as_string();
               string content = table_rows_result.rows[pos]["content"].as_string();
 
               whitelist_info wi{lookup_index, content};
@@ -1912,12 +1912,11 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
            check_whitelist_result result;
 
-           result.in_whitelist = false;
+           result.in_whitelist = 0;
 
-           uint64_t fio_pub_key_hash = p.fio_public_key_hash;
+           uint64_t fio_pub_key_hash =  eosio::string_to_uint64_t(p.fio_public_key_hash.c_str());
 
            const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
-
 
            dlog("Lookup using fio_pub_key_hash: ‘${owner}‘", ("owner", fio_pub_key_hash));
 
@@ -1941,7 +1940,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
            dlog("check whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
            if (!table_rows_result.rows.empty()){
-              result.in_whitelist = true;
+              result.in_whitelist = 1;
            }
 
            return result;

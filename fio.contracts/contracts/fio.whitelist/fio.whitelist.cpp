@@ -60,7 +60,7 @@ namespace fioio {
 
       // @abi action
       [[eosio::action]]
-      void addwhitelist(uint64_t fio_public_key_hash,
+      void addwhitelist(string fio_public_key_hash,
                         const string &content,
                         uint64_t max_fee,
                         const string &tpid,
@@ -72,13 +72,15 @@ namespace fioio {
 
           require_auth(actor);
 
+          uint64_t hashed_str =  string_to_uint64_hash(fio_public_key_hash.c_str());
           auto whitelistbylookup = whitelist.get_index<"bylookupidx"_n>();
-          auto key_iter = whitelistbylookup.find(fio_public_key_hash);
+          auto key_iter = whitelistbylookup.find(hashed_str);
+
           if (dbgout) {
               print("looking for pub key hash in whitelist.", "\n");
           }
 
-          fio_400_assert(key_iter == whitelistbylookup.end(), "fio_public_key_hash", to_string(fio_public_key_hash),
+          fio_400_assert(key_iter == whitelistbylookup.end(), "fio_public_key_hash", fio_public_key_hash,
                          "FIO public key already in whitelist", ErrorPublicKeyExists);
           if (dbgout) {
               print("pub key hash not found in whitelist, adding info to whitelist.", "\n");
@@ -90,6 +92,7 @@ namespace fioio {
               wi.id = id;
               wi.owner = actor.value;
               wi.lookupindex = fio_public_key_hash;
+              wi.lookupindex_hash = hashed_str;
               wi.content = content;
           });
 
@@ -176,7 +179,7 @@ namespace fioio {
 
        // @abi action
       [[eosio::action]]
-      void remwhitelist(uint64_t fio_public_key_hash,
+      void remwhitelist(string fio_public_key_hash,
                         uint64_t max_fee,
                         const string &tpid,
                         const name& actor) {
@@ -186,8 +189,9 @@ namespace fioio {
 
           require_auth(actor);
 
+          uint64_t hashed_str =  string_to_uint64_hash(fio_public_key_hash.c_str());
            auto whitelistbylookup = whitelist.get_index<"bylookupidx"_n>();
-           auto key_iter = whitelistbylookup.find(fio_public_key_hash);
+           auto key_iter = whitelistbylookup.find(hashed_str);
            if (dbgout) {
                print("looking for pub key hash in whitelist.", "\n");
            }
