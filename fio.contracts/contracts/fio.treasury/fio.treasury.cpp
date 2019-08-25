@@ -144,6 +144,10 @@ namespace fioio {
 
       auto clockiter = clockstate.begin();
 
+      uint64_t payout = 0;
+      nlohmann::json json = {{"status",        "OK"},
+                             {"amount",    payout}};
+
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay scheduler so a new one can be created.
 
@@ -240,6 +244,7 @@ namespace fioio {
           entry.payschedtimer = now();
         });
         print("Voteshares processed","\n"); //To remove after testing
+        send_response(json.dump().c_str());
         return;
 
       } //if new payschedule
@@ -278,7 +283,7 @@ namespace fioio {
             print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
           //  bpclaim(fio_address, actor); // Call self to create a new pay schedule
         }
-
+        send_response(json.dump().c_str());
       return;
      }
 
@@ -292,7 +297,7 @@ namespace fioio {
 
      /******* Payouts *******/
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
-     uint64_t payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
+     payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
 
      if( now() > bpiter->lastclaim + 17 ) { //+ 172800
        check(prod.active(), "producer does not have an active key");
@@ -336,13 +341,7 @@ namespace fioio {
 
    } //endif now() > bpiter + 172800
 
-
-
-     nlohmann::json json = {{"status",        "OK"},
-                            {"amount",    payout}};
      send_response(json.dump().c_str());
-
-
 
    } //bpclaim
 
