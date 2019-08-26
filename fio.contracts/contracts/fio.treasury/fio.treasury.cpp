@@ -245,7 +245,6 @@ namespace fioio {
         });
         print("Voteshares processed","\n"); //To remove after testing
         send_response(json.dump().c_str());
-        return;
 
       } //if new payschedule
 
