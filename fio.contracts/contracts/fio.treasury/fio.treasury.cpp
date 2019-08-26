@@ -247,7 +247,6 @@ namespace fioio {
         });
         print("Voteshares processed","\n"); //To remove after testing
         send_response(json.dump().c_str());
-        return;
 
       } //if new payschedule
 
@@ -286,10 +285,11 @@ namespace fioio {
               entry.rewardspaid = 0;
             });
 
-            print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
-          //  bpclaim(fio_address, actor); // Call self to create a new pay schedule
+            print("Pay schedule erased...","\n");
 
-          if (clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000) {
+            
+          // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
+          if (clockstate.begin()->rewardspaid < 50000 && clockstate.begin()->reservetokensminted < 200000000) { // lowered values for testing
 
 
             //Mint new tokens up to 50,000 FIO
@@ -322,7 +322,7 @@ namespace fioio {
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
      payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
 
-     if( now() > bpiter->lastclaim + 17 ) { //+ 172800
+     if( now() > bpiter->lastclaim + 120 ) { //+ 172800
        check(prod.active(), "producer does not have an active key");
 
              action(permission_level{get_self(), "active"_n},
