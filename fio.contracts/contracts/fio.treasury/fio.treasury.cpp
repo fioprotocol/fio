@@ -296,7 +296,7 @@ namespace fioio {
             uint64_t tomint = 5000000000000 - clockstate.begin()->rewardspaid;
             action(permission_level{get_self(), "active"_n},
               "fio.token"_n, "issue"_n,
-              make_tuple("fio.treasury"_n, asset(payout, symbol("FIO",9)))
+              make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
             ).send();
 
             clockstate.modify(clockiter, get_self(), [&](auto &entry) {
