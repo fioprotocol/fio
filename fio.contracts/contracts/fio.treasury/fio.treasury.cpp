@@ -367,8 +367,10 @@ namespace fioio {
 
 
    } //endif now() > bpiter + 172800
-   json = {{"status",        "OK"},
-                          {"amount",    payout}};
+
+     json = {{"status",        "OK"},
+             {"amount",    payout}};
+
      send_response(json.dump().c_str());
 
    } //bpclaim
