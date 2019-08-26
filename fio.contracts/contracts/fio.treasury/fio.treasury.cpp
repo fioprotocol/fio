@@ -288,6 +288,23 @@ namespace fioio {
 
             print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
           //  bpclaim(fio_address, actor); // Call self to create a new pay schedule
+
+          if (clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000) {
+
+
+            //Mint new tokens up to 50,000 FIO
+            uint64_t tomint = 5000000000000 - clockstate.begin()->rewardspaid;
+            action(permission_level{get_self(), "active"_n},
+              "fio.token"_n, "issue"_n,
+              make_tuple("fio.treasury"_n, asset(payout, symbol("FIO",9)))
+            ).send();
+
+            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+              entry.reservetokensminted += tomint;
+            });
+
+          }
+
         }
         send_response(json.dump().c_str());
       return;
