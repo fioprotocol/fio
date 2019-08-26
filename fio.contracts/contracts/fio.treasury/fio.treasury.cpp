@@ -299,7 +299,7 @@ namespace fioio {
      //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
      payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
 
-     if( now() > bpiter->lastclaim + 17 ) { //+ 172800
+     if( now() > bpiter->lastclaim + 120 ) { //+ 172800
        check(prod.active(), "producer does not have an active key");
 
              action(permission_level{get_self(), "active"_n},
