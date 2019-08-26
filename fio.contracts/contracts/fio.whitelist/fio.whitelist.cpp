@@ -195,19 +195,18 @@ namespace fioio {
            if (dbgout) {
                print("looking for pub key hash in whitelist.", "\n");
            }
-           if (key_iter != whitelistbylookup.end()){
-               if (dbgout) {
+
+
+           fio_400_assert(key_iter != whitelistbylookup.end(), "fio_public_key_hash", fio_public_key_hash,
+                          "FIO public key not in whitelist", ErrorPublicKeyExists);
+
+           if (dbgout) {
                    print("pub key hash found in whitelist, removing info from whitelist.", "\n");
-               }
-
-               //remove it.
-               whitelistbylookup.erase(key_iter);
-           }else {
-               if (dbgout) {
-                   print("pub key hash does not exists in whitelist.", "\n");
-               }
-
            }
+
+           //remove it.
+           whitelistbylookup.erase(key_iter);
+
 
            //begin new fees, bundle eligible fee logic
            uint64_t endpoint_hash = string_to_uint64_hash("remove_from_whitelist");
