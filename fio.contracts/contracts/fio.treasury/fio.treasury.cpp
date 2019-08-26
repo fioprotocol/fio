@@ -29,6 +29,8 @@ namespace fioio {
 
       uint64_t lasttpidpayout;
 
+      const uint64_t fortyeightmonths = 200; // 252480000 blocks in 48 months
+
     public:
       using contract::contract;
 
@@ -280,6 +282,10 @@ namespace fioio {
                 print("\n\nDone\n\n\n\n");
             }
 
+            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+              entry.rewardspaid = 0;
+            });
+
             print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
           //  bpclaim(fio_address, actor); // Call self to create a new pay schedule
         }
@@ -320,6 +326,10 @@ namespace fioio {
 
        //Clear the foundation rewards counter
 
+        clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+          entry.rewardspaid += payout;
+        });
+
           fdtnrewards.erase(fdtniter);
           fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
             entry.rewards = 0;
@@ -340,8 +350,10 @@ namespace fioio {
 
 
    } //endif now() > bpiter + 172800
+
      json = {{"status",        "OK"},
              {"amount",    payout}};
+
      send_response(json.dump().c_str());
 
    } //bpclaim
