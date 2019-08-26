@@ -256,7 +256,7 @@ namespace fioio {
 
       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
       // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-      if(now() >= clockiter->payschedtimer + 17 ) { //+ 172800
+      if(now() >= clockiter->payschedtimer + 120 ) { //+ 172800
 
         if (sharesize > 0) {
 
