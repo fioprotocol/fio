@@ -29,8 +29,6 @@ namespace fioio {
 
       uint64_t lasttpidpayout;
 
-      const uint64_t fortyeightmonths = 200; // 252480000 blocks in 48 months
-
     public:
       using contract::contract;
 
@@ -105,7 +103,7 @@ namespace fioio {
               } // endif itr.rewards >=
 
               tpids_paid++;
-              if (tpids_paid >= 100) break;
+              if (tpids_paid >= 100) break; //only paying 100 tpids
           } // for tpids.begin() tpids.end()
 
           //update the clock but only if there has been a tpid paid out.
@@ -287,9 +285,9 @@ namespace fioio {
 
             print("Pay schedule erased...","\n");
 
-            
+
           // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-          if (clockstate.begin()->rewardspaid < 50000 && clockstate.begin()->reservetokensminted < 200000000) { // lowered values for testing
+          if (clockstate.begin()->rewardspaid < 50000 && clockstate.begin()->reservetokensminted < 200000000 && now() > clockstate.begin()->fortyeightmonths) { // lowered values for testing
 
 
             //Mint new tokens up to 50,000 FIO
@@ -398,6 +396,7 @@ namespace fioio {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
           entry.lasttpidpayout = now() - 56;
           entry.payschedtimer = now() - 172780;
+          entry.fortyeightmonths = now() + 200; //time the treasury contract was spawned plus 252480000 blocks
         });
 
       }
@@ -415,7 +414,7 @@ namespace fioio {
     void bprewdupdate(const uint64_t &amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
-        "missing required authority of fio.system, fio.token, or fio.reqobt");
+        "missing required authority of fio.system, fio.treasury, fio.token, or fio.reqobt");
 
         uint64_t size = std::distance(bprewards.begin(),bprewards.end());
         if (size == 0)  {
@@ -440,7 +439,7 @@ namespace fioio {
     void bppoolupdate(const uint64_t &amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
-        "missing required authority of fio.system, fio.token, or fio.reqobt");
+        "missing required authority of fio.system, fio.treasury, fio.token, or fio.reqobt");
 
         uint64_t size = std::distance(bucketrewards.begin(),bucketrewards.end());
         if (size == 0)  {
@@ -465,7 +464,7 @@ namespace fioio {
     void fdtnrwdupdat(const uint64_t &amount) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
-        "missing required authority of fio.system, fio.token, or fio.reqobt");
+        "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
         uint64_t size = std::distance(fdtnrewards.begin(),fdtnrewards.end());
         if (size == 0)  {
@@ -490,7 +489,7 @@ namespace fioio {
     void fdtnrwdreset(const bool &paid) {
 
       eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
-        "missing required authority of fio.system, fio.token, or fio.reqobt");
+        "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
         if (!paid) {
 
