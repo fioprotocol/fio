@@ -942,6 +942,14 @@ namespace eosio {
             void submit_fee_multiplier(const submit_fee_multiplier_params &params,
                             chain::plugin_interface::next_function<submit_fee_multiplier_results> next);
 
+            using submit_bundled_transaction_params = fc::variant_object;
+            struct submit_bundled_transaction_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void submit_bundled_transaction(const submit_bundled_transaction_params &params,
+                                            chain::plugin_interface::next_function<submit_bundled_transaction_results> next);
 
             using add_to_whitelist_params = fc::variant_object;
             struct add_to_whitelist_results {
@@ -1277,7 +1285,8 @@ FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (transac
 )
 FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed)
 )
-
+FC_REFLECT(eosio::chain_apis::read_write::submit_bundled_transaction_results, (transaction_id)(processed)
+)
 FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed)
