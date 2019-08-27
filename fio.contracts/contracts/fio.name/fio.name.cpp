@@ -186,11 +186,11 @@ namespace fioio {
             int totalcount = 0;
             double returnvalue = 0;
 
-            for (const auto &itr : bundlevoters) {
-                if (bundlevoters.end() == itr) {
-                    return 10000;
-                }
+            if (bundlevoters.end() == bundlevoters.begin()) {
+                return 10000;
+            }
 
+            for (const auto &itr : bundlevoters) {
                 returnvalue += itr.bundledbvotenumber;
                 totalcount++;
             }
@@ -267,7 +267,7 @@ namespace fioio {
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
                 a.owner_account = actor.value;
-                a.bundleeligiblecountdown = 10000; // TODO: CHANGE VALUE
+                a.bundleeligiblecountdown = getBundledAmount();
             });
 
             uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
@@ -735,7 +735,7 @@ namespace fioio {
 
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
-                a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown; //TODO: CHANGE VALUE
+                a.bundleeligiblecountdown = getBundledAmount() + bundleeligiblecountdown;
             });
 
             nlohmann::json json = {{"status",        "OK"},
@@ -806,7 +806,7 @@ namespace fioio {
                         a.domainhash = domainHash;
                         a.expiration = expiration_time;
                         a.owner_account = actor.value;
-                        a.bundleeligiblecountdown = 10000; // TODO: CHANGE VALUE
+                        a.bundleeligiblecountdown = getBundledAmount();
                     });
                     countAdded++;
                 }
