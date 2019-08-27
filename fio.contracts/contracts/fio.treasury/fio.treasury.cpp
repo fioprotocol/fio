@@ -287,11 +287,11 @@ namespace fioio {
 
 
           // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-          if (clockstate.begin()->rewardspaid < 50000 && clockstate.begin()->reservetokensminted < 200000000 && now() > clockstate.begin()->fortyeightmonths) { // lowered values for testing
+          if (clockiter->rewardspaid < 50000 && clockiter->reservetokensminted < 200000000 && now() > clockiter->fortyeightmonths) { // lowered values for testing
 
 
             //Mint new tokens up to 50,000 FIO
-            uint64_t tomint = 5000000000000 - clockstate.begin()->rewardspaid;
+            uint64_t tomint = 5000000000000 - clockiter->rewardspaid;
             action(permission_level{get_self(), "active"_n},
               "fio.token"_n, "issue"_n,
               make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
