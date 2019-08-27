@@ -22,6 +22,7 @@ namespace fioio {
         fionames_table fionames;
         fiofee_table fiofees;
         eosio_names_table accountmap;
+        bundlevoters_table bundlevoters;
         tpids_table tpids;
         eosiosystem::voters_table voters;
         config appConfig;
@@ -33,6 +34,7 @@ namespace fioio {
                                                                         domains(_self, _self.value),
                                                                         fionames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
+                                                                        bundlevoters(FeeContract, FeeContract.value),
                                                                         accountmap(_self, _self.value),
                                                                         chains(_self, _self.value),
                                                                         tpids(TPIDContract, TPIDContract.value),
