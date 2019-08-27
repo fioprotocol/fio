@@ -289,14 +289,13 @@ namespace fioio {
           // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
           if (clockiter->rewardspaid < 50000 && clockiter->reservetokensminted < 200000000 && now() > clockiter->fortyeightmonths) { // lowered values for testing
 
-
             //Mint new tokens up to 50,000 FIO
             uint64_t tomint = 5000000000000 - clockiter->rewardspaid;
-            action(permission_level{get_self(), "active"_n},
+            /*action(permission_level{"fio.token"_n, "active"_n},
               "fio.token"_n, "issue"_n,
               make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
             ).send();
-
+            */
             clockstate.modify(clockiter, get_self(), [&](auto &entry) {
               entry.reservetokensminted += tomint;
             });
@@ -396,7 +395,7 @@ namespace fioio {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
           entry.lasttpidpayout = now() - 56;
           entry.payschedtimer = now() - 172780;
-          entry.fortyeightmonths = now() + 200; //time the treasury contract was spawned plus 252480000 blocks
+          entry.fortyeightmonths = now() + 252480000; //time the treasury contract was spawned plus 252480000 blocks
         });
 
       }
