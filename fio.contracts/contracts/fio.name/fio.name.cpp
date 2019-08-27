@@ -182,6 +182,21 @@ namespace fioio {
             fio_400_assert(res == 0, fioname, fa.fioaddress, fioerror, ErrorInvalidFioNameFormat);
         }
 
+        inline double getBundledAmount() {
+            int totalcount = 0;
+            double returnvalue = 0;
+
+            for (const auto &itr : bundlevoters) {
+                if (bundlevoters.end() == itr) {
+                    return 10000;
+                }
+
+                returnvalue += itr.bundledbvotenumber;
+                totalcount++;
+            }
+            return returnvalue;
+        }
+
         inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa) const {
             fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "Invalid public address format",
                            ErrorDomainAlreadyRegistered);
