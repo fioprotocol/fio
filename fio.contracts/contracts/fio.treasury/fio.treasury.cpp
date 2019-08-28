@@ -131,16 +131,6 @@ namespace fioio {
       require_auth(actor);
       auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
 
-      fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
-        "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
-
-      auto domiter = domains.find(fioiter->domainhash);
-      fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
-        "FIO Domain expired", ErrorDomainExpired);
-
-      fio_400_assert(now() < fioiter->expiration, fio_address, "fio_address",
-        "FIO Address expired", ErrorFioNameExpired);
-
       uint64_t producer = fioiter->owner_account;
 
       auto clockiter = clockstate.begin();
@@ -149,14 +139,41 @@ namespace fioio {
       nlohmann::json json = {{"status",        "OK"},
                              {"amount",    payout}};
 
-      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
-      // then erase the pay scheduler so a new one can be created.
+     /***************  Pay schedule expiration *******************/
+     //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
+     // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
+     if(now() >= clockiter->payschedtimer + 120 ) { //+ 172800
+
+       if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
+
+         auto iter = voteshares.begin();
+         while (iter != voteshares.end()) {
+
+               uint64_t reward = bucketrewards.begin()->rewards;
+               print("\nReward initialized to: ", reward);
+               reward += (iter->sbpayshare + iter->abpayshare);
+               print("\nspbayshare: ",iter->sbpayshare);
+               print("\nabpayshare: ", iter->abpayshare);
+               //reward = 100;
+               print("\nreward: ",reward);
+
+               bucketrewards.erase(bucketrewards.begin());
+               bucketrewards.emplace(_self, [&](struct bucketpool &p) {
+                 p.rewards = reward;
+               });
+
+               iter = voteshares.erase(iter);
+               print("\n\nDone\n\n\n\n");
+           }
+
+           print("\nPay schedule erased... ");
+        }
+     }
 
       // If there is no pay schedule then create a new one
-      uint64_t sharesize = std::distance(voteshares.begin(), voteshares.end());
-      if (sharesize == 0) { //if new payschedule
+      if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
         //Create the payment schedule
-
+        print("\nCreating new pay schedule... ");
         uint64_t bpcounter = 0;
         auto proditer = producers.get_index<"prototalvote"_n>();
         for( const auto& itr : proditer ) {
@@ -199,7 +216,7 @@ namespace fioio {
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
-              if (bpcounter<= abpcount) {
+              if (bpcounter <= abpcount) {
                 print("\nBPCounter: ", bpcounter);
                 double reward = static_cast<double>(bprewards.begin()->dailybucket / abpcount); // dailybucket / 21
                 print("\reward: ", reward);
@@ -245,53 +262,12 @@ namespace fioio {
           entry.payschedtimer = now();
         });
         print("Voteshares processed","\n"); //To remove after testing
-//        send_response(json.dump().c_str());
 
       } //if new payschedule
 
-
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
-
-      /***************  Pay schedule expiration *******************/
-
-      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
-      // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-      if(now() >= clockiter->payschedtimer + 120 ) { //+ 172800
-
-        if (sharesize > 0) {
-
-          auto iter = voteshares.begin();
-          while (iter != voteshares.end()) {
-
-                uint64_t reward = bucketrewards.begin()->rewards;
-                print("\nReward initialized to: ", reward);
-                reward += (iter->sbpayshare + iter->abpayshare);
-                print("\nspbayshare: ",iter->sbpayshare);
-                print("\nabpayshare: ", iter->abpayshare);
-                //reward = 100;
-                print("\nreward: ",reward);
-
-                bucketrewards.erase(bucketrewards.begin());
-                bucketrewards.emplace(_self, [&](struct bucketpool &p) {
-                  p.rewards = reward;
-                });
-
-                iter = voteshares.erase(iter);
-                print("\n\nDone\n\n\n\n");
-            }
-
-            print("Pay schedule erased... Creating new pay schedule...","\n"); //To remove after testing
-          //  bpclaim(fio_address, actor); // Call self to create a new pay schedule
-        }
-        send_response(json.dump().c_str());
-      return;
-     }
-
-     //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
+       //This check must happen after the payschedule is created so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
      auto bpiter = voteshares.find(producer);
-
-     fio_400_assert(bpiter != voteshares.end(), fio_address, "fio_address",
-       "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
      const auto &prod = producers.get(producer);
 
@@ -301,14 +277,25 @@ namespace fioio {
      print("/n/n****************");
      print("/n/nPayout Amount: ", payout);
 
-     if( now() < bpiter->lastclaim + 120 ) { //+ 172800
-       check(prod.active(), "producer does not have an active key");
+     fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
+     "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
-             action(permission_level{get_self(), "active"_n},
-               "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
-               string("Paying producer from treasury."))
-           ).send();
+     if(bpiter != voteshares.end() ) {
+
+          auto domiter = domains.find(fioiter->domainhash);
+        fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
+        "FIO Domain expired", ErrorDomainExpired);
+
+        fio_400_assert(now() < fioiter->expiration, fio_address, "fio_address",
+        "FIO Address expired", ErrorFioNameExpired);
+
+        check(prod.active(), "producer does not have an active key");
+
+         action(permission_level{get_self(), "active"_n},
+           "fio.token"_n, "transfer"_n,
+           make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
+           string("Paying producer from treasury."))
+       ).send();
 
 
     // PAY FOUNDATION //
@@ -339,7 +326,6 @@ namespace fioio {
 
      //remove the producer from payschedule
      voteshares.erase(bpiter);
-
 
    } //endif now() > bpiter + 172800
      json = {{"status",        "OK"},
