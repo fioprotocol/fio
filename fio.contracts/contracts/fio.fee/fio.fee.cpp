@@ -414,7 +414,7 @@ namespace fioio {
         }
     }; // class FioFee
 
-    EOSIO_DISPATCH(FioFee, (setfeevote)(setfeemult)(updatefees)
+    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)
     (create)
     )
 } // namespace fioio
