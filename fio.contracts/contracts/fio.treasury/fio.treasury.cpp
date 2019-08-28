@@ -168,6 +168,23 @@ namespace fioio {
 
            print("\nPay schedule erased... ");
         }
+
+        // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
+        if (clockiter->rewardspaid < 50000 && clockiter->reservetokensminted < 200000000 && now() > clockiter->fortyeightmonths) { // lowered values for testing
+
+          //Mint new tokens up to 50,000 FIO
+          uint64_t tomint = 5000000000000 - clockiter->rewardspaid;
+          /*action(permission_level{"fio.token"_n, "active"_n},
+            "fio.token"_n, "issue"_n,
+            make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
+          ).send();
+          */
+          clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+            entry.reservetokensminted += tomint;
+          });
+
+        }
+
      }
 
       // If there is no pay schedule then create a new one
@@ -267,64 +284,6 @@ namespace fioio {
 
       //This contract should only allow the producer to be able to claim rewards once every x blocks.
 
-
-      /***************  Pay schedule expiration *******************/
-
-      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
-      // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-      if(now() >= clockiter->payschedtimer + 120 ) { //+ 172800
-
-        if (sharesize > 0) {
-
-          auto iter = voteshares.begin();
-          while (iter != voteshares.end()) {
-
-                uint64_t reward = bucketrewards.begin()->rewards;
-                print("\nReward initialized to: ", reward);
-                reward += (iter->sbpayshare + iter->abpayshare);
-                print("\nspbayshare: ",iter->sbpayshare);
-                print("\nabpayshare: ", iter->abpayshare);
-                //reward = 100;
-                print("\nreward: ",reward);
-
-                bucketrewards.erase(bucketrewards.begin());
-                bucketrewards.emplace(_self, [&](struct bucketpool &p) {
-                  p.rewards = reward;
-                });
-
-                iter = voteshares.erase(iter);
-                print("\n\nDone\n\n\n\n");
-            }
-
-            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-              entry.rewardspaid = 0;
-            });
-
-            print("Pay schedule erased...","\n");
-
-
-          // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-          if (clockiter->rewardspaid < 50000 && clockiter->reservetokensminted < 200000000 && now() > clockiter->fortyeightmonths) { // lowered values for testing
-
-
-            //Mint new tokens up to 50,000 FIO
-            uint64_t tomint = 5000000000000 - clockiter->rewardspaid;
-            action(permission_level{get_self(), "active"_n},
-              "fio.token"_n, "issue"_n,
-              make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
-            ).send();
-
-            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-              entry.reservetokensminted += tomint;
-            });
-
-          }
-
-        }
-        send_response(json.dump().c_str());
-      return;
-     }
-
      //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
 
      auto bpiter = voteshares.find(producer);
@@ -423,7 +382,7 @@ namespace fioio {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
           entry.lasttpidpayout = now() - 56;
           entry.payschedtimer = now() - 172780;
-          entry.fortyeightmonths = now() + 200; //time the treasury contract was spawned plus 252480000 blocks
+          entry.fortyeightmonths = now() + 252480000; //time the treasury contract was spawned plus 252480000 blocks
         });
 
       }
