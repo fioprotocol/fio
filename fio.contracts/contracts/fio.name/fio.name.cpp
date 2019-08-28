@@ -194,7 +194,7 @@ namespace fioio {
                 returnvalue += itr.bundledbvotenumber;
                 totalcount++;
             }
-            return returnvalue;
+            return returnvalue / totalcount;
         }
 
         inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa) const {
