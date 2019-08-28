@@ -25,6 +25,13 @@
             {"name":"actor", "type":"string"}
         ]
       },{
+        "name": "bundlevote",
+        "base": "",
+        "fields": [
+            {"name":"bundled_transactions", "type":"float64"},
+            {"name":"actor", "type":"string"}
+        ]
+      },{
         "name": "setfeemult",
         "base": "",
         "fields": [
@@ -65,6 +72,14 @@
            {"name":"suf_amount", "type":"uint64"},
            {"name":"lastvotetimestamp", "type":"uint64"}
         ]
+     },{
+        "name": "bundlevoter",
+        "base": "",
+        "fields": [
+           {"name":"block_producer_name", "type":"name"},
+           {"name":"bundledbvotenumber", "type":"float64"},
+           {"name":"lastvotetimestamp", "type":"uint64"}
+        ]
      }],
     "actions": [{
          "name": "create",
@@ -73,6 +88,10 @@
        },{
          "name": "setfeevote",
          "type": "setfeevote",
+         "ricardian_contract": ""
+       },{
+         "name": "bundlevote",
+         "type": "bundlevote",
          "ricardian_contract": ""
        },{
          "name": "setfeemult",
@@ -84,6 +103,16 @@
          "ricardian_contract": ""
        }],
     "tables": [{
+         "name": "bundlevoters",
+         "index_type": "i64",
+         "key_names": [
+            "block_producer_name"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "bundlevoter"
+     },{
          "name": "fiofees",
          "index_type": "i64",
          "key_names": [

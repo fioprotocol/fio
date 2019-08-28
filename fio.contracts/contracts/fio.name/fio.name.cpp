@@ -22,6 +22,7 @@ namespace fioio {
         fionames_table fionames;
         fiofee_table fiofees;
         eosio_names_table accountmap;
+        bundlevoters_table bundlevoters;
         tpids_table tpids;
         eosiosystem::voters_table voters;
         config appConfig;
@@ -33,6 +34,7 @@ namespace fioio {
                                                                         domains(_self, _self.value),
                                                                         fionames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
+                                                                        bundlevoters(FeeContract, FeeContract.value),
                                                                         accountmap(_self, _self.value),
                                                                         chains(_self, _self.value),
                                                                         tpids(TPIDContract, TPIDContract.value),
@@ -180,6 +182,21 @@ namespace fioio {
             fio_400_assert(res == 0, fioname, fa.fioaddress, fioerror, ErrorInvalidFioNameFormat);
         }
 
+        inline double getBundledAmount() {
+            int totalcount = 0;
+            double returnvalue = 0;
+
+            if (bundlevoters.end() == bundlevoters.begin()) {
+                return 10000;
+            }
+
+            for (const auto &itr : bundlevoters) {
+                returnvalue += itr.bundledbvotenumber;
+                totalcount++;
+            }
+            return returnvalue / totalcount;
+        }
+
         inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa) const {
             fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "Invalid public address format",
                            ErrorDomainAlreadyRegistered);
@@ -250,7 +267,7 @@ namespace fioio {
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
                 a.owner_account = actor.value;
-                a.bundleeligiblecountdown = 10000;
+                a.bundleeligiblecountdown = getBundledAmount();
             });
 
             uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
@@ -541,8 +558,6 @@ namespace fioio {
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
 
-
-
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
@@ -720,7 +735,7 @@ namespace fioio {
 
             fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
-                a.bundleeligiblecountdown = 10000 + bundleeligiblecountdown;
+                a.bundleeligiblecountdown = getBundledAmount() + bundleeligiblecountdown;
             });
 
             nlohmann::json json = {{"status",        "OK"},
@@ -791,7 +806,7 @@ namespace fioio {
                         a.domainhash = domainHash;
                         a.expiration = expiration_time;
                         a.owner_account = actor.value;
-                        a.bundleeligiblecountdown = 10000;
+                        a.bundleeligiblecountdown = getBundledAmount();
                     });
                     countAdded++;
                 }
