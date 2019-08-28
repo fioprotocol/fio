@@ -47,6 +47,7 @@ namespace fioio {
 
         //fio.fee actions
         fioFeeActions.push_back("setfeemult");
+        fioFeeActions.push_back("bundlevote");
         fioFeeActions.push_back("setfeevote");
 
         fioTreasuryActions.push_back("tpidclaim");
