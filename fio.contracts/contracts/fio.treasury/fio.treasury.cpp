@@ -229,29 +229,29 @@ namespace fioio {
 
 
           double todaybucket = bucketrewards.begin()->rewards / 365;
-          print("\nToday bucket: ", todaybucket);
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
               if (bpcounter <= abpcount) {
-                print("\nBPCounter: ", bpcounter);
-                double reward = static_cast<double>(bprewards.begin()->dailybucket / abpcount); // dailybucket / 21
-                print("\reward: ", reward);
+                print("\nToday bucket (365 / bpcount): ", todaybucket);
+                print("\nbpcount: ", bpcount);
+                print("\nabpcount: ", abpcount);
+                print("\nBPCounter (current bp rank): ", bpcounter);
+                double reward = static_cast<double>(bprewards.begin()->dailybucket); // dailybucket / 21
+                print("\rstandby bp reward (bprewards): ", reward);
                 gstate = global.get();
 
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
                   entry.abpayshare = static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight));
                 });
-                print("\abpayshare:  ",static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight)));
+                print("\nbpayshare:  ",static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight)));
                 print("\npayout percent: ",itr.votes / gstate.total_producer_vote_weight);
                 print("\nreward after: ", reward);
               }
-              print("todaybucket: ",todaybucket);
-              print("bpcount: ",bpcount);
               voteshares.modify(itr,get_self(), [&](auto &entry) {
                   entry.sbpayshare = (static_cast<uint64_t>(todaybucket / bpcount)); //todaybucket / 42
               });
-              print("\nsbpayshare: ", static_cast<uint64_t>(todaybucket / bpcount));
+              print("\nsbpayshare (standby block producer payshare todaybucket / bpcount): ", static_cast<uint64_t>(todaybucket / bpcount));
               bpcounter++;
 
               // Reduce the producers share of dailybucket and bucketrewards

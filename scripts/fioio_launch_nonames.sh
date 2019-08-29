@@ -371,6 +371,14 @@ if [ $mChoice == 1 ]; then
     retries=3
 
 
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"n/a","isproxy":"1"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"htjonrkf1lgs","fio_address":"n/a","isproxy":"0"}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"n/a","isproxy":"1"}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j eosio regiproxy '{"proxy":"r41zuwovtn44","fio_address":"n/a","isproxy":"0"}' --permission r41zuwovtn44@active
+
+    ./cleos -u http://localhost:8889 system vproducer prods htjonrkf1lgs 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 system vproducer prods r41zuwovtn44 5spujqoyq4ie fioproducerb fioproducerc fioproducerd  -p r41zuwovtn44@active
+
 elif [ $mChoice == 3 ]; then
     read -p $'WARNING: ALL FILES ( WALLET & CHAIN ) WILL BE DELETED\n\nContinue? (1. Yes 2. No): ' bChoice
 
