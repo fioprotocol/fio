@@ -174,10 +174,10 @@ namespace fioio {
 
           //Mint new tokens up to 50,000 FIO
           uint64_t tomint = 5000000000000 - clockiter->rewardspaid;
-          action(permission_level{"fio.token"_n, "active"_n},
+          /*action(permission_level{"fio.token"_n, "active"_n},
             "fio.token"_n, "issue"_n,
             make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
-          ).send();
+          ).send();*/
 
           clockstate.modify(clockiter, get_self(), [&](auto &entry) {
             entry.reservetokensminted += tomint;
