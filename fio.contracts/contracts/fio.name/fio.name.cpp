@@ -396,7 +396,9 @@ namespace fioio {
                 print(reg_fee_asset.amount);
                 //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
                 fio_fees(actor, reg_fee_asset);
-                process_rewards(tpid, reg_amount, get_self());
+                string stpid = tpid.c_str();
+                if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+                process_rewards(stpid, reg_amount, get_self());
                 //MAS-522 remove staking from voting.
                 if (reg_amount > 0) {
                     //MAS-522 remove staking from voting.
@@ -501,7 +503,9 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
-            processbucketrewards(tpid, reg_amount, get_self());
+            string stpid = tpid.c_str();
+            if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+            processbucketrewards(stpid, reg_amount, get_self());
 
 
             //end new fees, logic for Mandatory fees.
@@ -559,7 +563,9 @@ namespace fioio {
             print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
-            processbucketrewards(tpid, reg_amount, get_self());
+            string stpid = tpid.c_str();
+            if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+            processbucketrewards(stpid, reg_amount, get_self());
 
             //end new fees, logic for Mandatory fees.
 
@@ -627,8 +633,9 @@ namespace fioio {
 
 
             fio_fees(actor, reg_fee_asset);
-
-            processbucketrewards(tpid, reg_amount, get_self());
+            string stpid = tpid.c_str();
+            if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+            processbucketrewards(stpid, reg_amount, get_self());
 
 
             //end new fees, logic for Mandatory fees.
@@ -719,9 +726,9 @@ namespace fioio {
             reg_fee_asset.symbol = symbol("FIO",9);
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
-
-
-            processbucketrewards(tpid, reg_amount, get_self());
+            string stpid = tpid.c_str();
+            if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+            processbucketrewards(stpid, reg_amount, get_self());
 
             //end new fees, logic for Mandatory fees.
 
@@ -1059,7 +1066,9 @@ namespace fioio {
             print(reg_fee_asset.amount);
             //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
-            process_rewards(tpid, reg_amount, get_self());
+            string stpid = tpid.c_str();
+            if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+            process_rewards(stpid, reg_amount, get_self());
             if (reg_amount > 0) {
                 //MAS-522 remove staking from voting.
                 INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
