@@ -177,8 +177,8 @@ namespace fioio {
           /*action(permission_level{"fio.token"_n, "active"_n},
             "fio.token"_n, "issue"_n,
             make_tuple("fio.treasury"_n, asset(tomint, symbol("FIO",9)))
-          ).send();
-          */
+          ).send();*/
+
           clockstate.modify(clockiter, get_self(), [&](auto &entry) {
             entry.reservetokensminted += tomint;
           });
@@ -229,29 +229,28 @@ namespace fioio {
 
 
           double todaybucket = bucketrewards.begin()->rewards / 365;
-          print("\nToday bucket: ", todaybucket);
 
           bpcounter = 0;
           for(auto &itr : voteshares) {
               if (bpcounter <= abpcount) {
-                print("\nBPCounter: ", bpcounter);
-                double reward = static_cast<double>(bprewards.begin()->dailybucket / abpcount); // dailybucket / 21
-                print("\reward: ", reward);
+                print("\n,block producers:, ", bpcount);
+                print("\n,active producers:, ", abpcount);
+                print("\n,BPCounter (current bp rank):, ", bpcounter);
+                double reward = static_cast<double>(bprewards.begin()->dailybucket); // dailybucket / 21
+                print("\n,Today bucket (365 / bpcount):, ", todaybucket);
+                print("\n,standby bp reward bucket (bprewards):, ", reward);
                 gstate = global.get();
 
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
                   entry.abpayshare = static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight));
                 });
-                print("\abpayshare:  ",static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight)));
-                print("\npayout percent: ",itr.votes / gstate.total_producer_vote_weight);
-                print("\nreward after: ", reward);
+                print("\n,active producer share:,  ",static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight)));
+                print("\n,active payout percent:, ",itr.votes / gstate.total_producer_vote_weight);
               }
-              print("todaybucket: ",todaybucket);
-              print("bpcount: ",bpcount);
               voteshares.modify(itr,get_self(), [&](auto &entry) {
                   entry.sbpayshare = (static_cast<uint64_t>(todaybucket / bpcount)); //todaybucket / 42
               });
-              print("\nsbpayshare: ", static_cast<uint64_t>(todaybucket / bpcount));
+              print("\n,standby block producer payshare (todaybucket / bpcount):, ", static_cast<uint64_t>(todaybucket / bpcount));
               bpcounter++;
 
               // Reduce the producers share of dailybucket and bucketrewards

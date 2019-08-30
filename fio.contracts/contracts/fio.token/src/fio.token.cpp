@@ -263,8 +263,9 @@ namespace eosio {
         reg_fee_asset.symbol = symbol("FIO", 9);
 
         fio_fees(actor, reg_fee_asset);
-
-        process_rewards(tpid, reg_amount, get_self());
+        string stpid = tpid.c_str();
+        if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
+        process_rewards(stpid, reg_amount, get_self());
 
 
 
