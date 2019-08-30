@@ -29,7 +29,7 @@ using namespace fioio;
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                 eosionames(fioio::SystemContract,fioio::SystemContract.value),
-                                                                fionames(fioio::SystemContract,fioio::SystemContract.value),  
+                                                                fionames(fioio::SystemContract,fioio::SystemContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value),
                                                                 tpids(TPIDContract, TPIDContract.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
@@ -42,6 +42,9 @@ using namespace fioio;
 
         [[eosio::action]]
         void issue(name to, asset quantity, string memo);
+
+        [[eosio::action]]
+        void mintreserve(const uint64_t &amount);
 
         inline void fio_fees(const name &actor, const asset &fee);
 
@@ -82,6 +85,7 @@ using namespace fioio;
 
         using create_action = eosio::action_wrapper<"create"_n, &token::create>;
         using issue_action = eosio::action_wrapper<"issue"_n, &token::issue>;
+        using mintreserve_action = eosio::action_wrapper<"mintreserve"_n, &token::mintreserve>;
         using retire_action = eosio::action_wrapper<"retire"_n, &token::retire>;
         using transfer_action = eosio::action_wrapper<"transfer"_n, &token::transfer>;
         using open_action = eosio::action_wrapper<"open"_n, &token::open>;

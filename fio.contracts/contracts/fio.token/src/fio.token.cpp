@@ -59,6 +59,17 @@ namespace eosio {
         }
     }
 
+    void token::mintreserve(const uint64_t &amount) {
+      //can only be called by fio.treasury@active
+      require_auth("fio.treasury"_n);
+      print("\n\nMintreserve called\n");
+      action(permission_level{"eosio"_n, "active"_n},
+        "fio.token"_n, "issue"_n,
+        make_tuple("eosio"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
+      ).send();
+
+    }
+
     void token::retire(asset quantity, string memo) {
         auto sym = quantity.symbol;
         check(sym.is_valid(), "invalid symbol name");
@@ -358,5 +369,5 @@ namespace eosio {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)
+EOSIO_DISPATCH( eosio::token, (create)(issue)(mintreserve)(transfer)(trnsfiopubky)(open)(close)
 (retire))

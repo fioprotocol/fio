@@ -242,7 +242,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 push action -j fio.token issue '["fio.token","100.000000000 FIO","memo"]' -p eosio@active
 
 
-        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "999885899.000000000 FIO","memo"]' -p eosio@active
+        ./cleos -u http://localhost:8879 push action -j fio.token issue '["eosio",       "990085899.000000000 FIO","memo"]' -p eosio@active
 
         echo registering all block producers
         ./cleos -u http://localhost:8879 push action eosio setprods "{ \"schedule\": [{\"producer_name\": \"inita\",\"block_signing_key\": \"FIO79vbwYtjhBVnBRYDjhCyxRFVr6JsFfVrLVhUKoqFTnceZtPvAU\"}]}" -p eosio@active
