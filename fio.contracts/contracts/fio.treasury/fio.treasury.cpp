@@ -142,7 +142,7 @@ namespace fioio {
      /***************  Pay schedule expiration *******************/
      //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
      // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-     if(now() >= clockiter->payschedtimer + 120 ) { //+ 172800
+     if(now() >= clockiter->payschedtimer + 200 ) { //+ 172801
 
        if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
 
@@ -170,10 +170,10 @@ namespace fioio {
         }
 
         // if clockstate.begin()->rewardspaid < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-        if (clockiter->rewardspaid < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
+        if (clockiter->rewardspaid > 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
 
           //Mint new tokens up to 50,000 FIO
-          uint64_t tomint = 50000000000000 - clockiter->rewardspaid;
+          uint64_t tomint = 50000000000 - clockiter->rewardspaid;
 
             action(permission_level{get_self(), "active"_n},
             "fio.token"_n, "mintreserve"_n,
@@ -381,7 +381,7 @@ namespace fioio {
       if (size == 0)  {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
           entry.lasttpidpayout = now() - 56;
-          entry.payschedtimer = now() - 172780;
+          entry.payschedtimer = now();
         });
 
       }
