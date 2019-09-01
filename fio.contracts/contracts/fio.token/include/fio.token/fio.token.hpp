@@ -44,7 +44,7 @@ using namespace fioio;
         void issue(name to, asset quantity, string memo);
 
         [[eosio::action]]
-        void mintreserve(const uint64_t &amount);
+        void mintfio(const uint64_t &amount);
 
         inline void fio_fees(const name &actor, const asset &fee);
 
@@ -85,7 +85,7 @@ using namespace fioio;
 
         using create_action = eosio::action_wrapper<"create"_n, &token::create>;
         using issue_action = eosio::action_wrapper<"issue"_n, &token::issue>;
-        using mintreserve_action = eosio::action_wrapper<"mintreserve"_n, &token::mintreserve>;
+        using mintfio_action = eosio::action_wrapper<"mintfio"_n, &token::mintfio>;
         using retire_action = eosio::action_wrapper<"retire"_n, &token::retire>;
         using transfer_action = eosio::action_wrapper<"transfer"_n, &token::transfer>;
         using open_action = eosio::action_wrapper<"open"_n, &token::open>;

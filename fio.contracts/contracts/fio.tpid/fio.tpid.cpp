@@ -9,12 +9,13 @@ namespace fioio {
     tpids_table tpids;
     fionames_table fionames;
     eosiosystem::voters_table voters;
+    bounties_table bounties;
 
   public:
     using contract::contract;
 
       TPIDController(name s, name code, datastream<const char *> ds) :
-      contract(s, code, ds), tpids(_self, _self.value), fionames(SystemContract, SystemContract.value),
+      contract(s, code, ds), tpids(_self, _self.value),  bounties(_self, _self.value), fionames(SystemContract, SystemContract.value),
       voters(SystemContract, SystemContract.value){
       }
 
@@ -86,67 +87,42 @@ namespace fioio {
           }
       }
 
-      // @abi action
-      [[eosio::action]]
-      void createtpid(const string& tpid, name owner) {
-
-          eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || (has_auth("fio.reqobt"_n)),
-                       "missing required authority of fio.system, fio.token, or fio.reqobt");
-
-
-          //see if FIO Address already exists before creating TPIDController
-
-          uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
-
-          auto fionamefound = fionames.find(fioaddhash);
-          fio_400_assert(fionamefound != fionames.end(), "TPID", tpid,
-                         "Invalid TPID", InvalidTPID);
-
-          auto tpidfound = tpids.find(fioaddhash);
-          if (tpidfound == tpids.end()) {
-              print("Creating new TPID.", "\n");
-              tpids.emplace(_self, [&](struct tpid &f) {
-
-                  f.fioaddress  = tpid;
-                  f.fioaddhash = fioaddhash;
-                  f.rewards = 0;
-              });
-          } else {
-              print("TPID already exists.", "\n");
-          } //end if fiofound
-          process_auto_proxy(tpid,owner);
-
-      }//createtpid
-
-
-
 
       //@abi action
       [[eosio::action]]
       void updatetpid(const string& tpid,  const name owner, const uint64_t& amount) {
 
-          print ("calling updtpid with tpid ",tpid," owner ",owner," amount ", amount,"\n");
+          print ("calling updatetpid with tpid ",tpid," owner ",owner," amount ", amount,"\n");
 
           uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
           auto fionamefound = fionames.find(fioaddhash);
-
+          print("\nfionamefound: ",fionamefound->name,"\n");
           if (fionamefound != fionames.end()) {
               auto tpidfound = tpids.find(fioaddhash);
+              print("\ntpidfound: ",tpidfound->fioaddress,"\n");
               if (tpidfound == tpids.end()) {
                   print("TPID does not exist. Creating TPID.", "\n");
-                  createtpid(tpid,owner);
-                  updatetpid(tpid,owner, amount);
-              }
-              else {
-                  print("Updating TPID.", "\n");
-                  tpids.modify(tpidfound, _self, [&](struct tpid &f) {
-                      f.rewards += amount;
+                  tpids.emplace(get_self(), [&](struct tpid &f) {
+                      f.fioaddress  = tpid;
+                      f.fioaddhash = fioaddhash;
+                      f.rewards = 0;
                   });
+
+                  process_auto_proxy(tpid,owner);
               }
+              if(std::distance(tpids.begin(), tpids.end()) > 0) {
+                tpidfound  = tpids.find(fioaddhash);
+                print("Updating TPID.", tpidfound->fioaddress,"\n");
+                tpids.modify(tpidfound, get_self(), [&](struct tpid &f) {
+                    f.rewards += amount;
+                });
+              }
+
           } else {
               print("Cannot register TPID, FIO Address not found. The transaction will continue without TPID payment.","\n");
           }
-      } //updtpid
+
+      } //updatetpid
 
 
       //@abi action
@@ -165,8 +141,29 @@ namespace fioio {
   }
 
 
-  }; //class TPIDController
+  //Must be called at least once at genesis for tokensminted check in fio.rewards.hpp
+      //@abi action
+  [[eosio::action]]
+  void updatebounty(const uint64_t &amount) {
+    eosio_assert((has_auth("fio.tpid"_n) || has_auth("fio.treasury"_n)),
+                 "missing required authority of fio.tpid, or fio.treasury");
 
+    if(std::distance(bounties.begin(), bounties.end()) == 0)
+    {
+      bounties.emplace(get_self(), [&](struct bounty &b) {
+        b.tokensminted = 0;
+      });
+    }
+    else {
+      uint64_t temp = bounties.begin()->tokensminted;
+      bounties.erase(bounties.begin());
+      bounties.emplace(get_self(), [&](struct bounty &b) {
+        b.tokensminted = temp + amount;
+      });
+    }
+  }
 
-  EOSIO_DISPATCH(TPIDController, (createtpid)(updatetpid)(rewardspaid))
+}; //class TPIDController
+
+  EOSIO_DISPATCH(TPIDController, (updatetpid)(rewardspaid)(updatebounty))
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fio.common/fio.common.hpp>
 #include <fio.name/fio.name.hpp>
 #include <string>
@@ -22,4 +24,6 @@ namespace fioio{
   };
 
   typedef multi_index<"tpids"_n, tpid> tpids_table;
+
+
 }

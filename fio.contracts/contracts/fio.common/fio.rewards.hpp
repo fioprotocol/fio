@@ -15,7 +15,6 @@
 
 namespace fioio {
 
-
     // @abi table bpreward i64
     struct [[eosio::action]] bpreward {
 
@@ -59,6 +58,18 @@ namespace fioio {
 
     typedef multi_index<"fdtnrewards"_n, fdtnreward> fdtnrewards_table;
 
+    // @abi table bounties i64
+    struct [[eosio::action]] bounty {
+
+      uint64_t tokensminted;
+      uint64_t primary_key() const {return tokensminted;}
+
+      EOSLIB_SERIALIZE(bounty, (tokensminted))
+
+
+    };
+
+    typedef multi_index<"bounties"_n, bounty> bounties_table;
 
     void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
@@ -70,13 +81,32 @@ namespace fioio {
         ).send();
 
 
-
         if (!tpid.empty()) {
+          bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
+          uint64_t bamount = 0;
+          eosio::print("\nBounties: ",bounties.begin()->tokensminted,"\n");
+          if (bounties.begin()->tokensminted < 200000000000000000) {
+            bamount = (uint64_t)(static_cast<double>(amount) * .65);
+            eosio::print("\nBounty payout: ", bamount, "\n");
+            action(permission_level{"fio.treasury"_n, "active"_n},
+              "fio.token"_n, "mintfio"_n,
+              make_tuple(bamount)
+            ).send();
+
+            action(
+            permission_level{"fio.treasury"_n,"active"_n},
+            "fio.tpid"_n,
+            "updatebounty"_n,
+            std::make_tuple(bamount)
+            ).send();
+
+          }
+
           action(
           permission_level{actor,"active"_n},
           "fio.tpid"_n,
           "updatetpid"_n,
-          std::make_tuple(tpid, actor, amount / 10)
+          std::make_tuple(tpid, actor, (amount / 10) + bamount)
           ).send();
 
 
@@ -113,11 +143,32 @@ namespace fioio {
 
 
         if (!tpid.empty()) {
+
+          bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
+          uint64_t bamount = 0;
+          eosio::print("\nBounties: ",bounties.begin()->tokensminted,"\n");
+          if (bounties.begin()->tokensminted < 200000000000000000) {
+            bamount = (uint64_t)(static_cast<double>(amount) * .65);
+            eosio::print("\nBounty payout: ", bamount, "\n");
+            action(permission_level{"fio.treasury"_n, "active"_n},
+              "fio.token"_n, "mintfio"_n,
+              make_tuple(bamount)
+            ).send();
+
+            action(
+            permission_level{"fio.treasury"_n,"active"_n},
+            "fio.tpid"_n,
+            "updatebounty"_n,
+            std::make_tuple(bamount)
+            ).send();
+
+          }
+
           action(
           permission_level{actor,"active"_n},
           "fio.tpid"_n,
           "updatetpid"_n,
-          std::make_tuple(tpid, actor, amount / 10)
+          std::make_tuple(tpid, actor, (amount / 10) + bamount)
           ).send();
 
 

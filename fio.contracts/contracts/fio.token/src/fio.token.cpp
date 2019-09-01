@@ -59,15 +59,16 @@ namespace eosio {
         }
     }
 
-    void token::mintreserve(const uint64_t &amount) {
+    void token::mintfio(const uint64_t &amount) {
       //can only be called by fio.treasury@active
       require_auth("fio.treasury"_n);
-      print("\n\nMintreserve called\n");
-      action(permission_level{"eosio"_n, "active"_n},
-        "fio.token"_n, "issue"_n,
-        make_tuple("eosio"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
-      ).send();
-
+      if (amount > 0 && amount < 100000000000000000) { //100,000,000 FIO max can be minted by this call
+        print("\n\nMintfio called\n");
+        action(permission_level{"eosio"_n, "active"_n},
+          "fio.token"_n, "issue"_n,
+          make_tuple("eosio"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
+        ).send();
+      }
     }
 
     void token::retire(asset quantity, string memo) {
@@ -274,9 +275,7 @@ namespace eosio {
         reg_fee_asset.symbol = symbol("FIO", 9);
 
         fio_fees(actor, reg_fee_asset);
-        string stpid = tpid.c_str();
-        if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
-        process_rewards(stpid, reg_amount, get_self());
+        process_rewards(tpid, reg_amount, get_self());
 
 
 
@@ -369,5 +368,5 @@ namespace eosio {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(mintreserve)(transfer)(trnsfiopubky)(open)(close)
+EOSIO_DISPATCH( eosio::token, (create)(issue)(mintfio)(transfer)(trnsfiopubky)(open)(close)
 (retire))

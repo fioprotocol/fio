@@ -194,9 +194,7 @@ namespace fioio {
                 reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
-                string stpid = tpid.c_str();
-                if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
-                process_rewards(stpid, fee_amount, get_self());
+                process_rewards(tpid, fee_amount, get_self());
 
                 //MAS-522 remove staking from voting
                 if (fee_amount > 0) {
@@ -364,9 +362,7 @@ namespace fioio {
                 reg_fee_asset.amount = fee_amount;
 
                 fio_fees(aActor, reg_fee_asset);
-                string stpid = tpid.c_str();
-                if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
-                process_rewards(stpid, fee_amount, get_self());
+                process_rewards(tpid, fee_amount, get_self());
 
                 //MAS-522 remove staking from voting
                 if (fee_amount > 0) {
@@ -506,9 +502,7 @@ namespace fioio {
                 reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
-                string stpid = tpid.c_str();
-                if (tpids.find(string_to_uint64_hash(tpid.c_str())) == tpids.end()) { stpid = ""; print("\nNo tpid found\n"); }
-                process_rewards(stpid, fee_amount, get_self());
+                process_rewards(tpid, fee_amount, get_self());
 
                 //MAS-522 remove staking from voting
                 if (fee_amount > 0) {

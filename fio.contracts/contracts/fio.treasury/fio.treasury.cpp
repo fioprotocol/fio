@@ -176,7 +176,7 @@ namespace fioio {
           uint64_t tomint = 50000000000 - clockiter->rewardspaid;
 
             action(permission_level{get_self(), "active"_n},
-            "fio.token"_n, "mintreserve"_n,
+            "fio.token"_n, "mintfio"_n,
             make_tuple(tomint)
           ).send();
 
