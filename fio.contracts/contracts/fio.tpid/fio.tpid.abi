@@ -15,14 +15,6 @@
             "fields": [
                 {"name":"tokensminted", "type":"uint64"}
                 ]
-            },
-            {
-              "name": "createtpid",
-              "base": "",
-              "fields": [{
-              "name": "tpid",
-              "type": "string"
-              }]
             },{
               "name": "updatetpid",
               "base": "",
@@ -54,10 +46,6 @@
           ],
     "types": [],
     "actions": [{
-         "name": "createtpid",
-         "type": "createtpid",
-         "ricardian_contract": ""
-       },{
           "name": "updatetpid",
           "type": "updatetpid",
           "ricardian_contract": ""
