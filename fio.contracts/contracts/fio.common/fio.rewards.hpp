@@ -58,7 +58,7 @@ namespace fioio {
 
     typedef multi_index<"fdtnrewards"_n, fdtnreward> fdtnrewards_table;
 
-    // @abi table tpids i64
+    // @abi table bounties i64
     struct [[eosio::action]] bounty {
 
       uint64_t tokensminted;
@@ -90,6 +90,14 @@ namespace fioio {
               "fio.token"_n, "mintfio"_n,
               make_tuple(bamount)
             ).send();
+
+            action(
+            permission_level{actor,"active"_n},
+            "fio.tpid"_n,
+            "updatebounty"_n,
+            std::make_tuple(bamount)
+            ).send();
+
           }
 
           action(
