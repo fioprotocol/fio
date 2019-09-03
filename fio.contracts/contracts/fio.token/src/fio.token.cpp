@@ -66,7 +66,7 @@ namespace eosio {
         print("\n\nMintfio called\n");
         action(permission_level{"eosio"_n, "active"_n},
           "fio.token"_n, "issue"_n,
-          make_tuple("eosio"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
+          make_tuple("fio.treasury"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
         ).send();
       }
     }
