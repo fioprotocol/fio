@@ -53,6 +53,7 @@ namespace eosiosystem {
                 _producers.modify(prod, producer, [&](producer_info &info) {
                     info.is_active = true;
                     info.fio_address = fio_address;
+                    info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
                     info.url = url;
                     info.location = location;
                     if (info.last_claim_time == time_point())
