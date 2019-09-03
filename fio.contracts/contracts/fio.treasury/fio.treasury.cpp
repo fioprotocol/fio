@@ -191,21 +191,37 @@ namespace fioio {
           } // &itr : producers
 
           uint64_t expectedpay = bprewards.begin()->rewards;
+          uint64_t tomint = 50000000000 - bprewards.begin()->rewards;
+          // if rewards < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
+          if (bprewards.begin()->rewards < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
+
+            //Mint new tokens up to 50,000 FIO
+              action(permission_level{get_self(), "active"_n},
+              "fio.token"_n, "mintfio"_n,
+              make_tuple(tomint)
+            ).send();
+
+            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+              entry.reservetokensminted += tomint;
+            });
+              //This new reward amount that has been minted will be appended to the rewards being divied up next
+          }
 
           //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
           uint64_t temp = bucketrewards.begin()->rewards;
           bucketrewards.erase(bucketrewards.begin());
           bucketrewards.emplace(get_self(), [&](auto &p) {
-            p.rewards = temp + static_cast<uint64_t>(bprewards.begin()->rewards * .60);
+            p.rewards = temp + static_cast<uint64_t>((bprewards.begin()->rewards * .60) + (tomint * .60));
           });
 
-          temp = expectedpay;
+          temp = bprewards.begin()->rewards;
           bprewards.erase(bprewards.begin());
           bprewards.emplace(get_self(), [&](auto &p) {
-              p.dailybucket = static_cast<uint64_t>((temp) * .40);
+              p.dailybucket = static_cast<uint64_t>((temp) * .40  + (tomint * .40));
               p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
           });
 
+          //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use expectedpay
           // All items are now in pay schedule, calculate the shares
           uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
           uint64_t abpcount = 21;
@@ -248,31 +264,6 @@ namespace fioio {
 
 
           } // &itr : voteshares
-
-          // if expectedpay < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-          if (expectedpay < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
-
-            //Mint new tokens up to 50,000 FIO
-            uint64_t tomint = 50000000000 - expectedpay;
-
-              action(permission_level{get_self(), "active"_n},
-              "fio.token"_n, "mintfio"_n,
-              make_tuple(tomint)
-            ).send();
-
-            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-              entry.reservetokensminted += tomint;
-            });
-
-            uint64_t rewardtemp = bprewards.begin()->rewards;
-            uint64_t dailytemp = bprewards.begin()->dailybucket;
-            bprewards.erase(bprewards.begin());
-            bprewards.emplace(get_self(), [&](auto &p) {
-                p.dailybucket = dailytemp;
-                p.rewards = rewardtemp + tomint; 
-            });
-
-          }
 
         //Start 24 track for daily pay
         clockstate.modify(clockiter, get_self(), [&](auto &entry) {
