@@ -269,7 +269,7 @@ namespace fioio {
             bprewards.erase(bprewards.begin());
             bprewards.emplace(get_self(), [&](auto &p) {
                 p.dailybucket = dailytemp;
-                p.rewards = rewardtemp + tomint; //This was emptied upon distributing to bucketrewards in the previous call
+                p.rewards = rewardtemp + tomint; 
             });
 
           }
