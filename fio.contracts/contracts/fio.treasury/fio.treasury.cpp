@@ -234,14 +234,15 @@ namespace fioio {
           bpcounter = 0;
           for(auto &itr : voteshares) {
               if (bpcounter <= abpcount) {
+                double reward = static_cast<double>(bprewards.begin()->dailybucket);
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.abpayshare = (static_cast<uint64_t>(todaybucket / bpcount));
+                  entry.abpayshare = (static_cast<uint64_t>(reward / bpcount));
                 });
               }
               gstate = global.get();
-              double reward = static_cast<double>(bprewards.begin()->dailybucket);
+
               voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.sbpayshare = static_cast<uint64_t>(double(reward) * (itr.votes / gstate.total_producer_vote_weight)); //todaybucket / 42
+                  entry.sbpayshare = static_cast<uint64_t>(double(todaybucket) * (itr.votes / gstate.total_producer_vote_weight)); 
               });
               bpcounter++;
 
