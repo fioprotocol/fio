@@ -11,10 +11,10 @@
 
 #include <vector>
 #include <string>
-#include <eosiolib/eosio.hpp>
+#include "fio.common.hpp"
 
 namespace fioio {
-
+    static constexpr uint64_t string_to_uint64_hash(const char *str); //signature for static constexpr implementation fio.common.hpp
     // @abi table bpreward i64
     struct [[eosio::action]] bpreward {
 
@@ -73,63 +73,66 @@ namespace fioio {
 
     void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
+      action(
+      permission_level{actor,"active"_n},
+      "fio.treasury"_n,
+      "fdtnrwdupdat"_n,
+      std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
+      ).send();
+      fionames_table fionames("fio.system"_n, name("fio.system").value);
+      uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
+      auto fionamefound = fionames.find(fioaddhash);
+      print("\nfionamefound: ",fionamefound->name,"\n");
+      if (fionamefound != fionames.end()) {
+
+        bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
+        uint64_t bamount = 0;
+        eosio::print("\nBounties: ",bounties.begin()->tokensminted,"\n");
+        if (bounties.begin()->tokensminted < 200000000000000000) {
+          bamount = (uint64_t)(static_cast<double>(amount) * .65);
+          eosio::print("\nBounty payout: ", bamount, "\n");
+          action(permission_level{"fio.treasury"_n, "active"_n},
+            "fio.token"_n, "mintfio"_n,
+            make_tuple(bamount)
+          ).send();
+
+          action(
+          permission_level{"fio.treasury"_n,"active"_n},
+          "fio.tpid"_n,
+          "updatebounty"_n,
+          std::make_tuple(bamount)
+          ).send();
+
+        }
+
         action(
         permission_level{actor,"active"_n},
-        "fio.treasury"_n,
-        "fdtnrwdupdat"_n,
-        std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
+        "fio.tpid"_n,
+        "updatetpid"_n,
+        std::make_tuple(tpid, actor, (amount / 10) + bamount)
         ).send();
 
-
-        if (!tpid.empty()) {
-          bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
-          uint64_t bamount = 0;
-          eosio::print("\nBounties: ",bounties.begin()->tokensminted,"\n");
-          if (bounties.begin()->tokensminted < 200000000000000000) {
-            bamount = (uint64_t)(static_cast<double>(amount) * .65);
-            eosio::print("\nBounty payout: ", bamount, "\n");
-            action(permission_level{"fio.treasury"_n, "active"_n},
-              "fio.token"_n, "mintfio"_n,
-              make_tuple(bamount)
-            ).send();
-
-            action(
-            permission_level{"fio.treasury"_n,"active"_n},
-            "fio.tpid"_n,
-            "updatebounty"_n,
-            std::make_tuple(bamount)
-            ).send();
-
-          }
-
-          action(
-          permission_level{actor,"active"_n},
-          "fio.tpid"_n,
-          "updatetpid"_n,
-          std::make_tuple(tpid, actor, (amount / 10) + bamount)
-          ).send();
-
-
-          action(
-          permission_level{actor,"active"_n},
-          "fio.treasury"_n,
-          "bprewdupdate"_n,
-          std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
-          ).send();
-
-      } else {
 
         action(
         permission_level{actor,"active"_n},
         "fio.treasury"_n,
         "bprewdupdate"_n,
-        std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
+        std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
         ).send();
 
-      }
+        eosio::print("\nTest Bucket Update Amount: ",((uint64_t)(static_cast<double>(amount) * .88)), "\n");
+      } else {
+      print("Cannot register TPID or FIO Address not found. The transaction will continue without TPID payment.","\n");
 
+      action(
+      permission_level{actor,"active"_n},
+      "fio.treasury"_n,
+      "bprewdupdate"_n,
+      std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
+      ).send();
     }
 
+  }
 
     void processbucketrewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
@@ -140,9 +143,11 @@ namespace fioio {
         std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
         ).send();
 
-
-
-        if (!tpid.empty()) {
+        fionames_table fionames("fio.system"_n, name("fio.system").value);
+        uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
+        auto fionamefound = fionames.find(fioaddhash);
+        print("\nfionamefound: ",fionamefound->name,"\n");
+        if (fionamefound != fionames.end()) {
 
           bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
           uint64_t bamount = 0;
@@ -178,8 +183,9 @@ namespace fioio {
           "bppoolupdate"_n,
           std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
           ).send();
-
-      } else {
+          eosio::print("\nTest Bucket Update Amount: ",((uint64_t)(static_cast<double>(amount) * .88)), "\n");
+        } else {
+        print("Cannot register TPID or FIO Address not found. The transaction will continue without TPID payment.","\n");
 
         action(
         permission_level{actor,"active"_n},
@@ -189,8 +195,29 @@ namespace fioio {
         ).send();
 
       }
-
     }
+
+
+  //Precondition: this method should only be called by register_producer, vote_producer, unregister_producer, register_proxy, unregister_proxy, vote_proxy
+  // after transaction fees have been defined
+  //Postcondition: the foundation has been rewarded 2% of the transaction fee and top 21/active block producers rewarded 98% of the transaction fee 
+  void processrewardsnotpid(const uint64_t &amount, const name &actor) {
+
+    action(
+    permission_level{actor,"active"_n},
+    "fio.treasury"_n,
+    "bprewdupdate"_n,
+    std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
+    ).send();
+
+    action(
+    permission_level{actor,"active"_n},
+    "fio.treasury"_n,
+    "fdtnrwdupdat"_n,
+    std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
+    ).send();
+  }
+
 
 
 } // namespace fioio
