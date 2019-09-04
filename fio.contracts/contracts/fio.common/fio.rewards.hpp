@@ -19,11 +19,10 @@ namespace fioio {
     struct [[eosio::action]] bpreward {
 
       uint64_t rewards;
-      uint64_t dailybucket;
 
       uint64_t primary_key() const {return rewards;}
 
-      EOSLIB_SERIALIZE(bpreward, (rewards)(dailybucket))
+      EOSLIB_SERIALIZE(bpreward, (rewards))
 
 
     };
@@ -200,7 +199,7 @@ namespace fioio {
 
   //Precondition: this method should only be called by register_producer, vote_producer, unregister_producer, register_proxy, unregister_proxy, vote_proxy
   // after transaction fees have been defined
-  //Postcondition: the foundation has been rewarded 2% of the transaction fee and top 21/active block producers rewarded 98% of the transaction fee 
+  //Postcondition: the foundation has been rewarded 2% of the transaction fee and top 21/active block producers rewarded 98% of the transaction fee
   void processrewardsnotpid(const uint64_t &amount, const name &actor) {
 
     action(

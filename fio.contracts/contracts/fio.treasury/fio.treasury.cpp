@@ -12,7 +12,6 @@ namespace fioio {
 
   class [[eosio::contract("FIOTreasury")]]  FIOTreasury : public eosio::contract {
 
-
     private:
       tpids_table tpids;
       fionames_table fionames;
@@ -150,22 +149,14 @@ namespace fioio {
          while (iter != voteshares.end()) {
 
                uint64_t reward = bucketrewards.begin()->rewards;
-               print("\nReward initialized to: ", reward);
                reward += (iter->sbpayshare + iter->abpayshare);
-               print("\nspbayshare: ",iter->sbpayshare);
-               print("\nabpayshare: ", iter->abpayshare);
-               //reward = 100;
-               print("\nreward: ",reward);
-
                bucketrewards.erase(bucketrewards.begin());
                bucketrewards.emplace(_self, [&](struct bucketpool &p) {
                  p.rewards = reward;
                });
 
                iter = voteshares.erase(iter);
-               print("\n\nDone\n\n\n\n");
            }
-
            print("\nPay schedule erased... ");
         }
 
@@ -190,9 +181,10 @@ namespace fioio {
             if (bpcounter > 42) break;
           } // &itr : producers
 
-          uint64_t expectedpay = bprewards.begin()->rewards;
-          uint64_t tomint = 50000000000 - bprewards.begin()->rewards;
-          // if rewards < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
+          uint64_t projectedpay = bprewards.begin()->rewards;
+          uint64_t tomint = 0; //reserve token minting disabled for MAS-427 UAT
+        /*  uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
+          // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
           if (bprewards.begin()->rewards < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
 
             //Mint new tokens up to 50,000 FIO
@@ -206,60 +198,49 @@ namespace fioio {
             });
               //This new reward amount that has been minted will be appended to the rewards being divied up next
           }
+          */
 
-          //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
-          uint64_t temp = bucketrewards.begin()->rewards;
-          bucketrewards.erase(bucketrewards.begin());
-          bucketrewards.emplace(get_self(), [&](auto &p) {
-            p.rewards = temp + static_cast<uint64_t>((bprewards.begin()->rewards * .60) + (tomint * .60));
-          });
-
-          temp = bprewards.begin()->rewards;
-          bprewards.erase(bprewards.begin());
-          bprewards.emplace(get_self(), [&](auto &p) {
-              p.dailybucket = static_cast<uint64_t>((temp) * .40  + (tomint * .40));
-              p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
-          });
-
-          //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use expectedpay
-          // All items are now in pay schedule, calculate the shares
+          //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
+          // All bps are now in pay schedule, calculate the shares
           uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
           uint64_t abpcount = 21;
           if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
           if (bpcount <= 21) abpcount = bpcount;
 
-
           double todaybucket = bucketrewards.begin()->rewards / 365;
+          double tostandbybps = todaybucket / bpcount;
+          double toactivebps = bprewards.begin()-> rewards / abpcount;
 
           bpcounter = 0;
+          uint64_t abpayshare = 0;
+          uint64_t sbpayshare = 0;
           for(auto &itr : voteshares) {
+            double reward = 0;
+            abpayshare = (static_cast<uint64_t>(toactivebps / bpcount));
+            sbpayshare = static_cast<uint64_t>(double(tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
               if (bpcounter <= abpcount) {
-                double reward = static_cast<double>(bprewards.begin()->dailybucket);
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.abpayshare = (static_cast<uint64_t>(reward / bpcount));
+                  entry.abpayshare = abpayshare;
                 });
               }
               gstate = global.get();
-
               voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.sbpayshare = static_cast<uint64_t>(double(todaybucket) * (itr.votes / gstate.total_producer_vote_weight));
+                  entry.sbpayshare = sbpayshare;
               });
               bpcounter++;
 
-              // Reduce the producers share of dailybucket and bucketrewards
+              // Reduce the producers share of daily rewards and bucketrewards
 
               auto temp = bucketrewards.begin()->rewards;
               bucketrewards.erase(bucketrewards.begin());
               bucketrewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp - itr.sbpayshare;
+                p.rewards = temp - sbpayshare;
               });
 
               temp = bprewards.begin()->rewards;
-              auto temp2 = bprewards.begin()->dailybucket;
               bprewards.erase(bprewards.begin());
               bprewards.emplace(get_self(), [&](auto &p) {
-                  p.dailybucket = temp2 - itr.abpayshare;
-                  p.rewards = temp;
+                  p.rewards = temp - sbpayshare;
               });
 
 
