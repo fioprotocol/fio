@@ -88,39 +88,35 @@ namespace fioio {
       }
 
 
+      //Condition: check if tpid exists in fionames before executing. This call should only be made by processrewards and processbucketrewards in fio.rewards.hpp
       //@abi action
       [[eosio::action]]
       void updatetpid(const string& tpid,  const name owner, const uint64_t& amount) {
 
-          print ("calling updatetpid with tpid ",tpid," owner ",owner," amount ", amount,"\n");
+        eosio_assert(has_auth(SystemContract) || has_auth("fio.token"_n) || has_auth("fio.treasury"_n) || has_auth("fio.reqobt"_n) || has_auth("eosio"_n),
+          "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
 
-          uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
-          auto fionamefound = fionames.find(fioaddhash);
-          print("\nfionamefound: ",fionamefound->name,"\n");
-          if (fionamefound != fionames.end()) {
-              auto tpidfound = tpids.find(fioaddhash);
+          print ("calling updatetpid with tpid ",tpid," owner ",owner," amount ", amount,"\n");
+              uint64_t tpidhash = string_to_uint64_hash(tpid.c_str());
+              auto tpidfound = tpids.find(tpidhash);
               print("\ntpidfound: ",tpidfound->fioaddress,"\n");
               if (tpidfound == tpids.end()) {
                   print("TPID does not exist. Creating TPID.", "\n");
                   tpids.emplace(get_self(), [&](struct tpid &f) {
                       f.fioaddress  = tpid;
-                      f.fioaddhash = fioaddhash;
+                      f.fioaddhash = tpidhash;
                       f.rewards = 0;
                   });
 
                   process_auto_proxy(tpid,owner);
               }
               if(std::distance(tpids.begin(), tpids.end()) > 0) {
-                tpidfound  = tpids.find(fioaddhash);
+                tpidfound  = tpids.find(tpidhash);
                 print("Updating TPID.", tpidfound->fioaddress,"\n");
                 tpids.modify(tpidfound, get_self(), [&](struct tpid &f) {
                     f.rewards += amount;
                 });
               }
-
-          } else {
-              print("Cannot register TPID, FIO Address not found. The transaction will continue without TPID payment.","\n");
-          }
 
       } //updatetpid
 
