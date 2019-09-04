@@ -84,7 +84,7 @@ namespace eosiosystem {
                 "bind2eosio"_n,
           std::make_tuple(producer, producer_key, false)
         }.send(); */
-        
+
     }
 
     static constexpr eosio::name token_account{"fio.token"_n};
@@ -100,7 +100,7 @@ namespace eosiosystem {
 
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                                 const uint64_t max_fee) {
+                                 const uint64_t max_fee, const string &tpid) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -158,7 +158,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-
+        process_rewards(tpid, reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
         nlohmann::json json = {{"status",        "OK"},
@@ -166,7 +166,7 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::unregprod(const string fio_address, const name actor, const uint64_t max_fee) {
+    void system_contract::unregprod(const string fio_address, const name actor, const uint64_t max_fee, const string &tpid) {
         require_auth(actor);
 
         FioAddress fa;
@@ -230,6 +230,8 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
+        process_rewards(tpid, reg_amount, get_self());
+
 
         //end new fees, logic for Mandatory fees.
 
@@ -370,7 +372,7 @@ namespace eosiosystem {
         update_votes(voter_name, proxy, producers, true);
     }
 
-    void system_contract::voteproducer(const std::vector<string> &producers, const name actor, const uint64_t max_fee) {
+    void system_contract::voteproducer(const std::vector<string> &producers, const name actor, const uint64_t max_fee, const string &tpid) {
         require_auth(actor);
         name proxy;
         std::vector<name> producers_accounts;
@@ -434,14 +436,14 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-
+        process_rewards(tpid, reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
         send_response(json.dump().c_str());
     }
 
-    void system_contract::voteproxy(const string fio_address, const name actor, const uint64_t max_fee) {
+    void system_contract::voteproxy(const string fio_address, const name actor, const uint64_t max_fee, const string &tpid) {
         require_auth(actor);
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
@@ -507,7 +509,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-
+        process_rewards(tpid, reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
@@ -710,7 +712,7 @@ namespace eosiosystem {
 
     }
 
-    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee) {
+    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee, const string &tpid) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -767,7 +769,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-
+        process_rewards(tpid, reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
         nlohmann::json json = {{"status",        "OK"},
@@ -776,7 +778,7 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::regproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee) {
+    void system_contract::regproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee, const string &tpid) {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -833,7 +835,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-
+        process_rewards(tpid, reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
         nlohmann::json json = {{"status",        "OK"},
