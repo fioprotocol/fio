@@ -158,7 +158,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-        process_rewards(tpid, reg_amount, get_self());
+        processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
         nlohmann::json json = {{"status",        "OK"},
@@ -230,8 +230,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-        process_rewards(tpid, reg_amount, get_self());
-
+        processrewardsnotpid(reg_amount, get_self());
 
         //end new fees, logic for Mandatory fees.
 
@@ -436,7 +435,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-        process_rewards(tpid, reg_amount, get_self());
+        processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
@@ -509,7 +508,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-        process_rewards(tpid, reg_amount, get_self());
+        processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
@@ -769,7 +768,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-        process_rewards(tpid, reg_amount, get_self());
+        processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
         nlohmann::json json = {{"status",        "OK"},
@@ -835,7 +834,7 @@ namespace eosiosystem {
         print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
-        process_rewards(tpid, reg_amount, get_self());
+        processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
         nlohmann::json json = {{"status",        "OK"},
