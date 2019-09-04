@@ -389,8 +389,8 @@ namespace fioio {
     [[eosio::action]]
     void bprewdupdate(const uint64_t &amount) {
 
-      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
-        "missing required authority of fio.system, fio.treasury, fio.token, or fio.reqobt");
+      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
+        "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
 
         uint64_t size = std::distance(bprewards.begin(),bprewards.end());
         if (size == 0)  {
@@ -439,7 +439,7 @@ namespace fioio {
     [[eosio::action]]
     void fdtnrwdupdat(const uint64_t &amount) {
 
-      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
+      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
         "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
         uint64_t size = std::distance(fdtnrewards.begin(),fdtnrewards.end());
