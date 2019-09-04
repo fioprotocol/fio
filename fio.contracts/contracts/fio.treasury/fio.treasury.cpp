@@ -208,8 +208,8 @@ namespace fioio {
           if (bpcount <= 21) abpcount = bpcount;
 
           double todaybucket = bucketrewards.begin()->rewards / 365;
-          double tostandbybps = todaybucket / bpcount;
-          double toactivebps = bprewards.begin()-> rewards / abpcount;
+          double tostandbybps = (((double)bucketrewards.begin()->rewards * .60) + todaybucket) / bpcount;
+          double toactivebps = ((double)(bprewards.begin()->rewards) * .40) / abpcount;
 
           bpcounter = 0;
           uint64_t abpayshare = 0;

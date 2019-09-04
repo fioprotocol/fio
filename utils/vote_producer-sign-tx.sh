@@ -28,7 +28,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 
 
-dataJson="{\"producers\":[\"adam:dapix\"],\"actor\":\"r41zuwovtn44\",\"max_fee\":\"100000000000\",\"tpid\":\"\"}"
+dataJson="{\"producers\":[\"adam:dapix\"],\"actor\":\"r41zuwovtn44\",\"max_fee\":\"100000000000\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data eosio voteproducer '$dataJson'"
 echo CMD: $cmd
