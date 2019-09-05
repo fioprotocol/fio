@@ -41,7 +41,6 @@ namespace fioio {
     uint64_t abpayshare = 0;
     uint64_t sbpayshare = 0;
     double votes;
-    uint64_t lastclaim = 0;
     uint64_t primary_key() const {return owner.value; }
 
     EOSLIB_SERIALIZE( bppaysched, (owner)(abpayshare)(sbpayshare)(votes))
