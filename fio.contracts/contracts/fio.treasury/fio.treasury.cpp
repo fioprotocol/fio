@@ -12,7 +12,6 @@ namespace fioio {
 
   class [[eosio::contract("FIOTreasury")]]  FIOTreasury : public eosio::contract {
 
-
     private:
       tpids_table tpids;
       fionames_table fionames;
@@ -128,223 +127,197 @@ namespace fioio {
     [[eosio::action]]
     void bpclaim(const string &fio_address, const name& actor) {
 
-      require_auth(actor);
-      auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
+        require_auth(actor);
+        auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
 
-      uint64_t producer = fioiter->owner_account;
+        uint64_t producer = fioiter->owner_account;
 
-      auto clockiter = clockstate.begin();
+        auto clockiter = clockstate.begin();
 
-      uint64_t payout = 0;
-      nlohmann::json json = {{"status",        "OK"},
-                             {"amount",    payout}};
+       /***************  Pay schedule expiration *******************/
+       //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
+       // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
+       if(now() >= clockiter->payschedtimer + 200 ) { //+ 172801
 
-     /***************  Pay schedule expiration *******************/
-     //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
-     // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-     if(now() >= clockiter->payschedtimer + 200 ) { //+ 172801
+         if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
 
-       if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
+             auto iter = voteshares.begin();
+             while (iter != voteshares.end()) {
+                   iter = voteshares.erase(iter);
+             }
 
-         auto iter = voteshares.begin();
-         while (iter != voteshares.end()) {
+             //move rewards left in bprewards->rewards to bpbucketpool->rewards
+             uint64_t temp = bucketrewards.begin()->rewards;
+             bucketrewards.erase(bucketrewards.begin());
+             bucketrewards.emplace(_self, [&](struct bucketpool &p) {
+               p.rewards = temp + bprewards.begin()->rewards;
+             });
+             bprewards.erase(bprewards.begin());
+             bprewards.emplace(_self, [&](struct bpreward &p) {
+               p.rewards = 0;
+             });
 
-               uint64_t reward = bucketrewards.begin()->rewards;
-               print("\nReward initialized to: ", reward);
-               reward += (iter->sbpayshare + iter->abpayshare);
-               print("\nspbayshare: ",iter->sbpayshare);
-               print("\nabpayshare: ", iter->abpayshare);
-               //reward = 100;
-               print("\nreward: ",reward);
-
-               bucketrewards.erase(bucketrewards.begin());
-               bucketrewards.emplace(_self, [&](struct bucketpool &p) {
-                 p.rewards = reward;
-               });
-
-               iter = voteshares.erase(iter);
-               print("\n\nDone\n\n\n\n");
-           }
-
-           print("\nPay schedule erased... ");
-        }
-
-     }
-
-      // If there is no pay schedule then create a new one
-      if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
-        //Create the payment schedule
-        print("\nCreating new pay schedule... ");
-        uint64_t bpcounter = 0;
-        auto proditer = producers.get_index<"prototalvote"_n>();
-        for( const auto& itr : proditer ) {
-          if(itr.is_active) {
-              voteshares.emplace(get_self(), [&](auto &p) {
-                p.owner = itr.owner;
-                p.votes = itr.total_votes;
-                p.lastclaim = now();
-              });
-            }
-
-            bpcounter++;
-            if (bpcounter > 42) break;
-          } // &itr : producers
-
-          uint64_t expectedpay = bprewards.begin()->rewards;
-          uint64_t tomint = 50000000000 - bprewards.begin()->rewards;
-          // if rewards < 5000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-          if (bprewards.begin()->rewards < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
-
-            //Mint new tokens up to 50,000 FIO
-              action(permission_level{get_self(), "active"_n},
-              "fio.token"_n, "mintfio"_n,
-              make_tuple(tomint)
-            ).send();
-
-            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-              entry.reservetokensminted += tomint;
-            });
-              //This new reward amount that has been minted will be appended to the rewards being divied up next
+             print("\nPay schedule erased... ");
           }
 
-          //split up bprewards to bpreward->dailybucket (40%) and bpbucketpool->rewards (60%)
-          uint64_t temp = bucketrewards.begin()->rewards;
-          bucketrewards.erase(bucketrewards.begin());
-          bucketrewards.emplace(get_self(), [&](auto &p) {
-            p.rewards = temp + static_cast<uint64_t>((bprewards.begin()->rewards * .60) + (tomint * .60));
-          });
+       }
 
-          temp = bprewards.begin()->rewards;
-          bprewards.erase(bprewards.begin());
-          bprewards.emplace(get_self(), [&](auto &p) {
-              p.dailybucket = static_cast<uint64_t>((temp) * .40  + (tomint * .40));
-              p.rewards = 0; //This was emptied upon distributing to bucketrewards in the previous call
-          });
-
-          //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use expectedpay
-          // All items are now in pay schedule, calculate the shares
-          uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
-          uint64_t abpcount = 21;
-          if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
-          if (bpcount <= 21) abpcount = bpcount;
-
-
-          double todaybucket = bucketrewards.begin()->rewards / 365;
-
-          bpcounter = 0;
-          for(auto &itr : voteshares) {
-              if (bpcounter <= abpcount) {
-                double reward = static_cast<double>(bprewards.begin()->dailybucket);
-                voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.abpayshare = (static_cast<uint64_t>(reward / bpcount));
+        // If there is no pay schedule then create a new one
+        if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
+          //Create the payment schedule
+          print("\nCreating new pay schedule... ");
+          uint64_t bpcounter = 0;
+          auto proditer = producers.get_index<"prototalvote"_n>();
+          for( const auto& itr : proditer ) {
+            if(itr.is_active) {
+                voteshares.emplace(get_self(), [&](auto &p) {
+                  p.owner = itr.owner;
+                  p.votes = itr.total_votes;
                 });
               }
-              gstate = global.get();
 
-              voteshares.modify(itr,get_self(), [&](auto &entry) {
-                  entry.sbpayshare = static_cast<uint64_t>(double(todaybucket) * (itr.votes / gstate.total_producer_vote_weight));
-              });
               bpcounter++;
+              if (bpcounter > 42) break;
+            } // &itr : producers
 
-              // Reduce the producers share of dailybucket and bucketrewards
+            uint64_t projectedpay = bprewards.begin()->rewards;
+            uint64_t tomint = 0; //reserve token minting disabled for MAS-427 UAT
+          /*  uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
+            // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
+            if (bprewards.begin()->rewards < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
 
-              auto temp = bucketrewards.begin()->rewards;
-              bucketrewards.erase(bucketrewards.begin());
-              bucketrewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp - itr.sbpayshare;
+              //Mint new tokens up to 50,000 FIO
+                action(permission_level{get_self(), "active"_n},
+                "fio.token"_n, "mintfio"_n,
+                make_tuple(tomint)
+              ).send();
+
+              clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+                entry.reservetokensminted += tomint;
               });
+                //This new reward amount that has been minted will be appended to the rewards being divied up next
+            }
+            */
 
-              temp = bprewards.begin()->rewards;
-              auto temp2 = bprewards.begin()->dailybucket;
-              bprewards.erase(bprewards.begin());
-              bprewards.emplace(get_self(), [&](auto &p) {
-                  p.dailybucket = temp2 - itr.abpayshare;
-                  p.rewards = temp;
-              });
+            //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
+            // All bps are now in pay schedule, calculate the shares
+            uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
+            uint64_t abpcount = 21;
+            if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
+            if (bpcount <= 21) abpcount = bpcount;
 
+            double todaybucket = bucketrewards.begin()->rewards / 365;
+            double tostandbybps = (((double)bprewards.begin()->rewards * .60) + todaybucket) / bpcount;
+            double toactivebps = ((double)(bprewards.begin()->rewards) * .40) / abpcount;
 
-          } // &itr : voteshares
+            bpcounter = 0;
+            uint64_t abpayshare = 0;
+            uint64_t sbpayshare = 0;
+            for(auto &itr : voteshares) {
+              double reward = 0;
+              abpayshare = (static_cast<uint64_t>(toactivebps / bpcount));
+              sbpayshare = static_cast<uint64_t>(double(tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
+                if (bpcounter <= abpcount) {
+                  voteshares.modify(itr,get_self(), [&](auto &entry) {
+                    entry.abpayshare = abpayshare;
+                  });
+                }
+                gstate = global.get();
+                voteshares.modify(itr,get_self(), [&](auto &entry) {
+                    entry.sbpayshare = sbpayshare;
+                });
+                bpcounter++;
 
-        //Start 24 track for daily pay
-        clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-          entry.payschedtimer = now();
-        });
-        print("Voteshares processed","\n"); //To remove after testing
+            } // &itr : voteshares
 
-      } //if new payschedule
+          //Start 24 track for daily pay
+          clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+            entry.payschedtimer = now();
+          });
+          print("Voteshares processed","\n"); //To remove after testing
 
-      //This contract should only allow the producer to be able to claim rewards once every x blocks.
+        } //if new payschedule
 
-     //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
+        //This contract should only allow the producer to be able to claim rewards once every x blocks.
 
-     auto bpiter = voteshares.find(producer);
+       //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
 
-     const auto &prod = producers.get(producer);
+       auto bpiter = voteshares.find(producer);
+       const auto &prod = producers.get(producer);
 
-     /******* Payouts *******/
-     //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
-     payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
-     print("/n/n****************");
-     print("/n/nPayout Amount: ", payout);
+       /******* Payouts *******/
+       //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
+       uint64_t payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
 
-     fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
-     "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
+       fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
+       "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
-     if(bpiter != voteshares.end() ) {
+       if(bpiter != voteshares.end()) {
 
-          auto domiter = domains.find(fioiter->domainhash);
-        fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
-        "FIO Domain expired", ErrorDomainExpired);
+         auto domiter = domains.find(fioiter->domainhash);
+         fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
+          "FIO Domain expired", ErrorDomainExpired);
 
-        fio_400_assert(now() < fioiter->expiration, fio_address, "fio_address",
-        "FIO Address expired", ErrorFioNameExpired);
+         fio_400_assert(now() < fioiter->expiration, fio_address, "fio_address",
+          "FIO Address expired", ErrorFioNameExpired);
 
-        check(prod.active(), "producer does not have an active key");
-
-         action(permission_level{get_self(), "active"_n},
-           "fio.token"_n, "transfer"_n,
-           make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
-           string("Paying producer from treasury."))
-       ).send();
-
-
-    // PAY FOUNDATION //
-     auto fdtniter = fdtnrewards.begin();
-     if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
-         action(permission_level{get_self(), "active"_n},
+         check(prod.active(), "producer does not have an active key");
+         if (payout > 0) {
+           action(permission_level{get_self(), "active"_n},
                "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
-               string("Paying foundation from treasury."))
-             ).send();
+               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
+               string("Paying producer from treasury."))
+           ).send();
 
-       //Clear the foundation rewards counter
+         // Reduce the producer's share of daily rewards and bucketrewards
 
-        clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-          entry.rewardspaid += payout;
-        });
+           auto temp = bucketrewards.begin()->rewards;
+           bucketrewards.erase(bucketrewards.begin());
+           bucketrewards.emplace(get_self(), [&](auto &p) {
+             p.rewards = temp - bpiter->sbpayshare;
+           });
 
-          fdtnrewards.erase(fdtniter);
-          fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
-            entry.rewards = 0;
-         });
-    //////////////////////////////////////
+           temp = bprewards.begin()->rewards;
+           bprewards.erase(bprewards.begin());
+           bprewards.emplace(get_self(), [&](auto &p) {
+               p.rewards = temp - bpiter->abpayshare;
+           });
 
-     }
+           clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+             entry.rewardspaid += payout;
+           });
 
+          //Invoke system contract to reset producer last_claim_time and unpaid_blocks
+          action(permission_level{get_self(), "active"_n},
+                "fio.system"_n, "resetclaim"_n,
+                make_tuple(producer)
+              ).send();
 
-     //Invoke system contract to reset producer last_claim_time and unpaid_blocks
-     action(permission_level{get_self(), "active"_n},
-           "fio.system"_n, "resetclaim"_n,
-           make_tuple(producer)
-         ).send();
+         }
+        // PAY FOUNDATION //
+        auto fdtniter = fdtnrewards.begin();
+        if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
+           action(permission_level{get_self(), "active"_n},
+                 "fio.token"_n, "transfer"_n,
+                 make_tuple("fio.treasury"_n, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
+                 string("Paying foundation from treasury."))
+               ).send();
 
-     //remove the producer from payschedule
-     voteshares.erase(bpiter);
+          //Clear the foundation rewards counter
 
-   } //endif now() > bpiter + 172800
+            fdtnrewards.erase(fdtniter);
+            fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
+              entry.rewards = 0;
+           });
+           //////////////////////////////////////
+        }
+       //remove the producer from payschedule
+       voteshares.erase(bpiter);
 
-     json = {{"status",        "OK"},
-             {"amount",    payout}};
+     } //endif now() > bpiter + 172800
+
+     nlohmann::json json = {{"status",        "OK"},
+                       {"amount",    payout}};
 
      send_response(json.dump().c_str());
 
