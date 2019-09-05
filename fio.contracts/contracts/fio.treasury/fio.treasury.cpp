@@ -176,6 +176,19 @@ namespace fioio {
                 });
               }
 
+              //Move 1/365 of the bucketpool to the bpshare
+
+              uint64_t temp = bprewards.begin()->rewards;
+              bprewards.erase(bprewards.begin());
+              bprewards.emplace(get_self(), [&](auto &p) {
+                p.rewards = bucketrewards.begin()->rewards/365;
+              });
+              temp = bucketrewards.begin()->rewards;
+              bucketrewards.erase(bucketrewards.begin());
+              bprewards.emplace(get_self(), [&](auto &p) {
+                p.rewards = temp/365;
+              });
+
               bpcounter++;
               if (bpcounter > 42) break;
             } // &itr : producers
@@ -206,10 +219,8 @@ namespace fioio {
             if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
             if (bpcount <= 21) abpcount = bpcount;
 
-            uint64_t todaybucket = bucketrewards.begin()->rewards / 365;
-
-            uint64_t tostandbybps = static_cast<uint64_t>((todaybucket * .60) + (bprewards.begin()->rewards * .60));
-            uint64_t toactivebps = static_cast<uint64_t>((todaybucket * .40) + (bprewards.begin()->rewards * .40));
+            uint64_t tostandbybps = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
+            uint64_t toactivebps = static_cast<uint64_t>(bprewards.begin()->rewards * .40);
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
