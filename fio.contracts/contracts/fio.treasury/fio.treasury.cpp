@@ -207,8 +207,9 @@ namespace fioio {
             if (bpcount <= 21) abpcount = bpcount;
 
             uint64_t todaybucket = bucketrewards.begin()->rewards / 365;
-            uint64_t tostandbybps = todaybucket + (bprewards.begin()->rewards * .60);
-            uint64_t toactivebps = bprewards.begin()->rewards * .40;
+
+            uint64_t tostandbybps = static_cast<uint64_t>((todaybucket * .60) + (bprewards.begin()->rewards * .60));
+            uint64_t toactivebps = static_cast<uint64_t>((todaybucket * .40) + (bprewards.begin()->rewards * .40));
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
@@ -216,7 +217,7 @@ namespace fioio {
             gstate = global.get();
             for(auto &itr : voteshares) {
               double reward = 0;
-              abpayshare = (static_cast<uint64_t>(toactivebps / bpcount));
+              abpayshare = static_cast<uint64_t>(toactivebps / abpcount);
               sbpayshare = static_cast<uint64_t>(double(tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
                 if (bpcounter <= abpcount) {
                   voteshares.modify(itr,get_self(), [&](auto &entry) {
