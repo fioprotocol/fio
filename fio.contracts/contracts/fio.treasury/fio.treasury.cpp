@@ -206,13 +206,14 @@ namespace fioio {
             if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
             if (bpcount <= 21) abpcount = bpcount;
 
-            double todaybucket = bucketrewards.begin()->rewards / 365;
-            double tostandbybps = (((double)bprewards.begin()->rewards * .60) + todaybucket) / bpcount;
-            double toactivebps = ((double)(bprewards.begin()->rewards) * .40) / abpcount;
+            uint64_t todaybucket = bucketrewards.begin()->rewards / 365;
+            uint64_t tostandbybps = todaybucket + (bprewards.begin()->rewards * .60);
+            uint64_t toactivebps = bprewards.begin()->rewards * .40;
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
             uint64_t sbpayshare = 0;
+            gstate = global.get();
             for(auto &itr : voteshares) {
               double reward = 0;
               abpayshare = (static_cast<uint64_t>(toactivebps / bpcount));
@@ -222,7 +223,6 @@ namespace fioio {
                     entry.abpayshare = abpayshare;
                   });
                 }
-                gstate = global.get();
                 voteshares.modify(itr,get_self(), [&](auto &entry) {
                     entry.sbpayshare = sbpayshare;
                 });
@@ -234,7 +234,7 @@ namespace fioio {
           clockstate.modify(clockiter, get_self(), [&](auto &entry) {
             entry.payschedtimer = now();
           });
-          print("Voteshares processed","\n"); //To remove after testing
+          print("Pay schedule created...","\n"); //To remove after testing
 
         } //if new payschedule
 
@@ -247,13 +247,13 @@ namespace fioio {
 
        /******* Payouts *******/
        //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
-       uint64_t payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
+       uint64_t payout = 0;
 
        fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
        "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
        if(bpiter != voteshares.end()) {
-
+         payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
          auto domiter = domains.find(fioiter->domainhash);
          fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
           "FIO Domain expired", ErrorDomainExpired);
@@ -271,18 +271,21 @@ namespace fioio {
 
          // Reduce the producer's share of daily rewards and bucketrewards
 
-           auto temp = bucketrewards.begin()->rewards;
-           bucketrewards.erase(bucketrewards.begin());
-           bucketrewards.emplace(get_self(), [&](auto &p) {
-             p.rewards = temp - bpiter->sbpayshare;
-           });
-
-           temp = bprewards.begin()->rewards;
-           bprewards.erase(bprewards.begin());
-           bprewards.emplace(get_self(), [&](auto &p) {
-               p.rewards = temp - bpiter->abpayshare;
-           });
-
+           if (bpiter->sbpayshare > 0) {
+             auto temp = bucketrewards.begin()->rewards;
+             bucketrewards.erase(bucketrewards.begin());
+             bucketrewards.emplace(get_self(), [&](auto &p) {
+               p.rewards = temp - bpiter->sbpayshare;
+             });
+           }
+           if (bpiter->abpayshare > 0) {
+             auto temp = bprewards.begin()->rewards;
+             bprewards.erase(bprewards.begin());
+             bprewards.emplace(get_self(), [&](auto &p) {
+                 p.rewards = temp - bpiter->abpayshare;
+             });
+           }
+           //Keep track of rewards paid for reserve minting
            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
              entry.rewardspaid += payout;
            });
@@ -292,7 +295,6 @@ namespace fioio {
                 "fio.system"_n, "resetclaim"_n,
                 make_tuple(producer)
               ).send();
-
          }
         // PAY FOUNDATION //
         auto fdtniter = fdtnrewards.begin();
@@ -304,7 +306,6 @@ namespace fioio {
                ).send();
 
           //Clear the foundation rewards counter
-
             fdtnrewards.erase(fdtniter);
             fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
               entry.rewards = 0;
@@ -313,7 +314,6 @@ namespace fioio {
         }
        //remove the producer from payschedule
        voteshares.erase(bpiter);
-
      } //endif now() > bpiter + 172800
 
      nlohmann::json json = {{"status",        "OK"},
@@ -441,15 +441,8 @@ namespace fioio {
         "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
         if (!paid) {
-
-
-
-
           rewardspaid = true;
-
         }
-
-
 
     }
 
