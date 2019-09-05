@@ -185,7 +185,7 @@ namespace fioio {
               });
               temp = bucketrewards.begin()->rewards;
               bucketrewards.erase(bucketrewards.begin());
-              bprewards.emplace(get_self(), [&](auto &p) {
+              bucketrewards.emplace(get_self(), [&](auto &p) {
                 p.rewards = temp/365;
               });
 
