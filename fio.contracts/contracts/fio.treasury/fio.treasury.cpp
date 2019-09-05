@@ -146,7 +146,7 @@ namespace fioio {
                    iter = voteshares.erase(iter);
              }
 
-             //move rewards left in bprewards->rewards to bpbucketpool->rewards
+        /*     //move rewards left in bprewards->rewards to bpbucketpool->rewards
              uint64_t temp = bucketrewards.begin()->rewards;
              bucketrewards.erase(bucketrewards.begin());
              bucketrewards.emplace(_self, [&](struct bucketpool &p) {
@@ -156,7 +156,7 @@ namespace fioio {
              bprewards.emplace(_self, [&](struct bpreward &p) {
                p.rewards = 0;
              });
-
+        */
              print("\nPay schedule erased... ");
           }
 
