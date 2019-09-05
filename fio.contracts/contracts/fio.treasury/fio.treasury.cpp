@@ -146,7 +146,7 @@ namespace fioio {
                    iter = voteshares.erase(iter);
              }
 
-             //move rewards left in bprewards->rewards to bpbucketpool->rewards
+        /*     //move rewards left in bprewards->rewards to bpbucketpool->rewards
              uint64_t temp = bucketrewards.begin()->rewards;
              bucketrewards.erase(bucketrewards.begin());
              bucketrewards.emplace(_self, [&](struct bucketpool &p) {
@@ -156,7 +156,7 @@ namespace fioio {
              bprewards.emplace(_self, [&](struct bpreward &p) {
                p.rewards = 0;
              });
-
+        */
              print("\nPay schedule erased... ");
           }
 
@@ -175,6 +175,19 @@ namespace fioio {
                   p.votes = itr.total_votes;
                 });
               }
+
+              //Move 1/365 of the bucketpool to the bpshare
+
+              uint64_t temp = bprewards.begin()->rewards;
+              bprewards.erase(bprewards.begin());
+              bprewards.emplace(get_self(), [&](auto &p) {
+                p.rewards = bucketrewards.begin()->rewards/365;
+              });
+              temp = bucketrewards.begin()->rewards;
+              bucketrewards.erase(bucketrewards.begin());
+              bprewards.emplace(get_self(), [&](auto &p) {
+                p.rewards = temp/365;
+              });
 
               bpcounter++;
               if (bpcounter > 42) break;
@@ -206,9 +219,8 @@ namespace fioio {
             if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
             if (bpcount <= 21) abpcount = bpcount;
 
-            uint64_t todaybucket = bucketrewards.begin()->rewards / 365;
-            uint64_t tostandbybps = todaybucket + (bprewards.begin()->rewards * .60);
-            uint64_t toactivebps = bprewards.begin()->rewards * .40;
+            uint64_t tostandbybps = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
+            uint64_t toactivebps = static_cast<uint64_t>(bprewards.begin()->rewards * .40);
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
@@ -216,7 +228,7 @@ namespace fioio {
             gstate = global.get();
             for(auto &itr : voteshares) {
               double reward = 0;
-              abpayshare = (static_cast<uint64_t>(toactivebps / bpcount));
+              abpayshare = static_cast<uint64_t>(toactivebps / abpcount);
               sbpayshare = static_cast<uint64_t>(double(tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
                 if (bpcounter <= abpcount) {
                   voteshares.modify(itr,get_self(), [&](auto &entry) {

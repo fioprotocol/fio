@@ -367,7 +367,7 @@ if [ $mChoice == 1 ]; then
      ./cleos -u http://localhost:8889 push action -j fio.fee create '{"end_point":"submit_bundled_transaction","type":"0","suf_amount":"0"}' --permission fio.fee@active
 
      #set up bounties_table
-     echo "creating bounties"
+     echo creating bounties
      ./cleos -u http://localhost:8889 push action -j fio.tpid updatebounty '{"amount":0}' --permission fio.tpid@active
 
 
