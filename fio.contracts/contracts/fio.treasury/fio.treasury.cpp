@@ -162,6 +162,7 @@ namespace fioio {
 
        }
 
+        //*********** CREATE PAYSCHEDULE **************
         // If there is no pay schedule then create a new one
         if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
           //Create the payment schedule
@@ -176,27 +177,34 @@ namespace fioio {
                 });
               }
 
-              //Move 1/365 of the bucketpool to the bpshare
-
-              uint64_t temp = bprewards.begin()->rewards;
-              uint64_t amount = bucketrewards.begin()->rewards/365;
-              bprewards.erase(bprewards.begin());
-              bprewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp + amount;
-              });
-              temp = bucketrewards.begin()->rewards;
-              bucketrewards.erase(bucketrewards.begin());
-              bucketrewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp - amount;
-              });
-
               bpcounter++;
               if (bpcounter > 42) break;
             } // &itr : producers
 
+            //Move 1/365 of the bucketpool to the bpshare
+            uint64_t temp = bprewards.begin()->rewards;
+            uint64_t amount = static_cast<uint64_t>(bucketrewards.begin()->rewards/365);
+            print("\nNOW rewards is ", bprewards.begin()->rewards);
+            bprewards.erase(bprewards.begin());
+            print("\n365 rewards is ", bucketrewards.begin()->rewards);
+            bprewards.emplace(get_self(), [&](auto &p) {
+              p.rewards = temp + amount;
+            });
+            print("\nAfter receiving 1/365 of 365 rewards, NOW rewards is ", bprewards.begin()->rewards);
+           print("\nBy this much:  ", amount);
+            temp = bucketrewards.begin()->rewards;
+            bucketrewards.erase(bucketrewards.begin());
+            bucketrewards.emplace(get_self(), [&](auto &p) {
+              p.rewards = temp - amount;
+            });
+            print("\nAfter receiving 1/365 of 365 rewards, 365 rewards is ", bucketrewards.begin()->rewards);
+
             uint64_t projectedpay = bprewards.begin()->rewards;
-            uint64_t tomint = 0; //reserve token minting disabled for MAS-427 UAT
-          /*  uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
+            uint64_t tomint = 0;
+
+
+            //reserve token minting disabled for MAS-427 UAT
+            /*  uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
             // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
             if (bprewards.begin()->rewards < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
 
@@ -217,20 +225,24 @@ namespace fioio {
             // All bps are now in pay schedule, calculate the shares
             uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
             uint64_t abpcount = 21;
+
             if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
             if (bpcount <= 21) abpcount = bpcount;
+            print("\nbpcount: ", bpcount);
+            print("\nbpcount: ", abpcount);
 
             uint64_t tostandbybps = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
             uint64_t toactivebps = static_cast<uint64_t>(bprewards.begin()->rewards * .40);
+            print("\ntostandbybps: ", tostandbybps);
+            print("\n:toactivebps: ", toactivebps);
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
             uint64_t sbpayshare = 0;
             gstate = global.get();
             for(auto &itr : voteshares) {
-              double reward = 0;
               abpayshare = static_cast<uint64_t>(toactivebps / abpcount);
-              sbpayshare = static_cast<uint64_t>(double(tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
+              sbpayshare = static_cast<uint64_t>((tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
                 if (bpcounter <= abpcount) {
                   voteshares.modify(itr,get_self(), [&](auto &entry) {
                     entry.abpayshare = abpayshare;
@@ -248,9 +260,8 @@ namespace fioio {
             entry.payschedtimer = now();
           });
           print("Pay schedule created...","\n"); //To remove after testing
-
         } //if new payschedule
-
+        //*********** END OF CREATE PAYSCHEDULE **************
         //This contract should only allow the producer to be able to claim rewards once every x blocks.
 
        //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
@@ -284,18 +295,11 @@ namespace fioio {
 
          // Reduce the producer's share of daily rewards and bucketrewards
 
-           if (bpiter->sbpayshare > 0) {
-             auto temp = bucketrewards.begin()->rewards;
-             bucketrewards.erase(bucketrewards.begin());
-             bucketrewards.emplace(get_self(), [&](auto &p) {
-               p.rewards = temp - bpiter->sbpayshare;
-             });
-           }
            if (bpiter->abpayshare > 0) {
              auto temp = bprewards.begin()->rewards;
              bprewards.erase(bprewards.begin());
              bprewards.emplace(get_self(), [&](auto &p) {
-                 p.rewards = temp - bpiter->abpayshare;
+                 p.rewards = temp - payout;
              });
            }
            //Keep track of rewards paid for reserve minting
