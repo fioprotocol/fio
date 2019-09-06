@@ -179,14 +179,15 @@ namespace fioio {
               //Move 1/365 of the bucketpool to the bpshare
 
               uint64_t temp = bprewards.begin()->rewards;
+              uint64_t amount = bucketrewards.begin()->rewards/365;
               bprewards.erase(bprewards.begin());
               bprewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp + bucketrewards.begin()->rewards/365;
+                p.rewards = temp + amount;
               });
               temp = bucketrewards.begin()->rewards;
               bucketrewards.erase(bucketrewards.begin());
               bucketrewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp/365;
+                p.rewards = temp - amount;
               });
 
               bpcounter++;
