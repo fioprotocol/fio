@@ -181,12 +181,12 @@ namespace fioio {
               uint64_t temp = bprewards.begin()->rewards;
               bprewards.erase(bprewards.begin());
               bprewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp + bucketrewards.begin()->rewards/365;
+                p.rewards = temp + (bucketrewards.begin()->rewards/365);
               });
-              temp = bucketrewards.begin()->rewards;
+              uint64_t temp2 = bucketrewards.begin()->rewards;
               bucketrewards.erase(bucketrewards.begin());
               bucketrewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp/365;
+                p.rewards = temp - temp2/365;
               });
 
               bpcounter++;
