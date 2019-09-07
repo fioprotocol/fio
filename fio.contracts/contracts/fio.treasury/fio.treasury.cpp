@@ -200,10 +200,10 @@ namespace fioio {
             print("\nAfter receiving 1/365 of 365 rewards, 365 rewards is ", bucketrewards.begin()->rewards);
 
             uint64_t projectedpay = bprewards.begin()->rewards;
-    
+
             uint64_t tomint = 5000000000 - bprewards.begin()->rewards;
-            // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-            if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 20000000000) { // lowered values for testing
+            // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 50000000000000000
+            if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
 
               //Mint new tokens up to 50,000 FIO
                 action(permission_level{get_self(), "active"_n},
