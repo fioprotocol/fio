@@ -33,6 +33,10 @@
                   "type":"uint64"},
                  {"name":"payschedtimer",
                   "type":"uint64"},
+                  {"name":"rewardspaid",
+                   "type":"uint64"},
+                  {"name":"reservetokensminted",
+                   "type":"uint64"},                  
               ]
               },{
               "name": "bpreward",

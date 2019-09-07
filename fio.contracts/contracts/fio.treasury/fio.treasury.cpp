@@ -200,13 +200,10 @@ namespace fioio {
             print("\nAfter receiving 1/365 of 365 rewards, 365 rewards is ", bucketrewards.begin()->rewards);
 
             uint64_t projectedpay = bprewards.begin()->rewards;
-            uint64_t tomint = 0;
 
-
-            //reserve token minting disabled for MAS-427 UAT
-            /*  uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
-            // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 20000000000000000
-            if (bprewards.begin()->rewards < 50000 && clockiter->reservetokensminted < 200000000) { // lowered values for testing
+            uint64_t tomint = 5000000000 - bprewards.begin()->rewards;
+            // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 50000000000000000
+            if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
 
               //Mint new tokens up to 50,000 FIO
                 action(permission_level{get_self(), "active"_n},
@@ -219,7 +216,7 @@ namespace fioio {
               });
                 //This new reward amount that has been minted will be appended to the rewards being divied up next
             }
-            */
+
 
             //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
             // All bps are now in pay schedule, calculate the shares
