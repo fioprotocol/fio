@@ -137,7 +137,7 @@ namespace fioio {
        /***************  Pay schedule expiration *******************/
        //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
        // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-       if(now() >= clockiter->payschedtimer + 200 ) { //+ 172801
+       if(now() >= clockiter->payschedtimer + 121 ) { //+ 172801
 
          if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
 
@@ -146,17 +146,6 @@ namespace fioio {
                    iter = voteshares.erase(iter);
              }
 
-        /*     //move rewards left in bprewards->rewards to bpbucketpool->rewards
-             uint64_t temp = bucketrewards.begin()->rewards;
-             bucketrewards.erase(bucketrewards.begin());
-             bucketrewards.emplace(_self, [&](struct bucketpool &p) {
-               p.rewards = temp + bprewards.begin()->rewards;
-             });
-             bprewards.erase(bprewards.begin());
-             bprewards.emplace(_self, [&](struct bpreward &p) {
-               p.rewards = 0;
-             });
-        */
              print("\nPay schedule erased... ");
           }
 
@@ -216,9 +205,9 @@ namespace fioio {
               });
 
               //Include the minted tokens in the reward payout
-              temp = bucketrewards.begin()->rewards;
-              bucketrewards.erase(bucketrewards.begin());
-              bucketrewards.emplace(get_self(), [&](auto &p) {
+              temp = bprewards.begin()->rewards;
+              bprewards.erase(bprewards.begin());
+              bprewards.emplace(get_self(), [&](auto &p) {
                 p.rewards = temp + tomint;
               });
                 //This new reward amount that has been minted will be appended to the rewards being divied up next
