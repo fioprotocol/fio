@@ -214,6 +214,13 @@ namespace fioio {
               clockstate.modify(clockiter, get_self(), [&](auto &entry) {
                 entry.reservetokensminted += tomint;
               });
+
+              //Include the minted tokens in the reward payout
+              temp = bucketrewards.begin()->rewards;
+              bucketrewards.erase(bucketrewards.begin());
+              bucketrewards.emplace(get_self(), [&](auto &p) {
+                p.rewards = temp + tomint;
+              });
                 //This new reward amount that has been minted will be appended to the rewards being divied up next
             }
 
