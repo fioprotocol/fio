@@ -100,13 +100,13 @@ namespace fioio {
         uint64_t value = 0;
         uint64_t multv = 0;
         if (len > 0) {
-            multv = 126 / len;
+            multv = 60 / len;
         }
         for (uint32_t i = 0; i < len; ++i) {
             uint64_t c = 0;
             if (i < len) c = uint64_t(str[i]);
 
-            if (i < 126) {
+            if (i < 60) {
                 c &= 0x1f;
                 c <<= 64 - multv * (i + 1);
             } else {
