@@ -14,8 +14,8 @@
 
 namespace fioio {
 
-    constexpr auto maxFioNameLen = 64;
-    constexpr auto maxFioDomainLen = 62;
+    constexpr auto maxFioNameLen = 50;
+    constexpr auto maxFioDomainLen = 50;
 
     using namespace std;
 
@@ -74,8 +74,8 @@ namespace fioio {
     inline int fioNameSizeCheck(string fn, string fd) {
         size_t totalsize = fn.size() + fd.size();
 
-        if (totalsize > (maxFioNameLen + maxFioDomainLen)) {
-            return 126;
+        if (totalsize > maxFioNameLen + maxFioDomainLen) {
+            return 100;
         }
         return 0;
     }
