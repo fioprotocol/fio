@@ -13,7 +13,7 @@ namespace fioio {
 
     /***
      * This contract maintains fee related actions and data. Most importantly its the host of the transaction fee
-     * structure that is used by sister contracts to 
+     * structure that is used by sister contracts to
      */
     class [[eosio::contract("FioFee")]]  FioFee : public eosio::contract {
 
@@ -43,7 +43,7 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void setfeevote(const vector <feevalue> &fee_ratios, const string &actor) {
-
+            bool dbgout = true;
 
             name aactor = name(actor.c_str());
             auto prod_iter = producers.find(aactor.value);
@@ -62,11 +62,16 @@ namespace fioio {
 
             uint32_t nowtime = now();
 
-            for (int i = 0; i < fee_ratios.size(); i++) {
-                uint64_t endPointHash = string_to_uint64_hash(fee_ratios[i].end_point.c_str());
+              for ( auto &feeval : fee_ratios) {
+                uint64_t endPointHash = string_to_uint64_hash(feeval.end_point.c_str());
                 //look for this actor in the feevoters table, if not there error.
                 //look for this actor in the feevotes table, it not there add the record.
                 //  if there are records loop through the records, find teh matching endpoint and remove this record.
+                if (dbgout) {
+                  print("\nendPointHash: ", endPointHash, "\n");
+                }
+                auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
+                fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point, "invalid end_point", ErrorEndpointNotFound);
 
                 auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
                 auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
@@ -109,9 +114,9 @@ namespace fioio {
                     feevotes.emplace(_self, [&](struct feevote &fv) {
                         fv.id = feevotes.available_primary_key();
                         fv.block_producer_name = aactor;
-                        fv.end_point = fee_ratios[i].end_point;
+                        fv.end_point = feeval.end_point;
                         fv.end_point_hash = endPointHash;
-                        fv.suf_amount = fee_ratios[i].value;
+                        fv.suf_amount = feeval.value;
                         fv.lastvotetimestamp = nowtime;
                     });
                 }
