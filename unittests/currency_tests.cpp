@@ -80,9 +80,9 @@ public:
 
     currency_tester()
             : TESTER(),
-              abi_ser(json::from_string(contracts::eosio_token_abi().data()).as<abi_def>(), abi_serializer_max_time) {
-        create_account(N(eosio.token));
-        set_code(N(eosio.token), contracts::eosio_token_wasm());
+              abi_ser(json::from_string(contracts::fio_token_abi().data()).as<abi_def>(), abi_serializer_max_time) {
+        create_account(N(fio.token));
+        set_code(N(eosio.token), contracts::fio_token_wasm());
 
         auto result = push_action(N(eosio.token), N(create), mutable_variant_object()
                 ("issuer", eosio_token)
@@ -93,7 +93,7 @@ public:
         );
         wdump((result));
 
-        result = push_action(N(eosio.token), N(issue), mutable_variant_object()
+        result = push_action(N(fio.token), N(issue), mutable_variant_object()
                 ("to", eosio_token)
                 ("quantity", "1000000.0000 CUR")
                 ("memo", "gggggggggggg")

@@ -11,6 +11,39 @@
             {"name":"suf_amount", "type":"uint64"}
         ]
       },{
+             "name": "feevalue",
+             "base": "",
+             "fields": [
+                {"name":"end_point", "type":"string"},
+                {"name":"value", "type":"uint64"}
+             ]
+      },{
+        "name": "setfeevote",
+        "base": "",
+        "fields": [
+            {"name":"fee_ratios", "type":"feevalue[]"},
+            {"name":"actor", "type":"string"}
+        ]
+      },{
+        "name": "bundlevote",
+        "base": "",
+        "fields": [
+            {"name":"bundled_transactions", "type":"float64"},
+            {"name":"actor", "type":"string"}
+        ]
+      },{
+        "name": "setfeemult",
+        "base": "",
+        "fields": [
+            {"name":"multiplier", "type":"float64"},
+            {"name":"actor", "type":"string"}
+        ]
+      },{
+        "name": "updatefees",
+        "base": "",
+        "fields": [
+        ]
+      },{
         "name": "fiofee",
         "base": "",
         "fields": [
@@ -20,13 +53,66 @@
            {"name":"type", "type":"uint64"},
            {"name":"suf_amount", "type":"uint64"}
         ]
+     },{
+        "name": "feevoter",
+        "base": "",
+        "fields": [
+           {"name":"block_producer_name", "type":"name"},
+           {"name":"fee_multiplier", "type":"float64"},
+           {"name":"lastvotetimestamp", "type":"uint64"}
+        ]
+     },{
+        "name": "feevote",
+        "base": "",
+        "fields": [
+           {"name":"id", "type":"uint64"},
+           {"name":"block_producer_name", "type":"name"},
+           {"name":"end_point", "type":"string"},
+           {"name":"end_point_hash", "type":"uint64"}
+           {"name":"suf_amount", "type":"uint64"},
+           {"name":"lastvotetimestamp", "type":"uint64"}
+        ]
+     },{
+        "name": "bundlevoter",
+        "base": "",
+        "fields": [
+           {"name":"block_producer_name", "type":"name"},
+           {"name":"bundledbvotenumber", "type":"float64"},
+           {"name":"lastvotetimestamp", "type":"uint64"}
+        ]
      }],
     "actions": [{
          "name": "create",
          "type": "create",
          "ricardian_contract": ""
+       },{
+         "name": "setfeevote",
+         "type": "setfeevote",
+         "ricardian_contract": ""
+       },{
+         "name": "bundlevote",
+         "type": "bundlevote",
+         "ricardian_contract": ""
+       },{
+         "name": "setfeemult",
+         "type": "setfeemult",
+         "ricardian_contract": ""
+       },{
+         "name": "updatefees",
+         "type": "updatefees",
+         "ricardian_contract": ""
        }],
     "tables": [{
+         "name": "bundlevoters",
+         "index_type": "i64",
+         "key_names": [
+            "block_producer_name"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "bundlevoter"
+     },{
          "name": "fiofees",
          "index_type": "i64",
          "key_names": [
@@ -36,7 +122,27 @@
             "uint64"
          ],
          "type": "fiofee"
-     }],
+     },{
+         "name": "feevoters",
+         "index_type": "i64",
+         "key_names": [
+            "block_producer_name"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "feevoter"
+     },{
+         "name": "feevotes",
+         "index_type": "i64",
+         "key_names": [
+            "block_producer_name"
+         ],
+         "key_types": [
+            "uint64"
+         ],
+         "type": "feevote"
+      }],
     "ricardian_clauses": [],
     "error_messages": [],
     "abi_extensions": []

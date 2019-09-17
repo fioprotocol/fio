@@ -65,9 +65,9 @@ create_accounts(accs);
 
 produce_block();
 
-set_code( N(eosio.token), contracts::eosio_token_wasm()
+set_code( N(eosio.token), contracts::fio_token_wasm()
 );
-set_abi( N(eosio.token), contracts::eosio_token_abi()
+set_abi( N(eosio.token), contracts::fio_token_abi()
 .
 
 data()
@@ -217,9 +217,9 @@ create_accounts(accs);
 
 produce_block();
 
-set_code( N(eosio.token), contracts::eosio_token_wasm()
+set_code( N(eosio.token), contracts::fio_token_wasm()
 );
-set_abi( N(eosio.token), contracts::eosio_token_abi()
+set_abi( N(eosio.token), contracts::fio_token_abi()
 .
 
 data()
@@ -670,9 +670,9 @@ create_accounts(accs);
 
 produce_block();
 
-set_code( N(eosio.token), contracts::eosio_token_wasm()
+set_code( N(eosio.token), contracts::fio_token_wasm()
 );
-set_abi( N(eosio.token), contracts::eosio_token_abi()
+set_abi( N(eosio.token), contracts::fio_token_abi()
 .
 
 data()
@@ -705,9 +705,9 @@ name(a)
 }
 produce_blocks(1);
 
-set_code( config::system_account_name, contracts::eosio_system_wasm()
+set_code( config::system_account_name, contracts::fio_system_wasm()
 );
-set_abi( config::system_account_name, contracts::eosio_system_abi()
+set_abi( config::system_account_name, contracts::fio_system_abi()
 .
 
 data()

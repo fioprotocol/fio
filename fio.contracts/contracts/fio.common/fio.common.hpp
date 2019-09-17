@@ -13,6 +13,7 @@
 #include "fio_common_validator.hpp"
 #include "chain_control.hpp"
 #include "account_operations.hpp"
+#include "fio.rewards.hpp"
 
 #ifndef FEE_CONTRACT
 #define FEE_CONTRACT "fio.fee"
@@ -35,7 +36,7 @@
 #endif
 
 #ifndef YEARTOSECONDS
-#define YEARTOSECONDS 31561920
+#define YEARTOSECONDS 31536000
 #endif
 
 namespace fioio {
@@ -46,6 +47,9 @@ namespace fioio {
 
     static const name FeeContract = name(FEE_CONTRACT);    // account hosting the fee contract
     static const name SystemContract = name(FIO_SYSTEM);
+    static const name TPIDContract = name("fio.tpid");
+    static const name TokenContract = name("fio.token");
+    static const name FOUNDATIONACCOUNT = name("fio.foundatn");
 
     struct config {
         name tokencontr; // owner of the token contract
@@ -114,5 +118,7 @@ namespace fioio {
 
         return value;
     }
+
+
 
 } // namespace fioio

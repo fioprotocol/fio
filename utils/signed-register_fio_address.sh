@@ -8,7 +8,7 @@ wPort=9899
 hostname="localhost"
 
 if [ -z "$1" ]; then
-    domain="eddie.freddie"
+    domain="eddie:dapix"
 else
     domain=$1
 fi
@@ -25,7 +25,8 @@ dataJson="{
   \"fio_address\": \"${domain}\",
   \"actor\": \"${fioactor}\",
   \"max_fee\":\"40000000000\",
-  \"owner_fio_public_key\":\"FIO6vRt3FzoRJYx1dxWigXzgkbnoZXg2zAfiofh4E3eCtNvJZhvWY\"
+  \"owner_fio_public_key\":\"FIO6vRt3FzoRJYx1dxWigXzgkbnoZXg2zAfiofh4E3eCtNvJZhvWY\",
+  \"tpid\":\"adam:dapix\",
 }"
 
 expectedPackedData=056461706978104208414933a95b

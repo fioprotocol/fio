@@ -19,10 +19,9 @@
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
-#include <eosio/chain/fioio/fio_common_validator.hpp>
-#include <eosio/chain/fioio/json_helper.hpp>
 #include <eosio/chain/fioio/keyops.hpp>
 #include <eosio/chain/eosio_contract.hpp>
+#include <fio.common/fio_common_validator.hpp>
 
 #include <boost/signals2/connection.hpp>
 #include <boost/algorithm/string.hpp>
@@ -32,855 +31,6 @@
 #include <fc/variant.hpp>
 #include <signal.h>
 #include <cstdlib>
-
-
-const char* const eosio_system_abi = R"=====(
-{
-   "version": "eosio::abi/1.0",
-   "types": [{
-      "new_type_name": "account_name",
-      "type": "name"
-   },{
-      "new_type_name": "permission_name",
-      "type": "name"
-   },{
-      "new_type_name": "action_name",
-      "type": "name"
-   },{
-      "new_type_name": "transaction_id_type",
-      "type": "checksum256"
-   },{
-      "new_type_name": "weight_type",
-      "type": "uint16"
-   }],
-   "____comment": "eosio.bios structs: set_account_limits, setpriv, set_global_limits, producer_key, set_producers, require_auth are provided so abi available for deserialization in future.",
-   "structs": [{
-      "name": "permission_level",
-      "base": "",
-      "fields": [
-        {"name":"actor",      "type":"account_name"},
-        {"name":"permission", "type":"permission_name"}
-      ]
-    },{
-      "name": "key_weight",
-      "base": "",
-      "fields": [
-        {"name":"key",    "type":"public_key"},
-        {"name":"weight", "type":"weight_type"}
-      ]
-    },{
-      "name": "bidname",
-      "base": "",
-      "fields": [
-        {"name":"bidder",  "type":"account_name"},
-        {"name":"newname", "type":"account_name"},
-        {"name":"bid", "type":"asset"}
-      ]
-    },{
-      "name": "permission_level_weight",
-      "base": "",
-      "fields": [
-        {"name":"permission", "type":"permission_level"},
-        {"name":"weight",     "type":"weight_type"}
-      ]
-    },{
-      "name": "wait_weight",
-      "base": "",
-      "fields": [
-        {"name":"wait_sec", "type":"uint32"},
-        {"name":"weight",   "type":"weight_type"}
-      ]
-    },{
-      "name": "authority",
-      "base": "",
-      "fields": [
-        {"name":"threshold", "type":"uint32"},
-        {"name":"keys",      "type":"key_weight[]"},
-        {"name":"accounts",  "type":"permission_level_weight[]"},
-        {"name":"waits",     "type":"wait_weight[]"}
-      ]
-    },{
-      "name": "newaccount",
-      "base": "",
-      "fields": [
-        {"name":"creator", "type":"account_name"},
-        {"name":"name",    "type":"account_name"},
-        {"name":"owner",   "type":"authority"},
-        {"name":"active",  "type":"authority"}
-      ]
-    },{
-      "name": "setcode",
-      "base": "",
-      "fields": [
-        {"name":"account",   "type":"account_name"},
-        {"name":"vmtype",    "type":"uint8"},
-        {"name":"vmversion", "type":"uint8"},
-        {"name":"code",      "type":"bytes"}
-      ]
-    },{
-      "name": "setabi",
-      "base": "",
-      "fields": [
-        {"name":"account", "type":"account_name"},
-        {"name":"abi",     "type":"bytes"}
-      ]
-    },{
-      "name": "updateauth",
-      "base": "",
-      "fields": [
-        {"name":"account",    "type":"account_name"},
-        {"name":"permission", "type":"permission_name"},
-        {"name":"parent",     "type":"permission_name"},
-        {"name":"auth",       "type":"authority"}
-      ]
-    },{
-      "name": "deleteauth",
-      "base": "",
-      "fields": [
-        {"name":"account",    "type":"account_name"},
-        {"name":"permission", "type":"permission_name"}
-      ]
-    },{
-      "name": "linkauth",
-      "base": "",
-      "fields": [
-        {"name":"account",     "type":"account_name"},
-        {"name":"code",        "type":"account_name"},
-        {"name":"type",        "type":"action_name"},
-        {"name":"requirement", "type":"permission_name"}
-      ]
-    },{
-      "name": "unlinkauth",
-      "base": "",
-      "fields": [
-        {"name":"account",     "type":"account_name"},
-        {"name":"code",        "type":"account_name"},
-        {"name":"type",        "type":"action_name"}
-      ]
-    },{
-      "name": "canceldelay",
-      "base": "",
-      "fields": [
-        {"name":"canceling_auth", "type":"permission_level"},
-        {"name":"trx_id",         "type":"transaction_id_type"}
-      ]
-    },{
-      "name": "onerror",
-      "base": "",
-      "fields": [
-        {"name":"sender_id", "type":"uint128"},
-        {"name":"sent_trx",  "type":"bytes"}
-      ]
-    },{
-      "name": "buyrambytes",
-      "base": "",
-      "fields": [
-         {"name":"payer", "type":"account_name"},
-         {"name":"receiver", "type":"account_name"},
-         {"name":"bytes", "type":"uint32"}
-      ]
-    },{
-      "name": "sellram",
-      "base": "",
-      "fields": [
-         {"name":"account", "type":"account_name"},
-         {"name":"bytes", "type":"uint64"}
-      ]
-    },{
-      "name": "buyram",
-      "base": "",
-      "fields": [
-         {"name":"payer", "type":"account_name"},
-         {"name":"receiver", "type":"account_name"},
-         {"name":"quant", "type":"asset"}
-      ]
-    },{
-      "name": "delegatebw",
-      "base": "",
-      "fields": [
-         {"name":"from", "type":"account_name"},
-         {"name":"receiver", "type":"account_name"},
-         {"name":"stake_net_quantity", "type":"asset"},
-         {"name":"stake_cpu_quantity", "type":"asset"},
-         {"name":"transfer", "type":"bool"}
-      ]
-    },{
-      "name": "undelegatebw",
-      "base": "",
-      "fields": [
-         {"name":"from", "type":"account_name"},
-         {"name":"receiver", "type":"account_name"},
-         {"name":"unstake_net_quantity", "type":"asset"},
-         {"name":"unstake_cpu_quantity", "type":"asset"}
-      ]
-    },{
-      "name": "refund",
-      "base": "",
-      "fields": [
-         {"name":"owner", "type":"account_name"}
-      ]
-    },{
-      "name": "delegated_bandwidth",
-      "base": "",
-      "fields": [
-         {"name":"from", "type":"account_name"},
-         {"name":"to", "type":"account_name"},
-         {"name":"net_weight", "type":"asset"},
-         {"name":"cpu_weight", "type":"asset"}
-      ]
-    },{
-      "name": "user_resources",
-      "base": "",
-      "fields": [
-         {"name":"owner", "type":"account_name"},
-         {"name":"net_weight", "type":"asset"},
-         {"name":"cpu_weight", "type":"asset"},
-         {"name":"ram_bytes", "type":"uint64"}
-      ]
-    },{
-      "name": "total_resources",
-      "base": "",
-      "fields": [
-         {"name":"owner", "type":"account_name"},
-         {"name":"net_weight", "type":"asset"},
-         {"name":"cpu_weight", "type":"asset"},
-         {"name":"ram_bytes", "type":"uint64"}
-      ]
-    },{
-      "name": "refund_request",
-      "base": "",
-      "fields": [
-         {"name":"owner", "type":"account_name"},
-         {"name":"request_time", "type":"time_point_sec"},
-         {"name":"net_amount", "type":"asset"},
-         {"name":"cpu_amount", "type":"asset"}
-      ]
-    },{
-      "name": "blockchain_parameters",
-      "base": "",
-      "fields": [
-
-         {"name":"max_block_net_usage",                 "type":"uint64"},
-         {"name":"target_block_net_usage_pct",          "type":"uint32"},
-         {"name":"max_transaction_net_usage",           "type":"uint32"},
-         {"name":"base_per_transaction_net_usage",      "type":"uint32"},
-         {"name":"net_usage_leeway",                    "type":"uint32"},
-         {"name":"context_free_discount_net_usage_num", "type":"uint32"},
-         {"name":"context_free_discount_net_usage_den", "type":"uint32"},
-         {"name":"max_block_cpu_usage",                 "type":"uint32"},
-         {"name":"target_block_cpu_usage_pct",          "type":"uint32"},
-         {"name":"max_transaction_cpu_usage",           "type":"uint32"},
-         {"name":"min_transaction_cpu_usage",           "type":"uint32"},
-         {"name":"max_transaction_lifetime",            "type":"uint32"},
-         {"name":"deferred_trx_expiration_window",      "type":"uint32"},
-         {"name":"max_transaction_delay",               "type":"uint32"},
-         {"name":"max_inline_action_size",              "type":"uint32"},
-         {"name":"max_inline_action_depth",             "type":"uint16"},
-         {"name":"max_authority_depth",                 "type":"uint16"}
-
-      ]
-    },{
-      "name": "eosio_global_state",
-      "base": "blockchain_parameters",
-      "fields": [
-         {"name":"max_ram_size",                  "type":"uint64"},
-         {"name":"total_ram_bytes_reserved",      "type":"uint64"},
-         {"name":"total_ram_stake",               "type":"int64"},
-         {"name":"last_producer_schedule_update", "type":"block_timestamp_type"},
-         {"name":"last_pervote_bucket_fill",      "type":"uint64"},
-         {"name":"pervote_bucket",                "type":"int64"},
-         {"name":"perblock_bucket",               "type":"int64"},
-         {"name":"total_unpaid_blocks",           "type":"uint32"},
-         {"name":"total_activated_stake",         "type":"int64"},
-         {"name":"thresh_activated_stake_time",   "type":"uint64"},
-         {"name":"last_producer_schedule_size",   "type":"uint16"},
-         {"name":"total_producer_vote_weight",    "type":"float64"},
-         {"name":"last_name_close",               "type":"block_timestamp_type"}
-      ]
-    },{
-      "name": "producer_info",
-      "base": "",
-      "fields": [
-         {"name":"owner",           "type":"account_name"},
-         {"name":"total_votes",     "type":"float64"},
-         {"name":"producer_key",    "type":"public_key"},
-         {"name":"is_active",       "type":"bool"},
-         {"name":"url",             "type":"string"},
-         {"name":"unpaid_blocks",   "type":"uint32"},
-         {"name":"last_claim_time", "type":"uint64"},
-         {"name":"location",        "type":"uint16"}
-      ]
-    },{
-      "name": "regproducer",
-      "base": "",
-      "fields": [
-        {"name":"producer",     "type":"account_name"},
-        {"name":"producer_key", "type":"public_key"},
-        {"name":"url",          "type":"string"},
-        {"name":"location",     "type":"uint16"}
-      ]
-    },{
-      "name": "unregprod",
-      "base": "",
-      "fields": [
-        {"name":"producer",     "type":"account_name"}
-      ]
-    },{
-      "name": "setram",
-      "base": "",
-      "fields": [
-        {"name":"max_ram_size",     "type":"uint64"}
-      ]
-    },{
-      "name": "regproxy",
-      "base": "",
-      "fields": [
-        {"name":"proxy",     "type":"account_name"},
-        {"name":"isproxy",   "type":"bool"}
-      ]
-    },{
-      "name": "voteproducer",
-      "base": "",
-      "fields": [
-        {"name":"voter",     "type":"account_name"},
-        {"name":"proxy",     "type":"account_name"},
-        {"name":"producers", "type":"account_name[]"}
-      ]
-    },{
-      "name": "voter_info",
-      "base": "",
-      "fields": [
-        {"name":"owner",                "type":"account_name"},
-        {"name":"proxy",                "type":"account_name"},
-        {"name":"producers",            "type":"account_name[]"},
-        {"name":"staked",               "type":"int64"},
-        {"name":"last_vote_weight",     "type":"float64"},
-        {"name":"proxied_vote_weight",  "type":"float64"},
-        {"name":"is_proxy",             "type":"bool"}
-      ]
-    },{
-      "name": "claimrewards",
-      "base": "",
-      "fields": [
-        {"name":"owner",   "type":"account_name"}
-      ]
-    },{
-      "name": "setpriv",
-      "base": "",
-      "fields": [
-        {"name":"account",    "type":"account_name"},
-        {"name":"is_priv",    "type":"int8"}
-      ]
-    },{
-      "name": "rmvproducer",
-      "base": "",
-      "fields": [
-        {"name":"producer", "type":"account_name"}
-      ]
-    },{
-      "name": "set_account_limits",
-      "base": "",
-      "fields": [
-        {"name":"account",    "type":"account_name"},
-        {"name":"ram_bytes",  "type":"int64"},
-        {"name":"net_weight", "type":"int64"},
-        {"name":"cpu_weight", "type":"int64"}
-      ]
-    },{
-      "name": "set_global_limits",
-      "base": "",
-      "fields": [
-        {"name":"cpu_usec_per_period",    "type":"int64"}
-      ]
-    },{
-      "name": "producer_key",
-      "base": "",
-      "fields": [
-        {"name":"producer_name",      "type":"account_name"},
-        {"name":"block_signing_key",  "type":"public_key"}
-      ]
-    },{
-      "name": "set_producers",
-      "base": "",
-      "fields": [
-        {"name":"schedule",   "type":"producer_key[]"}
-      ]
-    },{
-      "name": "require_auth",
-      "base": "",
-      "fields": [
-        {"name":"from", "type":"account_name"}
-      ]
-    },{
-      "name": "setparams",
-      "base": "",
-      "fields": [
-        {"name":"params", "type":"blockchain_parameters"}
-      ]
-    },{
-      "name": "connector",
-      "base": "",
-      "fields": [
-        {"name":"balance", "type":"asset"},
-        {"name":"weight", "type":"float64"}
-      ]
-    },{
-      "name": "exchange_state",
-      "base": "",
-      "fields": [
-        {"name":"supply", "type":"asset"},
-        {"name":"base", "type":"connector"},
-        {"name":"quote", "type":"connector"}
-      ]
-    }, {
-       "name": "namebid_info",
-       "base": "",
-       "fields": [
-          {"name":"newname", "type":"account_name"},
-          {"name":"high_bidder", "type":"account_name"},
-          {"name":"high_bid", "type":"int64"},
-          {"name":"last_bid_time", "type":"uint64"}
-       ]
-    }
-   ],
-   "actions": [{
-     "name": "newaccount",
-     "type": "newaccount",
-     "ricardian_contract": ""
-   },{
-     "name": "setcode",
-     "type": "setcode",
-     "ricardian_contract": ""
-   },{
-     "name": "setabi",
-     "type": "setabi",
-     "ricardian_contract": ""
-   },{
-     "name": "updateauth",
-     "type": "updateauth",
-     "ricardian_contract": ""
-   },{
-     "name": "deleteauth",
-     "type": "deleteauth",
-     "ricardian_contract": ""
-   },{
-     "name": "linkauth",
-     "type": "linkauth",
-     "ricardian_contract": ""
-   },{
-     "name": "unlinkauth",
-     "type": "unlinkauth",
-     "ricardian_contract": ""
-   },{
-     "name": "canceldelay",
-     "type": "canceldelay",
-     "ricardian_contract": ""
-   },{
-     "name": "onerror",
-     "type": "onerror",
-     "ricardian_contract": ""
-   },{
-      "name": "buyrambytes",
-      "type": "buyrambytes",
-      "ricardian_contract": ""
-   },{
-      "name": "buyram",
-      "type": "buyram",
-      "ricardian_contract": ""
-   },{
-      "name": "sellram",
-      "type": "sellram",
-      "ricardian_contract": ""
-   },{
-      "name": "delegatebw",
-      "type": "delegatebw",
-      "ricardian_contract": ""
-   },{
-      "name": "undelegatebw",
-      "type": "undelegatebw",
-      "ricardian_contract": ""
-   },{
-      "name": "refund",
-      "type": "refund",
-      "ricardian_contract": ""
-   },{
-      "name": "regproducer",
-      "type": "regproducer",
-      "ricardian_contract": ""
-   },{
-      "name": "setram",
-      "type": "setram",
-      "ricardian_contract": ""
-   },{
-      "name": "bidname",
-      "type": "bidname",
-      "ricardian_contract": ""
-   },{
-      "name": "unregprod",
-      "type": "unregprod",
-      "ricardian_contract": ""
-   },{
-      "name": "regproxy",
-      "type": "regproxy",
-      "ricardian_contract": ""
-   },{
-      "name": "voteproducer",
-      "type": "voteproducer",
-      "ricardian_contract": ""
-   },{
-      "name": "claimrewards",
-      "type": "claimrewards",
-      "ricardian_contract": ""
-   },{
-      "name": "setpriv",
-      "type": "setpriv",
-      "ricardian_contract": ""
-   },{
-      "name": "rmvproducer",
-      "type": "rmvproducer",
-      "ricardian_contract": ""
-   },{
-      "name": "setalimits",
-      "type": "set_account_limits",
-      "ricardian_contract": ""
-    },{
-      "name": "setglimits",
-      "type": "set_global_limits",
-      "ricardian_contract": ""
-    },{
-      "name": "setprods",
-      "type": "set_producers",
-      "ricardian_contract": ""
-    },{
-      "name": "reqauth",
-      "type": "require_auth",
-      "ricardian_contract": ""
-    },{
-      "name": "setparams",
-      "type": "setparams",
-      "ricardian_contract": ""
-    }],
-   "tables": [{
-      "name": "producers",
-      "type": "producer_info",
-      "index_type": "i64",
-      "key_names" : ["owner"],
-      "key_types" : ["uint64"]
-    },{
-      "name": "global",
-      "type": "eosio_global_state",
-      "index_type": "i64",
-      "key_names" : [],
-      "key_types" : []
-    },{
-      "name": "voters",
-      "type": "voter_info",
-      "index_type": "i64",
-      "key_names" : ["owner"],
-      "key_types" : ["account_name"]
-    },{
-      "name": "userres",
-      "type": "user_resources",
-      "index_type": "i64",
-      "key_names" : ["owner"],
-      "key_types" : ["uint64"]
-    },{
-      "name": "delband",
-      "type": "delegated_bandwidth",
-      "index_type": "i64",
-      "key_names" : ["to"],
-      "key_types" : ["uint64"]
-    },{
-      "name": "rammarket",
-      "type": "exchange_state",
-      "index_type": "i64",
-      "key_names" : ["supply"],
-      "key_types" : ["uint64"]
-    },{
-      "name": "refunds",
-      "type": "refund_request",
-      "index_type": "i64",
-      "key_names" : ["owner"],
-      "key_types" : ["uint64"]
-    },{
-       "name": "namebids",
-       "type": "namebid_info",
-       "index_type": "i64",
-       "key_names" : ["newname"],
-       "key_types" : ["account_name"]
-    }
-   ],
-   "ricardian_clauses": [],
-   "abi_extensions": []
-}
-)=====";
-
-const char* const fio_name_abi = R"=====(
-{
-  "____comment": "This file was generated by eosio-abigen. DO NOT EDIT - 2018-12-12T06:43:09",
-  "version": "eosio::abi/1.0",
-  "types": [],
-  "structs": [{
-      "name": "fioname",
-      "base": "",
-      "fields": [{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "namehash",
-          "type": "uint64"
-        },{
-          "name": "domain",
-          "type": "string"
-        },{
-          "name": "domainhash",
-          "type": "uint64"
-        },{
-          "name": "expiration",
-          "type": "uint32"
-        },{
-          "name": "account",
-          "type": "uint64"
-        },{
-          "name": "addresses",
-          "type": "string[]"
-        }
-      ]
-    },{
-      "name": "domain",
-      "base": "",
-      "fields": [{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "domainhash",
-          "type": "uint64"
-        },{
-          "name": "expiration",
-          "type": "uint32"
-        },{
-          "name": "account",
-          "type": "uint64"
-         }
-      ]
-    },{
-      "name": "chainList",
-      "base": "",
-      "fields": [{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "id",
-          "type": "uint64"
-        },{
-          "name": "chainhash",
-          "type": "uint32"
-        }
-      ]
-    },{
-      "name": "key_name",
-      "base": "",
-      "fields": [{
-          "name": "id",
-          "type": "uint64"
-        },{
-          "name": "key",
-          "type": "string"
-        },{
-          "name": "keyhash",
-          "type": "uint64"
-        },{
-          "name": "chaintype",
-          "type": "uint64"
-        },{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "expiration",
-          "type": "uint32"
-        }
-      ]
-     },{
-      "name": "eosio_name",
-      "base": "",
-      "fields": [{
-          "name": "account",
-          "type": "name"
-        },{
-          "name": "clientkey",
-          "type": "string"
-        }
-      ]
-     },{
-      "name": "chainpair",
-      "base": "",
-      "fields": [{
-          "name": "index",
-          "type": "uint64"
-        },{
-          "name": "chainname",
-          "type": "string"
-        },{
-          "name": "chainhash",
-          "type": "uint64"
-        }
-      ]
-    },{
-      "name": "registername",
-      "base": "",
-      "fields": [{
-          "name": "fio_name",
-          "type": "string"
-        },{
-          "name": "actor",
-          "type": "name"
-        },{
-          "name": "owner_fio_public_key",
-          "type": "string"
-        }
-      ]
-    },{
-      "name": "addaddress",
-      "base": "",
-      "fields": [{
-          "name": "fio_address",
-          "type": "string"
-        },{
-          "name": "token_code",
-          "type": "string"
-        },{
-          "name": "public_address",
-          "type": "string"
-        },{
-          "name": "actor",
-          "type": "name"
-        }
-      ]
-    },{
-    "name": "adddomain",
-    "base": "",
-    "fields": [{
-        "name": "domain",
-        "type": "string"
-      },{
-        "name": "pubaddress",
-        "type": "string"
-      },{
-        "name": "actor",
-        "type": "name"
-      }
-    ]
-  },{
-      "name": "removename",
-      "base": "",
-      "fields": []
-    },{
-      "name": "removedomain",
-      "base": "",
-      "fields": []
-    },{
-      "name": "rmvaddress",
-      "base": "",
-      "fields": []
-    },{
-      "name": "bind2eosio",
-      "base": "",
-      "fields": [{
-      "name": "account",
-      "type": "name"
-      },{
-      "name": "client_key",
-      "type": "string"
-      },{
-      "name": "existing",
-      "type": "bool"
-      }]
-      }
-  ],
-  "actions": [{
-      "name": "registername",
-      "type": "registername",
-      "ricardian_contract": ""
-    },{
-      "name": "addaddress",
-      "type": "addaddress",
-      "ricardian_contract": ""
-    },{
-      "name": "removename",
-      "type": "removename",
-      "ricardian_contract": ""
-    },{
-      "name": "removedomain",
-      "type": "removedomain",
-      "ricardian_contract": ""
-    },{
-      "name": "rmvaddress",
-      "type": "rmvaddress",
-      "ricardian_contract": ""
-    },{
-    "name": "bind2eosio",
-    "type": "bind2eosio",
-    "ricardian_contract": ""
-    }
-  ],
-  "tables": [{
-      "name": "fionames",
-      "index_type": "i64",
-      "key_names": [
-        "name"
-      ],
-      "key_types": [
-        "string"
-      ],
-      "type": "fioname"
-    },{
-      "name": "domains",
-      "index_type": "i64",
-      "key_names": [
-        "name"
-      ],
-      "key_types": [
-        "string"
-      ],
-      "type": "domain"
-    },{
-      "name": "chains",
-      "index_type": "i64",
-      "key_names": [
-        "name"
-      ],
-      "key_types": [
-        "string"
-      ],
-      "type": "chainList"
-    },{
-      "name": "keynames",
-      "index_type": "i64",
-      "key_names": [
-        "id"
-      ],
-      "key_types": [
-        "uint64"
-      ],
-      "type": "key_name"
-    },{
-      "name": "eosionames",
-      "index_type": "i64",
-      "key_names": [
-        "account"
-      ],
-      "key_types": [
-        "uint64"
-      ],
-      "type": "eosio_name"
-    }
-  ],
-  "ricardian_clauses": [],
-  "error_messages": [],
-  "abi_extensions": [],
-  "variants": []
-}
-)=====";
 
 namespace eosio {
 
@@ -2075,13 +1225,16 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
       const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
       const name fio_fee_code = N(fio.fee);    // FIO fee account, init in the top of this class
       const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
+        const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
+        const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
 
 
+        const name fio_whitelist_table = N(whitelist); // FIO Address Table
       const name fio_address_table = N(fionames); // FIO Address Table
       const name fio_fees_table = N(fiofees); // FIO fees Table
       const name fio_domains_table = N(domains); // FIO Domains Table
       const name fio_chains_table = N(chains); // FIO Chains Table
-
+        const name fio_accounts_table = N(accountmap); // FIO Chains Table
 
       /***
         * get pending fio requests.
@@ -2090,44 +1243,46 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         */
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
-            // assert if empty fio name
-            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+          // assert if empty fio name
+          FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
-            string account_name;
-            fioio::key_to_account(p.fio_public_key, account_name);
-            //get the public address.
-            uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str());
+          string account_name;
+          fioio::key_to_account(p.fio_public_key, account_name);
+          //get the public address.
 
-            get_pending_fio_requests_result result;
+          name account = name{account_name};
 
-            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+          dlog("account: '${size}'", ("size", account));
+          dlog("account_name: '${size}'", ("size", account_name));
 
-            //lookup the public address in the key_names table.
-            string fio_key_lookup_table = "keynames";   // table name
+          get_pending_fio_requests_result result;
 
-            dlog("Lookup fio public key in key names using key hash: '${key_hash}'", ("key_hash", key_hash));
-            get_table_rows_params table_row_params = get_table_rows_params{
-                    .json        = true,
-                    .code        = fio_system_code,
-                    .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
-                    .key_type       = "i64",
-                    .index_position ="2"};
-            // Do secondary key lookup
-            get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    table_row_params, system_abi, [](uint64_t v) -> uint64_t {
-                        return v;
-                    });
-            dlog("key names row count : '${size}'", ("size", keynames_rows_result.rows.size()));
-            FIO_404_ASSERT(!keynames_rows_result.rows.empty(), "No pending FIO Requests",
-                           fioio::ErrorNoFioRequestsFound);
+          const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+          const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
 
-            for (size_t knpos = 0; knpos < keynames_rows_result.rows.size(); knpos++) {
+          dlog("SENT ACCOUNT NAME: '${key_hash}'", ("key_hash", account));
+          get_table_rows_params table_row_params = get_table_rows_params{
+                  .json        = true,
+                  .code        = fio_system_code,
+                  .scope       = fio_system_scope,
+                  .table       = fio_address_table,
+                  .lower_bound = boost::lexical_cast<string>(account.value),
+                  .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                  .key_type       = "i64",
+                  .index_position = "4"};
+          // Do secondary key lookup
+          get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                  table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                      return v;
+                  });
+
+          dlog("NAMES row count : '${size}'", ("size", names_rows_result.rows.size()));
+          FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
+                         fioio::ErrorNoFioRequestsFound);
+
+          for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
                 //get the fio address associated with this public address
-                string fio_address = (string) keynames_rows_result.rows[knpos]["name"].as_string();
+              string fio_address = (string) names_rows_result.rows[knpos]["name"].as_string();
                 //get the name of the from associated with the request without looking up the
                 //hashed value. tricky.
                 string from_fioadd = fio_address;
@@ -2165,10 +1320,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                     uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
                     uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
-                    string payee_public_address = requests_rows_result.rows[pos]["payee_public_address"].as_string();
-                    string amount = requests_rows_result.rows[pos]["amount"].as_string();
-                    string token_code = requests_rows_result.rows[pos]["token_code"].as_string();
-                    string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                    string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
                     //find the tofioaddress
@@ -2188,8 +1340,20 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                                    fioio::ErrorNoFioRequestsFound);
 
                     string to_fioadd = fioname_result.rows[0]["name"].as_string();
-                    request_record rr{fio_request_id, from_fioadd, to_fioadd, payee_public_address, amount, token_code,
-                                      metadata, time_stamp};
+                    name account = name{fioname_result.rows[0]["owner_account"].as_string()};
+
+                    read_only::get_table_rows_result account_result;
+                    GetFIOAccount(account, account_result);
+
+                    FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
+                                   fioio::ErrorPubAddressNotFound);
+
+                    string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
+
+                    string payee_fio_public_key = p.fio_public_key;
+
+                    request_record rr{fio_request_id, from_fioadd,
+                                      to_fioadd, payee_fio_public_key, payer_fio_public_key, content, time_stamp};
 
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
@@ -2240,39 +1404,40 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
             //get the public address.
-            uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str());
+
+            name account = name{account_name};
+
+            dlog("account: '${size}'", ("size", account));
+            dlog("account_name: '${size}'", ("size", account_name));
 
             get_sent_fio_requests_result result;
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
 
-            //lookup the public address in the key_names table.
-            string fio_key_lookup_table = "keynames";   // table name
-
-            dlog("Lookup fio public key in key names using key hash: '${key_hash}'", ("key_hash", key_hash));
+            dlog("SENT ACCOUNT NAME: '${key_hash}'", ("key_hash", account));
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_system_code,
                     .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .table       = fio_address_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
                     .key_type       = "i64",
-                    .index_position = "2"};
+                    .index_position = "4"};
             // Do secondary key lookup
-            get_table_rows_result keynames_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+            get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     table_row_params, system_abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
-            dlog("key names row count : '${size}'", ("size", keynames_rows_result.rows.size()));
-            FIO_404_ASSERT(!keynames_rows_result.rows.empty(), "No FIO Requests",
+            dlog("NAMES row count : '${size}'", ("size", names_rows_result.rows.size()));
+            FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
                            fioio::ErrorNoFioRequestsFound);
 
-            for (size_t knpos = 0; knpos < keynames_rows_result.rows.size(); knpos++) {
+            for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
                 //get the fio address associated with this public address
-                string fio_address = keynames_rows_result.rows[knpos]["name"].as_string();
+                string fio_address = names_rows_result.rows[knpos]["name"].as_string();
                 string to_fioadd = fio_address;
                 uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
 
@@ -2298,36 +1463,51 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
-                // Look through the keynames lookup results and push the fio_addresses into results
                 for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                    uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
-                    uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
-                    string payee_public_address = requests_rows_result.rows[pos]["payee_public_address"].as_string();
-                    string amount = requests_rows_result.rows[pos]["amount"].as_string();
-                    string token_code = requests_rows_result.rows[pos]["token_code"].as_string();
-                    string metadata = requests_rows_result.rows[pos]["metadata"].as_string();
+                    uint64_t payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
+                    uint64_t payee_hash_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
+                    string payer_address = requests_rows_result.rows[pos]["payer_fio_addr"].as_string();
+                    string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
-                    //find the fromfioaddress
+                    dlog("fio namehash: '${size}'", ("size", payer_hash_address));
                     get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                             .code=fio_system_code,
                             .scope=fio_system_scope,
                             .table=fio_address_table,
-                            .lower_bound=boost::lexical_cast<string>(payer_fio_address),
-                            .upper_bound=boost::lexical_cast<string>(payer_fio_address + 1),
+                            .lower_bound=boost::lexical_cast<string>(payer_hash_address),
+                            .upper_bound=boost::lexical_cast<string>(payer_hash_address + 1),
                             .encode_type="dec",
                             .index_position ="1"};
 
                     get_table_rows_result fioname_result =
                             get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
 
-                    FIO_404_ASSERT(!fioname_result.rows.empty(), "No FIO Requests",
-                                   fioio::ErrorNoFioRequestsFound);
+                    string payee_fio_public_key = p.fio_public_key;
+                    string payer_fio_public_key = "NotFound";
+                    address_hash = ::eosio::string_to_uint64_t(to_fioadd.c_str());
+                    if (fioname_result.rows.empty()){
 
-                    string from_fioadd = fioname_result.rows[0]["name"].as_string(); //incorrect
+                    }
+                    else {  //get the payer public key, if the payer account was burned this becomes impossible
 
+                        dlog("fio account: '${size}'", ("size", fioname_result.rows[0]["name"].as_string()));
+                        name account = name{fioname_result.rows[0]["owner_account"].as_string()};
+                        dlog("STRING : '${size}'", ("size", account));
+
+                        read_only::get_table_rows_result account_result;
+                        GetFIOAccount(account, account_result);
+
+                        FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
+                                       fioio::ErrorPubAddressNotFound);
+
+                        payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
+                        dlog("fio key: '${size}'", ("size", payer_fio_public_key));
+
+                    }
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
@@ -2355,28 +1535,58 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     string status = "requested";
 
                     if (!(request_status_rows_result.rows.empty())) {
-                        uint64_t statusintV = request_status_rows_result.rows[0]["status"].as_uint64();
-                        if (statusintV == 0) {
-                            status = "requested";
-                        } else if (statusintV == 1) {
-                            status = "rejected";
-                        } else if (statusintV == 2) {
-                            status = "sent_to_blockchain";
+                        for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
+                           uint64_t reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
+                           uint64_t statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+
+                          if (reqid == fio_request_id) {
+                             dlog("request status of item : '${size}'", ("size", statusintV));
+
+                             if (statusintV == 0) {
+                                status = "requested";
+                             } else if (statusintV == 1) {
+                                status = "rejected";
+                             } else if (statusintV == 2) {
+                                status = "sent_to_blockchain";
+                             }
+                             break; //exit the loop after finding the first.
+
+                          } else{
+                             dlog("index table search on secondary index returned fio request id: '${size}' instead of '${reqid}", ("size", reqid)("reqid",fio_request_id));
+                          }
                         }
                     }
 
-                    request_status_record rr{fio_request_id, from_fioadd, to_fioadd, payee_public_address, amount,
-                                             token_code, metadata, time_stamp, status};
+                    request_status_record rr{fio_request_id, payer_address, payee_address, payer_fio_public_key,
+                                             payee_fio_public_key, content, time_stamp, status};
 
                     result.requests.push_back(rr);
+
+
                 } // Get request statuses
             }
 
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             return result;
-        } // get_sent_fio_requests
+        }
 
+        void read_only::GetFIOAccount(name account, read_only::get_table_rows_result &account_result) const {
 
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            get_table_rows_params fio_table_row_params = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_system_code,
+                    .scope          = fio_system_scope,
+                    .table          = fio_accounts_table,
+                    .lower_bound    = boost::lexical_cast<string>(account.value),
+                    .upper_bound    = boost::lexical_cast<string>(account.value + 1),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            account_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params, system_abi);
+        }
+        // get_sent_fio_requests
 
         /*** v1/chain/get_fio_names
         * Retrieves the fionames associated with the provided public address
@@ -2391,44 +1601,49 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
-
-            string fio_key_lookup_table = "keynames";   // table name
+            name account = name{account_name};
 
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const uint64_t key_hash = ::eosio::string_to_uint64_t(account_name.c_str()); // hash of public address
+            const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
 
-            dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", key_hash));
+            dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", account));
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_system_code,
                     .scope       = fio_system_scope,
-                    .table       = fio_key_lookup_table,
-                    .lower_bound = boost::lexical_cast<string>(key_hash),
-                    .upper_bound = boost::lexical_cast<string>(key_hash + 1),
+                    .table       = fio_address_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
                     .key_type       = "i64",
-                    .index_position ="2"};
+                    .index_position ="4"};
 
-            // Do secondary key lookup
-            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(table_row_params, abi,
-                                                                                  [](uint64_t v) -> uint64_t {
-                                                                                      return v;
-                                                                                  });
+            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
             FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
-            std::string nam, namexpiration;
-            int chainindex = 0;
+            std::string nam;
+            uint64_t namexpiration;
+            time_t temptime;
+            struct tm *timeinfo;
+            char buffer[80];
 
             // Look through the keynames lookup results and push the fio_addresses into results
             for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
 
                 nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                if (nam.find('.') != std::string::npos)  { //if it's not a domain record in the keynames table (no '.'),
-                    namexpiration = table_rows_result.rows[pos]["expiration"].as_string();
-                    chainindex = table_rows_result.rows[pos]["chaintype"].as_int64();
-                    FIO_404_ASSERT(chainindex == 0, "No FIO names", fioio::ErrorNoFIONames);
-                    fioaddress_record fa{nam, namexpiration};
+                if (nam.find(':') != std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
+                    namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+
+                    temptime = namexpiration;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                    fioaddress_record fa{nam, buffer};
                     //then push the address record result
                     result.fio_addresses.push_back(fa);
                 }
@@ -2443,7 +1658,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                     .lower_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
                     .upper_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str()) + 1),
                     .key_type       = "i64",
-                    .index_position ="2"};
+                    .index_position = "2"};
 
             get_table_rows_result domain_result = get_table_rows_by_seckey<index64_index, uint64_t>(domain_row_params, abi,
                                                                                   [](uint64_t v) -> uint64_t {
@@ -2453,21 +1668,82 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
 
             if (domain_result.rows.empty()) {
-              FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()) , "No FIO names", fioio::ErrorNoFIONames);
+                FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names",
+                               fioio::ErrorNoFIONames);
             return result; }
 
-            std::string domexpiration, dom;
+            std::string dom;
+            uint64_t domexpiration;
+            bool public_domain;
 
             for (size_t pos = 0; pos < domain_result.rows.size(); pos++) {
                 dom = ((string)domain_result.rows[pos]["name"].as_string());
-                domexpiration = domain_result.rows[pos]["expiration"].as_string();
-                fiodomain_record d{dom, domexpiration};
+                domexpiration = domain_result.rows[pos]["expiration"].as_uint64();
+                public_domain = domain_result.rows[pos]["is_public"].as_bool();
+
+                temptime = domexpiration;
+                timeinfo = gmtime(&temptime);
+                strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                fiodomain_record d{dom, buffer, public_domain};
                 result.fio_domains.push_back(d);    //pushback results in domain
             }
 
           return result;
         } // get_fio_names
 
+        read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
+            FIO_404_ASSERT(p.fio_public_key.length() == 53, "Public key not found", fioio::ErrorPubAddressNotFound);
+
+            get_account_results actor_lookup_results;
+            get_account_params actor_lookup_params;
+            get_fio_balance_result result;
+            vector<asset> cursor;
+            result.balance = 0;
+
+            uint64_t keyhash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str());
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+            get_table_rows_params eosio_table_row_params = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_system_code,
+                    .scope          = fio_system_scope,
+                    .table          = fio_accounts_table,
+                    .lower_bound    = boost::lexical_cast<string>(keyhash),
+                    .upper_bound    = boost::lexical_cast<string>(keyhash + 1),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result account_result =
+                    get_table_rows_by_seckey<index64_index, uint64_t>(
+                            eosio_table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                                return v;
+                            });
+
+            FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found", fioio::ErrorPubAddressNotFound);
+
+            string fio_account = account_result.rows[0]["account"].as_string();
+            actor_lookup_params.account_name = fio_account;
+
+            try{
+                actor_lookup_results = get_account(actor_lookup_params);
+            }
+            catch(...) {
+                FIO_404_ASSERT(false, "Public key not found", fioio::ErrorPubAddressNotFound);
+            }
+
+            get_currency_balance_params balance_params;
+            balance_params.code =  ::eosio::string_to_name("fio.token");
+            balance_params.account = ::eosio::string_to_name(fio_account.c_str());
+            cursor = get_currency_balance(balance_params);
+
+            if(!cursor.empty()) {
+                uint64_t rVal = (uint64_t)cursor[0].get_amount();
+                result.balance = rVal;
+            }
+
+            return result;
+        } //get_fio_balance
 
         /*** v1/chain/get_fee
        * Retrieves the fee associated with the specified fio address and blockchain endpoint
@@ -2544,7 +1820,9 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 dlog("Lookup for fio name, row count: ‘${size}‘", ("size", names_table_rows_result.rows.size()));
 
                 bool isInvalid = (names_table_rows_result.rows.empty() &&
-                  ( p.fio_address.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890.") != std::string::npos));
+                                  (p.fio_address.find_first_not_of(
+                                          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890:") !=
+                                   std::string::npos));
 
 
                 FIO_400_ASSERT(!isInvalid, "fio_address", p.fio_address, "Invalid FIO Address",
@@ -2570,6 +1848,103 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             return result;
         } // get_fee
+
+
+        /*** v1/chain/get_whitelist
+    * Retrieves the whitelist associated with the specified public key
+    * @param p
+    * @return result
+    */
+        read_only::get_whitelist_result read_only::get_whitelist(const read_only::get_whitelist_params &p) const {
+
+           get_whitelist_result result;
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+
+            name account = name{account_name};
+
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
+
+           dlog("Lookup using woner: ‘${owner}‘", ("owner", account));
+
+           get_table_rows_params table_row_params = get_table_rows_params{
+                   .json        = true,
+                   .code        = fio_whitelst_code,
+                   .scope       = fio_whitelst_scope,
+                   .table       = fio_whitelist_table,
+                   .lower_bound = boost::lexical_cast<string>(account.value),
+                   .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                   .key_type       = "i64",
+                   .index_position ="2"};
+
+
+           // Do secondary key lookup
+           get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                   table_row_params, abi, [](uint64_t v) -> uint64_t {
+                       return v;
+                   });
+
+
+           dlog("Lookup for whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
+
+           FIO_400_ASSERT(!table_rows_result.rows.empty(), "fio_public_key", p.fio_public_key, "No whitelist",
+                          fioio::ErrorNoFeesFoundForEndpoint);
+
+           for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
+              string lookup_index = table_rows_result.rows[pos]["lookupindex"].as_string();
+              string content = table_rows_result.rows[pos]["content"].as_string();
+
+              whitelist_info wi{lookup_index, content};
+              result.whitelisted_parties.push_back(wi);
+              }
+
+           return result;
+        }
+
+
+        /*** v1/chain/check_whitelist
+   * returns true if the specified fio_public_key_hash is in the whitelist, false if not.
+   * @param p
+   * @return result
+   */
+        read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
+
+           check_whitelist_result result;
+
+           result.in_whitelist = 0;
+
+           uint64_t fio_pub_key_hash =  eosio::string_to_uint64_t(p.fio_public_key_hash.c_str());
+
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
+
+           dlog("Lookup using fio_pub_key_hash: ‘${owner}‘", ("owner", fio_pub_key_hash));
+
+           get_table_rows_params table_row_params = get_table_rows_params{
+                   .json        = true,
+                   .code        = fio_whitelst_code,
+                   .scope       = fio_whitelst_scope,
+                   .table       = fio_whitelist_table,
+                   .lower_bound = boost::lexical_cast<string>(fio_pub_key_hash),
+                   .upper_bound = boost::lexical_cast<string>(fio_pub_key_hash + 1),
+                   .key_type       = "i64",
+                   .index_position ="3"};
+
+
+           // Do secondary key lookup
+           get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                   table_row_params, abi, [](uint64_t v) -> uint64_t {
+                       return v;
+                   });
+
+           dlog("check whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
+
+           if (!table_rows_result.rows.empty()){
+              result.in_whitelist = 1;
+           }
+
+           return result;
+        }
 
         /***
         * Lookup address by FIO name.
@@ -2915,41 +2290,7 @@ vector<asset> read_only::get_currency_balance( const read_only::get_currency_bal
    return results;
 }
 
-// Begin FIO API
-read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
-    FIO_404_ASSERT(!p.fio_public_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
-    FIO_404_ASSERT(p.fio_public_address.size() <= 13, "Public address not found", fioio::ErrorPubAddressNotFound);
 
-    get_account_results actor_lookup_results;
-    get_account_params actor_lookup_params;
-    get_fio_balance_result result;
-    vector<asset> cursor;
-    result.balance = "0";
-    actor_lookup_params.account_name = p.fio_public_address.c_str();
-
-    try{
-        actor_lookup_results = get_account(actor_lookup_params);
-    }
-    catch(...) {
-        FIO_404_ASSERT(false, "Public address not found", fioio::ErrorPubAddressNotFound);
-    }
-
-    get_currency_balance_params balance_params;
-    balance_params.code =  ::eosio::string_to_name("fio.token");
-    balance_params.account = ::eosio::string_to_name(p.fio_public_address.c_str());
-    cursor = get_currency_balance(balance_params);
-
-    if(!cursor.empty()) {
-        size_t pos = cursor[0].to_string().find(' ');
-        std::string decval = cursor[0].to_string().substr(0, pos);
-        pos = decval.find('.');
-        std::string whole = decval.substr(0,pos);
-        std::string precision = decval.substr(pos+1,decval.size());
-        result.balance = whole+precision;
-    }
-
-    return result;
-} //get_fio_balance
 
 // End FIO API
 
@@ -2994,69 +2335,76 @@ fc::variant get_global_row( const database& db, const abi_def& abi, const abi_se
    return abis.binary_to_variant(abis.get_table_type(N(global)), data, abi_serializer_max_time_ms, shorten_abi_errors );
 }
 
-read_only::get_producers_result read_only::get_producers( const read_only::get_producers_params& p ) const try {
-   const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
-   const auto table_type = get_table_type(abi, N(producers));
-   const abi_serializer abis{ abi, abi_serializer_max_time };
-   EOS_ASSERT(table_type == KEYi64, chain::contract_table_query_exception, "Invalid table type ${type} for table producers", ("type",table_type));
+        read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const try {
+            const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
+            const auto table_type = get_table_type(abi, N(producers));
+            const abi_serializer abis{abi, abi_serializer_max_time};
+            EOS_ASSERT(table_type == KEYi64, chain::contract_table_query_exception,
+                       "Invalid table type ${type} for table producers", ("type", table_type));
 
-   const auto& d = db.db();
-   const auto lower = name{p.lower_bound};
+            const auto &d = db.db();
+            const auto lower = name{p.lower_bound};
 
-   static const uint8_t secondary_index_num = 0;
-   const auto* const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-           boost::make_tuple(config::system_account_name, config::system_account_name, N(producers)));
-   const auto* const secondary_table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-           boost::make_tuple(config::system_account_name, config::system_account_name, N(producers) | secondary_index_num));
-   EOS_ASSERT(table_id && secondary_table_id, chain::contract_table_query_exception, "Missing producers table");
+            static const uint8_t secondary_index_num = 0;
+            const auto *const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(config::system_account_name, config::system_account_name, N(producers)));
+            const auto *const secondary_table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(config::system_account_name, config::system_account_name,
+                                      N(producers) | secondary_index_num));
+            EOS_ASSERT(table_id && secondary_table_id, chain::contract_table_query_exception,
+                       "Missing producers table");
 
-   const auto& kv_index = d.get_index<key_value_index, by_scope_primary>();
-   const auto& secondary_index = d.get_index<index_double_index>().indices();
-   const auto& secondary_index_by_primary = secondary_index.get<by_primary>();
-   const auto& secondary_index_by_secondary = secondary_index.get<by_secondary>();
+            const auto &kv_index = d.get_index<key_value_index, by_scope_primary>();
+            const auto &secondary_index = d.get_index<index_double_index>().indices();
+            const auto &secondary_index_by_primary = secondary_index.get<by_primary>();
+            const auto &secondary_index_by_secondary = secondary_index.get<by_secondary>();
 
-   read_only::get_producers_result result;
-   const auto stopTime = fc::time_point::now() + fc::microseconds(1000 * 10); // 10ms
-   vector<char> data;
+            read_only::get_producers_result result;
+            const auto stopTime = fc::time_point::now() + fc::microseconds(1000 * 10); // 10ms
+            vector<char> data;
 
-   auto it = [&]{
-      if(lower.value == 0)
-         return secondary_index_by_secondary.lower_bound(
-            boost::make_tuple(secondary_table_id->id, to_softfloat64(std::numeric_limits<double>::lowest()), 0));
-      else
-         return secondary_index.project<by_secondary>(
-            secondary_index_by_primary.lower_bound(
-               boost::make_tuple(secondary_table_id->id, lower.value)));
-   }();
+            auto it = [&] {
+                if (lower.value == 0)
+                    return secondary_index_by_secondary.lower_bound(
+                            boost::make_tuple(secondary_table_id->id,
+                                              to_softfloat64(std::numeric_limits<double>::lowest()), 0));
+                else
+                    return secondary_index.project<by_secondary>(
+                            secondary_index_by_primary.lower_bound(
+                                    boost::make_tuple(secondary_table_id->id, lower.value)));
+            }();
 
-   for( ; it != secondary_index_by_secondary.end() && it->t_id == secondary_table_id->id; ++it ) {
-      if (result.rows.size() >= p.limit || fc::time_point::now() > stopTime) {
-         result.more = name{it->primary_key}.to_string();
-         break;
-      }
-      copy_inline_row(*kv_index.find(boost::make_tuple(table_id->id, it->primary_key)), data);
-      if (p.json)
-         result.rows.emplace_back( abis.binary_to_variant( abis.get_table_type(N(producers)), data, abi_serializer_max_time, shorten_abi_errors ) );
-      else
-         result.rows.emplace_back(fc::variant(data));
-   }
+            for (; it != secondary_index_by_secondary.end() && it->t_id == secondary_table_id->id; ++it) {
+                if (result.producers.size() >= p.limit || fc::time_point::now() > stopTime) {
+                    result.more = name{it->primary_key}.to_string();
+                    break;
+                }
+                copy_inline_row(*kv_index.find(boost::make_tuple(table_id->id, it->primary_key)), data);
+                if (p.json)
+                    result.producers.emplace_back(
+                            abis.binary_to_variant(abis.get_table_type(N(producers)), data, abi_serializer_max_time,
+                                                   shorten_abi_errors));
+                else
+                    result.producers.emplace_back(fc::variant(data));
+            }
 
-   result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time, shorten_abi_errors)["total_producer_vote_weight"].as_double();
-   return result;
+            result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time,
+                                                               shorten_abi_errors)["total_producer_vote_weight"].as_double();
+            return result;
 } catch (...) {
-   read_only::get_producers_result result;
+            read_only::get_producers_result result;
 
-   for (auto p : db.active_producers().producers) {
-      fc::variant row = fc::mutable_variant_object()
-         ("owner", p.producer_name)
-         ("producer_key", p.block_signing_key)
-         ("url", "")
-         ("total_votes", 0.0f);
+            for (auto p : db.active_producers().producers) {
+                fc::variant row = fc::mutable_variant_object()
+                        ("fio_address", p.producer_name)
+                        ("producer_key", p.block_signing_key)
+                        ("url", "")
+                        ("total_votes", 0.0f);
 
-      result.rows.push_back(row);
-   }
+                result.producers.push_back(row);
+            }
 
-   return result;
+            return result;
 }
 
 read_only::get_producer_schedule_result read_only::get_producer_schedule( const read_only::get_producer_schedule_params& p ) const {
@@ -3295,7 +2643,8 @@ chain::plugin_interface::next_function<new_funds_request_results> next) {
                    output = *trx_trace_ptr;
                 }
 
-                next(read_write::new_funds_request_results{output});
+                 const chain::transaction_id_type &id = trx_trace_ptr->id;
+                 next(read_write::new_funds_request_results{id, output});
              } CATCH_AND_CALL(next);
           }
        });
@@ -3337,7 +2686,8 @@ chain::plugin_interface::next_function<reject_funds_request_results> next) {
                  output = *trx_trace_ptr;
               }
 
-              next(read_write::reject_funds_request_results{output});
+               const chain::transaction_id_type &id = trx_trace_ptr->id;
+               next(read_write::reject_funds_request_results{id, output});
            } CATCH_AND_CALL(next);
         }
      });
@@ -3379,7 +2729,8 @@ chain::plugin_interface::next_function<record_send_results> next) {
                  output = *trx_trace_ptr;
               }
 
-              next(read_write::record_send_results{output});
+               const chain::transaction_id_type &id = trx_trace_ptr->id;
+               next(read_write::record_send_results{id, output});
            } CATCH_AND_CALL(next);
         }
      });
@@ -3431,6 +2782,51 @@ try {
      chain_plugin::handle_db_exhaustion();
   } CATCH_AND_CALL(next);
 }
+
+/***
+ * set_fio_domain_public - By default all FIO Domains are non-public, meaning only the owner can register FIO Addresses on that domain. Setting them to public allows anyone to register a FIO Address on that domain.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::set_fio_domain_public(const read_write::set_fio_domain_public_params &params,
+                                               next_function <read_write::set_fio_domain_public_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("set_fio_domain_public called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::set_fio_domain_public_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
 
 void read_write::register_fio_domain(const read_write::register_fio_domain_params &params,
 next_function<read_write::register_fio_domain_results> next) {
@@ -3553,9 +2949,663 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
     } CATCH_AND_CALL(next);
   }
 
+/***
+ * burn_expired - This enpoint will burn the next 100 expired addresses.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::burn_expired(const read_write::burn_expired_params &params,
+                                      next_function <read_write::burn_expired_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("burn_expired called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::burn_expired_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
 
 
-static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        /***
+* unregister_proxy - This enpoint will set the specified fio address account to no longer be a proxy.
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+        void read_write::unregister_proxy(const read_write::unregister_proxy_params &params,
+                                        next_function <read_write::unregister_proxy_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("unregister_proxy called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                         const chain::transaction_id_type &id = trx_trace_ptr->id;
+                         next(read_write::unregister_proxy_results{id, output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+
+
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+
+        /***
+ * register_proxy - This enpoint will set the specified fio address account to be a proxy.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::register_proxy(const read_write::register_proxy_params &params,
+                                      next_function <read_write::register_proxy_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("register_proxy called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                         next(read_write::register_proxy_results{id, output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+
+
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+        void read_write::register_producer(const read_write::register_producer_params &params,
+                                           next_function <read_write::register_producer_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("register_producer called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::register_producer_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        void read_write::vote_producer(const read_write::vote_producer_params &params,
+                                       next_function <read_write::vote_producer_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("vote_producer called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::vote_producer_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        void read_write::proxy_vote(const read_write::proxy_vote_params &params,
+                                    next_function<read_write::proxy_vote_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("proxy_vote called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::proxy_vote_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        void read_write::submit_fee_ratios(const read_write::submit_fee_ratios_params &params,
+                                    next_function<read_write::submit_fee_ratios_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("submit_fee_ratios called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                        next(read_write::submit_fee_ratios_results{id,output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+
+
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+
+        void read_write::submit_fee_multiplier(const read_write::submit_fee_multiplier_params &params,
+                                    next_function<read_write::submit_fee_multiplier_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("proxy_vote called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                        next(read_write::submit_fee_multiplier_results{id,output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+
+
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+        void read_write::add_to_whitelist(const read_write::add_to_whitelist_params &params,
+                                               next_function<read_write::add_to_whitelist_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("add_to_whitelist called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                        next(read_write::add_to_whitelist_results{id,output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+
+        void read_write::remove_from_whitelist(const read_write::remove_from_whitelist_params &params,
+                                               next_function<read_write::remove_from_whitelist_results> next) {
+           try {
+              auto pretty_input = std::make_shared<packed_transaction>();
+              auto resolver = make_resolver(this, abi_serializer_max_time);
+              transaction_metadata_ptr ptrx;
+              dlog("remove_from_whitelist called");
+              try {
+                 abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                 ptrx = std::make_shared<transaction_metadata>(pretty_input);
+              }
+              EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                      const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                  if (result.contains<fc::exception_ptr>()) {
+                     next(result.get<fc::exception_ptr>());
+                  } else {
+                     auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                     try {
+                        fc::variant output;
+                        try {
+                           output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                        } catch (chain::abi_exception &) {
+                           output = *trx_trace_ptr;
+                        }
+                        const chain::transaction_id_type &id = trx_trace_ptr->id;
+                        next(read_write::remove_from_whitelist_results{id,output});
+                     } CATCH_AND_CALL(next);
+                  }
+              });
+           } catch (boost::interprocess::bad_alloc &) {
+              chain_plugin::handle_db_exhaustion();
+           } CATCH_AND_CALL(next);
+        }
+
+        void read_write::unregister_producer(const read_write::unregister_producer_params &params,
+                                             next_function <read_write::unregister_producer_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("unregister_proxy called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::unregister_producer_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        /***
+ * renew_domain - This endpoint will renew the specified domain.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::renew_fio_domain(const read_write::renew_fio_domain_params &params,
+                                      next_function <read_write::renew_fio_domain_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("renew_domain called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::renew_fio_domain_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+
+/***
+ * renew_address - This endpoint will renew the specified address.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+void read_write::renew_fio_address(const read_write::renew_fio_address_params &params,
+                              next_function <read_write::renew_fio_address_results> next) {
+    try {
+        auto pretty_input = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction_metadata_ptr ptrx;
+        dlog("renew_address called");
+        try {
+            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+            ptrx = std::make_shared<transaction_metadata>(pretty_input);
+        }
+        EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+            if (result.contains<fc::exception_ptr>()) {
+                next(result.get<fc::exception_ptr>());
+            } else {
+                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                try {
+                    fc::variant output;
+                    try {
+                        output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                    } catch (chain::abi_exception &) {
+                        output = *trx_trace_ptr;
+                    }
+                    const chain::transaction_id_type &id = trx_trace_ptr->id;
+                    next(read_write::renew_fio_address_results{id, output});
+                } CATCH_AND_CALL(next);
+            }
+        });
+
+
+    } catch (boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+
+/***
+ * pay_tpid_rewards - This endpoint will pay TPIDs pending rewards payment.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &params,
+                              next_function <read_write::pay_tpid_rewards_results> next) {
+    try {
+        auto pretty_input = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction_metadata_ptr ptrx;
+        dlog("pay_tpid_rewards called");
+        try {
+            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+            ptrx = std::make_shared<transaction_metadata>(pretty_input);
+        }
+        EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+            if (result.contains<fc::exception_ptr>()) {
+                next(result.get<fc::exception_ptr>());
+            } else {
+                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                try {
+                    fc::variant output;
+                    try {
+                        output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                    } catch (chain::abi_exception &) {
+                        output = *trx_trace_ptr;
+                    }
+                    const chain::transaction_id_type &id = trx_trace_ptr->id;
+                    next(read_write::pay_tpid_rewards_results{id, output});
+                } CATCH_AND_CALL(next);
+            }
+        });
+
+
+    } catch (boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
+
+        void read_write::submit_bundled_transaction(const read_write::submit_bundled_transaction_params &params,
+                                                    next_function<read_write::submit_bundled_transaction_results> next) {
+
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("submit_bundled_transaction called");
+
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::submit_bundled_transaction_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+void read_write::claim_bp_rewards(const read_write::claim_bp_rewards_params& params, next_function<read_write::claim_bp_rewards_results> next) {
+
+   try {
+      auto pretty_input = std::make_shared<packed_transaction>();
+      auto resolver = make_resolver(this, abi_serializer_max_time);
+      transaction_metadata_ptr ptrx;
+      dlog("claim_bp_rewards called");
+
+      try {
+         abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+         ptrx = std::make_shared<transaction_metadata>( pretty_input );
+       }EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
+         if (result.contains<fc::exception_ptr>()) {
+            next(result.get<fc::exception_ptr>());
+         } else {
+            auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+            try {
+               fc::variant output;
+               try {
+                  output = db.to_variant_with_abi( *trx_trace_ptr, abi_serializer_max_time );
+               } catch( chain::abi_exception& ) {
+                  output = *trx_trace_ptr;
+               }
+
+               const chain::transaction_id_type& id = trx_trace_ptr->id;
+               next(read_write::claim_bp_rewards_results{id, output});
+            } CATCH_AND_CALL(next);
+         }
+      });
+
+
+   } catch ( boost::interprocess::bad_alloc& ) {
+      chain_plugin::handle_db_exhaustion();
+   } CATCH_AND_CALL(next);
+}
+
+        static void push_recurse(read_write* rw, int index, const std::shared_ptr<read_write::push_transactions_params>& params, const std::shared_ptr<read_write::push_transactions_results>& results, const next_function<read_write::push_transactions_results>& next) {
    auto wrapped_next = [=](const fc::static_variant<fc::exception_ptr, read_write::push_transaction_results>& result) {
       if (result.contains<fc::exception_ptr>()) {
          const auto& e = result.get<fc::exception_ptr>();

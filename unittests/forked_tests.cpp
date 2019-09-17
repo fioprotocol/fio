@@ -267,10 +267,10 @@ auto r2 = c.create_accounts({N(eosio.token)});
 wdump((fc::json::to_pretty_string(r2)
 ));
 c.
-set_code( N(eosio.token), contracts::eosio_token_wasm()
+set_code( N(fio.token), contracts::fio_token_wasm()
 );
 c.
-set_abi( N(eosio.token), contracts::eosio_token_abi()
+set_abi( N(fio.token), contracts::fio_token_abi()
 .
 
 data()

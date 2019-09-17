@@ -25,44 +25,52 @@ namespace fioio {
         uint64_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
-        uint32_t expiration;
-        uint64_t account;
+        uint64_t expiration;
+        uint64_t owner_account;
         // Chain specific keys
         std::vector <string> addresses;
         uint64_t bundleeligiblecountdown = 0;
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return namehash; }
-
         uint64_t by_domain() const { return domainhash; }
+        uint64_t by_expiration() const { return expiration; }
 
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(account)(addresses)(
+        uint64_t by_owner() const { return owner_account; }
+
+        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(owner_account)(addresses)(
                 bundleeligiblecountdown)
         )
     };
 
     //Where fioname tokens are stored
     typedef multi_index<"fionames"_n, fioname,
-            indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain> > >
+    indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
+    indexed_by<"byexpiration"_n, const_mem_fun<fioname, uint64_t, &fioname::by_expiration>>,
+    indexed_by<"byowner"_n, const_mem_fun<fioname, uint64_t, &fioname::by_owner>>
+    >
     fionames_table;
 
     // @abi table domains i64
     struct [[eosio::action]] domain {
         string name;
         uint64_t domainhash;
-        uint32_t expiration;
+        uint8_t is_public = false;
+        uint64_t expiration;
         uint64_t account;
 
         uint64_t primary_key() const { return domainhash; }
-
         uint64_t by_account() const { return account; }
+        uint64_t by_expiration() const { return expiration; }
 
-        EOSLIB_SERIALIZE(domain, (name)(domainhash)(expiration)(account)
+        EOSLIB_SERIALIZE(domain, (name)(domainhash)(is_public)(expiration)(account)
         )
     };
 
     typedef multi_index<"domains"_n, domain,
-            indexed_by<"byaccount"_n, const_mem_fun < domain, uint64_t, &domain::by_account> > >
+            indexed_by<"byaccount"_n, const_mem_fun < domain, uint64_t, &domain::by_account>>,
+            indexed_by<"byexpiration"_n, const_mem_fun < domain, uint64_t, &domain::by_expiration>>
+                    >
     domains_table;
 
     // @abi table chains i64
@@ -81,28 +89,6 @@ namespace fioio {
 
     typedef multi_index<"chains"_n, chainList> chains_table;
 
-    // Structures/table for mapping chain key to FIO name
-    // @abi table keynames i64
-    struct [[eosio::action]] key_name {
-        uint64_t id;
-        string key = nullptr;       // user key on a chain
-        uint64_t keyhash = 0;       // chainkey hash
-        uint64_t chaintype;         // maps to chain_control vector position
-        string name = nullptr;      // FIO name
-        uint32_t expiration;        //expiration of the fioname.
-
-        uint64_t primary_key() const { return id; }
-
-        uint64_t by_keyhash() const { return keyhash; }
-
-        EOSLIB_SERIALIZE(key_name, (id)(key)(keyhash)(chaintype)(name)(expiration)
-        )
-    };
-
-    typedef multi_index<"keynames"_n, key_name,
-            indexed_by<"bykey"_n, const_mem_fun < key_name, uint64_t, &key_name::by_keyhash> > >
-    keynames_table;
-
     // Maps client wallet generated public keys to EOS user account names.
     // @abi table eosionames i64
     struct [[eosio::action]] eosio_name {
@@ -112,14 +98,14 @@ namespace fioio {
         uint64_t keyhash = 0;
 
         uint64_t primary_key() const { return account; }
-
-        uint64_t client_key() const { return keyhash; }
+        uint64_t by_keyhash() const { return keyhash; }
 
         EOSLIB_SERIALIZE(eosio_name, (account)(clientkey)(keyhash)
         )
     };
 
-    typedef multi_index<"eosionames"_n, eosio_name> eosio_names_table;
-
-
+    typedef multi_index<"accountmap"_n, eosio_name,
+            indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint64_t, &eosio_name::by_keyhash>>
+    >
+    eosio_names_table;
 }

@@ -1,0 +1,59 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Jun 13 20:29:09 2019",
+    "version": "eosio::abi/1.1",
+    "structs": [{
+              "name": "whitelist_info",
+              "base": "",
+              "fields": [
+                 {"name":"id","type":"uint64"},
+                 {"name":"owner","type":"name"},
+                 {"name":"lookupindex", "type":"string"},
+                 {"name":"lookupindex_hash", "type":"uint64"},
+                 {"name":"content","type":"string"}
+              ]
+              },{
+                "name": "addwhitelist",
+                "base": "",
+                "fields": [
+                            {"name":"fio_public_key_hash","type":"string"},
+                            {"name":"content", "type":"string"},
+                            {"name":"max_fee","type":"uint64"},
+                            {"name":"tpid","type":"string"},
+                            {"name":"actor","type":"name"}
+                          ]
+              },{
+                "name": "remwhitelist",
+                "base": "",
+                "fields": [
+                            {"name":"fio_public_key_hash","type":"string"},
+                            {"name":"max_fee","type":"uint64"},
+                            {"name":"tpid","type":"string"},
+                            {"name":"actor","type":"name"}
+                           ]
+              }],
+    "types": [],
+    "actions": [{
+         "name": "addwhitelist",
+         "type": "addwhitelist",
+         "ricardian_contract": ""
+       },{
+          "name": "remwhitelist",
+          "type": "remwhitelist",
+          "ricardian_contract": ""
+       }
+       ],
+   "tables": [{
+        "name": "whitelist",
+        "index_type": "i64",
+        "key_names": [
+           "id"
+        ],
+        "key_types": [
+           "uint64"
+        ],
+        "type": "whitelist_info"
+      }],
+    "ricardian_clauses": [],
+    "variants": [],
+    "abi_extensions": []
+}

@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <cmath>
-#include "../eosio.system/include/eosio.system/eosio.system.hpp"
+#include "../fio.system/include/fio.system/fio.system.hpp"
 #include <eosiolib/eosio.hpp>
 #include <string>
 #include <eosiolib/asset.hpp>
@@ -130,10 +130,5 @@ namespace fioio {
         return DecodeBase58(str.c_str(), vch);
     }
 
-//NOTE -- this needs revised to make this to be the real value.
-    asset rambytes_price(uint32_t bytes) {
-
-        return asset(10000, symbol("FIO", 4));
-    }
 
 }

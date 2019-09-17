@@ -749,7 +749,7 @@ asset to_asset(account_name code, const string &s) {
 }
 
 inline asset to_asset(const string &s) {
-    return to_asset(N(eosio.token), s);
+    return to_asset(N(fio.token), s);
 }
 
 struct set_account_permission_subcommand {
@@ -1069,15 +1069,17 @@ struct create_account_subcommand {
     string account_name;
     string owner_key_str;
     string active_key_str;
-    string stake_net;
-    string stake_cpu;
-    uint32_t buy_ram_bytes_in_kbytes = 0;
-    uint32_t buy_ram_bytes = 0;
-    string buy_ram_eos;
-    bool transfer;
+   // MAS-522 eliminate staking.
+   // string stake_net;
+   // string stake_cpu;
+   // uint32_t buy_ram_bytes_in_kbytes = 0;
+   // uint32_t buy_ram_bytes = 0;
+   // string buy_ram_eos;
+   // bool transfer;
     bool simple;
 
-    create_account_subcommand(CLI::App *actionRoot, bool s) : simple(s) {
+    create_account_subcommand(CLI::App *actionRoot , bool s) : simple(s) {
+
         auto createAccount = actionRoot->add_subcommand(
                 (simple ? "account" : "newaccount"),
                 (simple ? localized(
@@ -1092,6 +1094,7 @@ struct create_account_subcommand {
         createAccount->add_option("ActiveKey", active_key_str,
                                   localized("The active public key or permission level for the new account"));
 
+       /* MAS-522 remove staking from voting.
         if (!simple) {
             createAccount->add_option("--stake-net", stake_net,
                                       (localized("The amount of tokens delegated for net bandwidth")))->required();
@@ -1107,6 +1110,7 @@ struct create_account_subcommand {
             createAccount->add_flag("--transfer", transfer,
                                     (localized("Transfer voting power and right to unstake tokens to receiver")));
         }
+        */
 
         add_standard_transaction_options(createAccount, "creator@active");
 
@@ -1144,6 +1148,7 @@ struct create_account_subcommand {
             }
 
             auto create = create_newaccount(creator, account_name, owner, active);
+            /* MAS-522 eliminate staking
             if (!simple) {
                 EOSC_ASSERT(buy_ram_eos.size() || buy_ram_bytes_in_kbytes || buy_ram_bytes,
                             "ERROR: One of --buy-ram, --buy-ram-kbytes or --buy-ram-bytes should have non-zero value");
@@ -1162,9 +1167,9 @@ struct create_account_subcommand {
                 } else {
                     send_actions({create, buyram});
                 }
-            } else {
+            } else {*/
                 send_actions({create});
-            }
+           // }
 
             //Check if the account being created is a hashed_version from the public key
             std::string hashed_name;
@@ -1226,7 +1231,7 @@ struct vote_producer_proxy_subcommand {
                     ("producers", std::vector < account_name > {});
             auto accountPermissions = get_account_permissions(tx_permission, {voter_str, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1252,7 +1257,7 @@ struct vote_producers_subcommand {
                     ("producers", producer_names);
             auto accountPermissions = get_account_permissions(tx_permission, {voter_str, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1307,7 +1312,7 @@ struct approve_producer_subcommand {
                     ("producers", prods);
             auto accountPermissions = get_account_permissions(tx_permission, {voter, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1362,7 +1367,7 @@ struct unapprove_producer_subcommand {
                     ("producers", prods);
             auto accountPermissions = get_account_permissions(tx_permission, {voter, config::active_name});
             send_actions(
-                    {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
+                    {create_action(accountPermissions, config::system_account_name, N(vproducer), act_payload)});
         });
     }
 };
@@ -1385,7 +1390,7 @@ struct list_producers_subcommand {
                 return;
             }
             auto result = rawResult.as<eosio::chain_apis::read_only::get_producers_result>();
-            if (result.rows.empty()) {
+            if (result.producers.empty()) {
                 std::cout << "No producers found" << std::endl;
                 return;
             }
@@ -1393,10 +1398,10 @@ struct list_producers_subcommand {
             if (!weight)
                 weight = 1;
             printf("%-13s %-57s %-59s %s\n", "Producer", "Producer key", "Url", "Scaled votes");
-            for (auto &row : result.rows)
+            for (auto &row : result.producers)
                 printf("%-13.13s %-57.57s %-59.59s %1.4f\n",
                        row["owner"].as_string().c_str(),
-                       row["producer_key"].as_string().c_str(),
+                       row["producer_fio_public_key"].as_string().c_str(),
                        row["url"].as_string().c_str(),
                        row["total_votes"].as_double() / weight);
             if (!result.more.empty())
@@ -4192,7 +4197,7 @@ int main(int argc, char **argv) {
     });
 
     // system subcommand
-    auto system = app.add_subcommand("system", localized("Send eosio.system contract action to the blockchain."),
+    auto system = app.add_subcommand("system", localized("Send fio.system contract action to the blockchain."),
                                      false);
     system->require_subcommand();
 
@@ -4200,7 +4205,7 @@ int main(int argc, char **argv) {
     auto registerProducer = register_producer_subcommand(system);
     auto unregisterProducer = unregister_producer_subcommand(system);
 
-    auto voteProducer = system->add_subcommand("voteproducer", localized("Vote for a producer"));
+    auto voteProducer = system->add_subcommand("vproducer", localized("Vote for a producer"));
     voteProducer->require_subcommand();
     auto voteProxy = vote_producer_proxy_subcommand(voteProducer);
     auto voteProducers = vote_producers_subcommand(voteProducer);

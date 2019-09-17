@@ -26,7 +26,7 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 
 echo ------------------------------------------
 echo ${fioactor}
-dataJson="{\"payer_fio_address\":\"casey.dapix\",\"payee_fio_address\":\"adam.dapix\",\"payer_public_address\":\"0xab5801a7d398351b8be11c439e05c5b3259aec9b\",\"payee_public_address\":\"0xC8a5bA5868A5E9849962167B2F99B2040Cee2031\",\"amount\":\"1\",\"token_code\":\"DAI\",\"status\":\"sent_to_blockchain\",\"obt_id\":\"0xf6eaddd3851923f6f9653838d3021c02ab123a4a6e4485e83f5063b3711e000b\",\"metadata\":\"{\\"memo\\":\\"Invoice1234\\"}\",\"fio_request_id\":\"0\",\"max_fee\":\"40000000000\",\"actor\":\"${fioactor}\"}"
+dataJson="{\"payer_fio_address\":\"casey.dapix\",\"payee_fio_address\":\"adam.dapix\",\"content\":\"gobblegobble\",\"fio_request_id\":\"0\",\"max_fee\":\"40000000000\",\"actor\":\"${fioactor}\",\"tpid\":\"adam.dapix\"}"
 expectedPackedData=056461706978104208414933a95b
 cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.reqobt recordsend '$dataJson'"
 echo CMD: $cmd

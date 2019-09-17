@@ -14,11 +14,10 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
 #include <fio.common/fioerror.hpp>
+#include <fio.tpid/fio.tpid.hpp>
 
 
 namespace fioio {
-
-    const static name TokenContract = name("fio.token");
 
 
     class [[eosio::contract("FioRequestObt")]]  FioRequestObt : public eosio::contract {
@@ -27,8 +26,10 @@ namespace fioio {
         fiorequest_contexts_table fiorequestContextsTable;
         fiorequest_status_table fiorequestStatusTable;
         fionames_table fionames;
+        domains_table domains;
         fiofee_table fiofees;
         config appConfig;
+        tpids_table tpids;
 
 
     public:
@@ -37,7 +38,9 @@ namespace fioio {
                   fiorequestContextsTable(_self, _self.value),
                   fiorequestStatusTable(_self, _self.value),
                   fionames(SystemContract, SystemContract.value),
-                  fiofees(FeeContract, FeeContract.value) {
+                  domains(SystemContract, SystemContract.value),
+                  fiofees(FeeContract, FeeContract.value),
+                  tpids(SystemContract, SystemContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -64,15 +67,24 @@ namespace fioio {
          */
         // @abi action
         [[eosio::action]]
-        void recordsend(const string &payer_fio_address, const string &payee_fio_address,
-                        const string &payer_public_address, const string &payee_public_address, const string &amount,
-                        const string &token_code, const string status, const string obt_id, const string &metadata,
-                        const string fio_request_id, uint64_t max_fee, const string &actor) {
+        void recordsend(
+                const string fio_request_id,
+                const string &payer_fio_address,
+                const string &payee_fio_address,
+                const string &content,
+                uint64_t max_fee,
+                const string &actor,
+                const string &tpid) {
+
+
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found in obt json blob", ErrorInvalidJsonInput);
             fio_400_assert(payee_fio_address.length() > 0, "payee_fio_address", payee_fio_address,
                            "to fio address not found in obt json blob", ErrorInvalidJsonInput);
+
+            FioAddress payerfa;
+            getFioAddressStruct(payer_fio_address, payerfa);
 
             //if the request id is specified in the json then look to see if it is present
             //in the table, if so then add the associated update into the status tables.
@@ -96,15 +108,35 @@ namespace fioio {
                 });
             }
 
-            //check the from address, see that its a valid fio name
+            uint32_t present_time = now();
+
+            //check the payer address, see that its a valid fio name
             uint64_t nameHash = string_to_uint64_hash(payer_fio_address.c_str());
             auto fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
-            uint64_t account = fioname_iter->account;
+            uint64_t account = fioname_iter->owner_account;
+            uint64_t payernameexp = fioname_iter->expiration;
 
-            //check the to address, see that its a valid fio name
+            fio_400_assert(present_time <= payernameexp, "payer_fio_address", payer_fio_address,
+                           "FIO Address expired", ErrorFioNameExpired);
+
+            //check domain.
+            uint64_t domHash = string_to_uint64_hash(payerfa.fiodomain.c_str());
+            auto iterdom = domains.find(domHash);
+            fio_400_assert(iterdom != domains.end(), "payer_fio_address", payer_fio_address,
+                           "No such domain",
+                           ErrorDomainNotRegistered);
+            uint64_t domexp = iterdom->expiration;
+            fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
+                           "FIO Domain expired", ErrorFioNameExpired);
+
+
+
+
+
+            //check the payee address, see that its a valid fio name
             nameHash = string_to_uint64_hash(payee_fio_address.c_str());
             fioname_iter = fionames.find(nameHash);
 
@@ -162,10 +194,22 @@ namespace fioio {
                 reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
+                process_rewards(tpid, fee_amount, get_self());
+
+                //MAS-522 remove staking from voting
+                if (fee_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {aactor, true}
+                            );
+                }
+
+
             }
             //end new fees, bundle eligible fee logic
 
-            nlohmann::json json = {{"status",        status},
+            nlohmann::json json = {{"status",        "sent_to_blockchain"},
                                    {"fee_collected", fee_amount}};
 
             send_response(json.dump().c_str());
@@ -173,12 +217,11 @@ namespace fioio {
 
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
-                name fiosystem = name("fio.system");
                 // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting FIO API fees: ", fee);
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, fiosystem, fee,
+                       make_tuple(actor, "fio.treasury"_n, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
             } else {
@@ -192,9 +235,14 @@ namespace fioio {
         */
         // @abi action
         [[eosio::action]]
-        void newfundsreq(const string &payer_fio_address, const string &payee_fio_address,
-                         const string &payee_public_address, const string &amount,
-                         const string &token_code, const string &metadata, uint64_t max_fee, const string &actor) {
+        void newfundsreq(
+                const string &payer_fio_address,
+                const string &payee_fio_address,
+                const string &content,
+                uint64_t max_fee,
+                const string &actor,
+                const string &tpid) {
+
 
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
@@ -203,21 +251,47 @@ namespace fioio {
             fio_400_assert(payee_fio_address.length() > 0, "payee_fio_address", payee_fio_address,
                            "to fio address not specified",
                            ErrorInvalidJsonInput);
+            FioAddress payerfa;
+            getFioAddressStruct(payer_fio_address, payerfa);
 
-            //check the from address, see that its a valid fio name
+            FioAddress payeefa;
+            getFioAddressStruct(payee_fio_address, payeefa);
+
+            uint32_t present_time = now();
+
+            //check the payer address, see that its a valid fio name
             uint64_t nameHash = string_to_uint64_hash(payer_fio_address.c_str());
             auto fioname_iter = fionames.find(nameHash);
             fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
-                           Error400FioNameNotRegistered);
+                           ErrorFioNameNotReg);
 
-            //check the to address, see that its a valid fio name
+            //check the payee address, see that its a valid fio name
             nameHash = string_to_uint64_hash(payee_fio_address.c_str());
             fioname_iter = fionames.find(nameHash);
+
             fio_400_assert(fioname_iter != fionames.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
-                           Error400FioNameNotRegistered);
-            uint64_t account = fioname_iter->account;
+                           ErrorFioNameNotReg);
+
+            uint64_t payeenameexp = fioname_iter->expiration;
+
+            fio_400_assert(present_time <= payeenameexp, "payee_fio_address", payee_fio_address,
+                           "FIO Address expired", ErrorFioNameExpired);
+
+            //check domain.
+            uint64_t domHash = string_to_uint64_hash(payeefa.fiodomain.c_str());
+            auto iterdom = domains.find(domHash);
+            fio_400_assert(iterdom != domains.end(), "payee_fio_address", payee_fio_address,
+                           "No such domain",
+                           ErrorDomainNotRegistered);
+            uint64_t domexp = iterdom->expiration;
+            fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
+                           "FIO Domain expired", ErrorFioNameExpired);
+
+
+            //payee must be the actor.
+            uint64_t account = fioname_iter->owner_account;
 
             name aActor = name(actor.c_str());
             print("account: ", account, " actor: ", aActor, "\n");
@@ -234,11 +308,10 @@ namespace fioio {
                 frc.fio_request_id = id;
                 frc.payer_fio_address = fromHash;
                 frc.payee_fio_address = toHash;
-                frc.payee_public_address = payee_public_address;
-                frc.amount = amount;
-                frc.token_code = token_code;
-                frc.metadata = metadata;
+                frc.content = content;
                 frc.time_stamp = currentTime;
+                frc.payer_fio_addr = payer_fio_address;
+                frc.payee_fio_addr = payee_fio_address;
             });
 
 
@@ -289,6 +362,17 @@ namespace fioio {
                 reg_fee_asset.amount = fee_amount;
 
                 fio_fees(aActor, reg_fee_asset);
+                process_rewards(tpid, fee_amount, get_self());
+
+                //MAS-522 remove staking from voting
+                if (fee_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {aActor, true}
+                            );
+                }
+
             }
             //end new fees, bundle eligible fee logic
 
@@ -306,7 +390,8 @@ namespace fioio {
          f*/
         // @abi action
         [[eosio::action]]
-        void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor) {
+        void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
+
             print("call new funds request\n");
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
@@ -323,15 +408,38 @@ namespace fioio {
             fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                            "No such FIO Request", ErrorRequestContextNotFound);
 
-            uint64_t fromFioAdd = fioreqctx_iter->payer_fio_address;
+            uint64_t payerFioAddHashed = fioreqctx_iter->payer_fio_address;
+            uint64_t payeeFioAddHashed = fioreqctx_iter->payee_fio_address;
 
-            //check the from address, see that its a valid fio name
-            auto fioname_iter = fionames.find(fromFioAdd);
+            uint32_t present_time = now();
 
+            //check the payer address, see that its a valid fio name
+
+            auto fioname_iter = fionames.find(payerFioAddHashed);
 
             fio_403_assert(fioname_iter != fionames.end(), ErrorSignature);
+            uint64_t account = fioname_iter->owner_account;
+            uint64_t payernameexp = fioname_iter->expiration;
+            string payerFioAddress = fioname_iter->name;
+            FioAddress payerfa;
+            getFioAddressStruct(payerFioAddress, payerfa);
 
-            uint64_t account = fioname_iter->account;
+
+            fio_400_assert(present_time <= payernameexp, "payer_fio_address", payerFioAddress,
+                           "FIO Address expired", ErrorFioNameExpired);
+
+            //check domain.
+            uint64_t domHash = string_to_uint64_hash(payerfa.fiodomain.c_str());
+            auto iterdom = domains.find(domHash);
+            fio_400_assert(iterdom != domains.end(), "payer_fio_address", payerFioAddress,
+                           "No such domain",
+                           ErrorDomainNotRegistered);
+            uint64_t domexp = iterdom->expiration;
+            fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
+                           "FIO Domain expired", ErrorFioNameExpired);
+
+
+
             string payer_fio_address = fioname_iter->name;
 
             name aactor = name(actor.c_str());
@@ -394,6 +502,17 @@ namespace fioio {
                 reg_fee_asset.symbol = symbol("FIO", 9);
 
                 fio_fees(aactor, reg_fee_asset);
+                process_rewards(tpid, fee_amount, get_self());
+
+                //MAS-522 remove staking from voting
+                if (fee_amount > 0) {
+                    //MAS-522 remove staking from voting.
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {aactor, true}
+                            );
+                }
+
             }
             //end new fees, bundle eligible fee logic
 
@@ -406,4 +525,3 @@ namespace fioio {
     EOSIO_DISPATCH(FioRequestObt, (recordsend)(newfundsreq)
     (rejectfndreq))
 }
-

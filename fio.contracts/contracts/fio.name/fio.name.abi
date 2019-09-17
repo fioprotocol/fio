@@ -19,10 +19,10 @@
           "type": "uint64"
         },{
           "name": "expiration",
-          "type": "uint32"
-        },{
-          "name": "account",
           "type": "uint64"
+        },{
+          "name": "owner_account",
+          "type": "name"
         },{
           "name": "addresses",
           "type": "string[]"
@@ -41,6 +41,9 @@
           "name": "domainhash",
           "type": "uint64"
         },{
+         "name": "is_public",
+         "type": "uint8"
+       },{
           "name": "expiration",
           "type": "uint32"
         },{
@@ -63,29 +66,6 @@
         }
       ]
     },{
-      "name": "key_name",
-      "base": "",
-      "fields": [{
-          "name": "id",
-          "type": "uint64"
-        },{
-          "name": "key",
-          "type": "string"
-        },{
-          "name": "keyhash",
-          "type": "uint64"
-        },{
-          "name": "chaintype",
-          "type": "uint64"
-        },{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "expiration",
-          "type": "uint32"
-        }
-      ]
-     },{
       "name": "eosio_name",
       "base": "",
       "fields": [{
@@ -128,6 +108,9 @@
         },{
           "name": "actor",
           "type": "name"
+        },{
+          "name": "tpid",
+          "type": "string"
         }
       ]
     },{
@@ -148,6 +131,9 @@
         },{
           "name": "actor",
           "type": "name"
+        },{
+          "name": "tpid",
+          "type": "string"
         }
       ]
     },{
@@ -165,9 +151,99 @@
       },{
         "name": "actor",
         "type": "name"
-      }
+      },{
+        "name": "tpid",
+        "type": "string"
+        }
     ]
   },{
+            "name": "renewdomain",
+            "base": "",
+            "fields": [{
+                "name": "fio_domain",
+                "type": "string"
+              },{
+                "name": "max_fee",
+                "type": "uint64"
+              },{
+                "name": "tpid",
+                "type": "string"
+              },{
+                "name": "actor",
+                "type": "name"
+              }
+            ]
+        },{
+            "name": "renewaddress",
+            "base": "",
+            "fields": [{
+                "name": "fio_address",
+                "type": "string"
+               },{
+                "name": "max_fee",
+                "type": "uint64"
+               },{
+                "name": "tpid",
+                "type": "string"
+               },{
+                "name": "actor",
+                "type": "name"
+               }
+              ]
+        },{
+         "name": "expdomain",
+         "base": "",
+         "fields": [{
+             "name": "actor",
+             "type": "name"
+           },{
+             "name": "domain",
+             "type": "string"
+           }
+         ]
+     },{
+      "name": "expaddresses",
+      "base": "",
+      "fields": [{
+          "name": "actor",
+          "type": "name"
+        },{
+          "name": "domain",
+          "type": "string"
+        },{
+          "name": "address_prefix",
+          "type": "string"
+        },{
+          "name": "number_addresses_to_add",
+          "type": "uint64"
+        }
+      ]
+  },{
+   "name": "setdomainpub",
+   "base": "",
+   "fields": [{
+       "name": "fio_domain",
+       "type": "string"
+     },{
+       "name": "is_public",
+       "type": "uint8"
+     },{
+       "name": "max_fee",
+       "type": "uint64"
+     },{
+       "name": "actor",
+       "type": "name"
+     },{
+       "name": "tpid",
+       "type": "string"
+     }
+   ]
+      },{
+       "name": "burnexpired",
+       "base": "",
+       "fields": [
+       ]
+     },{
       "name": "removename",
       "base": "",
       "fields": []
@@ -214,6 +290,26 @@
       "type": "regdomain",
       "ricardian_contract": ""
     },{
+      "name": "renewdomain",
+      "type": "renewdomain",
+      "ricardian_contract": ""
+    },{
+      "name": "renewaddress",
+      "type": "renewaddress",
+      "ricardian_contract": ""
+    },{
+      "name": "expdomain",
+      "type": "expdomain",
+      "ricardian_contract": ""
+    },{
+      "name": "expaddresses",
+      "type": "expaddresses",
+      "ricardian_contract": ""
+    },{
+      "name": "burnexpired",
+      "type": "burnexpired",
+      "ricardian_contract": ""
+    },{
       "name": "removename",
       "type": "removename",
       "ricardian_contract": ""
@@ -224,6 +320,10 @@
     },{
       "name": "rmvaddress",
       "type": "rmvaddress",
+      "ricardian_contract": ""
+    },{
+      "name": "setdomainpub",
+      "type": "setdomainpub",
       "ricardian_contract": ""
     },{
     "name": "bind2eosio",
@@ -262,17 +362,7 @@
       ],
       "type": "chainList"
     },{
-      "name": "keynames",
-      "index_type": "i64",
-      "key_names": [
-        "id"
-      ],
-      "key_types": [
-        "uint64"
-      ],
-      "type": "key_name"
-    },{
-      "name": "eosionames",
+      "name": "accountmap",
       "index_type": "i64",
       "key_names": [
         "account"

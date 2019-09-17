@@ -59,6 +59,18 @@ namespace eosio {
         }
     }
 
+    void token::mintfio(const uint64_t &amount) {
+      //can only be called by fio.treasury@active
+      require_auth("fio.treasury"_n);
+      if (amount > 0 && amount < 100000000000000000) { //100,000,000 FIO max can be minted by this call
+        print("\n\nMintfio called\n");
+        action(permission_level{"eosio"_n, "active"_n},
+          "fio.token"_n, "issue"_n,
+          make_tuple("fio.treasury"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
+        ).send();
+      }
+    }
+
     void token::retire(asset quantity, string memo) {
         auto sym = quantity.symbol;
         check(sym.is_valid(), "invalid symbol name");
@@ -105,14 +117,14 @@ namespace eosio {
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
+
     }
 
     inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
-            name fiosystem = name("fio.system");
             // check for funds is implicitly done as part of the funds transfer.
             print("Collecting FIO API fees: ", fee);
-            transfer(actor, fiosystem, fee, string("FIO API fees. Thank you."));
+            transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
         } else {
             print("Payments currently disabled.");
         }
@@ -133,14 +145,14 @@ namespace eosio {
     void token::trnsfiopubky(string payee_public_key,
                              string amount,
                              uint64_t max_fee,
-                             name actor) {
+                             name actor,
+                             const string &tpid) {
 
         asset qty;
         //we assume the amount is in fio sufs.
         int64_t i64 = stoi(amount.c_str());
         qty.amount = i64;
         qty.symbol = symbol("FIO", 9);
-
 
         ///BEGIN new account management logic!!!!
 
@@ -196,25 +208,11 @@ namespace eosio {
             };
 
             const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
-            const auto rbprice = rambytes_price(3 * 1024);
 
-            // Create account.
-            action(
-                    permission_level{get_self(), "active"_n},
-                    "eosio"_n,
-                    "newaccount"_n,
-                    std::make_tuple(get_self(), new_account_name, owner_auth, owner_auth)
-            ).send();
-
-            // Buy ram for account.
-            INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
+            INLINE_ACTION_SENDER(call::eosio, newaccount)
                     ("eosio"_n, {{_self, "active"_n}},
-                     {_self, new_account_name, rbprice});
-            // Replace lost ram.
-            INLINE_ACTION_SENDER(eosiosystem::system_contract, buyram)
-                    ("eosio"_n, {{_self, "active"_n}},
-                     {_self, _self, rbprice});
-
+                     {_self, new_account_name, owner_auth, owner_auth}
+                     );
 
             print("created the account!!!!", new_account_name, "\n");
 
@@ -245,13 +243,14 @@ namespace eosio {
         //the account is not yet officially on the chain and is_account will return false.
         //require_recipient will also fail.
 
+
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_to_pub_key");
+        uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_pub_key");
 
         auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_to_pub_key",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -259,7 +258,7 @@ namespace eosio {
 
         //if its not a mandatory fee then this is an error.
         fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                       "transfer_tokens_to_pub_key unexpected fee type for endpoint transfer_tokens_to_pub_key, expected 0",
+                       "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
                        ErrorNoEndpoint);
 
         fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
@@ -276,6 +275,10 @@ namespace eosio {
         reg_fee_asset.symbol = symbol("FIO", 9);
 
         fio_fees(actor, reg_fee_asset);
+        process_rewards(tpid, reg_amount, get_self());
+
+
+
         require_recipient(actor);
         //require recipient if the account was found on the chain.
         if (accountExists) {
@@ -289,14 +292,29 @@ namespace eosio {
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
 
+        //MAS-522 remove staking from voting.
+        INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                ("eosio"_n, {{_self, "active"_n}},
+                 {actor, true}
+                );
+
+        if (accountExists) {
+            INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                    ("eosio"_n, {{_self, "active"_n}},
+                     {new_account_name, true}
+                    );
+        }
+        //MAS-522 remove staking from voting.  END
+
+
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
+
         send_response(json.dump().c_str());
     }
 
     void token::sub_balance(name owner, asset value) {
         accounts from_acnts(_self, owner.value);
-
         const auto &from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
 
         fio_400_assert(from.balance.amount >= value.amount, "amount", to_string(value.amount),
@@ -350,5 +368,5 @@ namespace eosio {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(transfer)(trnsfiopubky)(open)(close)
+EOSIO_DISPATCH( eosio::token, (create)(issue)(mintfio)(transfer)(trnsfiopubky)(open)(close)
 (retire))

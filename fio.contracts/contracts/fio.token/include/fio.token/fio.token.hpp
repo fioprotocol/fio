@@ -7,12 +7,14 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.name/fio.name.hpp>
 #include <fio.fee/fio.fee.hpp>
+#include <fio.tpid/fio.tpid.hpp>
 
 namespace eosiosystem {
     class system_contract;
 }
 
 namespace eosio {
+using namespace fioio;
 
     using std::string;
 
@@ -21,10 +23,15 @@ namespace eosio {
         fioio::eosio_names_table eosionames;
         fioio::fiofee_table fiofees;
         fioio::config appConfig;
+        fioio::tpids_table tpids;
+        fioio::fionames_table fionames;
+
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                 eosionames(fioio::SystemContract,fioio::SystemContract.value),
-                                                                fiofees(fioio::FeeContract, fioio::FeeContract.value) {
+                                                                fionames(fioio::SystemContract,fioio::SystemContract.value),
+                                                                fiofees(fioio::FeeContract, fioio::FeeContract.value),
+                                                                tpids(TPIDContract, TPIDContract.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
             appConfig = configsSingleton.get_or_default(fioio::config());
         }
@@ -36,7 +43,11 @@ namespace eosio {
         [[eosio::action]]
         void issue(name to, asset quantity, string memo);
 
+        [[eosio::action]]
+        void mintfio(const uint64_t &amount);
+
         inline void fio_fees(const name &actor, const asset &fee);
+
 
         [[eosio::action]]
         void retire(asset quantity, string memo);
@@ -51,7 +62,8 @@ namespace eosio {
         void trnsfiopubky(string payee_public_key,
                           string amount,
                           uint64_t max_fee,
-                          name actor);
+                          name actor,
+                          const string &tpid);
 
         [[eosio::action]]
         void open(name owner, const symbol &symbol, name ram_payer);
@@ -73,6 +85,7 @@ namespace eosio {
 
         using create_action = eosio::action_wrapper<"create"_n, &token::create>;
         using issue_action = eosio::action_wrapper<"issue"_n, &token::issue>;
+        using mintfio_action = eosio::action_wrapper<"mintfio"_n, &token::mintfio>;
         using retire_action = eosio::action_wrapper<"retire"_n, &token::retire>;
         using transfer_action = eosio::action_wrapper<"transfer"_n, &token::transfer>;
         using open_action = eosio::action_wrapper<"open"_n, &token::open>;
@@ -99,6 +112,7 @@ namespace eosio {
         void add_balance(name owner, asset value, name ram_payer);
 
     public:
+
         struct transfer_args {
             name from;
             name to;

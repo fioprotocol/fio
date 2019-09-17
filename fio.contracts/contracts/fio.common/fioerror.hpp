@@ -65,6 +65,12 @@ namespace fioio {
     constexpr auto ErrorNoEndpoint = ident | httpDataError | 128; // No endpoint specified.
     constexpr auto ErrorNoFeesFoundForEndpoint = ident | httpDataError | 129; // No Fees found for endpoint
     constexpr auto ErrorMaxFeeExceeded = ident | httpDataError | 130; // max fee exceeded.
+    constexpr auto InvalidTPID = ident | httpDataError | 131; // max fee exceeded.
+    constexpr auto ErrorProxyNotFound = ident | httpLocationError | 132;
+    constexpr auto ErrorPublicKeyExists = ident | httpDataError | 133; // pub key already exists.
+    constexpr auto ErrorNoFioAddressProducer = ident | httpDataError | 134; // producer does is not fioname
+
+
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */

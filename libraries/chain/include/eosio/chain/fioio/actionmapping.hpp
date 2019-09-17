@@ -20,18 +20,39 @@ namespace fioio {
     vector <string> eosioActions;
     vector <string> fiosystemActions;
     vector <string> fioFinanceActions;
+    vector <string> fioFeeActions;
     vector <string> fioRequestObtActions;
+    vector <string> whitelistActions;
     vector <string> fioTokenActions;
+    vector <string> fioTreasuryActions;
 
     static void Set_map(void) {
         //eosio actions
         eosioActions.push_back("default");
+        //whitelist actions
+        whitelistActions.push_back("addwhitelist");
+        whitelistActions.push_back("remwhitelist");
 
         //fio.system actions
         fiosystemActions.push_back("regaddress");
         fiosystemActions.push_back("regdomain");
         fiosystemActions.push_back("addaddress");
+        fiosystemActions.push_back("renewdomain");
+        fiosystemActions.push_back("renewaddress");
+        fiosystemActions.push_back("expdomain");
+        fiosystemActions.push_back("setdomainpub");
+        fiosystemActions.push_back("expaddresses");
         fiosystemActions.push_back("bind2eosio");
+        fiosystemActions.push_back("burnexpired");
+
+        //fio.fee actions
+        fioFeeActions.push_back("setfeemult");
+        fioFeeActions.push_back("bundlevote");
+        fioFeeActions.push_back("setfeevote");
+
+        fioTreasuryActions.push_back("tpidclaim");
+        fioTreasuryActions.push_back("bpclaim");
+        
         //fio.token actions
         fioTokenActions.push_back("trnsfiopubky");
         //fio.finance actions
@@ -56,6 +77,15 @@ namespace fioio {
         if (find(fioTokenActions.begin(), fioTokenActions.end(), t) != fioTokenActions.end()) {
             return "fio.token";
         }
+        if (find(fioTreasuryActions.begin(), fioTreasuryActions.end(), t) != fioTreasuryActions.end()) {
+            return "fio.treasury";
+        }
+        if (find(whitelistActions.begin(), whitelistActions.end(), t) != whitelistActions.end()) {
+            return "fio.whitelst";
+        }
+        if (find(fioFeeActions.begin(), fioFeeActions.end(), t) != fioFeeActions.end()) {
+            return "fio.fee";
+        }
         return "eosio";
     }
 
@@ -76,17 +106,9 @@ namespace fioio {
         string name;
         uint64_t requestor;
     };
-
-    //struct addaddress {
-    //    string fioaddress;
-    //    string tokencode;
-    //    string pubaddress;
-    //    uint64_t actor;
-    //};
 }
 
 FC_REFLECT(fioio::regaddress, (name)(requestor)
 )
 FC_REFLECT(fioio::regdomain, (name)(requestor)
 )
-//FC_REFLECT( fioio::addaddress, (fioaddress)(tokencode)(pubaddress)(actor) )

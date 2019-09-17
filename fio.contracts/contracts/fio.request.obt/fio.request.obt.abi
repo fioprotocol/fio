@@ -15,21 +15,18 @@
           "name": "payee_fio_address",
           "type": "uint64"
         },{
-          "name": "payee_public_address",
-          "type": "string"
-        },{
-          "name": "amount",
-          "type": "string"
-        },{
-          "name": "token_code",
-          "type": "string"
-        },{
-          "name": "metadata",
+          "name": "content",
           "type": "string"
         },{
           "name": "time_stamp",
           "type": "uint64"
-        }
+        },{
+          "name": "payer_fio_addr",
+          "type": "string"
+        },{
+          "name": "payee_fio_addr",
+          "type": "string"
+         }
       ]
     },{
       "name": "fioreqsts",
@@ -55,40 +52,25 @@
       "name": "recordsend",
       "base": "",
       "fields": [{
-          "name": "payer_fio_address",
+            "name": "fio_request_id",
+            "type": "string"
+           },{
+             "name": "payer_fio_address",
              "type": "string"
            },{
              "name": "payee_fio_address",
              "type": "string"
            },{
-             "name": "payer_public_address",
-             "type": "string"
-           },{
-             "name": "payee_public_address",
-             "type": "string"
-           },{
-             "name": "amount",
-             "type": "string"
-           },{
-             "name": "token_code",
-             "type": "string"
-           },{
-             "name": "status",
-             "type": "string"
-           },{
-             "name": "obt_id",
-             "type": "string"
-           },{
-             "name": "metadata",
-             "type": "string"
-           },{
-             "name": "fio_request_id",
+             "name": "content",
              "type": "string"
            },{
              "name": "max_fee",
              "type": "uint64"
            },{
              "name": "actor",
+             "type": "string"
+           },{
+             "name": "tpid",
              "type": "string"
            }
       ]
@@ -102,22 +84,16 @@
                "name": "payee_fio_address",
                "type": "string"
              },{
-               "name": "payee_public_address",
-               "type": "string"
-             },{
-               "name": "amount",
-               "type": "string"
-             },{
-               "name": "token_code",
-               "type": "string"
-             },{
-               "name": "metadata",
+               "name": "content",
                "type": "string"
              },{
                "name": "max_fee",
                "type": "uint64"
              },{
                "name": "actor",
+               "type": "string"
+             },{
+               "name": "tpid",
                "type": "string"
              }
            ]
@@ -132,6 +108,9 @@
                    "type": "uint64"
                    },{
                      "name": "actor",
+                     "type": "string"
+                   },{
+                     "name": "tpid",
                      "type": "string"
                    }
                ]
