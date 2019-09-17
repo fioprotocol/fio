@@ -69,6 +69,7 @@ namespace fioio {
     constexpr auto ErrorProxyNotFound = ident | httpLocationError | 132;
     constexpr auto ErrorPublicKeyExists = ident | httpDataError | 133; // pub key already exists.
     constexpr auto ErrorNoFioAddressProducer = ident | httpDataError | 134; // producer does is not fioname
+    constexpr auto AddressNotProxy = ident | httpDataError | 135; // This address is not a proxy
 
 
     /**
