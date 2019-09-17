@@ -1352,8 +1352,17 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                     string payee_fio_public_key = p.fio_public_key;
 
+                    //convert the time_stamp to string formatted time.
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
+
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
                     request_record rr{fio_request_id, from_fioadd,
-                                      to_fioadd, payee_fio_public_key, payer_fio_public_key, content, time_stamp};
+                                      to_fioadd, payee_fio_public_key, payer_fio_public_key, content, buffer};
 
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
@@ -1556,9 +1565,17 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                           }
                         }
                     }
+                    //convert the time_stamp to string formatted time.
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
+
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
                     request_status_record rr{fio_request_id, payer_address, payee_address, payer_fio_public_key,
-                                             payee_fio_public_key, content, time_stamp, status};
+                                             payee_fio_public_key, content, buffer, status};
 
                     result.requests.push_back(rr);
 
