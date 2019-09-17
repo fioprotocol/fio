@@ -470,6 +470,9 @@ namespace eosiosystem {
 
         uint64_t address_hash = string_to_uint64_hash(fio_address.c_str());
         uint64_t proxy_account = fioname_iter->owner_account;
+        fio_400_assert(_voters.find(fioname_iter->owner_account)->is_proxy, "fio_address", fio_address,
+                       "This address is not a proxy", AddressNotProxy);
+
         auto proxy_name = name{proxy_account};
 
         std::vector<name> producers{}; // Empty
