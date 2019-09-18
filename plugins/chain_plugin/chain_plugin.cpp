@@ -2647,8 +2647,8 @@ chain::plugin_interface::next_function<new_funds_request_results> next) {
        dlog("\n");dlog(actions[0].name.to_string());
        FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-       FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::ErrorTransaction);
-       FIO_403_ASSERT(actions[0].name.to_string() == "newfundsreq", fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::InvalidAccountOrAction);
+       FIO_403_ASSERT(actions[0].name.to_string() == "newfundsreq", fioio::InvalidAccountOrAction);
 
        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
           if (result.contains<fc::exception_ptr>()) {
@@ -2698,8 +2698,8 @@ chain::plugin_interface::next_function<reject_funds_request_results> next) {
      dlog("\n");dlog(actions[0].name.to_string());
      FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
      FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-     FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::ErrorTransaction);
-     FIO_403_ASSERT(actions[0].name.to_string() == "rejectfndreq", fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::InvalidAccountOrAction);
+     FIO_403_ASSERT(actions[0].name.to_string() == "rejectfndreq", fioio::InvalidAccountOrAction);
 
      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
         if (result.contains<fc::exception_ptr>()) {
@@ -2749,8 +2749,8 @@ chain::plugin_interface::next_function<record_send_results> next) {
      dlog("\n");dlog(actions[0].name.to_string());
      FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
      FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-     FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::ErrorTransaction);
-     FIO_403_ASSERT(actions[0].name.to_string() == "recordsend", fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::InvalidAccountOrAction);
+     FIO_403_ASSERT(actions[0].name.to_string() == "recordsend", fioio::InvalidAccountOrAction);
 
      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
         if (result.contains<fc::exception_ptr>()) {
@@ -2800,8 +2800,8 @@ try {
    dlog("\n");dlog(actions[0].name.to_string());
    FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
    FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-   FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-   FIO_403_ASSERT(actions[0].name.to_string() == "regaddress", fioio::ErrorTransaction);
+   FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+   FIO_403_ASSERT(actions[0].name.to_string() == "regaddress", fioio::InvalidAccountOrAction);
 
    app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
       if (result.contains<fc::exception_ptr>()) {
@@ -2851,8 +2851,8 @@ try {
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "setdomainpub", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "setdomainpub", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -2898,8 +2898,8 @@ next_function<read_write::register_fio_domain_results> next) {
     dlog("\n");dlog(actions[0].name.to_string());
     FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
     FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-    FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-    FIO_403_ASSERT(actions[0].name.to_string() == "regdomain", fioio::ErrorTransaction);
+    FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+    FIO_403_ASSERT(actions[0].name.to_string() == "regdomain", fioio::InvalidAccountOrAction);
 
 
     app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
@@ -2949,8 +2949,8 @@ next_function<read_write::add_pub_address_results> next) {
      dlog("\n");dlog(actions[0].name.to_string());
      FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
      FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-     FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-     FIO_403_ASSERT(actions[0].name.to_string() == "addaddress", fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+     FIO_403_ASSERT(actions[0].name.to_string() == "addaddress", fioio::InvalidAccountOrAction);
 
      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
         if (result.contains<fc::exception_ptr>()) {
@@ -2999,8 +2999,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
        dlog("\n");dlog(actions[0].name.to_string());
        FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-       FIO_403_ASSERT(actions[0].account.to_string() == "fio.token", fioio::ErrorTransaction);
-       FIO_403_ASSERT(actions[0].name.to_string() == "trnsfiopubky", fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].account.to_string() == "fio.token", fioio::InvalidAccountOrAction);
+       FIO_403_ASSERT(actions[0].name.to_string() == "trnsfiopubky", fioio::InvalidAccountOrAction);
 
        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
           if (result.contains<fc::exception_ptr>()) {
@@ -3050,8 +3050,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "burnexpired", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "burnexpired", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3102,8 +3102,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].name.to_string() == "unregproxy", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "unregproxy", fioio::InvalidAccountOrAction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3155,8 +3155,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].name.to_string() == "regproxy", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "regproxy", fioio::InvalidAccountOrAction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3202,8 +3202,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "regproducer", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "regproducer", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3249,8 +3249,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "voteproducer", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "voteproducer", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3296,8 +3296,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "voteproxy", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "voteproxy", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3343,8 +3343,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].name.to_string() == "setfeevote", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::InvalidAccountOrAction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "setfeevote", fioio::InvalidAccountOrAction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3391,8 +3391,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].name.to_string() == "setfeemult", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::InvalidAccountOrAction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "setfeemult", fioio::InvalidAccountOrAction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3438,8 +3438,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].name.to_string() == "addwhitelist", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::InvalidAccountOrAction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "addwhitelist", fioio::InvalidAccountOrAction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3484,8 +3484,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::ErrorTransaction);
-              FIO_403_ASSERT(actions[0].name.to_string() == "remwhitelist", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::InvalidAccountOrAction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "remwhitelist", fioio::InvalidAccountOrAction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3529,8 +3529,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "unregprod", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "unregprod", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3581,8 +3581,8 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "renewdomain", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "renewdomain", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3634,8 +3634,8 @@ void read_write::renew_fio_address(const read_write::renew_fio_address_params &p
         dlog("\n");dlog(actions[0].name.to_string());
         FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
         FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-        FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
-        FIO_403_ASSERT(actions[0].name.to_string() == "renewaddress", fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+        FIO_403_ASSERT(actions[0].name.to_string() == "renewaddress", fioio::InvalidAccountOrAction);
 
         app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                 const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3687,8 +3687,8 @@ void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &par
         dlog("\n");dlog(actions[0].name.to_string());
         FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
         FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-        FIO_403_ASSERT(actions[0].account.to_string() == "fio.treasury", fioio::ErrorTransaction);
-        FIO_403_ASSERT(actions[0].name.to_string() == "tpidclaim", fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].account.to_string() == "fio.treasury", fioio::InvalidAccountOrAction);
+        FIO_403_ASSERT(actions[0].name.to_string() == "tpidclaim", fioio::InvalidAccountOrAction);
 
         app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                 const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3735,8 +3735,8 @@ void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &par
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "bundlevote", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "bundlevote", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3782,8 +3782,8 @@ void read_write::claim_bp_rewards(const read_write::claim_bp_rewards_params& par
        dlog("\n");dlog(actions[0].name.to_string());
        FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-       FIO_403_ASSERT(actions[0].account.to_string() == "fio.treasury", fioio::ErrorTransaction);
-       FIO_403_ASSERT(actions[0].name.to_string() == "bpclaim", fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].account.to_string() == "fio.treasury", fioio::InvalidAccountOrAction);
+       FIO_403_ASSERT(actions[0].name.to_string() == "bpclaim", fioio::InvalidAccountOrAction);
 
       app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
          if (result.contains<fc::exception_ptr>()) {
