@@ -2624,10 +2624,6 @@ void read_write::push_transaction(const read_write::push_transaction_params& par
    } CATCH_AND_CALL(next);
 }
 
-//Temporary to register_fio_name_params
-constexpr const char *fioCreatorKey = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY"; //  "EOS7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS" - fiosystem
-constexpr const char *fioCreator = "fio.system";
-
 /***
  *  new_funds_request- This api method will invoke the fio.request.obt smart contract for newfundsreq this api method is
  * intended add a new request for funds to the index tables of the chain..
@@ -2775,6 +2771,13 @@ try {
       ptrx = std::make_shared<transaction_metadata>( pretty_input );
    } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+   transaction trx = pretty_input->get_transaction();
+   vector<action> &actions = trx.actions;
+   dlog("\n");dlog(actions[0].name.to_string());
+   FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+   FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+   FIO_403_ASSERT(actions[0].name.to_string() == "regaddress", fioio::ErrorTransaction);
+
    app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
       if (result.contains<fc::exception_ptr>()) {
          next(result.get<fc::exception_ptr>());
@@ -2856,6 +2859,14 @@ next_function<read_write::register_fio_domain_results> next) {
        abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
        ptrx = std::make_shared<transaction_metadata>( pretty_input );
     } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+    transaction trx = pretty_input->get_transaction();
+    vector<action> &actions = trx.actions;
+    dlog("\n");dlog(actions[0].name.to_string());
+    FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+    FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+    FIO_403_ASSERT(actions[0].name.to_string() == "regdomain", fioio::ErrorTransaction);
+
 
     app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
        if (result.contains<fc::exception_ptr>()) {
