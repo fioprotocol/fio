@@ -2642,6 +2642,14 @@ chain::plugin_interface::next_function<new_funds_request_results> next) {
           ptrx = std::make_shared<transaction_metadata>( pretty_input );
        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+       transaction trx = pretty_input->get_transaction();
+       vector<action> &actions = trx.actions;
+       dlog("\n");dlog(actions[0].name.to_string());
+       FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].name.to_string() == "newfundsreq", fioio::ErrorTransaction);
+
        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
           if (result.contains<fc::exception_ptr>()) {
              next(result.get<fc::exception_ptr>());
@@ -2685,6 +2693,14 @@ chain::plugin_interface::next_function<reject_funds_request_results> next) {
         ptrx = std::make_shared<transaction_metadata>( pretty_input );
      } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+     transaction trx = pretty_input->get_transaction();
+     vector<action> &actions = trx.actions;
+     dlog("\n");dlog(actions[0].name.to_string());
+     FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].name.to_string() == "rejectfndreq", fioio::ErrorTransaction);
+
      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
         if (result.contains<fc::exception_ptr>()) {
            next(result.get<fc::exception_ptr>());
@@ -2727,6 +2743,14 @@ chain::plugin_interface::next_function<record_send_results> next) {
         abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
         ptrx = std::make_shared<transaction_metadata>( pretty_input );
      } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+     transaction trx = pretty_input->get_transaction();
+     vector<action> &actions = trx.actions;
+     dlog("\n");dlog(actions[0].name.to_string());
+     FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].name.to_string() == "recordsend", fioio::ErrorTransaction);
 
      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
         if (result.contains<fc::exception_ptr>()) {
@@ -2776,6 +2800,7 @@ try {
    dlog("\n");dlog(actions[0].name.to_string());
    FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
    FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+   FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
    FIO_403_ASSERT(actions[0].name.to_string() == "regaddress", fioio::ErrorTransaction);
 
    app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
@@ -2821,6 +2846,14 @@ try {
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "setdomainpub", fioio::ErrorTransaction);
+
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                     if (result.contains<fc::exception_ptr>()) {
@@ -2865,6 +2898,7 @@ next_function<read_write::register_fio_domain_results> next) {
     dlog("\n");dlog(actions[0].name.to_string());
     FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
     FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+    FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
     FIO_403_ASSERT(actions[0].name.to_string() == "regdomain", fioio::ErrorTransaction);
 
 
@@ -2910,6 +2944,14 @@ next_function<read_write::add_pub_address_results> next) {
         ptrx = std::make_shared<transaction_metadata>( pretty_input );
      } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+     transaction trx = pretty_input->get_transaction();
+     vector<action> &actions = trx.actions;
+     dlog("\n");dlog(actions[0].name.to_string());
+     FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
+     FIO_403_ASSERT(actions[0].name.to_string() == "addaddress", fioio::ErrorTransaction);
+
      app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
         if (result.contains<fc::exception_ptr>()) {
            next(result.get<fc::exception_ptr>());
@@ -2951,6 +2993,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
           abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
           ptrx = std::make_shared<transaction_metadata>( pretty_input );
        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+       transaction trx = pretty_input->get_transaction();
+       vector<action> &actions = trx.actions;
+       dlog("\n");dlog(actions[0].name.to_string());
+       FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].account.to_string() == "fio.token", fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].name.to_string() == "trnsfiopubky", fioio::ErrorTransaction);
 
        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
           if (result.contains<fc::exception_ptr>()) {
@@ -2995,6 +3045,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "burnexpired", fioio::ErrorTransaction);
+
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                     if (result.contains<fc::exception_ptr>()) {
@@ -3038,6 +3096,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                  ptrx = std::make_shared<transaction_metadata>(pretty_input);
               }
               EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              transaction trx = pretty_input->get_transaction();
+              vector<action> &actions = trx.actions;
+              dlog("\n");dlog(actions[0].name.to_string());
+              FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "unregproxy", fioio::ErrorTransaction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3084,6 +3150,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               }
               EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+              transaction trx = pretty_input->get_transaction();
+              vector<action> &actions = trx.actions;
+              dlog("\n");dlog(actions[0].name.to_string());
+              FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "regproxy", fioio::ErrorTransaction);
+
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                   if (result.contains<fc::exception_ptr>()) {
@@ -3122,6 +3196,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "regproducer", fioio::ErrorTransaction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3162,6 +3244,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "voteproducer", fioio::ErrorTransaction);
+
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                     if (result.contains<fc::exception_ptr>()) {
@@ -3201,6 +3291,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "voteproxy", fioio::ErrorTransaction);
+
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                     if (result.contains<fc::exception_ptr>()) {
@@ -3239,6 +3337,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                  ptrx = std::make_shared<transaction_metadata>(pretty_input);
               }
               EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+              transaction trx = pretty_input->get_transaction();
+              vector<action> &actions = trx.actions;
+              dlog("\n");dlog(actions[0].name.to_string());
+              FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "setfeevote", fioio::ErrorTransaction);
 
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3280,6 +3386,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               }
               EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+              transaction trx = pretty_input->get_transaction();
+              vector<action> &actions = trx.actions;
+              dlog("\n");dlog(actions[0].name.to_string());
+              FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "setfeemult", fioio::ErrorTransaction);
+
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                   if (result.contains<fc::exception_ptr>()) {
@@ -3319,6 +3433,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               }
               EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+              transaction trx = pretty_input->get_transaction();
+              vector<action> &actions = trx.actions;
+              dlog("\n");dlog(actions[0].name.to_string());
+              FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "addwhitelist", fioio::ErrorTransaction);
+
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                   if (result.contains<fc::exception_ptr>()) {
@@ -3357,6 +3479,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               }
               EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+              transaction trx = pretty_input->get_transaction();
+              vector<action> &actions = trx.actions;
+              dlog("\n");dlog(actions[0].name.to_string());
+              FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::ErrorTransaction);
+              FIO_403_ASSERT(actions[0].name.to_string() == "remwhitelist", fioio::ErrorTransaction);
+
               app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                       const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                   if (result.contains<fc::exception_ptr>()) {
@@ -3393,6 +3523,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "unregprod", fioio::ErrorTransaction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3437,6 +3575,14 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
                 }
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "renewdomain", fioio::ErrorTransaction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -3483,6 +3629,14 @@ void read_write::renew_fio_address(const read_write::renew_fio_address_params &p
         }
         EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+        transaction trx = pretty_input->get_transaction();
+        vector<action> &actions = trx.actions;
+        dlog("\n");dlog(actions[0].name.to_string());
+        FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].name.to_string() == "renewaddress", fioio::ErrorTransaction);
+
         app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                 const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
             if (result.contains<fc::exception_ptr>()) {
@@ -3528,6 +3682,14 @@ void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &par
         }
         EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+        transaction trx = pretty_input->get_transaction();
+        vector<action> &actions = trx.actions;
+        dlog("\n");dlog(actions[0].name.to_string());
+        FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].account.to_string() == "fio.treasury", fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].name.to_string() == "tpidclaim", fioio::ErrorTransaction);
+
         app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                 const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
             if (result.contains<fc::exception_ptr>()) {
@@ -3568,6 +3730,14 @@ void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &par
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
                 } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "bundlevote", fioio::ErrorTransaction);
+
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                     if (result.contains<fc::exception_ptr>()) {
@@ -3606,6 +3776,14 @@ void read_write::claim_bp_rewards(const read_write::claim_bp_rewards_params& par
          abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
          ptrx = std::make_shared<transaction_metadata>( pretty_input );
        }EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+       transaction trx = pretty_input->get_transaction();
+       vector<action> &actions = trx.actions;
+       dlog("\n");dlog(actions[0].name.to_string());
+       FIO_403_ASSERT(trx.total_actions() > 0, fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].account.to_string() == "fio.treasury", fioio::ErrorTransaction);
+       FIO_403_ASSERT(actions[0].name.to_string() == "bpclaim", fioio::ErrorTransaction);
 
       app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](const fc::static_variant<fc::exception_ptr, transaction_trace_ptr>& result) -> void{
          if (result.contains<fc::exception_ptr>()) {
