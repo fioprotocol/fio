@@ -2802,7 +2802,6 @@ try {
    vector<action> &actions = trx.actions;
    dlog("\n");dlog(actions[0].name.to_string());
    FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
    FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
    FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
    FIO_403_ASSERT(actions[0].name.to_string() == "regaddress", fioio::InvalidAccountOrAction);
@@ -2902,7 +2901,6 @@ next_function<read_write::register_fio_domain_results> next) {
     vector<action> &actions = trx.actions;
     dlog("\n");dlog(actions[0].name.to_string());
     FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
     FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
     FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
     FIO_403_ASSERT(actions[0].name.to_string() == "regdomain", fioio::InvalidAccountOrAction);
@@ -3056,7 +3054,6 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 vector<action> &actions = trx.actions;
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "burnexpired", fioio::InvalidAccountOrAction);
@@ -3163,7 +3160,6 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
               vector<action> &actions = trx.actions;
               dlog("\n");dlog(actions[0].name.to_string());
               FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
               FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
               FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
               FIO_403_ASSERT(actions[0].name.to_string() == "regproxy", fioio::InvalidAccountOrAction);
@@ -3211,7 +3207,6 @@ void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_k
                 vector<action> &actions = trx.actions;
                 dlog("\n");dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "regproducer", fioio::InvalidAccountOrAction);
