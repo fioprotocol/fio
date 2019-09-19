@@ -657,6 +657,9 @@ namespace eosio {
         } else if (rescode == chain::fio_invalid_trans_exception().code()) {
             rescode = 403;
             message = "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly.\"\n}";
+        } else if (rescode == chain::fio_invalid_account_or_action().code()) {
+            rescode = 403;
+            message = "{ \n  \"type\": \"invalid_account_or_action\",\n  \"message\": \"Provided account or action is not valid for this endpoint.\"\n}";
         } else {
             rescode = 500;
             error_results results{500, "Internal Service Error - (fc)",
@@ -676,6 +679,8 @@ namespace eosio {
             } catch (const chain::fio_invalid_sig_exception &e) {
                 cb(403, e.what());
             } catch (const chain::fio_invalid_trans_exception &e) {
+                cb(403, e.what());
+            } catch (const chain::fio_invalid_account_or_action &e) {
                 cb(403, e.what());
             } catch (const chain::fio_location_exception &e) {
                 cb(404, e.what());
