@@ -528,7 +528,8 @@ namespace eosio {
         5010003, "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly\"\n}")
         FC_DECLARE_DERIVED_EXCEPTION( fio_location_exception, fio_exception,
         5010004, "FIO Location Exception")
-
+        FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_account_or_action, fio_exception,
+        5010005, "{ \n  \"type\": \"invalid_account_or_action\",\n  \"message\": \"Provided account or action is not valid for this endpoint.\"\n}")
 
     }
 } // eosio::chain

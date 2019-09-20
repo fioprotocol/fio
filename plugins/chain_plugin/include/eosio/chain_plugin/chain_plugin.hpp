@@ -73,7 +73,7 @@ namespace eosio {
             string payer_fio_public_key;
             string payee_fio_public_key;
             string content;             // this is encrypted content
-            uint64_t time_stamp;    // FIO blockchain request received timestamp
+            string time_stamp;    // FIO blockchain request received timestamp
         };
 
         struct request_status_record {
@@ -83,7 +83,7 @@ namespace eosio {
             string payer_fio_public_key;
             string payee_fio_public_key;
             string content;      // this is encrypted content
-            uint64_t time_stamp;        // FIO blockchain request received timestamp
+            string time_stamp;        // FIO blockchain request received timestamp
             string status;          //the status of the request.
         };
 
