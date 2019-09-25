@@ -1975,7 +1975,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             // assert if empty fio name
             int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
             dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
-
+            FIO_400_ASSERT(p.fio_address.size() < 65, "fio_address", fa.fioaddress, "Invalid FIO Address",
+                           fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
@@ -2096,6 +2097,9 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::avail_check_result read_only::avail_check(const read_only::avail_check_params &p) const {
 
             avail_check_result result;
+
+            FIO_400_ASSERT(p.fio_name.size() < 65, "fio_name", p.fio_name, "Invalid FIO Name",
+                           fioio::ErrorInvalidFioNameFormat);
 
             // assert if empty fio name
             FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid FIO Name",
