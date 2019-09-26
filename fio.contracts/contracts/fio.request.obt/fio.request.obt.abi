@@ -10,10 +10,16 @@
           "type": "uint64"
         },{
           "name": "payer_fio_address",
-          "type": "uint64"
+          "type": "uint128"
         },{
           "name": "payee_fio_address",
-          "type": "uint64"
+          "type": "uint128"
+        },{
+          "name": "payer_fio_address_hex_str",
+          "type": "string"
+        },{
+          "name": "payee_fio_address_hex_str",
+          "type": "string"
         },{
           "name": "content",
           "type": "string"

@@ -15,6 +15,7 @@
 
 namespace fioio {
     static constexpr uint64_t string_to_uint64_hash(const char *str); //signature for static constexpr implementation fio.common.hpp
+    static uint128_t string_to_uint128_hash(const char *str);
     // @abi table bpreward i64
     struct [[eosio::action]] bpreward {
 
@@ -79,10 +80,13 @@ namespace fioio {
       std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
       ).send();
       fionames_table fionames("fio.system"_n, name("fio.system").value);
-      uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
-      auto fionamefound = fionames.find(fioaddhash);
+      uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
+
+      auto namesbyname = fionames.get_index<"byname"_n>();
+      auto fionamefound = namesbyname.find(fioaddhash);
+
       print("\nfionamefound: ",fionamefound->name,"\n");
-      if (fionamefound != fionames.end()) {
+      if (fionamefound != namesbyname.end()) {
 
         bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
         uint64_t bamount = 0;
@@ -143,10 +147,11 @@ namespace fioio {
         ).send();
 
         fionames_table fionames("fio.system"_n, name("fio.system").value);
-        uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
-        auto fionamefound = fionames.find(fioaddhash);
+        uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
+        auto namesbyname = fionames.get_index<"byname"_n>();
+        auto fionamefound = namesbyname.find(fioaddhash);
         print("\nfionamefound: ",fionamefound->name,"\n");
-        if (fionamefound != fionames.end()) {
+        if (fionamefound != namesbyname.end()) {
 
           bounties_table bounties("fio.tpid"_n, name("fio.tpid").value);
           uint64_t bamount = 0;

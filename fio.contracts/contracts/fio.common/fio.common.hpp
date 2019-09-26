@@ -15,6 +15,7 @@
 #include "account_operations.hpp"
 #include "fio.rewards.hpp"
 
+
 #ifndef FEE_CONTRACT
 #define FEE_CONTRACT "fio.fee"
 #endif
@@ -117,6 +118,76 @@ namespace fioio {
         }
 
         return value;
+    }
+
+    static uint128_t string_to_uint128_hash(const char *str) {
+
+        eosio::checksum160 tmp;
+        uint128_t retval=0;
+        uint8_t *bp =(uint8_t*) &tmp;
+        uint32_t len = 0;
+
+        while (str[len]) ++len;
+
+        tmp = eosio::sha1(str, len);
+
+        bp = (uint8_t *)&tmp;
+        memcpy(&retval,bp,sizeof(retval));
+
+        return retval;
+    }
+
+
+    //use this for debug to see the value of your uint128_t, this will match what shows in get table.
+    static std::string to_hex(const char* d, uint32_t s )
+    {
+        std::string r;
+        const char* to_hex="0123456789abcdef";
+        uint8_t* c = (uint8_t*)d;
+        for( uint32_t i = 0; i < s; ++i ) {
+          (r += to_hex[(c[i] >> 4)]) += to_hex[(c[i] & 0x0f)];
+
+        }
+        return r;
+    }
+
+    static  uint8_t from_hex( char c ) {
+        if( c >= '0' && c <= '9' )
+            return c - '0';
+        if( c >= 'a' && c <= 'f' )
+            return c - 'a' + 10;
+        if( c >= 'A' && c <= 'F' )
+            return c - 'A' + 10;
+
+        return 0;
+    }
+
+    static size_t from_hex( const std::string& hex_str, char* out_data, size_t out_data_len ) {
+        std::string::const_iterator i = hex_str.begin();
+        uint8_t* out_pos = (uint8_t*)out_data;
+        uint8_t* out_end = out_pos + out_data_len;
+        while( i != hex_str.end() && out_end != out_pos ) {
+            *out_pos = from_hex( *i ) << 4;
+            ++i;
+            if( i != hex_str.end() )  {
+                *out_pos |= from_hex( *i );
+                ++i;
+            }
+            ++out_pos;
+        }
+        return out_pos - (uint8_t*)out_data;
+    }
+
+    //use this to see the value of your uint128_t, this will match what shows in get table.
+    static std::string to_hex_little_endian( const char* d, uint32_t s )
+    {
+        std::string r;
+        const char* to_hexi="0123456789abcdef";
+        uint8_t* c = (uint8_t*)d;
+        for( int i = (s-1); i>=0 ; --i ) {
+            (r += to_hexi[(c[i] >> 4)]) += to_hexi[(c[i] & 0x0f)];
+        }
+        return r;
     }
 
 

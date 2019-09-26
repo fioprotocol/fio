@@ -100,7 +100,7 @@ namespace fioio {
                                "No such FIO Request ", ErrorRequestContextNotFound);
                 //insert a send record into the status table using this id.
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
-                    fr.id = fiorequestStatusTable.available_primary_key();;
+                    fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
                     fr.status = static_cast<int64_t >(trxstatus::sent_to_blockchain);
                     fr.metadata = "";
@@ -111,9 +111,10 @@ namespace fioio {
             uint32_t present_time = now();
 
             //check the payer address, see that its a valid fio name
-            uint64_t nameHash = string_to_uint64_hash(payer_fio_address.c_str());
-            auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
+            uint128_t nameHash = string_to_uint128_hash(payer_fio_address.c_str());
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_400_assert(fioname_iter != namesbyname.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
             uint64_t account = fioname_iter->owner_account;
@@ -137,10 +138,11 @@ namespace fioio {
 
 
             //check the payee address, see that its a valid fio name
-            nameHash = string_to_uint64_hash(payee_fio_address.c_str());
-            fioname_iter = fionames.find(nameHash);
+            nameHash = string_to_uint128_hash(payee_fio_address.c_str());
+            namesbyname = fionames.get_index<"byname"_n>();
+            fioname_iter = namesbyname.find(nameHash);
 
-            fio_400_assert(fioname_iter != fionames.end(), "payee_fio_address", payee_fio_address,
+            fio_400_assert(fioname_iter != namesbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
@@ -260,17 +262,19 @@ namespace fioio {
             uint32_t present_time = now();
 
             //check the payer address, see that its a valid fio name
-            uint64_t nameHash = string_to_uint64_hash(payer_fio_address.c_str());
-            auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "payer_fio_address", payer_fio_address,
+            uint128_t nameHash = string_to_uint128_hash(payer_fio_address.c_str());
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_400_assert(fioname_iter != namesbyname.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
             //check the payee address, see that its a valid fio name
-            nameHash = string_to_uint64_hash(payee_fio_address.c_str());
-            fioname_iter = fionames.find(nameHash);
+            nameHash = string_to_uint128_hash(payee_fio_address.c_str());
+            namesbyname = fionames.get_index<"byname"_n>();
+            fioname_iter = namesbyname.find(nameHash);
 
-            fio_400_assert(fioname_iter != fionames.end(), "payee_fio_address", payee_fio_address,
+            fio_400_assert(fioname_iter != namesbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
@@ -300,14 +304,19 @@ namespace fioio {
             //put the thing into the table get the index.
             uint64_t id = fiorequestContextsTable.available_primary_key();
             uint64_t currentTime = now();
-            uint64_t toHash = string_to_uint64_hash(payee_fio_address.c_str());
-            uint64_t fromHash = string_to_uint64_hash(payer_fio_address.c_str());
+            uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
+            uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
+            //use big endian for the emplace, table will store it little endian.
+            string toHashStr = "0x"+ to_hex((char *)&toHash,sizeof(toHash));
+            string fromHashStr = "0x"+ to_hex((char *)&fromHash,sizeof(fromHash));
 
             //insert a send record into the status table using this id.
             fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
                 frc.payer_fio_address = fromHash;
                 frc.payee_fio_address = toHash;
+                frc.payer_fio_address_hex_str = fromHashStr;
+                frc.payee_fio_address_hex_str = toHashStr;
                 frc.content = content;
                 frc.time_stamp = currentTime;
                 frc.payer_fio_addr = payer_fio_address;
@@ -392,7 +401,7 @@ namespace fioio {
         [[eosio::action]]
         void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
 
-            print("call new funds request\n");
+            print("call reject funds request\n");
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
@@ -408,16 +417,19 @@ namespace fioio {
             fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                            "No such FIO Request", ErrorRequestContextNotFound);
 
-            uint64_t payerFioAddHashed = fioreqctx_iter->payer_fio_address;
-            uint64_t payeeFioAddHashed = fioreqctx_iter->payee_fio_address;
+            string payerFioAddHashed = fioreqctx_iter->payer_fio_address_hex_str;
+            string payeeFioAddHashed = fioreqctx_iter->payee_fio_address_hex_str;
+            uint128_t payer128FioAddHashed =0;
+            from_hex(&(payerFioAddHashed[2]),(char *)&payer128FioAddHashed,sizeof(payer128FioAddHashed) );
 
             uint32_t present_time = now();
 
             //check the payer address, see that its a valid fio name
 
-            auto fioname_iter = fionames.find(payerFioAddHashed);
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(payer128FioAddHashed);
 
-            fio_403_assert(fioname_iter != fionames.end(), ErrorSignature);
+            fio_403_assert(fioname_iter != namesbyname.end(), ErrorSignature);
             uint64_t account = fioname_iter->owner_account;
             uint64_t payernameexp = fioname_iter->expiration;
             string payerFioAddress = fioname_iter->name;
@@ -437,7 +449,6 @@ namespace fioio {
             uint64_t domexp = iterdom->expiration;
             fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
                            "FIO Domain expired", ErrorFioNameExpired);
-
 
 
             string payer_fio_address = fioname_iter->name;
@@ -492,7 +503,8 @@ namespace fioio {
 
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee),
+                               "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,

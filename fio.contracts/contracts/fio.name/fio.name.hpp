@@ -21,8 +21,9 @@ namespace fioio {
     // @abi table fionames i64
     struct [[eosio::action]] fioname {
 
+        uint64_t id = 0;
         string name = nullptr;
-        uint64_t namehash = 0;
+        uint128_t namehash = 0;
         string domain = nullptr;
         uint64_t domainhash = 0;
         uint64_t expiration;
@@ -32,13 +33,15 @@ namespace fioio {
         uint64_t bundleeligiblecountdown = 0;
 
         // primary_key is required to store structure in multi_index table
-        uint64_t primary_key() const { return namehash; }
+        uint64_t primary_key() const { return id; }
+        uint128_t by_name() const{ return namehash; }
         uint64_t by_domain() const { return domainhash; }
         uint64_t by_expiration() const { return expiration; }
 
         uint64_t by_owner() const { return owner_account; }
 
-        EOSLIB_SERIALIZE(fioname, (name)(namehash)(domain)(domainhash)(expiration)(owner_account)(addresses)(
+
+        EOSLIB_SERIALIZE(fioname, (id)(name)(namehash)(domain)(domainhash)(expiration)(owner_account)(addresses)(
                 bundleeligiblecountdown)
         )
     };
@@ -47,7 +50,8 @@ namespace fioio {
     typedef multi_index<"fionames"_n, fioname,
     indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
     indexed_by<"byexpiration"_n, const_mem_fun<fioname, uint64_t, &fioname::by_expiration>>,
-    indexed_by<"byowner"_n, const_mem_fun<fioname, uint64_t, &fioname::by_owner>>
+    indexed_by<"byowner"_n, const_mem_fun<fioname, uint64_t, &fioname::by_owner>>,
+    indexed_by<"byname"_n, const_mem_fun < fioname, uint128_t, &fioname::by_name>>
     >
     fionames_table;
 

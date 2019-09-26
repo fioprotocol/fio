@@ -5,7 +5,8 @@
             "name": "tpid",
             "base": "",
             "fields": [
-                {"name":"fioaddhash", "type":"uint64"},
+                {"name":"id", "type":"uint64"},
+                {"name":"fioaddhash", "type":"uint128"},
                 {"name":"fioaddress", "type":"string"},
                 {"name":"rewards", "type":"uint64"}
             ]
@@ -62,7 +63,7 @@
         "name": "tpids",
         "index_type": "i64",
         "key_names": [
-          "fioaddhash"
+          "id"
         ],
         "key_types": [
            "uint64"

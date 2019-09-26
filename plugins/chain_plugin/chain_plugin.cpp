@@ -16,6 +16,7 @@
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
 
+
 #include <eosio/chain/fioio/fioerror.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
@@ -29,8 +30,12 @@
 
 #include <fc/io/json.hpp>
 #include <fc/variant.hpp>
+#include <fc/crypto/hex.hpp>
+#include <fc/crypto/sha1.hpp>
+
 #include <signal.h>
 #include <cstdlib>
+
 
 namespace eosio {
 
@@ -1289,27 +1294,41 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 //get the name of the from associated with the request without looking up the
                 //hashed value. tricky.
                 string from_fioadd = fio_address;
-                uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
+                uint128_t address_hash = ::eosio::string_to_uint128_t(fio_address.c_str());
 
                 //look up the requests for this fio name (look for matches in the tofioadd
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
 
-                dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
-                     ("add_hash", address_hash));
-                get_table_rows_params requests_row_params = get_table_rows_params{
-                        .json        = true,
-                        .code        = fio_reqobt_code,
-                        .scope       = fio_reqobt_scope,
-                        .table       = fio_requests_lookup_table,
-                        .lower_bound = boost::lexical_cast<string>(address_hash),
-                        .upper_bound = boost::lexical_cast<string>(address_hash + 1),
-                        .key_type       = "i64",
-                        .index_position = "2"};
-                // Do secondary key lookup
-                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                        requests_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
-                            return v;
-                        });
+              std::string hexvalnamehash = "0x";
+              //now get the hex little-endian and search
+              hexvalnamehash.append(
+                      ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&address_hash),sizeof(address_hash)));
+
+              uint128_t plusone = address_hash+1;
+
+              std::string hexvalnamehashplus1 = "0x";
+              hexvalnamehashplus1.append(
+                      ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&plusone),sizeof(plusone)));
+
+
+              dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
+                   ("add_hash", address_hash));
+
+              get_table_rows_params name_table_row_params = get_table_rows_params{
+                      .json=true,
+                      .code=fio_reqobt_code,
+                      .scope=fio_reqobt_scope,
+                      .table=fio_requests_lookup_table,
+                      .lower_bound=hexvalnamehash,
+                      .upper_bound=hexvalnamehashplus1,
+                      .encode_type="hex",
+                      .index_position ="2"};//get all requests that i have received, IE that i must pay.
+
+              // Do secondary key lookup
+              get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                      name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
+                          return v;
+                      });
 
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
@@ -1321,23 +1340,32 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
                     //get all the attributes of the fio request
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                    uint64_t payer_fio_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
-                    uint64_t payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
+                    string payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address_hex_str"].as_string();
+                    string payee_fio_addr = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                     string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
-                    //find the tofioaddress
+
+                    dlog("payee fio address hex str: '${add_hash}'",
+                         ("add_hash", payee_fio_address));
+
+                    dlog("payee fio address hex str: '${add_hash}'",
+                         ("add_hash", payee_fio_addr));
+
                     get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                             .code=fio_system_code,
                             .scope=fio_system_scope,
                             .table=fio_address_table,
-                            .lower_bound=boost::lexical_cast<string>(payee_fio_address),
-                            .upper_bound=boost::lexical_cast<string>(payee_fio_address + 1),
-                            .encode_type="dec",
-                            .index_position ="1"};
+                            .lower_bound=payee_fio_address,
+                            .upper_bound=payee_fio_address,
+                            .encode_type="hex",
+                            .index_position ="5"};
 
-                    get_table_rows_result fioname_result =
-                            get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
+                    // Do secondary key lookup
+                    get_table_rows_result fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                            name_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
+                                return v;
+                            });
 
                     FIO_404_ASSERT(!fioname_result.rows.empty(), "No pending FIO Requests",
                                    fioio::ErrorNoFioRequestsFound);
@@ -1451,58 +1479,79 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 //get the fio address associated with this public address
                 string fio_address = names_rows_result.rows[knpos]["name"].as_string();
                 string to_fioadd = fio_address;
-                uint64_t address_hash = ::eosio::string_to_uint64_t(fio_address.c_str());
-
+                uint128_t address_hash = ::eosio::string_to_uint128_t(fio_address.c_str());
                 //look up the requests for this fio name (look for matches in the tofioadd
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
 
+
+                std::string hexvalnamehash = "0x";
+                //now get the hex little-endian and search
+                hexvalnamehash.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&address_hash),sizeof(address_hash)));
+
+                uint128_t plusone = address_hash+1;
+
+                std::string hexvalnamehashplus1 = "0x";
+                hexvalnamehashplus1.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&plusone),sizeof(plusone)));
+
+
                 dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
                      ("add_hash", address_hash));
-                get_table_rows_params requests_row_params = get_table_rows_params{
-                        .json        = true,
-                        .code        = fio_reqobt_code,
-                        .scope       = fio_reqobt_scope,
-                        .table       = fio_requests_lookup_table,
-                        .lower_bound = boost::lexical_cast<string>(address_hash),
-                        .upper_bound = boost::lexical_cast<string>(address_hash + 1),
-                        .key_type       = "i64",
-                        .index_position = "3"};
+
+                get_table_rows_params name_table_row_params = get_table_rows_params{
+                        .json=true,
+                        .code=fio_reqobt_code,
+                        .scope=fio_reqobt_scope,
+                        .table=fio_requests_lookup_table,
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehashplus1,
+                        .encode_type="hex",
+                        .index_position ="3"};
+
                 // Do secondary key lookup
-                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                        requests_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
                             return v;
                         });
+
 
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
                 for (size_t pos = 0; pos < requests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
                     uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                    uint64_t payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address"].as_uint64();
-                    uint64_t payee_hash_address = requests_rows_result.rows[pos]["payee_fio_address"].as_uint64();
+                    string payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
                     string payer_address = requests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                     string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                     string content = requests_rows_result.rows[pos]["content"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
 
                     dlog("fio namehash: '${size}'", ("size", payer_hash_address));
+                    dlog("payer address: '${size}'", ("size", payer_address));
+                    dlog("payee address: '${size}'", ("size", payee_address));
+
+
                     get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                             .code=fio_system_code,
                             .scope=fio_system_scope,
                             .table=fio_address_table,
-                            .lower_bound=boost::lexical_cast<string>(payer_hash_address),
-                            .upper_bound=boost::lexical_cast<string>(payer_hash_address + 1),
-                            .encode_type="dec",
-                            .index_position ="1"};
+                            .lower_bound=payer_hash_address,
+                            .upper_bound=payer_hash_address,
+                            .encode_type="hex",
+                            .index_position ="5"};
 
-                    get_table_rows_result fioname_result =
-                            get_table_rows_ex<key_value_index>(name_table_row_params, system_abi);
+                    // Do secondary key lookup
+                    get_table_rows_result fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                            name_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
+                                return v;
+                            });
 
                     string payee_fio_public_key = p.fio_public_key;
                     string payer_fio_public_key = "NotFound";
-                    address_hash = ::eosio::string_to_uint64_t(to_fioadd.c_str());
-                    if (fioname_result.rows.empty()){
 
+                    if (fioname_result.rows.empty()){
+                        dlog("no fioname found for payer_hash_address: '${size}'", ("size", payer_hash_address));
                     }
                     else {  //get the payer public key, if the payer account was burned this becomes impossible
 
@@ -1826,22 +1875,34 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-                uint64_t namehash = ::eosio::string_to_uint64_t(p.fio_address.c_str());
+                uint128_t name_hash = ::eosio::string_to_uint128_t(p.fio_address.c_str());
 
-                dlog("Lookup fio name using name hash: ‘${name_hash}‘", ("name_hash", namehash));
+                dlog("Lookup fio name using name hash: ‘${name_hash}‘", ("name_hash", name_hash));
+                std::string hexvalnamehash = "0x";
+                hexvalnamehash.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&name_hash),sizeof(name_hash)));
 
-                const name code = ::eosio::string_to_name("fio.system");
-                get_table_rows_params table_row_params = get_table_rows_params{
-                        .json        = true,
-                        .code        = fio_system_code,
-                        .scope       = fio_system_scope,
-                        .table       = fio_address_table,
-                        .lower_bound = boost::lexical_cast<string>(namehash),
-                        .upper_bound = boost::lexical_cast<string>(namehash + 1),
-                        .key_type       = "dec",
-                        .index_position ="1"};
+                uint128_t plusone = name_hash+1;
 
-                get_table_rows_result names_table_rows_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+                std::string hexvalnamehashplus1 = "0x";
+                hexvalnamehashplus1.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&plusone),sizeof(plusone)));
+
+
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=fio_system_code,
+                        .scope=fio_system_scope,
+                        .table=fio_address_table,
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehashplus1,
+                        .encode_type="hex",
+                        .index_position ="5"};
+
+                // Do secondary key lookup
+                get_table_rows_result names_table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
 
                 dlog("Lookup for fio name, row count: ‘${size}‘", ("size", names_table_rows_result.rows.size()));
 
@@ -1930,6 +1991,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         }
 
 
+
         /*** v1/chain/check_whitelist
    * returns true if the specified fio_public_key_hash is in the whitelist, false if not.
    * @param p
@@ -1938,7 +2000,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
 
            check_whitelist_result result;
-           FIO_404_ASSERT(p.fio_public_key_hash.size() == 128, "No FIO names", fioio::ErrorNoFIONames);
+          // FIO_404_ASSERT(p.fio_public_key_hash.size() == 128, "No FIO names", fioio::ErrorNoFIONames);
 
            result.in_whitelist = 0;
 
@@ -1999,7 +2061,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             //declare variables.
             const name code = ::eosio::string_to_name("fio.system");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
-            const uint64_t name_hash = ::eosio::string_to_uint64_t(p.fio_address.c_str());
+            const uint128_t name_hash = ::eosio::string_to_uint128_t(p.fio_address.c_str());
             const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
             const uint64_t chain_hash = ::eosio::string_to_uint64_t(p.token_code.c_str());
 
@@ -2044,17 +2106,33 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             name_result = domain_result;
 
             if (!fa.fioname.empty()) {
-                //query the names table and check if the name is expired
+
+                std::string hexvalnamehash = "0x";
+                hexvalnamehash.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&name_hash),sizeof(name_hash)));
+
+                uint128_t plusone = name_hash+1;
+
+                std::string hexvalnamehashplus1 = "0x";
+                hexvalnamehashplus1.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&plusone),sizeof(plusone)));
+
+
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                        .code=code,
+                        .code=fio_system_code,
                         .scope=fio_system_scope,
                         .table=fio_address_table,
-                        .lower_bound=boost::lexical_cast<string>(name_hash),
-                        .upper_bound=boost::lexical_cast<string>(name_hash + 1),
-                        .encode_type="dec",
-                        .index_position ="1"};
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehashplus1,
+                        .encode_type="hex",
+                        .index_position ="5"};
 
-                fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+                // Do secondary key lookup
+                fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
+
 
                 // If no matches, the name does not exist, return empty result
                 dlog("FIO address matched: ${matched}", ("matched", !fioname_result.rows.empty()));
@@ -2100,6 +2178,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             return result;
         } // pub_address_lookup
 
+
+
         /***
         * Checks if a FIO Address or FIO Domain is available for registration.
         * @param p
@@ -2125,7 +2205,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const uint64_t name_hash = ::eosio::string_to_uint64_t(fa.fioaddress.c_str());
+            const uint128_t name_hash = ::eosio::string_to_uint128_t(fa.fioaddress.c_str());
             const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
             get_table_rows_result fioname_result;
             get_table_rows_result name_result;
@@ -2142,16 +2222,31 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
 
             if (!fa.fioname.empty()) {
+                std::string hexvalnamehash = "0x";
+                hexvalnamehash.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&name_hash),sizeof(name_hash)));
+
+                uint128_t plusone = name_hash+1;
+
+                std::string hexvalnamehashplus1 = "0x";
+                hexvalnamehashplus1.append(
+                        ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&plusone),sizeof(plusone)));
+
+
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
                         .table=fio_address_table,
-                        .lower_bound=boost::lexical_cast<string>(name_hash),
-                        .upper_bound=boost::lexical_cast<string>(name_hash + 1),
-                        .encode_type="dec",
-                        .index_position ="1"};
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehashplus1,
+                        .encode_type="hex",
+                        .index_position ="5"};
 
-                fioname_result = get_table_rows_ex<key_value_index>(name_table_row_params, abi);
+               // Do secondary key lookup
+               fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                       name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                           return v;
+                       });
 
                 // Not Registered
                 if (fioname_result.rows.empty()) {

@@ -68,10 +68,11 @@ namespace fioio {
 
                print(itr.fioaddress, " has ",itr.rewards ," rewards.\n");
 
-               auto itrfio = fionames.find(string_to_uint64_hash(itr.fioaddress.c_str()));
+               auto namesbyname = fionames.get_index<"byname"_n>();
+               auto itrfio = namesbyname.find(string_to_uint128_hash(itr.fioaddress.c_str()));
 
                // If the fioaddress exists (address could have been burned)
-                if (itrfio != fionames.end()) {
+                if (itrfio != namesbyname.end()) {
                     action(permission_level{get_self(), "active"_n},
                           "fio.token"_n, "transfer"_n,
                           make_tuple("fio.treasury"_n, name(itrfio->owner_account), asset(itr.rewards,symbol("FIO",9)),
@@ -128,7 +129,8 @@ namespace fioio {
     void bpclaim(const string &fio_address, const name& actor) {
 
         require_auth(actor);
-        auto fioiter = fionames.find(string_to_uint64_hash(fio_address.c_str()));
+        auto namesbyname = fionames.get_index<"byname"_n>();
+        auto fioiter = namesbyname.find(string_to_uint128_hash(fio_address.c_str()));
 
         uint64_t producer = fioiter->owner_account;
 
@@ -266,7 +268,7 @@ namespace fioio {
        //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
        uint64_t payout = 0;
 
-       fio_400_assert(fioiter != fionames.end(), fio_address, "fio_address",
+       fio_400_assert(fioiter != namesbyname.end(), fio_address, "fio_address",
        "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
        if(bpiter != voteshares.end()) {
