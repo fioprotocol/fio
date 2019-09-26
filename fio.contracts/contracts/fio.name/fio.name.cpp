@@ -214,14 +214,15 @@ namespace fioio {
 
             uint32_t expiration_time = 0;
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
                            ErrorInvalidFioNameFormat);
 
-            // check if domain exists.
-            auto domains_iter = domains.find(domainHash);
-            fio_400_assert(domains_iter != domains.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
             bool isPublic = domains_iter->is_public;
@@ -281,24 +282,28 @@ namespace fioio {
 
         uint32_t fio_domain_update(const string &fio_domain, const string &owner_fio_public_key, const name &actor,
                                    const FioAddress &fa) {
-            uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
             uint32_t expiration_time;
 
             fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
 
-            // check for domain availability
-            auto domains_iter = domains.find(domainHash);
-            fio_400_assert(domains_iter == domains.end(), "fio_name", fa.fioaddress,
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_400_assert(domains_iter == domainsbyname.end(), "fio_name", fa.fioaddress,
                            "FIO domain already registered", ErrorDomainAlreadyRegistered);
             // check if callee has requisite dapix funds. Also update to domain fees
 
             //get the expiration for this new domain.
             expiration_time = get_now_plus_one_year();
 
+            uint64_t id = domains.available_primary_key();
+            
             // Issue, create and transfer nft domain token
             // Add domain entry in domain table
             domains.emplace(_self, [&](struct domain &d) {
+                d.id = id;
                 d.name = fa.fiodomain;
                 d.domainhash = domainHash;
                 d.expiration = expiration_time;
@@ -313,7 +318,7 @@ namespace fioio {
         chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee, const FioAddress &fa, const name &actor, const bool isFIO, const string &tpid) {
 
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
@@ -328,8 +333,10 @@ namespace fioio {
             fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
-            auto domains_iter = domains.find(domainHash);
-            fio_404_assert(domains_iter != domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
             uint32_t expiration = domains_iter->expiration;
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -589,15 +596,16 @@ namespace fioio {
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
-            uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
             uint32_t expiration_time;
 
             fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
 
-            // check for domain availability
-            auto domains_iter = domains.find(domainHash);
-            fio_400_assert(domains_iter != domains.end(), "fio_domain", fa.fioaddress,
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_domain", fa.fioaddress,
                            "FIO domain not found", ErrorDomainNotRegistered);
 
 
@@ -645,7 +653,7 @@ namespace fioio {
             fioio::convertfiotime(new_expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            domains.modify(domains_iter, _self, [&](struct domain &a) {
+            domainsbyname.modify(domains_iter, _self, [&](struct domain &a) {
                     a.expiration = new_expiration_time;
             });
 
@@ -672,14 +680,15 @@ namespace fioio {
 
 
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
                            ErrorInvalidFioNameFormat);
 
-            // check if domain exists.
-            auto domains_iter = domains.find(domainHash);
-            fio_400_assert(domains_iter != domains.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fa.fioaddress, "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
             //check if the domain is expired.
@@ -754,13 +763,16 @@ namespace fioio {
          * expired.
          */
         void expdomain (const name &actor, const string &domain){
-            uint64_t domainHash = string_to_uint64_hash(domain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(domain.c_str());
             uint64_t expiration_time = get_now_minus_years(5);
 
-            auto iter4 = domains.find(domainHash);
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto iter4 = domainsbyname.find(domainHash);
 
-            if (iter4 == domains.end()) {
+            if (iter4 == domainsbyname.end()) {
+                uint64_t id = domains.available_primary_key();
                 domains.emplace(_self, [&](struct domain &d) {
+                    d.id = id;
                     d.name = domain;
                     d.domainhash = domainHash;
                     d.expiration = expiration_time;
@@ -849,7 +861,7 @@ namespace fioio {
 
             //this is the burn list holding the list of address hashes that should be destroyed.
             std::vector <uint128_t> burnlist;
-            std::vector <uint64_t> domainburnlist;
+            std::vector <uint128_t> domainburnlist;
 
             //we look back 20 years for expired things.
             int numbertoburn = 100;
@@ -877,7 +889,7 @@ namespace fioio {
             //if its less than or equal to nowtime then it needs burned.
             while (domainiter != domainexpidx.end()) {
                 uint64_t expire = domainiter->expiration;
-                uint64_t domainnamehash = domainiter->domainhash;
+                uint128_t domainnamehash = domainiter->domainhash;
 
                 if ((expire + domainwaitforburndays) > nowtime) //check for done searching.
                 //if ((expire + domainwaitforburndays) > kludgedNow) //this is for testing only
@@ -972,13 +984,15 @@ namespace fioio {
             }
 
             for (int i = 0; i < domainburnlist.size(); i++) {
-                uint64_t burner = domainburnlist[i];
+                uint128_t burner = domainburnlist[i];
                 //print(" looking to erase domain ",burner,"\n");
 
-                auto domainsiter = domains.find(burner);
-                if (domainsiter != domains.end()) {
+                auto domainsbyname = domains.get_index<"byname"_n>();
+                auto domainsiter = domainsbyname.find(burner);
+
+                if (domainsiter != domainsbyname.end()) {
                     //print(" erasing domain ",domainsiter->name," expiration ",domainsiter->expiration,"\n");
-                    domains.erase(domainsiter);
+                    domainsbyname.erase(domainsiter);
                 }
             }
 
@@ -1027,11 +1041,13 @@ namespace fioio {
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
-            uint64_t domainHash = string_to_uint64_hash(fio_domain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
 
-            auto domain_iter = domains.find(domainHash);
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domain_iter = domainsbyname.find(domainHash);
 
-            fio_400_assert(domain_iter != domains.end(), "fio_domain", fa.fioaddress, "Invalid FIO domain",
+
+            fio_400_assert(domain_iter != domainsbyname.end(), "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorDomainNotRegistered);
             fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
@@ -1040,7 +1056,7 @@ namespace fioio {
             fio_400_assert(present_time <= expiration, "fio_domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
 
-            domains.modify(domain_iter, _self, [&](struct domain &a) {
+            domainsbyname.modify(domain_iter, _self, [&](struct domain &a) {
                 a.is_public = is_public;
             });
 
