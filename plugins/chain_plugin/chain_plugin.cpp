@@ -1383,7 +1383,7 @@ if( options.count(name) ) { \
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
                 uint32_t search_amount = p.limit == 0 ? requests_rows_result.rows.size() : p.limit;
-                search_results = requests_rows_result.rows.size() - p.limit;
+                search_results = requests_rows_result.rows.size() - search_amount;
 
                 //for each request look to see if there are associated statuses
                 //query the fioreqstss table by the fioreqid, if there is a match then take these
@@ -1575,7 +1575,7 @@ if( options.count(name) ) { \
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
                 uint32_t search_amount = p.limit == 0 ? requests_rows_result.rows.size() : p.limit;
-                search_results = requests_rows_result.rows.size() - p.limit;
+                search_results = requests_rows_result.rows.size() - search_amount;
 
                 for (size_t pos = 0 + p.offset; pos < search_amount; pos++) {
                     //get all the attributes of the fio request
