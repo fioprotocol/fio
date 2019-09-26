@@ -1230,17 +1230,20 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
       const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
       const name fio_fee_code = N(fio.fee);    // FIO fee account, init in the top of this class
       const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
-        const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
-        const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
+      const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
+      const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
 
 
-        const name fio_whitelist_table = N(whitelist); // FIO Address Table
+      const name fio_whitelist_table = N(whitelist); // FIO Address Table
       const name fio_address_table = N(fionames); // FIO Address Table
       const name fio_fees_table = N(fiofees); // FIO fees Table
       const name fio_domains_table = N(domains); // FIO Domains Table
       const name fio_chains_table = N(chains); // FIO Chains Table
-        const name fio_accounts_table = N(accountmap); // FIO Chains Table
+      const name fio_accounts_table = N(accountmap); // FIO Chains Table
 
+      const uint16_t FEEMAXLENGTH = 32;
+      const uint16_t FIOADDRESSLENGTH = 64;
+      const uint16_t FIOPUBLICKEYLENGTH = 53;
       /***
         * get pending fio requests.
         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -1249,7 +1252,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
           // assert if empty fio name
-          FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+          FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
           string account_name;
           fioio::key_to_account(p.fio_public_key, account_name);
@@ -1436,7 +1439,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::get_sent_fio_requests_result
         read_only::get_sent_fio_requests(const read_only::get_sent_fio_requests_params &p) const {
             // assert if empty fio name
-            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
@@ -1663,7 +1666,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             // assert if empty chain key
             get_fio_names_result result;
             //first check the pub key for validity.
-            FIO_404_ASSERT(p.fio_public_key.length() == 53, "No FIO names", fioio::ErrorNoFIONames);
+            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO names", fioio::ErrorNoFIONames);
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
@@ -1759,7 +1762,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         } // get_fio_names
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
-            FIO_404_ASSERT(p.fio_public_key.length() == 53, "Public key not found", fioio::ErrorPubAddressNotFound);
+            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "Public key not found", fioio::ErrorPubAddressNotFound);
 
             get_account_results actor_lookup_results;
             get_account_params actor_lookup_params;
@@ -1821,8 +1824,14 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             get_fee_result result;
             result.fee = 0;
 
-            FIO_400_ASSERT(!p.end_point.empty(), "end_point", "", "Invalid end point",
+            FIO_400_ASSERT(!p.end_point.empty(), "end_point", p.end_point.c_str(), "Invalid end point",
                            fioio::ErrorNoEndpoint);
+
+            FIO_400_ASSERT(p.end_point.size() <= FEEMAXLENGTH, "end_point", p.end_point.c_str(), "Invalid end point",
+                           fioio::ErrorNoEndpoint);
+
+            FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", p.fio_address.c_str(), "Invalid FIO Address",
+                           fioio::ErrorInvalidFioNameFormat);
 
             //get_fee
             const uint64_t endpointhash = ::eosio::string_to_uint64_t(p.end_point.c_str());
@@ -1936,6 +1945,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::get_whitelist_result read_only::get_whitelist(const read_only::get_whitelist_params &p) const {
 
            get_whitelist_result result;
+           FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO names", fioio::ErrorNoFIONames);
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
@@ -1990,6 +2000,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
 
            check_whitelist_result result;
+           FIO_404_ASSERT(p.fio_public_key_hash.size() == 128, "No FIO names", fioio::ErrorNoFIONames);
 
            result.in_whitelist = 0;
 
@@ -2037,7 +2048,8 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             // assert if empty fio name
             int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
             dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
-
+            FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", fa.fioaddress, "Invalid FIO Address",
+                           fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
@@ -2176,6 +2188,9 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
         read_only::avail_check_result read_only::avail_check(const read_only::avail_check_params &p) const {
 
             avail_check_result result;
+
+            FIO_400_ASSERT(p.fio_name.size() <= FIOADDRESSLENGTH, "fio_name", p.fio_name, "Invalid FIO Name",
+                           fioio::ErrorInvalidFioNameFormat);
 
             // assert if empty fio name
             FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid FIO Name",

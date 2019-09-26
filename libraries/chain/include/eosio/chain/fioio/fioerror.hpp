@@ -44,15 +44,13 @@ namespace fioio {
     constexpr auto ErrorPubAddressEmpty = ident | httpDataError | 111;   // Public address is empty
     constexpr auto ErrorPubKeyEmpty = ident | httpDataError | 112;   // Public key is empty
     constexpr auto ErrorPubAddressExist = ident | httpDataError | 113;   // Public address exists
-
     constexpr auto ErrorSignature = ident | httpInvalidError | 114;   // user permission failure
     constexpr auto ErrorNotFound = ident | httpLocationError | 115;   // cannot locate resource
     constexpr auto ErrorInvalidFioNameFormat = ident | httpDataError | 116;   // Public address exists
     constexpr auto ErrorTransaction = ident | httpInvalidError | 117;   // Public address exists
     constexpr auto ErrorNoFIONames = ident | httpLocationError | 118; // No FIO Names
     constexpr auto ErrorInvalidJsonInput = ident | httpDataError | 119;   // invalid json sent for json input
-    constexpr auto ErrorRequestContextNotFound =
-            ident | httpDataError | 120;   // the specified request context record was not found
+    constexpr auto ErrorRequestContextNotFound = ident | httpDataError | 120;   // the specified request context record was not found
     constexpr auto ErrorChainAddressNotFound = ident | httpDataError | 121;   // Chain address not found
     constexpr auto ErrorNoFioRequestsFound = ident | httpLocationError | 122;   // no fio requests found
     constexpr auto Error400FioNameNotRegistered = ident | httpDataError | 123;   // Fioname not yet registered
