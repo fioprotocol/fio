@@ -66,19 +66,21 @@ namespace fioio {
 
       inline void process_auto_proxy(const string &tpid, name owner) {
 
-          uint64_t hashname = string_to_uint64_hash(tpid.c_str());
+          uint128_t hashname = string_to_uint128_hash(tpid.c_str());
           print("process tpid hash of name ", tpid, " is value ", hashname ,"\n");
 
-          auto iter = tpids.find(hashname);
-          if (iter == tpids.end()){
+          auto tpidsbyname = tpids.get_index<"byname"_n>();
+          auto iter = tpidsbyname.find(hashname);
+          if (iter == tpidsbyname.end()){
               print("process tpid, tpid not found ","\n");
               //tpid does not exist. do nothing.
           }
           else{
               print("process tpid, found a tpid ","\n");
               //tpid exists, use the info to find the owner of the tpid
-              auto iternm = fionames.find(iter->fioaddhash);
-              if (iternm != fionames.end()) {
+              auto namesbyname = fionames.get_index<"byname"_n>();
+              auto iternm = namesbyname.find(iter->fioaddhash);
+              if (iternm != namesbyname.end()) {
                   print("process found the fioname associated with the TPID in the fionames ","\n");
                   name proxy_name = name(iternm->owner_account);
                   //do the auto proxy
@@ -97,12 +99,15 @@ namespace fioio {
           "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
 
           print ("calling updatetpid with tpid ",tpid," owner ",owner," amount ", amount,"\n");
-              uint64_t tpidhash = string_to_uint64_hash(tpid.c_str());
-              auto tpidfound = tpids.find(tpidhash);
+              uint128_t tpidhash = string_to_uint128_hash(tpid.c_str());
+             auto tpidsbyname = tpids.get_index<"byname"_n>();
+              auto tpidfound = tpidsbyname.find(tpidhash);
               print("\ntpidfound: ",tpidfound->fioaddress,"\n");
-              if (tpidfound == tpids.end()) {
+              if (tpidfound == tpidsbyname.end()) {
                   print("TPID does not exist. Creating TPID.", "\n");
+                  uint64_t id = tpids.available_primary_key();
                   tpids.emplace(get_self(), [&](struct tpid &f) {
+                      f.id = id;
                       f.fioaddress  = tpid;
                       f.fioaddhash = tpidhash;
                       f.rewards = 0;
@@ -111,9 +116,10 @@ namespace fioio {
                   process_auto_proxy(tpid,owner);
               }
               if(std::distance(tpids.begin(), tpids.end()) > 0) {
-                tpidfound  = tpids.find(tpidhash);
+                  auto tpidsbyname = tpids.get_index<"byname"_n>();
+                tpidfound  = tpidsbyname.find(tpidhash);
                 print("Updating TPID.", tpidfound->fioaddress,"\n");
-                tpids.modify(tpidfound, get_self(), [&](struct tpid &f) {
+                tpidsbyname.modify(tpidfound, get_self(), [&](struct tpid &f) {
                     f.rewards += amount;
                 });
               }
@@ -125,11 +131,13 @@ namespace fioio {
   [[eosio::action]]
   void rewardspaid(const string& tpid) {
     require_auth("fio.treasury"_n); //This action can only be called by fio.treasury after successful rewards payment to tpid
-    uint64_t fioaddhash = string_to_uint64_hash(tpid.c_str());
-    auto tpidfound = tpids.find(fioaddhash);
+    uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
 
-    if (tpidfound != tpids.end()) {
-      tpids.modify(tpidfound, _self, [&](struct tpid &f) {
+    auto tpidsbyname = tpids.get_index<"byname"_n>();
+    auto tpidfound = tpidsbyname.find(fioaddhash);
+
+    if (tpidfound != tpidsbyname.end()) {
+      tpidsbyname.modify(tpidfound, _self, [&](struct tpid &f) {
         f.rewards = 0;
       });
     }

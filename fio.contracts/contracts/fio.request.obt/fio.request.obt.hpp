@@ -31,28 +31,29 @@ namespace fioio {
     // @abi table fioreqctxts i64
     struct [[eosio::action]] fioreqctxt {        // FIO funds request context; specific to requests native to FIO platform
         uint64_t fio_request_id;     // one up index starting at 0
-        uint64_t payer_fio_address;  // requestee fio address of fio request
-        uint64_t payee_fio_address;    // requestor fio address of the fio request
+        uint128_t payer_fio_address;  // requestee fio address of fio request
+        uint128_t payee_fio_address;    // requestor fio address of the fio request
+        string payer_fio_address_hex_str;  // hex string for payer fio address hash
+        string payee_fio_address_hex_str;    // hex string for payer fio address hash
         string content;      // encrypted content
         uint64_t time_stamp;      // FIO blockchain request received timestamp
         string payer_fio_addr;
         string payee_fio_addr;
 
         uint64_t primary_key() const { return fio_request_id; }
+        uint128_t by_receiver() const { return payer_fio_address; }
 
-        uint64_t by_receiver() const { return payer_fio_address; }
-
-        uint64_t by_originator() const { return payee_fio_address; }
+        uint128_t by_originator() const { return payee_fio_address; }
 
         EOSLIB_SERIALIZE(fioreqctxt,
-        (fio_request_id)(payer_fio_address)(payee_fio_address)(content)(time_stamp)(payer_fio_addr)(payee_fio_addr)
+        (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)(content)(time_stamp)(payer_fio_addr)(payee_fio_addr)
         )
     };
 
     // FIO requests contexts table
     typedef multi_index<"fioreqctxts"_n, fioreqctxt,
-            indexed_by<"byreceiver"_n, const_mem_fun < fioreqctxt, uint64_t, &fioreqctxt::by_receiver>>,
-    indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint64_t, &fioreqctxt::by_originator>
+            indexed_by<"byreceiver"_n, const_mem_fun < fioreqctxt, uint128_t, &fioreqctxt::by_receiver>>,
+    indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_originator>
     >>
     fiorequest_contexts_table;
 

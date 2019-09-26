@@ -6,11 +6,14 @@
       "name": "fioname",
       "base": "",
       "fields": [{
+          "name": "id",
+          "type": "uint64"
+        },{
           "name": "name",
           "type": "string"
         },{
           "name": "namehash",
-          "type": "uint64"
+          "type": "uint128"
         },{
           "name": "domain",
           "type": "string"
@@ -335,7 +338,7 @@
       "name": "fionames",
       "index_type": "i64",
       "key_names": [
-        "name"
+        "id"
       ],
       "key_types": [
         "string"

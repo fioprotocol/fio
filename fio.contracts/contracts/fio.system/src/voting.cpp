@@ -104,12 +104,12 @@ namespace eosiosystem {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
-        uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+        uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
         uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
-        //need to verify the account that owns the address is the actor.
-        auto fioname_iter = _fionames.find(nameHash);
-        fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        auto namesbyname = _fionames.get_index<"byname"_n>();
+        auto fioname_iter = namesbyname.find(nameHash);
+        fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -172,12 +172,13 @@ namespace eosiosystem {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
-        uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+        uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
         uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
-        //need to verify the account that owns the address is the actor.
-        auto fioname_iter = _fionames.find(nameHash);
-        fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        auto namesbyname = _fionames.get_index<"byname"_n>();
+        auto fioname_iter = namesbyname.find(nameHash);
+
+        fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -380,12 +381,13 @@ namespace eosiosystem {
             FioAddress fa;
             getFioAddressStruct(producers[i], fa);
 
-            uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
-            //need to verify the account that owns the address is the actor.
-            auto fioname_iter = _fionames.find(nameHash);
-            fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+            auto namesbyname = _fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+
+            fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
@@ -447,11 +449,11 @@ namespace eosiosystem {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
-        uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+        uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
         uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
-        //need to verify the account that owns the address is the actor.
-        auto fioname_iter = _fionames.find(nameHash);
-        fio_404_assert(fioname_iter != _fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        auto namesbyname = _fionames.get_index<"byname"_n>();
+        auto fioname_iter = namesbyname.find(nameHash);
+        fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -718,13 +720,14 @@ namespace eosiosystem {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
-        uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+
+        uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
         uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
-        //need to verify the account that owns the address is the actor.
-        auto fioname_iter = _fionames.find(nameHash);
+        auto namesbyname = _fionames.get_index<"byname"_n>();
+        auto fioname_iter = namesbyname.find(nameHash);
 
-        fio_400_assert(fioname_iter != _fionames.end(), "fio_address", fio_address,
+        fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                        "FIO Address not registered", ErrorFioNameNotReg);
 
         //check that the name is not expired
@@ -784,12 +787,12 @@ namespace eosiosystem {
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
-        uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+        uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
         uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
-        //need to verify the account that owns the address is the actor.
-        auto fioname_iter = _fionames.find(nameHash);
-        fio_400_assert(fioname_iter != _fionames.end(), "fio_address", fio_address,
+        auto namesbyname = _fionames.get_index<"byname"_n>();
+        auto fioname_iter = namesbyname.find(nameHash);
+        fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                        "FIO Address not registered", ErrorFioNameNotReg);
 
 

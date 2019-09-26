@@ -213,7 +213,7 @@ namespace fioio {
             // will not check the contents of tpid here, it was already checked at the beginning of regaddress that called this method
 
             uint32_t expiration_time = 0;
-            uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
             fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
@@ -240,8 +240,9 @@ namespace fioio {
                            ErrorDomainExpired);
 
             // check if fioname is available
-            auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter == fionames.end(), "fio_address", fa.fioaddress,
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_400_assert(fioname_iter == namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address already registered", ErrorFioNameAlreadyRegistered);
 
             //set the expiration on this new fioname
@@ -258,8 +259,10 @@ namespace fioio {
             print("OWNER:", actor, "...Value:", actor.value, "...Key:", key_iter->clientkey, "...hash:", ownerHash,
                   "\n");
 
+            uint64_t id = fionames.available_primary_key();
             // Add fioname entry in fionames table
             fionames.emplace(_self, [&](struct fioname &a) {
+                a.id = id;
                 a.name = fa.fioaddress;
                 a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
                 a.namehash = nameHash;
@@ -305,14 +308,16 @@ namespace fioio {
         }
         //adddomain
 
+
         uint64_t
         chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee, const FioAddress &fa, const name &actor, const bool isFIO, const string &tpid) {
 
-            uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
-            auto fioname_iter = fionames.find(nameHash);
-            fio_404_assert(fioname_iter != fionames.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
             //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
@@ -347,7 +352,7 @@ namespace fioio {
             uint64_t oldkeyhash = string_to_uint64_hash(oldkey.c_str());
 
             // insert/update <chain, address> pair
-            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+            namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
             });
 
@@ -380,7 +385,7 @@ namespace fioio {
                 //fee is zero, and decrement the counter.
                 fee_amount = 0;
 
-                fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
                 });
             } else {
@@ -666,7 +671,7 @@ namespace fioio {
             register_errors(fa, false);
 
 
-            uint64_t nameHash = string_to_uint64_hash(fa.fioaddress.c_str());
+            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
 
             fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
@@ -684,8 +689,9 @@ namespace fioio {
                            ErrorDomainExpired);
 
             // check if fioname is available
-            auto fioname_iter = fionames.find(nameHash);
-            fio_400_assert(fioname_iter != fionames.end(), "fio_address", fa.fioaddress,
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address not registered", ErrorFioNameNotRegistered);
 
             //set the expiration on this new fioname
@@ -730,7 +736,7 @@ namespace fioio {
             fioio::convertfiotime(new_expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+            namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
                 a.bundleeligiblecountdown = getBundledAmount() + bundleeligiblecountdown;
             });
@@ -771,7 +777,7 @@ namespace fioio {
         [[eosio::action]]
         void expaddresses(const name &actor, const string &domain, const string &address_prefix, uint64_t number_addresses_to_add) {
 
-            uint64_t nameHash ;
+            uint128_t nameHash ;
             uint64_t domainHash = string_to_uint64_hash(domain.c_str());
             uint64_t expiration_time = get_now_minus_years(1);
 
@@ -791,11 +797,14 @@ namespace fioio {
                 }
 
                 expiration_time = get_now_minus_years(yearsago);
-                nameHash = string_to_uint64_hash(name.c_str());
-                auto iter1 = fionames.find(nameHash);
-                if (iter1 == fionames.end()) {
+                nameHash = string_to_uint128_hash(name.c_str());
+                auto namesbyname = fionames.get_index<"byname"_n>();
+                auto iter1 = namesbyname.find(nameHash);
+                if (iter1 == namesbyname.end()) {
+                    uint64_t id = fionames.available_primary_key();
                     //set up a couple of expired names in the fionames table.
                     fionames.emplace(_self, [&](struct fioname &a) {
+                        a.id = id;
                         a.name = name;
                         a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
                         a.namehash = nameHash;
@@ -839,7 +848,7 @@ namespace fioio {
         void burnexpired() {
 
             //this is the burn list holding the list of address hashes that should be destroyed.
-            std::vector <uint64_t> burnlist;
+            std::vector <uint128_t> burnlist;
             std::vector <uint64_t> domainburnlist;
 
             //we look back 20 years for expired things.
@@ -948,15 +957,16 @@ namespace fioio {
 
             //do the burning.
             for (int i = 0; i < burnlist.size(); i++) {
-                uint64_t burner = burnlist[i];
+                uint128_t burner = burnlist[i];
                 //to call erase we need to have the primary key, get the list of primary keys out of keynames
                 vector <uint64_t> ids;
 
                 //remove the items from the fionames
-                auto fionamesiter = fionames.find(burner);
-                if (fionamesiter != fionames.end()) {
+                auto namesbyname = fionames.get_index<"byname"_n>();
+                auto fionamesiter = namesbyname.find(burner);
+                if (fionamesiter != namesbyname.end()) {
                     //print(" erasing fioname ",fionamesiter->name," expiration ",fionamesiter->expiration,"\n");
-                    fionames.erase(fionamesiter);
+                    namesbyname.erase(fionamesiter);
                 }
 
             }
@@ -1124,16 +1134,17 @@ namespace fioio {
         void decrcounter(const string &fio_address) {
 
             string tstr = fio_address;
-            uint64_t hashval = string_to_uint64_hash(tstr.c_str());
+            uint128_t hashval = string_to_uint128_hash(tstr.c_str());
 
-            auto fioname_iter = fionames.find(hashval);
-            fio_400_assert(fioname_iter != fionames.end(), "fio_address", fio_address,
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(hashval);
+            fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                            "FIO address not registered", ErrorFioNameAlreadyRegistered);
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             if (bundleeligiblecountdown > 0) {
-                fionames.modify(fioname_iter, _self, [&](struct fioname &a) {
+                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
                 });
             }
