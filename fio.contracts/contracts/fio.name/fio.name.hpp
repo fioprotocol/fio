@@ -25,7 +25,7 @@ namespace fioio {
         string name = nullptr;
         uint128_t namehash = 0;
         string domain = nullptr;
-        uint64_t domainhash = 0;
+        uint128_t domainhash = 0;
         uint64_t expiration;
         uint64_t owner_account;
         // Chain specific keys
@@ -35,7 +35,7 @@ namespace fioio {
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return id; }
         uint128_t by_name() const{ return namehash; }
-        uint64_t by_domain() const { return domainhash; }
+        uint128_t by_domain() const { return domainhash; }
         uint64_t by_expiration() const { return expiration; }
 
         uint64_t by_owner() const { return owner_account; }
@@ -48,7 +48,7 @@ namespace fioio {
 
     //Where fioname tokens are stored
     typedef multi_index<"fionames"_n, fioname,
-    indexed_by<"bydomain"_n, const_mem_fun < fioname, uint64_t, &fioname::by_domain>>,
+    indexed_by<"bydomain"_n, const_mem_fun < fioname, uint128_t, &fioname::by_domain>>,
     indexed_by<"byexpiration"_n, const_mem_fun<fioname, uint64_t, &fioname::by_expiration>>,
     indexed_by<"byowner"_n, const_mem_fun<fioname, uint64_t, &fioname::by_owner>>,
     indexed_by<"byname"_n, const_mem_fun < fioname, uint128_t, &fioname::by_name>>
@@ -57,23 +57,27 @@ namespace fioio {
 
     // @abi table domains i64
     struct [[eosio::action]] domain {
+        uint64_t id;
         string name;
-        uint64_t domainhash;
+        uint128_t domainhash;
         uint8_t is_public = false;
         uint64_t expiration;
         uint64_t account;
 
-        uint64_t primary_key() const { return domainhash; }
+        uint64_t primary_key() const { return id; }
         uint64_t by_account() const { return account; }
         uint64_t by_expiration() const { return expiration; }
+        uint128_t by_name() const { return domainhash; }
 
-        EOSLIB_SERIALIZE(domain, (name)(domainhash)(is_public)(expiration)(account)
+
+        EOSLIB_SERIALIZE(domain, (id)(name)(domainhash)(is_public)(expiration)(account)
         )
     };
 
     typedef multi_index<"domains"_n, domain,
             indexed_by<"byaccount"_n, const_mem_fun < domain, uint64_t, &domain::by_account>>,
-            indexed_by<"byexpiration"_n, const_mem_fun < domain, uint64_t, &domain::by_expiration>>
+            indexed_by<"byexpiration"_n, const_mem_fun < domain, uint64_t, &domain::by_expiration>>,
+            indexed_by<"byname"_n, const_mem_fun < domain, uint128_t, &domain::by_name>>
                     >
     domains_table;
 

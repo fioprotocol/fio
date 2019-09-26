@@ -273,7 +273,10 @@ namespace fioio {
 
        if(bpiter != voteshares.end()) {
          payout = static_cast<uint64_t>(bpiter->abpayshare+bpiter->sbpayshare);
-         auto domiter = domains.find(fioiter->domainhash);
+
+         auto domainsbyname = domains.get_index<"byname"_n>();
+         auto domiter = domainsbyname.find(fioiter->domainhash);
+
          fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
           "FIO Domain expired", ErrorDomainExpired);
 

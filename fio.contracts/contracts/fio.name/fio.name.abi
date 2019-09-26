@@ -19,7 +19,7 @@
           "type": "string"
         },{
           "name": "domainhash",
-          "type": "uint64"
+          "type": "uint128"
         },{
           "name": "expiration",
           "type": "uint64"
@@ -38,11 +38,14 @@
       "name": "domain",
       "base": "",
       "fields": [{
+          "name": "id",
+          "type": "uint64"
+        },{
           "name": "name",
           "type": "string"
         },{
           "name": "domainhash",
-          "type": "uint64"
+          "type": "uint128"
         },{
          "name": "is_public",
          "type": "uint8"
@@ -348,7 +351,7 @@
       "name": "domains",
       "index_type": "i64",
       "key_names": [
-        "name"
+        "id"
       ],
       "key_types": [
         "string"

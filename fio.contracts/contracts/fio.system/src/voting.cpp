@@ -105,7 +105,7 @@ namespace eosiosystem {
         getFioAddressStruct(fio_address, fa);
 
         uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-        uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+        uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
@@ -120,8 +120,10 @@ namespace eosiosystem {
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
                        "FIO Address expired", ErrorFioNameExpired);
 
-        auto domains_iter = _domains.find(domainHash);
-        fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+        auto domainsbyname = _domains.get_index<"byname"_n>();
+        auto domains_iter = domainsbyname.find(domainHash);
+
+        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -173,7 +175,7 @@ namespace eosiosystem {
         getFioAddressStruct(fio_address, fa);
 
         uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-        uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+        uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
@@ -189,8 +191,10 @@ namespace eosiosystem {
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
                        "FIO Address expired", ErrorFioNameExpired);
 
-        auto domains_iter = _domains.find(domainHash);
-        fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+        auto domainsbyname = _domains.get_index<"byname"_n>();
+        auto domains_iter = domainsbyname.find(domainHash);
+
+        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -382,7 +386,7 @@ namespace eosiosystem {
             getFioAddressStruct(producers[i], fa);
 
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             auto namesbyname = _fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
@@ -398,8 +402,10 @@ namespace eosiosystem {
             fio_400_assert(present_time <= name_expiration, "fio_address", producers[i],
                            "FIO Address expired", ErrorFioNameExpired);
 
-            auto domains_iter = _domains.find(domainHash);
-            fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+            auto domainsbyname = _domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
             uint32_t expiration = domains_iter->expiration;
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -450,7 +456,7 @@ namespace eosiosystem {
         getFioAddressStruct(fio_address, fa);
 
         uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-        uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+        uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
         fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
@@ -463,8 +469,10 @@ namespace eosiosystem {
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
                        "FIO Address expired", ErrorFioNameExpired);
 
-        auto domains_iter = _domains.find(domainHash);
-        fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+        auto domainsbyname = _domains.get_index<"byname"_n>();
+        auto domains_iter = domainsbyname.find(domainHash);
+
+        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -722,7 +730,7 @@ namespace eosiosystem {
 
 
         uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-        uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+        uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
@@ -739,8 +747,10 @@ namespace eosiosystem {
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
                        "FIO Address expired", ErrorFioNameExpired);
 
-        auto domains_iter = _domains.find(domainHash);
-        fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+        auto domainsbyname = _domains.get_index<"byname"_n>();
+        auto domains_iter = domainsbyname.find(domainHash);
+
+        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -788,7 +798,7 @@ namespace eosiosystem {
         getFioAddressStruct(fio_address, fa);
 
         uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-        uint64_t domainHash = string_to_uint64_hash(fa.fiodomain.c_str());
+        uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
@@ -805,8 +815,10 @@ namespace eosiosystem {
         fio_400_assert(present_time <= name_expiration, "fio_address", fio_address,
                        "FIO Address expired", ErrorFioNameExpired);
 
-        auto domains_iter = _domains.find(domainHash);
-        fio_404_assert(domains_iter != _domains.end(), "FIO Domain not found", ErrorDomainNotFound);
+        auto domainsbyname = _domains.get_index<"byname"_n>();
+        auto domains_iter = domainsbyname.find(domainHash);
+
+        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",

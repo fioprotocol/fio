@@ -2062,7 +2062,7 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             const name code = ::eosio::string_to_name("fio.system");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
             const uint128_t name_hash = ::eosio::string_to_uint128_t(p.fio_address.c_str());
-            const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
+            const uint128_t domain_hash = ::eosio::string_to_uint128_t(fa.fiodomain.c_str());
             const uint64_t chain_hash = ::eosio::string_to_uint64_t(p.token_code.c_str());
 
             dlog("fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash));
@@ -2078,16 +2078,32 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
 
             result.public_address = "";
 
-            //get the domain, check if the domain is expired.
-            get_table_rows_params table_row_params = get_table_rows_params{.json=true,
+            std::string hexvaldomainhash = "0x";
+            hexvaldomainhash.append(
+                    ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domain_hash),sizeof(domain_hash)));
+
+            uint128_t domplusone = domain_hash+1;
+
+            std::string hexvaldomainhashplus1 = "0x";
+            hexvaldomainhashplus1.append(
+                    ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domplusone),sizeof(domplusone)));
+
+
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=code,
                     .scope=fio_system_scope,
                     .table=fio_domains_table,
-                    .lower_bound=boost::lexical_cast<string>(domain_hash),
-                    .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
-                    .encode_type="dec"};
+                    .lower_bound=hexvaldomainhash,
+                    .upper_bound=hexvaldomainhashplus1,
+                    .encode_type="hex",
+                    .index_position ="4"};
 
-            domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+            // Do secondary key lookup
+            domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                    name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                        return v;
+                    });
+
 
             // If no matches, then domain not found, return empty result
             dlog("Domain matched: ${matched}", ("matched", !domain_result.rows.empty()));
@@ -2206,20 +2222,37 @@ string get_table_type( const abi_def& abi, const name& table_name ) {
             //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const uint128_t name_hash = ::eosio::string_to_uint128_t(fa.fioaddress.c_str());
-            const uint64_t domain_hash = ::eosio::string_to_uint64_t(fa.fiodomain.c_str());
+            const uint128_t domain_hash = ::eosio::string_to_uint128_t(fa.fiodomain.c_str());
             get_table_rows_result fioname_result;
             get_table_rows_result name_result;
             get_table_rows_result domain_result;
 
-            get_table_rows_params table_row_params = get_table_rows_params{.json=true,
-                    .code=fio_system_code,
-                    .scope=fio_system_scope,
-                    .table=fio_domains_table,
-                    .lower_bound=boost::lexical_cast<string>(domain_hash),
-                    .upper_bound=boost::lexical_cast<string>(domain_hash + 1),
-                    .encode_type="dec"};
+           std::string hexvaldomainhash = "0x";
+           hexvaldomainhash.append(
+                   ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domain_hash),sizeof(domain_hash)));
 
-            domain_result = get_table_rows_ex<key_value_index>(table_row_params, abi);
+           uint128_t domplusone = domain_hash+1;
+
+           std::string hexvaldomainhashplus1 = "0x";
+           hexvaldomainhashplus1.append(
+                   ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domplusone),sizeof(domplusone)));
+
+
+           get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                   .code=fio_system_code,
+                   .scope=fio_system_scope,
+                   .table=fio_domains_table,
+                   .lower_bound=hexvaldomainhash,
+                   .upper_bound=hexvaldomainhashplus1,
+                   .encode_type="hex",
+                   .index_position ="4"};
+
+           // Do secondary key lookup
+           domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                   name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                       return v;
+                   });
+
 
             if (!fa.fioname.empty()) {
                 std::string hexvalnamehash = "0x";

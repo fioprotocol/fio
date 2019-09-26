@@ -124,9 +124,12 @@ namespace fioio {
                            "FIO Address expired", ErrorFioNameExpired);
 
             //check domain.
-            uint64_t domHash = string_to_uint64_hash(payerfa.fiodomain.c_str());
-            auto iterdom = domains.find(domHash);
-            fio_400_assert(iterdom != domains.end(), "payer_fio_address", payer_fio_address,
+            uint128_t domHash = string_to_uint128_hash(payerfa.fiodomain.c_str());
+
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto iterdom = domainsbyname.find(domHash);
+
+            fio_400_assert(iterdom != domainsbyname.end(), "payer_fio_address", payer_fio_address,
                            "No such domain",
                            ErrorDomainNotRegistered);
             uint64_t domexp = iterdom->expiration;
@@ -284,9 +287,11 @@ namespace fioio {
                            "FIO Address expired", ErrorFioNameExpired);
 
             //check domain.
-            uint64_t domHash = string_to_uint64_hash(payeefa.fiodomain.c_str());
-            auto iterdom = domains.find(domHash);
-            fio_400_assert(iterdom != domains.end(), "payee_fio_address", payee_fio_address,
+            uint128_t domHash = string_to_uint128_hash(payeefa.fiodomain.c_str());
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto iterdom = domainsbyname.find(domHash);
+
+            fio_400_assert(iterdom != domainsbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such domain",
                            ErrorDomainNotRegistered);
             uint64_t domexp = iterdom->expiration;
@@ -441,9 +446,11 @@ namespace fioio {
                            "FIO Address expired", ErrorFioNameExpired);
 
             //check domain.
-            uint64_t domHash = string_to_uint64_hash(payerfa.fiodomain.c_str());
-            auto iterdom = domains.find(domHash);
-            fio_400_assert(iterdom != domains.end(), "payer_fio_address", payerFioAddress,
+            uint128_t domHash = string_to_uint128_hash(payerfa.fiodomain.c_str());
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto iterdom = domainsbyname.find(domHash);
+
+            fio_400_assert(iterdom != domainsbyname.end(), "payer_fio_address", payerFioAddress,
                            "No such domain",
                            ErrorDomainNotRegistered);
             uint64_t domexp = iterdom->expiration;
