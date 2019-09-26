@@ -356,10 +356,13 @@ namespace eosio {
             //begin get pending fio requests
             struct get_pending_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
+                uint32_t offset = 0;
+                uint32_t limit = 0;
             };
 
             struct get_pending_fio_requests_result {
                 vector <request_record> requests;
+                uint32_t more;
             };
 
             get_pending_fio_requests_result
@@ -369,10 +372,13 @@ namespace eosio {
             //begin get sent fio requests
             struct get_sent_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
+                uint32_t offset = 0;
+                uint32_t limit = 0;
             };
 
             struct get_sent_fio_requests_result {
                 vector <request_status_record> requests;
+                uint32_t more;
             };
 
             get_sent_fio_requests_result
@@ -1223,11 +1229,13 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more)
 );
 
 
-FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit)
 )
-FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more)
 )
-FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit)
+)
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more)
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key)
 )
@@ -1237,8 +1245,6 @@ FC_REFLECT(eosio::chain_apis::whitelist_info,(fio_public_key_hash)(content))
 FC_REFLECT(eosio::chain_apis::read_only::check_whitelist_params, (fio_public_key_hash)
 )
 FC_REFLECT(eosio::chain_apis::read_only::check_whitelist_result, (in_whitelist)
-)
-FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)
 )
 FC_REFLECT(eosio::chain_apis::request_record,
 (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)

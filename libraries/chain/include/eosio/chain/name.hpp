@@ -97,9 +97,6 @@ namespace eosio {
             return r;
         }
 
-
-
-
 #define N(X) eosio::chain::string_to_name(#X)
 
         struct name {
