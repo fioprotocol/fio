@@ -134,7 +134,7 @@ namespace fioio {
                     accountmap.emplace(_self, [&](struct eosio_name &p) {
                         p.account = nmi;
                         p.clientkey = owner_fio_public_key;
-                        p.keyhash = string_to_uint64_hash(owner_fio_public_key.c_str());
+                        p.keyhash = string_to_uint128_hash(owner_fio_public_key.c_str());
                     });
 
                     print("performed bind of the account!!!!", owner_account_name, "\n");
@@ -364,7 +364,7 @@ namespace fioio {
             });
 
             //begin new fees, bundle eligible fee logic
-            uint64_t endpoint_hash = string_to_uint64_hash("add_pub_address");
+            uint128_t endpoint_hash = string_to_uint128_hash("add_pub_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -488,7 +488,7 @@ namespace fioio {
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_address");
+            uint128_t endpoint_hash = string_to_uint128_hash("register_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -545,7 +545,7 @@ namespace fioio {
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("register_fio_domain");
+            uint128_t endpoint_hash = string_to_uint128_hash("register_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -612,7 +612,7 @@ namespace fioio {
             expiration_time = domains_iter->expiration;
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("renew_fio_domain");
+            uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -709,7 +709,7 @@ namespace fioio {
 
 
             //begin new fees, logic for Mandatory fees.
-            uint64_t endpoint_hash = string_to_uint64_hash("renew_fio_address");
+            uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -1060,7 +1060,7 @@ namespace fioio {
                 a.is_public = is_public;
             });
 
-            uint64_t endpoint_hash = string_to_uint64_hash("set_fio_domain_public");
+            uint128_t endpoint_hash = string_to_uint128_hash("set_fio_domain_public");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -1129,7 +1129,7 @@ namespace fioio {
                 accountmap.emplace(_self, [&](struct eosio_name &p) {
                     p.account = account.value;
                     p.clientkey = client_key;
-                    p.keyhash = string_to_uint64_hash(client_key.c_str());
+                    p.keyhash = string_to_uint128_hash(client_key.c_str());
                 });
             }
             print ("bind of account is done processing","\n");

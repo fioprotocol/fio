@@ -135,7 +135,7 @@ namespace eosiosystem {
 
         //TODO: REFACTOR FEE ( PROXY / PRODUCER )
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_hash("register_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash("register_producer");
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -210,7 +210,7 @@ namespace eosiosystem {
         });
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_hash("unregister_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash("unregister_producer");
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -418,7 +418,7 @@ namespace eosiosystem {
         update_votes(actor, proxy, producers_accounts, true);
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_hash("vote_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash("vote_producer");
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -496,7 +496,7 @@ namespace eosiosystem {
         update_votes(actor, proxy_name, producers, true);
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_hash("proxy_vote");
+        uint128_t endpoint_hash = string_to_uint128_hash("proxy_vote");
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -759,7 +759,7 @@ namespace eosiosystem {
         regiproxy(actor,fio_address,false);
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_hash("unregister_proxy");
+        uint128_t endpoint_hash = string_to_uint128_hash("unregister_proxy");
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -827,7 +827,7 @@ namespace eosiosystem {
         regiproxy(actor,fio_address,true);
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = string_to_uint64_hash("register_proxy");
+        uint128_t endpoint_hash = string_to_uint128_hash("register_proxy");
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);

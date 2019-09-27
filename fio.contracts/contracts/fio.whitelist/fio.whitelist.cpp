@@ -97,7 +97,7 @@ namespace fioio {
           });
 
           //begin new fees, bundle eligible fee logic
-          uint64_t endpoint_hash = string_to_uint64_hash("add_to_whitelist");
+          uint128_t endpoint_hash = string_to_uint128_hash("add_to_whitelist");
 
           if (dbgout) {
               print("processing add to whitelist fee.", "\n");
@@ -209,7 +209,7 @@ namespace fioio {
 
 
            //begin new fees, bundle eligible fee logic
-           uint64_t endpoint_hash = string_to_uint64_hash("remove_from_whitelist");
+           uint128_t endpoint_hash = string_to_uint128_hash("remove_from_whitelist");
 
            if (dbgout) {
                print("processing remove from whitelist fee.", "\n");

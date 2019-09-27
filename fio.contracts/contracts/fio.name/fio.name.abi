@@ -82,7 +82,7 @@
           "type": "string"
         },{
             "name": "keyhash",
-            "type": "uint64"
+            "type": "uint128"
           }
       ]
      },{
