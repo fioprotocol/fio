@@ -21,6 +21,7 @@
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/signature_validator.hpp>
 #include <eosio/chain/fioio/keyops.hpp>
+#include <eosio/chain/fioio/fioserialize.h>
 #include <eosio/chain/eosio_contract.hpp>
 #include <fio.common/fio_common_validator.hpp>
 
@@ -1343,7 +1344,7 @@ if( options.count(name) ) { \
                 //get the name of the from associated with the request without looking up the
                 //hashed value. tricky.
                 string from_fioadd = fio_address;
-                uint128_t address_hash = ::eosio::string_to_uint128_t(fio_address.c_str());
+                uint128_t address_hash = fioio::string_to_uint128_t(fio_address.c_str());
 
                 //look up the requests for this fio name (look for matches in the tofioadd
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
@@ -1351,14 +1352,14 @@ if( options.count(name) ) { \
                 std::string hexvalnamehash = "0x";
                 //now get the hex little-endian and search
                 hexvalnamehash.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
-                                                      sizeof(address_hash)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
+                                                    sizeof(address_hash)));
 
                 uint128_t plusone = address_hash + 1;
 
                 std::string hexvalnamehashplus1 = "0x";
                 hexvalnamehashplus1.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
 
                 dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
@@ -1372,7 +1373,7 @@ if( options.count(name) ) { \
                         .lower_bound=hexvalnamehash,
                         .upper_bound=hexvalnamehashplus1,
                         .encode_type="hex",
-                        .index_position ="2"};//get all requests that i have received, IE that i must pay.
+                        .index_position = "2"};//get all requests that i have received, IE that i must pay.
 
                 // Do secondary key lookup
                 get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
@@ -1535,7 +1536,7 @@ if( options.count(name) ) { \
                 //get the fio address associated with this public address
                 string fio_address = names_rows_result.rows[knpos]["name"].as_string();
                 string to_fioadd = fio_address;
-                uint128_t address_hash = ::eosio::string_to_uint128_t(fio_address.c_str());
+                uint128_t address_hash = fioio::string_to_uint128_t(fio_address.c_str());
                 //look up the requests for this fio name (look for matches in the tofioadd
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
 
@@ -1543,14 +1544,14 @@ if( options.count(name) ) { \
                 std::string hexvalnamehash = "0x";
                 //now get the hex little-endian and search
                 hexvalnamehash.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
-                                                      sizeof(address_hash)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
+                                                    sizeof(address_hash)));
 
                 uint128_t plusone = address_hash + 1;
 
                 std::string hexvalnamehashplus1 = "0x";
                 hexvalnamehashplus1.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
 
                 dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
@@ -1834,18 +1835,18 @@ if( options.count(name) ) { \
             vector<asset> cursor;
             result.balance = 0;
 
-            uint128_t keyhash = ::eosio::string_to_uint128_t(p.fio_public_key.c_str());
+            uint128_t keyhash = fioio::string_to_uint128_t(p.fio_public_key.c_str());
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
-                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
 
             uint128_t plusone = keyhash + 1;
 
             std::string hexvalkeyhashplus1 = "0x";
             hexvalkeyhashplus1.append(
-                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
             get_table_rows_params eosio_table_row_params = get_table_rows_params{
                     .json           = true,
@@ -1909,7 +1910,7 @@ if( options.count(name) ) { \
                            fioio::ErrorInvalidFioNameFormat);
 
             //get_fee
-            const uint128_t endpointhash = ::eosio::string_to_uint128_t(p.end_point.c_str());
+            const uint128_t endpointhash = fioio::string_to_uint128_t(p.end_point.c_str());
 
             //read the fees table.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_fee_code);
@@ -1918,13 +1919,13 @@ if( options.count(name) ) { \
             dlog("Lookup using endpoint hash: ‘${endpoint_hash}‘", ("endpoint_hash", endpointhash));
             std::string hexvalendpointhash = "0x";
             hexvalendpointhash.append(
-                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
 
             uint128_t plusone = endpointhash + 1;
 
             std::string hexvalendpointhashplus1 = "0x";
             hexvalendpointhashplus1.append(
-                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
 
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -1937,7 +1938,7 @@ if( options.count(name) ) { \
                     .index_position ="2"};
 
             // Do secondary key lookup
-           get_table_rows_result table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                     name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                         return v;
                     });
@@ -1961,18 +1962,18 @@ if( options.count(name) ) { \
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-                uint128_t name_hash = ::eosio::string_to_uint128_t(p.fio_address.c_str());
+                uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
 
                 dlog("Lookup fio name using name hash: ‘${name_hash}‘", ("name_hash", name_hash));
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
 
                 uint128_t plusone = name_hash + 1;
 
                 std::string hexvalnamehashplus1 = "0x";
                 hexvalnamehashplus1.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
 
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -2149,8 +2150,8 @@ if( options.count(name) ) { \
             //declare variables.
             const name code = ::eosio::string_to_name("fio.system");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
-            const uint128_t name_hash = ::eosio::string_to_uint128_t(p.fio_address.c_str());
-            const uint128_t domain_hash = ::eosio::string_to_uint128_t(fa.fiodomain.c_str());
+            const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
+            const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
             const uint64_t chain_hash = ::eosio::string_to_uint64_t(p.token_code.c_str());
 
             dlog("fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash));
@@ -2168,13 +2169,13 @@ if( options.count(name) ) { \
 
             std::string hexvaldomainhash = "0x";
             hexvaldomainhash.append(
-                    ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domain_hash),sizeof(domain_hash)));
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
 
-            uint128_t domplusone = domain_hash+1;
+            uint128_t domplusone = domain_hash + 1;
 
             std::string hexvaldomainhashplus1 = "0x";
             hexvaldomainhashplus1.append(
-                    ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domplusone),sizeof(domplusone)));
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domplusone), sizeof(domplusone)));
 
 
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -2213,13 +2214,13 @@ if( options.count(name) ) { \
 
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
 
                 uint128_t plusone = name_hash + 1;
 
                 std::string hexvalnamehashplus1 = "0x";
                 hexvalnamehashplus1.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
 
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
@@ -2309,49 +2310,49 @@ if( options.count(name) ) { \
 
             //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const uint128_t name_hash = ::eosio::string_to_uint128_t(fa.fioaddress.c_str());
-            const uint128_t domain_hash = ::eosio::string_to_uint128_t(fa.fiodomain.c_str());
+            const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+            const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
             get_table_rows_result fioname_result;
             get_table_rows_result name_result;
             get_table_rows_result domain_result;
 
-           std::string hexvaldomainhash = "0x";
-           hexvaldomainhash.append(
-                   ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domain_hash),sizeof(domain_hash)));
+            std::string hexvaldomainhash = "0x";
+            hexvaldomainhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
 
-           uint128_t domplusone = domain_hash+1;
+            uint128_t domplusone = domain_hash + 1;
 
-           std::string hexvaldomainhashplus1 = "0x";
-           hexvaldomainhashplus1.append(
-                   ::eosio::to_hex_little_endian(reinterpret_cast<const char*>(&domplusone),sizeof(domplusone)));
+            std::string hexvaldomainhashplus1 = "0x";
+            hexvaldomainhashplus1.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domplusone), sizeof(domplusone)));
 
 
-           get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                   .code=fio_system_code,
-                   .scope=fio_system_scope,
-                   .table=fio_domains_table,
-                   .lower_bound=hexvaldomainhash,
-                   .upper_bound=hexvaldomainhashplus1,
-                   .encode_type="hex",
-                   .index_position ="4"};
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=hexvaldomainhash,
+                    .upper_bound=hexvaldomainhashplus1,
+                    .encode_type="hex",
+                    .index_position ="4"};
 
-           // Do secondary key lookup
-           domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
-                   name_table_row_params, abi, [](uint128_t v) -> uint128_t {
-                       return v;
-                   });
+            // Do secondary key lookup
+            domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                    name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                        return v;
+                    });
 
 
             if (!fa.fioname.empty()) {
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
 
                 uint128_t plusone = name_hash + 1;
 
                 std::string hexvalnamehashplus1 = "0x";
                 hexvalnamehashplus1.append(
-                        ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
 
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
