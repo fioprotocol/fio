@@ -330,7 +330,7 @@ namespace fioio {
 
             //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("new_funds_request");
-            string mystr = "0x"+ to_hex((char *)&endpoint_hash,sizeof(endpoint_hash));
+
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
