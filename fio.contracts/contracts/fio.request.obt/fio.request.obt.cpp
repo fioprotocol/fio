@@ -311,9 +311,9 @@ namespace fioio {
             uint64_t currentTime = now();
             uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
             uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
-            //use big endian for the emplace, table will store it little endian.
             string toHashStr = "0x"+ to_hex((char *)&toHash,sizeof(toHash));
             string fromHashStr = "0x"+ to_hex((char *)&fromHash,sizeof(fromHash));
+
 
             //insert a send record into the status table using this id.
             fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
@@ -328,10 +328,9 @@ namespace fioio {
                 frc.payee_fio_addr = payee_fio_address;
             });
 
-
-
             //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("new_funds_request");
+
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -422,10 +421,7 @@ namespace fioio {
             fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                            "No such FIO Request", ErrorRequestContextNotFound);
 
-            string payerFioAddHashed = fioreqctx_iter->payer_fio_address_hex_str;
-            string payeeFioAddHashed = fioreqctx_iter->payee_fio_address_hex_str;
-            uint128_t payer128FioAddHashed =0;
-            from_hex(&(payerFioAddHashed[2]),(char *)&payer128FioAddHashed,sizeof(payer128FioAddHashed) );
+            uint128_t payer128FioAddHashed =fioreqctx_iter->payer_fio_address;
 
             uint32_t present_time = now();
 
