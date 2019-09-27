@@ -63,7 +63,7 @@ namespace fioio {
             uint32_t nowtime = now();
 
               for ( auto &feeval : fee_ratios) {
-                uint64_t endPointHash = string_to_uint64_hash(feeval.end_point.c_str());
+                uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
                 //look for this actor in the feevoters table, if not there error.
                 //look for this actor in the feevotes table, it not there add the record.
                 //  if there are records loop through the records, find teh matching endpoint and remove this record.
@@ -129,7 +129,7 @@ namespace fioio {
         }
 
         void
-        compute_median_and_update_fees(vector <uint64_t> feevalues, string fee_endpoint, uint64_t fee_endpoint_hash) {
+        compute_median_and_update_fees(vector <uint64_t> feevalues, string fee_endpoint, uint128_t fee_endpoint_hash) {
             bool dbgout = false;
             //one more time
             if (feevalues.size() > 0) {
@@ -405,7 +405,7 @@ namespace fioio {
 
             print("creating name for end point ", end_point.c_str());
 
-            uint64_t endPointHash = string_to_uint64_hash(end_point.c_str());
+            uint128_t endPointHash = string_to_uint128_hash(end_point.c_str());
             uint64_t fee_id = fiofees.available_primary_key();
             //emplace the values into the table
             fiofees.emplace(_self, [&](struct fiofee &f) {

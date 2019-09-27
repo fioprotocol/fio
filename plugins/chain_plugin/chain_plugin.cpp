@@ -1834,22 +1834,32 @@ if( options.count(name) ) { \
             vector<asset> cursor;
             result.balance = 0;
 
-            uint64_t keyhash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str());
+            uint128_t keyhash = ::eosio::string_to_uint128_t(p.fio_public_key.c_str());
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
+
+            uint128_t plusone = keyhash + 1;
+
+            std::string hexvalkeyhashplus1 = "0x";
+            hexvalkeyhashplus1.append(
+                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
             get_table_rows_params eosio_table_row_params = get_table_rows_params{
                     .json           = true,
                     .code           = fio_system_code,
                     .scope          = fio_system_scope,
                     .table          = fio_accounts_table,
-                    .lower_bound    = boost::lexical_cast<string>(keyhash),
-                    .upper_bound    = boost::lexical_cast<string>(keyhash + 1),
-                    .key_type       = "i64",
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhashplus1,
+                    .key_type       = "hex",
                     .index_position = "2"};
 
             get_table_rows_result account_result =
-                    get_table_rows_by_seckey<index64_index, uint64_t>(
-                            eosio_table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                    get_table_rows_by_seckey<index128_index, uint128_t>(
+                            eosio_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
                                 return v;
                             });
 
@@ -1899,30 +1909,39 @@ if( options.count(name) ) { \
                            fioio::ErrorInvalidFioNameFormat);
 
             //get_fee
-            const uint64_t endpointhash = ::eosio::string_to_uint64_t(p.end_point.c_str());
+            const uint128_t endpointhash = ::eosio::string_to_uint128_t(p.end_point.c_str());
 
             //read the fees table.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_fee_code);
 
 
             dlog("Lookup using endpoint hash: ‘${endpoint_hash}‘", ("endpoint_hash", endpointhash));
+            std::string hexvalendpointhash = "0x";
+            hexvalendpointhash.append(
+                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
 
-            get_table_rows_params table_row_params = get_table_rows_params{
-                    .json        = true,
-                    .code        = fio_fee_code,
-                    .scope       = fio_fee_scope,
-                    .table       = fio_fees_table,
-                    .lower_bound = boost::lexical_cast<string>(endpointhash),
-                    .upper_bound = boost::lexical_cast<string>(endpointhash + 1),
-                    .key_type       = "i64",
+            uint128_t plusone = endpointhash + 1;
+
+            std::string hexvalendpointhashplus1 = "0x";
+            hexvalendpointhashplus1.append(
+                    ::eosio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
+
+
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_fee_code,
+                    .scope=fio_fee_scope,
+                    .table=fio_fees_table,
+                    .lower_bound=hexvalendpointhash,
+                    .upper_bound=hexvalendpointhashplus1,
+                    .encode_type="hex",
                     .index_position ="2"};
 
             // Do secondary key lookup
-            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    table_row_params, abi,
-                    [](uint64_t v) -> uint64_t {
+           get_table_rows_result table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                    name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                         return v;
                     });
+
 
             dlog("Lookup for fee, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 

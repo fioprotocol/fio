@@ -245,7 +245,7 @@ namespace eosio {
 
 
         //begin new fees, logic for Mandatory fees.
-        uint64_t endpoint_hash = fioio::string_to_uint64_hash("transfer_tokens_pub_key");
+        uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
 
         auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);

@@ -155,7 +155,7 @@ namespace fioio {
 
 
             //begin new fees, bundle eligible fee logic
-            uint64_t endpoint_hash = string_to_uint64_hash("record_send");
+            uint128_t endpoint_hash = string_to_uint128_hash("record_send");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -331,7 +331,7 @@ namespace fioio {
 
 
             //begin new fees, bundle eligible fee logic
-            uint64_t endpoint_hash = string_to_uint64_hash("new_funds_request");
+            uint128_t endpoint_hash = string_to_uint128_hash("new_funds_request");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -475,7 +475,7 @@ namespace fioio {
 
             //begin new fees, bundle eligible fee logic
 
-            uint64_t endpoint_hash = string_to_uint64_hash("reject_funds_request");
+            uint128_t endpoint_hash = string_to_uint128_hash("reject_funds_request");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);

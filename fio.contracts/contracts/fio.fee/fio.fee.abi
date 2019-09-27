@@ -49,7 +49,7 @@
         "fields": [
            {"name":"fee_id", "type":"uint64"},
            {"name":"end_point", "type":"string"},
-           {"name":"end_point_hash", "type":"uint64"},
+           {"name":"end_point_hash", "type":"uint128"},
            {"name":"type", "type":"uint64"},
            {"name":"suf_amount", "type":"uint64"}
         ]
