@@ -2088,7 +2088,7 @@ if( options.count(name) ) { \
         read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
 
             check_whitelist_result result;
-            // FIO_404_ASSERT(p.fio_public_key_hash.size() == 128, "No FIO names", fioio::ErrorNoFIONames);
+            FIO_404_ASSERT(p.fio_public_key_hash.size() == 19, "No FIO names", fioio::ErrorNoFIONames);
 
             result.in_whitelist = 0;
 
