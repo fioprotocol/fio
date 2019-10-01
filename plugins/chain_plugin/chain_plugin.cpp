@@ -2088,7 +2088,7 @@ if( options.count(name) ) { \
         read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
 
             check_whitelist_result result;
-            // FIO_404_ASSERT(p.fio_public_key_hash.size() == 128, "No FIO names", fioio::ErrorNoFIONames);
+            FIO_404_ASSERT(p.fio_public_key_hash.size() == 19, "No FIO names", fioio::ErrorNoFIONames);
 
             result.in_whitelist = 0;
 
@@ -3048,6 +3048,7 @@ if( options.count(name) ) { \
         void read_write::register_fio_address(const read_write::register_fio_address_params &params,
                                               next_function<read_write::register_fio_address_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3100,6 +3101,7 @@ if( options.count(name) ) { \
         void read_write::set_fio_domain_public(const read_write::set_fio_domain_public_params &params,
                                                next_function<read_write::set_fio_domain_public_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3150,6 +3152,7 @@ if( options.count(name) ) { \
         void read_write::register_fio_domain(const read_write::register_fio_domain_params &params,
                                              next_function<read_write::register_fio_domain_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3203,6 +3206,7 @@ if( options.count(name) ) { \
         void read_write::add_pub_address(const read_write::add_pub_address_params &params,
                                          next_function<read_write::add_pub_address_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3255,6 +3259,7 @@ if( options.count(name) ) { \
         void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_key_params &params,
                                                  next_function<read_write::transfer_tokens_pub_key_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3308,6 +3313,7 @@ if( options.count(name) ) { \
         void read_write::burn_expired(const read_write::burn_expired_params &params,
                                       next_function<read_write::burn_expired_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3361,6 +3367,7 @@ if( options.count(name) ) { \
         void read_write::unregister_proxy(const read_write::unregister_proxy_params &params,
                                           next_function<read_write::unregister_proxy_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3416,6 +3423,7 @@ if( options.count(name) ) { \
         void read_write::register_proxy(const read_write::register_proxy_params &params,
                                         next_function<read_write::register_proxy_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3463,7 +3471,8 @@ if( options.count(name) ) { \
 
         void read_write::register_producer(const read_write::register_producer_params &params,
                                            next_function<read_write::register_producer_results> next) {
-            try {
+             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3512,6 +3521,7 @@ if( options.count(name) ) { \
         void read_write::vote_producer(const read_write::vote_producer_params &params,
                                        next_function<read_write::vote_producer_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3561,6 +3571,7 @@ if( options.count(name) ) { \
         void read_write::proxy_vote(const read_write::proxy_vote_params &params,
                                     next_function<read_write::proxy_vote_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3610,6 +3621,7 @@ if( options.count(name) ) { \
         void read_write::submit_fee_ratios(const read_write::submit_fee_ratios_params &params,
                                            next_function<read_write::submit_fee_ratios_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3660,6 +3672,7 @@ if( options.count(name) ) { \
         void read_write::submit_fee_multiplier(const read_write::submit_fee_multiplier_params &params,
                                                next_function<read_write::submit_fee_multiplier_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3709,6 +3722,7 @@ if( options.count(name) ) { \
         void read_write::add_to_whitelist(const read_write::add_to_whitelist_params &params,
                                           next_function<read_write::add_to_whitelist_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3757,6 +3771,7 @@ if( options.count(name) ) { \
         void read_write::remove_from_whitelist(const read_write::remove_from_whitelist_params &params,
                                                next_function<read_write::remove_from_whitelist_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3804,6 +3819,7 @@ if( options.count(name) ) { \
         void read_write::unregister_producer(const read_write::unregister_producer_params &params,
                                              next_function<read_write::unregister_producer_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3858,6 +3874,7 @@ if( options.count(name) ) { \
         void read_write::renew_fio_domain(const read_write::renew_fio_domain_params &params,
                                           next_function<read_write::renew_fio_domain_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3913,6 +3930,7 @@ if( options.count(name) ) { \
         void read_write::renew_fio_address(const read_write::renew_fio_address_params &params,
                                            next_function<read_write::renew_fio_address_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -3968,6 +3986,7 @@ if( options.count(name) ) { \
         void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &params,
                                           next_function<read_write::pay_tpid_rewards_results> next) {
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -4018,6 +4037,7 @@ if( options.count(name) ) { \
                                                     next_function<read_write::submit_bundled_transaction_results> next) {
 
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
@@ -4068,6 +4088,7 @@ if( options.count(name) ) { \
                                           next_function<read_write::claim_bp_rewards_results> next) {
 
             try {
+                FIO_403_ASSERT(params.size() == 4, fioio::ErrorTransaction); // variant object contains authorization, account, name, data
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
