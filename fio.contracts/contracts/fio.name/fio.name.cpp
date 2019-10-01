@@ -97,7 +97,6 @@ namespace fioio {
 
                 print("hashed account name from the owner_fio_public_key ", owner_account, "\n");
 
-                //see if the payee_actor is in the accountmap table.
                 eosio_assert(owner_account.length() == 12, "Length of account name should be 12");
 
                 bool accountExists = is_account(owner_account_name);
@@ -194,6 +193,10 @@ namespace fioio {
                 returnvalue += itr.bundledbvotenumber;
                 totalcount++;
             }
+
+            if (totalcount == 0){
+                return 10000;
+            }
             return returnvalue / totalcount;
         }
 
@@ -256,6 +259,10 @@ namespace fioio {
             // DO SOMETHING
 
             auto key_iter = accountmap.find(actor.value);
+
+            fio_400_assert(key_iter != accountmap.end(), "actor", to_string(actor.value),
+                           "Actor is not bound in the account map.", ErrorActorNotInFioAccountMap);
+
             uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
             print("OWNER:", actor, "...Value:", actor.value, "...Key:", key_iter->clientkey, "...hash:", ownerHash,
                   "\n");
@@ -282,40 +289,43 @@ namespace fioio {
 
         uint32_t fio_domain_update(const string &fio_domain, const string &owner_fio_public_key, const name &actor,
                                    const FioAddress &fa) {
-            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
-            uint32_t expiration_time;
 
-            fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
-                           ErrorInvalidFioNameFormat);
+                uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
+                uint32_t expiration_time;
 
-            auto domainsbyname = domains.get_index<"byname"_n>();
-            auto domains_iter = domainsbyname.find(domainHash);
+                fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
+                               ErrorInvalidFioNameFormat);
 
-            fio_400_assert(domains_iter == domainsbyname.end(), "fio_name", fa.fioaddress,
-                           "FIO domain already registered", ErrorDomainAlreadyRegistered);
-            // check if callee has requisite dapix funds. Also update to domain fees
+                auto domainsbyname = domains.get_index<"byname"_n>();
+                auto domains_iter = domainsbyname.find(domainHash);
 
-            //get the expiration for this new domain.
-            expiration_time = get_now_plus_one_year();
+                fio_400_assert(domains_iter == domainsbyname.end(), "fio_name", fa.fioaddress,
+                               "FIO domain already registered", ErrorDomainAlreadyRegistered);
+                // check if callee has requisite dapix funds. Also update to domain fees
 
-            uint64_t id = domains.available_primary_key();
-            
-            // Issue, create and transfer nft domain token
-            // Add domain entry in domain table
-            domains.emplace(_self, [&](struct domain &d) {
-                d.id = id;
-                d.name = fa.fiodomain;
-                d.domainhash = domainHash;
-                d.expiration = expiration_time;
-                d.account = actor.value;
-            });
-            return expiration_time;
+                //get the expiration for this new domain.
+                expiration_time = get_now_plus_one_year();
+
+                uint64_t id = domains.available_primary_key();
+
+                // Issue, create and transfer nft domain token
+                // Add domain entry in domain table
+                domains.emplace(_self, [&](struct domain &d) {
+                    d.id = id;
+                    d.name = fa.fiodomain;
+                    d.domainhash = domainHash;
+                    d.expiration = expiration_time;
+                    d.account = actor.value;
+                });
+                return expiration_time;
         }
         //adddomain
 
 
         uint64_t
-        chain_data_update(const string &fioaddress, const string &tokencode, const string &pubaddress, uint64_t max_fee, const FioAddress &fa, const name &actor, const bool isFIO, const string &tpid) {
+        chain_data_update(const string &fioaddress, const string &tokencode,
+                const string &pubaddress, uint64_t max_fee, const FioAddress &fa,
+                const name &actor, const bool isFIO, const string &tpid) {
 
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
@@ -343,10 +353,22 @@ namespace fioio {
                            ErrorDomainExpired);
 
             uint64_t chainhash = string_to_uint64_hash(tokencode.c_str());
+            //NOTE--this doesnt seem safe, what happens when multiple users are doing this on
+            //      multiple nodes.
+            //this needs to become get primary key value.
             auto size = distance(chains.cbegin(), chains.cend());
             auto chain_iter = chains.find(chainhash);
 
+            //does this leave us vulnerable to someone just adding and adding new and garbage addresses,
+            // what are the consequences of this kind of behavior??
+            //should this be an error instead.
             if (chain_iter == chains.end()) {
+                //this helps limit spamming ability by limiting the size of teh data that can be added.
+                fio_400_assert(tokencode.length() <= 10, "token_code", tokencode, "Invalid token code format",
+                               ErrorTokenCodeInvalid);
+                fio_400_assert(tokencode.length() > 0, "token_code", tokencode, "Invalid token code format",
+                               ErrorTokenCodeInvalid);
+
                 chains.emplace(_self, [&](struct chainList &a) {
                     a.id = size;
                     a.chainname = tokencode;
@@ -354,9 +376,6 @@ namespace fioio {
                 });
                 chain_iter = chains.find(chainhash);
             }
-
-            string oldkey = fioname_iter->addresses[static_cast<size_t>((chain_iter)->by_index())];
-            uint64_t oldkeyhash = string_to_uint64_hash(oldkey.c_str());
 
             // insert/update <chain, address> pair
             namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
@@ -384,6 +403,8 @@ namespace fioio {
 
             uint64_t fee_amount = 0;
 
+            //NOTE -- we have this override in here to return 0 fee, should this kind
+            //if we manage to call this with isFIO true we can blast the chain with new chains for free.
             if (isFIO) {
                 return fee_amount;
             }
