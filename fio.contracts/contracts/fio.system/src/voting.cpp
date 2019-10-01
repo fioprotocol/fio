@@ -478,7 +478,7 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        uint64_t address_hash = string_to_uint64_hash(fio_address.c_str());
+    
         uint64_t proxy_account = fioname_iter->owner_account;
         fio_400_assert(_voters.find(fioname_iter->owner_account)->is_proxy, "fio_address", fio_address,
                        "This address is not a proxy", AddressNotProxy);

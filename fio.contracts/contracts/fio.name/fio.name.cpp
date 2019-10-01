@@ -811,7 +811,7 @@ namespace fioio {
         void expaddresses(const name &actor, const string &domain, const string &address_prefix, uint64_t number_addresses_to_add) {
 
             uint128_t nameHash ;
-            uint64_t domainHash = string_to_uint64_hash(domain.c_str());
+            uint64_t domainHash = string_to_uint128_hash(domain.c_str());
             uint64_t expiration_time = get_now_minus_years(1);
 
             int countAdded = 0;
