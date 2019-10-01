@@ -15,27 +15,6 @@
 #include "account_operations.hpp"
 #include "fio.rewards.hpp"
 
-
-#ifndef FEE_CONTRACT
-#define FEE_CONTRACT "fio.fee"
-#endif
-
-#ifndef TOKEN_CONTRACT
-#define TOKEN_CONTRACT "fio.token"
-#endif
-
-#ifndef FIO_SYSTEM
-#define FIO_SYSTEM "fio.system"
-#endif
-
-#ifndef NAME_CONTRACT
-#define NAME_CONTRACT "fio.name"
-#endif
-
-#ifndef FINANCE_CONTRACT
-#define FINANCE_CONTRACT "fio.finance"
-#endif
-
 #ifndef YEARTOSECONDS
 #define YEARTOSECONDS 31536000
 #endif
@@ -46,8 +25,8 @@ namespace fioio {
     using namespace std;
     using time = uint32_t;
 
-    static const name FeeContract = name(FEE_CONTRACT);    // account hosting the fee contract
-    static const name SystemContract = name(FIO_SYSTEM);
+    static const name FeeContract = name("fio.fee");    // account hosting the fee contract
+    static const name SystemContract = name("fio.system");
     static const name TPIDContract = name("fio.tpid");
     static const name TokenContract = name("fio.token");
     static const name FOUNDATIONACCOUNT = name("fio.foundatn");

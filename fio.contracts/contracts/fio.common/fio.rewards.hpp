@@ -14,7 +14,7 @@
 #include "fio.common.hpp"
 
 namespace fioio {
-    static constexpr uint64_t string_to_uint64_hash(const char *str); //signature for static constexpr implementation fio.common.hpp
+
     static uint128_t string_to_uint128_hash(const char *str);
     // @abi table bpreward i64
     struct [[eosio::action]] bpreward {
