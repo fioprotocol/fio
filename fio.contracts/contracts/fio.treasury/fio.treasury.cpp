@@ -54,19 +54,16 @@ namespace fioio {
       require_auth(actor);
 
       uint64_t tpids_paid = 0;
-      //If the contract has not been invoked yet, this will execute and set the initial block time
+
       auto clockiter = clockstate.begin();
 
       //This contract should only be able to iterate throughout the entire tpids table to
       //to check for rewards once every x blocks.
        if( now() > clockiter->lasttpidpayout + 60 ) {
 
-          for(auto &itr : tpids) {
+          for(const auto &itr : tpids) {
 
-            //TODO: Change after MAS-425 UAT
-            if (itr.rewards >= 100000)  {  //100 FIO (100,000,000,000 SUF)
-
-               print(itr.fioaddress, " has ",itr.rewards ," rewards.\n");
+            if (itr.rewards >= 100000000000)  {  //100 FIO (100,000,000,000 SUF)
 
                auto namesbyname = fionames.get_index<"byname"_n>();
                auto itrfio = namesbyname.find(string_to_uint128_hash(itr.fioaddress.c_str()));
@@ -81,7 +78,6 @@ namespace fioio {
 
 
                   }  else  { //Allocate to BP buckets instead
-                   print(itr.fioaddress, " FIO address has expired and no longer exists. Allocating to block producer rewards.","\n");
 
                    auto bpfound = bprewards.begin();
                    uint64_t reward = bpfound->rewards;
@@ -104,7 +100,7 @@ namespace fioio {
 
               tpids_paid++;
               if (tpids_paid >= 100) break; //only paying 100 tpids
-          } // for tpids.begin() tpids.end()
+          } // for (auto &itr : tpids)
 
           //update the clock but only if there has been a tpid paid out.
           if(tpids_paid > 0) {
@@ -148,7 +144,6 @@ namespace fioio {
                    iter = voteshares.erase(iter);
              }
 
-             print("\nPay schedule erased... ");
           }
 
        }
@@ -157,7 +152,6 @@ namespace fioio {
         // If there is no pay schedule then create a new one
         if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
           //Create the payment schedule
-          print("\nCreating new pay schedule... ");
           uint64_t bpcounter = 0;
           auto proditer = producers.get_index<"prototalvote"_n>();
           for( const auto& itr : proditer ) {
@@ -175,26 +169,22 @@ namespace fioio {
             //Move 1/365 of the bucketpool to the bpshare
             uint64_t temp = bprewards.begin()->rewards;
             uint64_t amount = static_cast<uint64_t>(bucketrewards.begin()->rewards/365);
-            print("\nNOW rewards is ", bprewards.begin()->rewards);
             bprewards.erase(bprewards.begin());
-            print("\n365 rewards is ", bucketrewards.begin()->rewards);
             bprewards.emplace(get_self(), [&](auto &p) {
               p.rewards = temp + amount;
             });
-            print("\nAfter receiving 1/365 of 365 rewards, NOW rewards is ", bprewards.begin()->rewards);
-           print("\nBy this much:  ", amount);
             temp = bucketrewards.begin()->rewards;
             bucketrewards.erase(bucketrewards.begin());
             bucketrewards.emplace(get_self(), [&](auto &p) {
               p.rewards = temp - amount;
             });
-            print("\nAfter receiving 1/365 of 365 rewards, 365 rewards is ", bucketrewards.begin()->rewards);
 
-            uint64_t projectedpay = bprewards.begin()->rewards;
+            //uint64_t projectedpay = bprewards.begin()->rewards;
 
-            uint64_t tomint = 5000000000 - bprewards.begin()->rewards;
-            // if rewards < 50000000000000 && clockstate.begin()->reservetokensminted < 50000000000000000
-            if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
+            uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
+
+            // from DEV1 tests - if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
+            if (bprewards.begin()->rewards < 50000000000000 && clockiter->reservetokensminted < 50000000000000000) {
 
               //Mint new tokens up to 50,000 FIO
                 action(permission_level{get_self(), "active"_n},
@@ -214,28 +204,24 @@ namespace fioio {
               });
                 //This new reward amount that has been minted will be appended to the rewards being divied up next
             }
+            //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
 
 
-            //rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
             // All bps are now in pay schedule, calculate the shares
             uint64_t bpcount = std::distance(voteshares.begin(),voteshares.end());
             uint64_t abpcount = 21;
 
             if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
             if (bpcount <= 21) abpcount = bpcount;
-            print("\nbpcount: ", bpcount);
-            print("\nbpcount: ", abpcount);
 
             uint64_t tostandbybps = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
             uint64_t toactivebps = static_cast<uint64_t>(bprewards.begin()->rewards * .40);
-            print("\ntostandbybps: ", tostandbybps);
-            print("\n:toactivebps: ", toactivebps);
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
             uint64_t sbpayshare = 0;
             gstate = global.get();
-            for(auto &itr : voteshares) {
+            for(const auto &itr : voteshares) {
               abpayshare = static_cast<uint64_t>(toactivebps / abpcount);
               sbpayshare = static_cast<uint64_t>((tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));
                 if (bpcounter <= abpcount) {
@@ -254,12 +240,9 @@ namespace fioio {
           clockstate.modify(clockiter, get_self(), [&](auto &entry) {
             entry.payschedtimer = now();
           });
-          print("Pay schedule created...","\n"); //To remove after testing
+
         } //if new payschedule
         //*********** END OF CREATE PAYSCHEDULE **************
-        //This contract should only allow the producer to be able to claim rewards once every x blocks.
-
-       //This check must happen after the payschedule so a producer account can terminate the old pay schedule and spawn a new one in a subsequent call to bpclaim
 
        auto bpiter = voteshares.find(producer);
        const auto &prod = producers.get(producer);
@@ -313,18 +296,18 @@ namespace fioio {
          }
         // PAY FOUNDATION //
         auto fdtniter = fdtnrewards.begin();
-        if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
+        if (fdtniter->rewards > 100000000000) { // 100 FIO = 100000000000 SUFs
            action(permission_level{get_self(), "active"_n},
                  TokenContract, "transfer"_n,
                  make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
                  string("Paying foundation from treasury."))
                ).send();
 
-          //Clear the foundation rewards counter
-            fdtnrewards.erase(fdtniter);
-            fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
-              entry.rewards = 0;
-           });
+        //Clear the foundation rewards counter
+        fdtnrewards.erase(fdtniter);
+        fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
+          entry.rewards = 0;
+       });
            //////////////////////////////////////
         }
        //remove the producer from payschedule
@@ -356,8 +339,7 @@ namespace fioio {
     void startclock() {
       require_auth(TREASURYACCOUNT);
 
-      unsigned int size = std::distance(clockstate.begin(),clockstate.end());
-      if (size == 0)  {
+      if (std::distance(clockstate.begin(),clockstate.end()) == 0)  {
           clockstate.emplace(_self, [&](struct treasurystate& entry) {
           entry.lasttpidpayout = now() - 56;
           entry.payschedtimer = now();
@@ -448,7 +430,7 @@ namespace fioio {
 
 
 
-  }; //class TPIDController
+  }; //class FIOTreasury
 
 
 
