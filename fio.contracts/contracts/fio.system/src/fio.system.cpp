@@ -461,8 +461,9 @@ namespace eosiosystem {
             m.quote.balance.symbol = core;
         });
 
-        INLINE_ACTION_SENDER(eosio::token, open)(token_account, {_self, active_permission},
-                                                 {rex_account, core, _self});
+        //this was commented out because open has been removed from the FIO protocol
+       // INLINE_ACTION_SENDER(eosio::token, open)(token_account, {_self, active_permission},
+                //                                 {rex_account, core, _self});
     }
 
 } /// fio.system
