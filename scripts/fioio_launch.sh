@@ -202,7 +202,7 @@ if [ $mChoice == 1 ]; then
         echo bound all contracts
 
         #create the token on the bios node
-        ./cleos -u http://localhost:8879 push action -j fio.token create '["eosio","1000000000.000000000 FIO"]' -p fio.token@active
+        ./cleos -u http://localhost:8879 push action -j fio.token create '["1000000000.000000000 FIO"]' -p fio.token@active
         #load the bios contract on the bios node
         ./cleos -u http://localhost:8879 set contract eosio $eosio_bios_contract_name_path eosio.bios.wasm eosio.bios.abi
 

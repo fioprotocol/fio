@@ -526,7 +526,6 @@ namespace eosio {
             struct get_currency_stats_result {
                 asset supply;
                 asset max_supply;
-                account_name issuer;
             };
 
             fc::variant get_currency_stats(const get_currency_stats_params &params) const;
@@ -1347,7 +1346,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol)
 );
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)
-(issuer));
+);
 
 FC_REFLECT( eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)
 (limit))

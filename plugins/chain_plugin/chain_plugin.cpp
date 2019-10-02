@@ -2564,7 +2564,6 @@ if( options.count(name) ) { \
 
                 fc::raw::unpack(ds, result.supply);
                 fc::raw::unpack(ds, result.max_supply);
-                fc::raw::unpack(ds, result.issuer);
 
                 results[result.supply.symbol_name()] = result;
                 return true;
