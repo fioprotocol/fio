@@ -37,8 +37,7 @@ using namespace fioio;
         }
 
         [[eosio::action]]
-        void create(name issuer,
-                    asset maximum_supply);
+        void create(asset maximum_supply);
 
         [[eosio::action]]
         void issue(name to, asset quantity, string memo);
@@ -125,5 +124,8 @@ using namespace fioio;
             string public_key;
             bool existing;
         };
+
+        static constexpr symbol FIOSYMBOL = symbol("FIO", 9);
+        static constexpr name FIOISSUER = name("eosio"_n);
     };
 } /// namespace eosio
