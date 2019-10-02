@@ -7,7 +7,6 @@
  */
 
 #include <fio.common/fio.common.hpp>
-#include <fio.common/fio.rewards.hpp>
 #include <fio.name/fio.name.hpp>
 #include <fio.tpid/fio.tpid.hpp>
 #include <string>
