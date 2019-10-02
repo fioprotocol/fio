@@ -63,7 +63,7 @@ namespace fioio {
 
           for(const auto &itr : tpids) {
 
-            if (itr.rewards >= 100)  {  //100 FIO (100,000,000,000 SUF)
+            if (itr.rewards >= 100000000000)  {  //100 FIO (100,000,000,000 SUF)
 
                auto namesbyname = fionames.get_index<"byname"_n>();
                auto itrfio = namesbyname.find(string_to_uint128_hash(itr.fioaddress.c_str()));
@@ -181,7 +181,7 @@ namespace fioio {
 
             //uint64_t projectedpay = bprewards.begin()->rewards;
 
-            uint64_t tomint = 5000000000 - bprewards.begin()->rewards;
+            uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
 
             // from DEV1 tests - if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
             if (bprewards.begin()->rewards < 50000000000000 && clockiter->reservetokensminted < 50000000000000000) {
