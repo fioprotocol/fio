@@ -64,12 +64,6 @@ using namespace fioio;
                           name actor,
                           const string &tpid);
 
-        [[eosio::action]]
-        void open(name owner, const symbol &symbol, name ram_payer);
-
-        [[eosio::action]]
-        void close(name owner, const symbol &symbol);
-
         static asset get_supply(name token_contract_account, symbol_code sym_code) {
             stats statstable(token_contract_account, sym_code.raw());
             const auto &st = statstable.get(sym_code.raw());
@@ -87,8 +81,7 @@ using namespace fioio;
         using mintfio_action = eosio::action_wrapper<"mintfio"_n, &token::mintfio>;
         using retire_action = eosio::action_wrapper<"retire"_n, &token::retire>;
         using transfer_action = eosio::action_wrapper<"transfer"_n, &token::transfer>;
-        using open_action = eosio::action_wrapper<"open"_n, &token::open>;
-        using close_action = eosio::action_wrapper<"close"_n, &token::close>;
+
     private:
         struct [[eosio::table]] account {
             asset balance;
@@ -99,7 +92,6 @@ using namespace fioio;
         struct [[eosio::table]] currency_stats {
             asset supply;
             asset max_supply;
-            name issuer;
 
             uint64_t primary_key() const { return supply.symbol.code().raw(); }
         };
