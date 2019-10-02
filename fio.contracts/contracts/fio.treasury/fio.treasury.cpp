@@ -74,8 +74,8 @@ namespace fioio {
                // If the fioaddress exists (address could have been burned)
                 if (itrfio != namesbyname.end()) {
                     action(permission_level{get_self(), "active"_n},
-                          "fio.token"_n, "transfer"_n,
-                          make_tuple("fio.treasury"_n, name(itrfio->owner_account), asset(itr.rewards,symbol("FIO",9)),
+                          TokenContract, "transfer"_n,
+                          make_tuple(TREASURYACCOUNT, name(itrfio->owner_account), asset(itr.rewards,symbol("FIO",9)),
                           string("Paying TPID from treasury."))
                    ).send();
 
@@ -198,7 +198,7 @@ namespace fioio {
 
               //Mint new tokens up to 50,000 FIO
                 action(permission_level{get_self(), "active"_n},
-                "fio.token"_n, "mintfio"_n,
+                TokenContract, "mintfio"_n,
                 make_tuple(tomint)
               ).send();
 
@@ -286,8 +286,8 @@ namespace fioio {
          check(prod.active(), "producer does not have an active key");
          if (payout > 0) {
            action(permission_level{get_self(), "active"_n},
-               "fio.token"_n, "transfer"_n,
-               make_tuple("fio.treasury"_n, name(bpiter->owner), asset(payout, symbol("FIO",9)),
+               TokenContract, "transfer"_n,
+               make_tuple(TREASURYACCOUNT, name(bpiter->owner), asset(payout, symbol("FIO",9)),
                string("Paying producer from treasury."))
            ).send();
 
@@ -307,7 +307,7 @@ namespace fioio {
 
           //Invoke system contract to reset producer last_claim_time and unpaid_blocks
           action(permission_level{get_self(), "active"_n},
-                "fio.system"_n, "resetclaim"_n,
+                SystemContract, "resetclaim"_n,
                 make_tuple(producer)
               ).send();
          }
@@ -315,8 +315,8 @@ namespace fioio {
         auto fdtniter = fdtnrewards.begin();
         if (fdtniter->rewards > 100) { // 100 FIO = 100000000000 SUFs
            action(permission_level{get_self(), "active"_n},
-                 "fio.token"_n, "transfer"_n,
-                 make_tuple("fio.treasury"_n, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
+                 TokenContract, "transfer"_n,
+                 make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
                  string("Paying foundation from treasury."))
                ).send();
 
@@ -341,7 +341,7 @@ namespace fioio {
     // @abi action
     [[eosio::action]]
     void updateclock() {
-      require_auth("fio.treasury"_n);
+      require_auth(TREASURYACCOUNT);
 
       auto clockiter = clockstate.begin();
 
@@ -354,7 +354,7 @@ namespace fioio {
     // @abi action
     [[eosio::action]]
     void startclock() {
-      require_auth("fio.treasury"_n);
+      require_auth(TREASURYACCOUNT);
 
       unsigned int size = std::distance(clockstate.begin(),clockstate.end());
       if (size == 0)  {
@@ -362,7 +362,6 @@ namespace fioio {
           entry.lasttpidpayout = now() - 56;
           entry.payschedtimer = now();
         });
-
       }
 
       bucketrewards.emplace(get_self(), [&](auto &p) {
@@ -377,7 +376,7 @@ namespace fioio {
     [[eosio::action]]
     void bprewdupdate(const uint64_t &amount) {
 
-      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
+      eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
         "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
 
         uint64_t size = std::distance(bprewards.begin(),bprewards.end());
@@ -402,7 +401,7 @@ namespace fioio {
     [[eosio::action]]
     void bppoolupdate(const uint64_t &amount) {
 
-      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
+      eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) || (has_auth("fio.reqobt"_n)),
         "missing required authority of fio.system, fio.treasury, fio.token, or fio.reqobt");
 
         uint64_t size = std::distance(bucketrewards.begin(),bucketrewards.end());
@@ -427,7 +426,7 @@ namespace fioio {
     [[eosio::action]]
     void fdtnrwdupdat(const uint64_t &amount) {
 
-      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
+      eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
         "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
         uint64_t size = std::distance(fdtnrewards.begin(),fdtnrewards.end());
@@ -448,47 +447,10 @@ namespace fioio {
     }
 
 
-    // @abi action
-    [[eosio::action]]
-    void fdtnrwdreset(const bool &paid) {
-
-      eosio_assert((has_auth(SystemContract) || has_auth("fio.token"_n)) || has_auth("fio.treasury"_n) || (has_auth("fio.reqobt"_n)),
-        "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
-
-        if (!paid) {
-          rewardspaid = true;
-        }
-
-    }
-
-
-    // maintain
-    // Can only iterate through tpids table to be called once every 1200000 blocks
-    // @params none
-    // @abi action
-    [[eosio::action]]
-    void maintain() {
-
-
-    auto clockiter = clockstate.begin();
-
-    // Maintenance check can be run every 1200000 blocks
-     if( now() > clockiter->lasttpidpayout + 1200000 ) {
-
-
-       for(auto &itr : tpids) {
-
-       }
-
-
-
-     }
-   }
-
 
   }; //class TPIDController
 
 
 
-  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)(bpclaim)(maintain))
+  EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)(bpclaim))
 }
