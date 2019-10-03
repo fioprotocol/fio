@@ -1,3 +1,11 @@
+/** fio system contract file
+ *  Description: this contract controls many of the core functions of the fio protocol.
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @file fio.system.cpp
+ *  @copyright Dapix
+ *
+ *  Changes:
+ */
 #include <fio.system/fio.system.hpp>
 #include <eosiolib/dispatcher.hpp>
 #include <eosiolib/crypto.h>

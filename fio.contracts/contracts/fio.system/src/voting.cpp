@@ -1,6 +1,10 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE.txt
+/** Fio system contract file
+ *  Description: this file contains actions and data structures pertaining to voting in the fio protocol
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @file voting.cpp
+ *  @copyright Dapix
+ *
+ *  Changes:
  */
 #include <fio.system/fio.system.hpp>
 

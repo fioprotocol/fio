@@ -1,6 +1,6 @@
 /** FioWhitelist implementation file
  *  Description: FioWhitelist smart contract controls whitelisting on the FIO Blockchain.
- *  @author Ed Rotthoff
+ *  @author Casey Gardiner, Ed Rotthoff
  *  @modifedby
  *  @file fio.whitelist.cpp
  *  @copyright Dapix

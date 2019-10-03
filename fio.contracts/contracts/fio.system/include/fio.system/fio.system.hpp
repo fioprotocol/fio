@@ -1,6 +1,11 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE.txt
+/** Fio system contract file
+ *  Description: fio.system contains global state, producer, voting and other system level information along with
+ *  the operations on these.
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @file fio.system.cpp
+ *  @copyright Dapix
+ *
+ *  Changes:
  */
 #pragma once
 

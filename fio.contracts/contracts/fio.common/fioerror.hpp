@@ -1,7 +1,7 @@
 /** FioError definitions file
  *  Description: Contains helper functions to generate appropriately formatted http error messages
  *               that are returned by the HTTP messaging layer when an assertion test fails.
- *  @author Phil Mesnier
+ *  @author Phil Mesnier, Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fioerror.hpp
  *  @copyright Dapix
  *
