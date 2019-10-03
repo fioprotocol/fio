@@ -6,6 +6,22 @@
  *  @copyright Dapix
  */
 
+#define TESTNET
+
+#ifdef TESTNET
+#define REWARDMAX 100
+#define PAYSCHEDTIME 121
+#define FDTNRWDTHRESH 100
+#define MAXTOMINT 5000000000
+#define MAXRESERVE 15000000000
+#else
+#define REWARDMAX 100000000000
+#define PAYSCHEDTIME 172801
+#define FDTNRWDTHRESH 100000000000
+#define MAXTOMINT 50000000000000
+#define MAXRESERVE 50000000000000000
+#endif
+
 #include "fio.treasury.hpp"
 
 namespace fioio {
@@ -25,7 +41,6 @@ namespace fioio {
         eosiosystem::global_state_singleton global;
         eosiosystem::producers_table producers;
         bool rewardspaid;
-
         uint64_t lasttpidpayout;
 
     public:
@@ -43,19 +58,22 @@ namespace fioio {
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
         }
+        
         // @abi action
         [[eosio::action]]
         void tpidclaim(const name &actor) {
+
             require_auth(actor);
+
             uint64_t tpids_paid = 0;
+
             auto clockiter = clockstate.begin();
 
             //This contract should only be able to iterate throughout the entire tpids table to
             //to check for rewards once every x blocks.
             if (now() > clockiter->lasttpidpayout + 60) {
                 for (const auto &itr : tpids) {
-                    if (itr.rewards >= 100000000000) {  //100 FIO (100,000,000,000 SUF)
-
+                    if (itr.rewards >= REWARDMAX) {  //100 FIO (100,000,000,000 SUF)
                         auto namesbyname = fionames.get_index<"byname"_n>();
                         auto itrfio = namesbyname.find(string_to_uint128_hash(itr.fioaddress.c_str()));
 
@@ -72,7 +90,6 @@ namespace fioio {
                             reward += itr.rewards;
                             bprewards.set(bpreward{reward}, _self);
                         }
-
                         action(permission_level{get_self(), "active"_n},
                                "fio.tpid"_n, "rewardspaid"_n,
                                make_tuple(itr.fioaddress)
@@ -96,7 +113,7 @@ namespace fioio {
                                    {"tpids_paid", tpids_paid}};
             send_response(json.dump().c_str());
         } //tpid_claim
-
+        
         // @abi action
         [[eosio::action]]
         void bpclaim(const string &fio_address, const name &actor) {
@@ -112,7 +129,7 @@ namespace fioio {
             /***************  Pay schedule expiration *******************/
             //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
             // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-            if (now() >= clockiter->payschedtimer + 121) { //+ 172801
+            if (now() >= clockiter->payschedtimer + PAYSCHEDTIME) { //+ 172801
 
                 if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
 
@@ -150,10 +167,10 @@ namespace fioio {
 
                 //uint64_t projectedpay = bprewards.begin()->rewards;
 
-                uint64_t tomint = 50000000000000 - bprewards.get().rewards;
+                uint64_t tomint = MAXTOMINT - bprewards.get().rewards;
 
                 // from DEV1 tests - if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
-                if (bprewards.get().rewards < 50000000000000 && clockiter->reservetokensminted < 50000000000000000) {
+                if (bprewards.get().rewards < MAXTOMINT && clockiter->reservetokensminted < MAXRESERVE) {
 
                     //Mint new tokens up to 50,000 FIO
                     action(permission_level{get_self(), "active"_n},
@@ -171,8 +188,7 @@ namespace fioio {
                     //This new reward amount that has been minted will be appended to the rewards being divied up next
                 }
                 //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
-
-
+                
                 // All bps are now in pay schedule, calculate the shares
                 uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                 uint64_t abpcount = 21;
@@ -258,7 +274,7 @@ namespace fioio {
                 }
                 // PAY FOUNDATION //
                 fdtnreward fdtnstate = fdtnrewards.get();
-                if (fdtnstate.rewards > 100000000000) { // 100 FIO = 100000000000 SUFs
+                if (fdtnstate.rewards > FDTNRWDTHRESH) { // 100 FIO = 100000000000 SUFs
                     action(permission_level{get_self(), "active"_n},
                            TokenContract, "transfer"_n,
                            make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, symbol("FIO", 9)),
@@ -277,6 +293,7 @@ namespace fioio {
                                    {"amount", payout}};
 
             send_response(json.dump().c_str());
+
         } //bpclaim
 
         // @abi action
@@ -347,13 +364,13 @@ namespace fioio {
                          "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
             if (!fdtnrewards.exists()) {
-                fdtnrewards.set(fdtnreward{0}, _self);
+                fdtnrewards.set(fdtnreward{amount}, _self);
             } else {
                 fdtnrewards.set(fdtnreward{fdtnrewards.get().rewards + amount}, _self);
             }
         }
     }; //class FIOTreasury
-
+    
     EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)
     (bpclaim))
 }
