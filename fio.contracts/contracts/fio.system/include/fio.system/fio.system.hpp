@@ -2,7 +2,7 @@
  *  Description: fio.system contains global state, producer, voting and other system level information along with
  *  the operations on these.
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
- *  @file fio.system.cpp
+ *  @file fio.system.hpp
  *  @copyright Dapix
  *
  *  Changes:
@@ -76,31 +76,6 @@ static_cast
 <F>(field)
 );
 }
-
-struct [[eosio::table, eosio::contract("fio.system")]] name_bid {
-    name newname;
-    name high_bidder;
-    int64_t high_bid = 0; ///< negative high_bid == closed auction waiting to be claimed
-    time_point last_bid_time;
-
-    uint64_t primary_key() const { return newname.value; }
-
-    uint64_t by_high_bid() const { return static_cast<uint64_t>(-high_bid); }
-};
-
-struct [[eosio::table, eosio::contract("fio.system")]] bid_refund {
-    name bidder;
-    asset amount;
-
-    uint64_t primary_key() const { return bidder.value; }
-};
-
-typedef eosio::multi_index<"namebids"_n, name_bid,
-        indexed_by<"highbid"_n, const_mem_fun < name_bid, uint64_t, &name_bid::by_high_bid> >
->
-name_bid_table;
-
-typedef eosio::multi_index<"bidrefunds"_n, bid_refund> bid_refund_table;
 
 struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_state : eosio::blockchain_parameters {
     uint64_t free_ram() const { return max_ram_size - total_ram_bytes_reserved; }
@@ -609,9 +584,6 @@ public:
     [[eosio::action]]
     void updtrevision(uint8_t revision);
 
-    [[eosio::action]]
-    void bidrefund(name bidder, name newname);
-
     using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
     using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
     using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
@@ -648,7 +620,6 @@ public:
     using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
     using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
     using updtrevision_action = eosio::action_wrapper<"updtrevision"_n, &system_contract::updtrevision>;
-    using bidrefund_action = eosio::action_wrapper<"bidrefund"_n, &system_contract::bidrefund>;
     using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
     using setalimits_action = eosio::action_wrapper<"setalimits"_n, &system_contract::setalimits>;
     using setparams_action = eosio::action_wrapper<"setparams"_n, &system_contract::setparams>;
