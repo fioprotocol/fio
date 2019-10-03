@@ -386,7 +386,7 @@ namespace fioio {
         "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
         if (!fdtnrewards.exists())  {
-            fdtnrewards.set(fdtnreward{0}, _self);
+            fdtnrewards.set(fdtnreward{amount}, _self);
        } else {
             fdtnrewards.set(fdtnreward{fdtnrewards.get().rewards + amount}, _self);
        }
