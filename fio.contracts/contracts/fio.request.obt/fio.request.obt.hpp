@@ -1,6 +1,6 @@
 /** FIO Request OBT header file
  *  Description: Smart contract to track requests and OBT.
- *  @author Ciju John, Ed Rotthoff, Casey Gardiner
+ *  @author Adam Androulidakis, Casey Gardiner, Ciju John, Ed Rotthoff
  *  @file fio.request.obt.hpp
  *  @copyright Dapix
  */

@@ -1,6 +1,10 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE.txt
+/** delegate bandwidth file
+ *  Description: this is part of the system contract. it supports voting power.
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @file delegate_bandwidth.cpp
+ *  @copyright Dapix
+ *
+ *  Changes:
  */
 #include <fio.system/fio.system.hpp>
 

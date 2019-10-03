@@ -1,6 +1,6 @@
 /** FioToken implementation file
  *  Description: FioToken is the smart contract that help manage the FIO Token.
- *  @author Adam Androulidakis, Casey Gardiner
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @modifedby
  *  @file fio.token.cpp
  *  @copyright Dapix

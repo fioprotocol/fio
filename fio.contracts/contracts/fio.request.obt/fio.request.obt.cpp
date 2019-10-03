@@ -1,6 +1,6 @@
 /** Fio Request Obt implementation file
  *  Description: FioRequestObt smart contract supports funds request and other block chain transaction recording.
- *  @author Ed Rotthoff, Casey Gardiner
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fio.request.obt.cpp
  *  @copyright Dapix
  *
