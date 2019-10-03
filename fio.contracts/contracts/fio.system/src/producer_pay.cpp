@@ -55,25 +55,6 @@ namespace eosiosystem {
         /// only update block producers once every minute, block_timestamp is in half seconds
         if (timestamp.slot - _gstate.last_producer_schedule_update.slot > 120) {
             update_elected_producers(timestamp);
-
-            /* MAS-522 eliminate bid logic for name bids.
-            if ((timestamp.slot - _gstate.last_name_close.slot) > blocks_per_day) {
-                name_bid_table bids(_self, _self.value);
-                auto idx = bids.get_index<"highbid"_n>();
-                auto highest = idx.lower_bound(std::numeric_limits<uint64_t>::max() / 2);
-                if (highest != idx.end() &&
-                    highest->high_bid > 0 &&
-                    (current_time_point() - highest->last_bid_time) > microseconds(useconds_per_day) &&
-                    _gstate.thresh_activated_stake_time > time_point() &&
-                    (current_time_point() - _gstate.thresh_activated_stake_time) > microseconds(14 * useconds_per_day)
-                        ) {
-                    _gstate.last_name_close = timestamp;
-                    idx.modify(highest, same_payer, [&](auto &b) {
-                        b.high_bid = -b.high_bid;
-                    });
-                }
-            }
-             */
         }
     }
 

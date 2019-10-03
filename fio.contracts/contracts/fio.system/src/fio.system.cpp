@@ -242,19 +242,6 @@ namespace eosiosystem {
         _gstate2.revision = revision;
     }
 
-    void eosiosystem::system_contract::bidrefund(name bidder, name newname) {
-        bid_refund_table refunds_table(_self, newname.value);
-        auto it = refunds_table.find(bidder.value);
-        check(it != refunds_table.end(), "refund not found");
-        INLINE_ACTION_SENDER(eosio::token, transfer)(
-                token_account, {{names_account, active_permission},
-                                {bidder,        active_permission}},
-                {names_account, bidder, asset(it->amount),
-                 std::string("refund bid on name ") + (name{newname}).to_string()}
-        );
-        refunds_table.erase(it);
-    }
-
     /**
      *  Called after a new account is created. This code enforces resource-limits rules
      *  for new accounts as well as new account naming conventions.
@@ -279,14 +266,7 @@ namespace eosiosystem {
             }
             if (has_dot) { // or is less than 12 characters
                 auto suffix = newact.suffix();
-                if (suffix == newact) {
-                    name_bid_table bids(_self, _self.value);
-                    auto current = bids.find(newact.value);
-                    check(current != bids.end(), "no active bid for name");
-                    check(current->high_bidder == creator, "only highest bidder can claim");
-                    check(current->high_bid < 0, "auction for name is not closed yet");
-                    bids.erase(current);
-                } else {
+                if (suffix != newact) {
                     check(creator == suffix, "only suffix may create this account");
                 }
             }
@@ -336,7 +316,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
 (newaccount)(updateauth)(deleteauth)(linkauth)(unlinkauth)(canceldelay)(onerror)(setabi)
         // fio.system.cpp
         (init)(setparams)(setpriv)(setalimits)(setacctram)(setacctnet)(setacctcpu)
-        (rmvproducer)(updtrevision)(bidrefund)
+        (rmvproducer)(updtrevision)
         // delegate_bandwidth.cpp
         (updatepower)(refund)
         // voting.cpp
