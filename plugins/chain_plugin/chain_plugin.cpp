@@ -4298,28 +4298,7 @@ if( options.count(name) ) { \
 
                 const auto token_code = N(eosio.token);
 
-                auto core_symbol = extract_core_symbol();
-
-                if (params.expected_core_symbol.valid())
-                    core_symbol = *(params.expected_core_symbol);
-
                 const auto *t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-                        boost::make_tuple(token_code, params.account_name, N(accounts)));
-                if (t_id != nullptr) {
-                    const auto &idx = d.get_index<key_value_index, by_scope_primary>();
-                    auto it = idx.find(boost::make_tuple(t_id->id, core_symbol.to_symbol_code()));
-                    if (it != idx.end() && it->value.size() >= sizeof(asset)) {
-                        asset bal;
-                        fc::datastream<const char *> ds(it->value.data(), it->value.size());
-                        fc::raw::unpack(ds, bal);
-
-                        if (bal.get_symbol().valid() && bal.get_symbol() == core_symbol) {
-                            result.core_liquid_balance = bal;
-                        }
-                    }
-                }
-
-                t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
                         boost::make_tuple(config::system_account_name, params.account_name, N(userres)));
                 if (t_id != nullptr) {
                     const auto &idx = d.get_index<key_value_index, by_scope_primary>();

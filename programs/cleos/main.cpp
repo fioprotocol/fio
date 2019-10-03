@@ -2218,11 +2218,6 @@ void get_account(const string &accountName, const string &coresym, bool json_for
         asset staked;
         asset unstaking;
 
-        if (res.core_liquid_balance.valid()) {
-            unstaking = asset(0, res.core_liquid_balance->get_symbol()); // Correct core symbol for unstaking asset.
-            staked = asset(0, res.core_liquid_balance->get_symbol());    // Correct core symbol for staked asset.
-        }
-
         std::cout << "created: " << string(res.created) << std::endl;
 
         if (res.privileged) std::cout << "privileged: true" << std::endl;
@@ -2437,19 +2432,6 @@ void get_account(const string &accountName, const string &coresym, bool json_for
                           << unstaking << std::endl;
                 std::cout << std::endl;
             }
-        }
-
-        if (res.core_liquid_balance.valid()) {
-            std::cout << res.core_liquid_balance->get_symbol().name() << " balances: " << std::endl;
-            std::cout << indent << std::left << std::setw(11)
-                      << "liquid:" << std::right << std::setw(18) << *res.core_liquid_balance << std::endl;
-            std::cout << indent << std::left << std::setw(11)
-                      << "staked:" << std::right << std::setw(18) << staked << std::endl;
-            std::cout << indent << std::left << std::setw(11)
-                      << "unstaking:" << std::right << std::setw(18) << unstaking << std::endl;
-            std::cout << indent << std::left << std::setw(11) << "total:" << std::right << std::setw(18)
-                      << (*res.core_liquid_balance + staked + unstaking) << std::endl;
-            std::cout << std::endl;
         }
 
         if (res.voter_info.is_object()) {
