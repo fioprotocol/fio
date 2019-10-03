@@ -145,7 +145,7 @@ namespace fioio {
 
     };
 
-    typedef multi_index<"bprewards"_n, bpreward> bprewards_table;
+    typedef singleton<"bprewards"_n, bpreward> bprewards_table;
 
     // @abi table bucketpool i64
     struct [[eosio::action]] bucketpool {
@@ -159,7 +159,7 @@ namespace fioio {
 
     };
 
-    typedef multi_index<"bpbucketpool"_n, bucketpool> bpbucketpool_table;
+    typedef singleton<"bpbucketpool"_n, bucketpool> bpbucketpool_table;
 
     // @abi table fdtnreward i64
     struct [[eosio::action]] fdtnreward {
@@ -173,7 +173,7 @@ namespace fioio {
 
     };
 
-    typedef multi_index<"fdtnrewards"_n, fdtnreward> fdtnrewards_table;
+    typedef singleton<"fdtnrewards"_n, fdtnreward> fdtnrewards_table;
 
     // @abi table bounties i64
     struct [[eosio::action]] bounty {
@@ -186,7 +186,7 @@ namespace fioio {
 
     };
 
-    typedef multi_index<"bounties"_n, bounty> bounties_table;
+    typedef singleton<"bounties"_n, bounty> bounties_table;
 
     void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
@@ -202,15 +202,14 @@ namespace fioio {
       auto namesbyname = fionames.get_index<"byname"_n>();
       auto fionamefound = namesbyname.find(fioaddhash);
 
-      print("\nfionamefound: ",fionamefound->name,"\n");
       if (fionamefound != namesbyname.end()) {
 
         bounties_table bounties(TPIDContract, TPIDContract.value);
         uint64_t bamount = 0;
-        eosio::print("\nBounties: ",bounties.begin()->tokensminted,"\n");
-        if (bounties.begin()->tokensminted < MAXBOUNTYTOKENSTOMINT) {
+  
+        if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
           bamount = (uint64_t)(static_cast<double>(amount) * .65);
-          eosio::print("\nBounty payout: ", bamount, "\n");
+
           action(permission_level{TREASURYACCOUNT, "active"_n},
             TokenContract, "mintfio"_n,
             make_tuple(bamount)
@@ -240,10 +239,7 @@ namespace fioio {
         std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
         ).send();
 
-        eosio::print("\nTest Bucket Update Amount: ",((uint64_t)(static_cast<double>(amount) * .88)), "\n");
       } else {
-      print("Cannot register TPID or FIO Address not found. The transaction will continue without TPID payment.","\n");
-
       action(
       permission_level{actor,"active"_n},
       TREASURYACCOUNT,
@@ -267,15 +263,14 @@ namespace fioio {
         uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
         auto namesbyname = fionames.get_index<"byname"_n>();
         auto fionamefound = namesbyname.find(fioaddhash);
-        print("\nfionamefound: ",fionamefound->name,"\n");
+
         if (fionamefound != namesbyname.end()) {
 
           bounties_table bounties(TPIDContract, TPIDContract.value);
           uint64_t bamount = 0;
-          eosio::print("\nBounties: ",bounties.begin()->tokensminted,"\n");
-          if (bounties.begin()->tokensminted < MAXBOUNTYTOKENSTOMINT) {
+
+          if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
             bamount = (uint64_t)(static_cast<double>(amount) * .65);
-            eosio::print("\nBounty payout: ", bamount, "\n");
             action(permission_level{TREASURYACCOUNT, "active"_n},
               TokenContract, "mintfio"_n,
               make_tuple(bamount)
@@ -304,9 +299,7 @@ namespace fioio {
           "bppoolupdate"_n,
           std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
           ).send();
-          eosio::print("\nTest Bucket Update Amount: ",((uint64_t)(static_cast<double>(amount) * .88)), "\n");
         } else {
-        print("Cannot register TPID or FIO Address not found. The transaction will continue without TPID payment.","\n");
 
         action(
         permission_level{actor,"active"_n},

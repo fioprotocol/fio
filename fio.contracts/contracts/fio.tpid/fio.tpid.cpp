@@ -152,18 +152,12 @@ namespace fioio {
     eosio_assert((has_auth("fio.tpid"_n) || has_auth("fio.treasury"_n)),
                  "missing required authority of fio.tpid, or fio.treasury");
 
-    if(std::distance(bounties.begin(), bounties.end()) == 0)
-    {
-      bounties.emplace(get_self(), [&](struct bounty &b) {
-        b.tokensminted = 0;
-      });
+    if(!bounties.exists()) {
+      bounties.set(bounty{0}, _self);
     }
     else {
-      uint64_t temp = bounties.begin()->tokensminted;
-      bounties.erase(bounties.begin());
-      bounties.emplace(get_self(), [&](struct bounty &b) {
-        b.tokensminted = temp + amount;
-      });
+      uint64_t temp = bounties.get().tokensminted;
+      bounties.set(bounty{temp + amount}, _self);
     }
   }
 
