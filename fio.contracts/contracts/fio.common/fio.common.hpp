@@ -1,3 +1,11 @@
+/** FioCommon implementation file
+ *  Description: FioCommon is the helper directory that assists FIO is common tasks
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @modifedby
+ *  @file fio.common.cpp
+ *  @copyright Dapix
+ */
+
 #pragma once
 
 #include <vector>
@@ -43,7 +51,6 @@ namespace fioio {
     };
     typedef singleton<"configs"_n, config> configs_singleton;
 
-
     static constexpr char char_to_symbol(char c) {
         if (c >= 'a' && c <= 'z')
             return (c - 'a') + 6;
@@ -72,7 +79,6 @@ namespace fioio {
 
             value |= c;
         }
-
         return value;
     }
 
@@ -99,36 +105,34 @@ namespace fioio {
 
             value |= c;
         }
-
         return value;
     }
 
     static uint128_t string_to_uint128_hash(const char *str) {
 
         eosio::checksum160 tmp;
-        uint128_t retval=0;
-        uint8_t *bp =(uint8_t*) &tmp;
+        uint128_t retval = 0;
+        uint8_t *bp = (uint8_t *) &tmp;
         uint32_t len = 0;
 
         while (str[len]) ++len;
 
         tmp = eosio::sha1(str, len);
 
-        bp = (uint8_t *)&tmp;
-        memcpy(&retval,bp,sizeof(retval));
+        bp = (uint8_t *) &tmp;
+        memcpy(&retval, bp, sizeof(retval));
 
         return retval;
     }
 
 
     //use this for debug to see the value of your uint128_t, this will match what shows in get table.
-    static std::string to_hex(const char* d, uint32_t s )
-    {
+    static std::string to_hex(const char *d, uint32_t s) {
         std::string r;
-        const char* to_hex="0123456789abcdef";
-        uint8_t* c = (uint8_t*)d;
-        for( uint32_t i = 0; i < s; ++i ) {
-          (r += to_hex[(c[i] >> 4)]) += to_hex[(c[i] & 0x0f)];
+        const char *to_hex = "0123456789abcdef";
+        uint8_t *c = (uint8_t *) d;
+        for (uint32_t i = 0; i < s; ++i) {
+            (r += to_hex[(c[i] >> 4)]) += to_hex[(c[i] & 0x0f)];
 
         }
         return r;
@@ -136,13 +140,12 @@ namespace fioio {
 
     struct [[eosio::action]] bpreward {
 
-      uint64_t rewards;
+        uint64_t rewards;
 
-      uint64_t primary_key() const {return rewards;}
+        uint64_t primary_key() const { return rewards; }
 
-      EOSLIB_SERIALIZE(bpreward, (rewards))
-
-
+        EOSLIB_SERIALIZE(bpreward, (rewards)
+        )
     };
 
     typedef singleton<"bprewards"_n, bpreward> bprewards_table;
@@ -150,13 +153,12 @@ namespace fioio {
     // @abi table bucketpool i64
     struct [[eosio::action]] bucketpool {
 
-      uint64_t rewards;
+        uint64_t rewards;
 
-      uint64_t primary_key() const {return rewards;}
+        uint64_t primary_key() const { return rewards; }
 
-      EOSLIB_SERIALIZE(bucketpool, (rewards))
-
-
+        EOSLIB_SERIALIZE(bucketpool, (rewards)
+        )
     };
 
     typedef singleton<"bpbucketpool"_n, bucketpool> bpbucketpool_table;
@@ -164,13 +166,12 @@ namespace fioio {
     // @abi table fdtnreward i64
     struct [[eosio::action]] fdtnreward {
 
-      uint64_t rewards;
+        uint64_t rewards;
 
-      uint64_t primary_key() const {return rewards;}
+        uint64_t primary_key() const { return rewards; }
 
-      EOSLIB_SERIALIZE(fdtnreward, (rewards))
-
-
+        EOSLIB_SERIALIZE(fdtnreward, (rewards)
+        )
     };
 
     typedef singleton<"fdtnrewards"_n, fdtnreward> fdtnrewards_table;
@@ -178,85 +179,84 @@ namespace fioio {
     // @abi table bounties i64
     struct [[eosio::action]] bounty {
 
-      uint64_t tokensminted;
-      uint64_t primary_key() const {return tokensminted;}
+        uint64_t tokensminted;
 
-      EOSLIB_SERIALIZE(bounty, (tokensminted))
+        uint64_t primary_key() const { return tokensminted; }
 
-
+        EOSLIB_SERIALIZE(bounty, (tokensminted)
+        )
     };
 
     typedef singleton<"bounties"_n, bounty> bounties_table;
 
     void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
-      action(
-      permission_level{actor,"active"_n},
-      TREASURYACCOUNT,
-      "fdtnrwdupdat"_n,
-      std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
-      ).send();
-      fionames_table fionames(SystemContract, SystemContract.value);
-      uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
+        action(
+                permission_level{actor, "active"_n},
+                TREASURYACCOUNT,
+                "fdtnrwdupdat"_n,
+                std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
+        ).send();
+        fionames_table fionames(SystemContract, SystemContract.value);
+        uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
 
-      auto namesbyname = fionames.get_index<"byname"_n>();
-      auto fionamefound = namesbyname.find(fioaddhash);
+        auto namesbyname = fionames.get_index<"byname"_n>();
+        auto fionamefound = namesbyname.find(fioaddhash);
 
-      if (fionamefound != namesbyname.end()) {
+        if (fionamefound != namesbyname.end()) {
 
-        bounties_table bounties(TPIDContract, TPIDContract.value);
-        uint64_t bamount = 0;
-  
-        if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-          bamount = (uint64_t)(static_cast<double>(amount) * .65);
+            bounties_table bounties(TPIDContract, TPIDContract.value);
+            uint64_t bamount = 0;
 
-          action(permission_level{TREASURYACCOUNT, "active"_n},
-            TokenContract, "mintfio"_n,
-            make_tuple(bamount)
-          ).send();
+            if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
+                bamount = (uint64_t) (static_cast<double>(amount) * .65);
 
-          action(
-          permission_level{TREASURYACCOUNT,"active"_n},
-          TPIDContract,
-          "updatebounty"_n,
-          std::make_tuple(bamount)
-          ).send();
+                action(permission_level{TREASURYACCOUNT, "active"_n},
+                       TokenContract, "mintfio"_n,
+                       make_tuple(bamount)
+                ).send();
 
+                action(
+                        permission_level{TREASURYACCOUNT, "active"_n},
+                        TPIDContract,
+                        "updatebounty"_n,
+                        std::make_tuple(bamount)
+                ).send();
+
+            }
+
+            action(
+                    permission_level{actor, "active"_n},
+                    TPIDContract,
+                    "updatetpid"_n,
+                    std::make_tuple(tpid, actor, (amount / 10) + bamount)
+            ).send();
+
+
+            action(
+                    permission_level{actor, "active"_n},
+                    TREASURYACCOUNT,
+                    "bprewdupdate"_n,
+                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .88))
+            ).send();
+
+        } else {
+            action(
+                    permission_level{actor, "active"_n},
+                    TREASURYACCOUNT,
+                    "bprewdupdate"_n,
+                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .98))
+            ).send();
         }
-
-        action(
-        permission_level{actor,"active"_n},
-        TPIDContract,
-        "updatetpid"_n,
-        std::make_tuple(tpid, actor, (amount / 10) + bamount)
-        ).send();
-
-
-        action(
-        permission_level{actor,"active"_n},
-        TREASURYACCOUNT,
-        "bprewdupdate"_n,
-        std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
-        ).send();
-
-      } else {
-      action(
-      permission_level{actor,"active"_n},
-      TREASURYACCOUNT,
-      "bprewdupdate"_n,
-      std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
-      ).send();
     }
-
-  }
 
     void processbucketrewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
         action(
-        permission_level{actor,"active"_n},
-        TREASURYACCOUNT,
-        "fdtnrwdupdat"_n,
-        std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
+                permission_level{actor, "active"_n},
+                TREASURYACCOUNT,
+                "fdtnrwdupdat"_n,
+                std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
         ).send();
 
         fionames_table fionames(SystemContract, SystemContract.value);
@@ -266,71 +266,68 @@ namespace fioio {
 
         if (fionamefound != namesbyname.end()) {
 
-          bounties_table bounties(TPIDContract, TPIDContract.value);
-          uint64_t bamount = 0;
+            bounties_table bounties(TPIDContract, TPIDContract.value);
+            uint64_t bamount = 0;
 
-          if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-            bamount = (uint64_t)(static_cast<double>(amount) * .65);
-            action(permission_level{TREASURYACCOUNT, "active"_n},
-              TokenContract, "mintfio"_n,
-              make_tuple(bamount)
-            ).send();
+            if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
+                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                action(permission_level{TREASURYACCOUNT, "active"_n},
+                       TokenContract, "mintfio"_n,
+                       make_tuple(bamount)
+                ).send();
+
+                action(
+                        permission_level{TREASURYACCOUNT, "active"_n},
+                        TPIDContract,
+                        "updatebounty"_n,
+                        std::make_tuple(bamount)
+                ).send();
+
+            }
 
             action(
-            permission_level{TREASURYACCOUNT,"active"_n},
-            TPIDContract,
-            "updatebounty"_n,
-            std::make_tuple(bamount)
+                    permission_level{actor, "active"_n},
+                    TPIDContract,
+                    "updatetpid"_n,
+                    std::make_tuple(tpid, actor, (amount / 10) + bamount)
             ).send();
 
-          }
 
-          action(
-          permission_level{actor,"active"_n},
-          TPIDContract,
-          "updatetpid"_n,
-          std::make_tuple(tpid, actor, (amount / 10) + bamount)
-          ).send();
-
-
-          action(
-          permission_level{actor,"active"_n},
-          TREASURYACCOUNT,
-          "bppoolupdate"_n,
-          std::make_tuple((uint64_t)(static_cast<double>(amount) * .88))
-          ).send();
+            action(
+                    permission_level{actor, "active"_n},
+                    TREASURYACCOUNT,
+                    "bppoolupdate"_n,
+                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .88))
+            ).send();
         } else {
 
-        action(
-        permission_level{actor,"active"_n},
-        TREASURYACCOUNT,
-        "bppoolupdate"_n,
-        std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
-        ).send();
-
-      }
+            action(
+                    permission_level{actor, "active"_n},
+                    TREASURYACCOUNT,
+                    "bppoolupdate"_n,
+                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .98))
+            ).send();
+        }
     }
 
 
-  //Precondition: this method should only be called by register_producer, vote_producer, unregister_producer, register_proxy, unregister_proxy, vote_proxy
-  // after transaction fees have been defined
-  //Postcondition: the foundation has been rewarded 2% of the transaction fee and top 21/active block producers rewarded 98% of the transaction fee
-  void processrewardsnotpid(const uint64_t &amount, const name &actor) {
+    //Precondition: this method should only be called by register_producer, vote_producer, unregister_producer, register_proxy, unregister_proxy, vote_proxy
+    // after transaction fees have been defined
+    //Postcondition: the foundation has been rewarded 2% of the transaction fee and top 21/active block producers rewarded 98% of the transaction fee
+    void processrewardsnotpid(const uint64_t &amount, const name &actor) {
 
-    action(
-    permission_level{actor,"active"_n},
-    TREASURYACCOUNT,
-    "bprewdupdate"_n,
-    std::make_tuple((uint64_t)(static_cast<double>(amount) * .98))
-    ).send();
+        action(
+                permission_level{actor, "active"_n},
+                TREASURYACCOUNT,
+                "bprewdupdate"_n,
+                std::make_tuple((uint64_t) (static_cast<double>(amount) * .98))
+        ).send();
 
-    action(
-    permission_level{actor,"active"_n},
-    TREASURYACCOUNT,
-    "fdtnrwdupdat"_n,
-    std::make_tuple((uint64_t)(static_cast<double>(amount) * .02))
-    ).send();
-  }
-
-
+        action(
+                permission_level{actor, "active"_n},
+                TREASURYACCOUNT,
+                "fdtnrwdupdat"_n,
+                std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
+        ).send();
+    }
 } // namespace fioio

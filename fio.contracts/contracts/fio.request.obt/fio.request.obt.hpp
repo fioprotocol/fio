@@ -13,7 +13,6 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 
-
 using std::string;
 
 namespace fioio {
@@ -42,11 +41,11 @@ namespace fioio {
 
         uint64_t primary_key() const { return fio_request_id; }
         uint128_t by_receiver() const { return payer_fio_address; }
-
         uint128_t by_originator() const { return payee_fio_address; }
 
         EOSLIB_SERIALIZE(fioreqctxt,
-        (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)(content)(time_stamp)(payer_fio_addr)(payee_fio_addr)
+        (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)(
+                content)(time_stamp)(payer_fio_addr)(payee_fio_addr)
         )
     };
 
@@ -67,7 +66,6 @@ namespace fioio {
         uint64_t time_stamp;        // FIO blockchain status update received timestamp
 
         uint64_t primary_key() const { return id; }
-
         uint64_t by_fioreqid() const { return fio_request_id; }
 
         EOSLIB_SERIALIZE(fioreqsts, (id)(fio_request_id)(status)(metadata)(time_stamp)
@@ -79,5 +77,4 @@ namespace fioio {
             indexed_by<"byfioreqid"_n, const_mem_fun < fioreqsts, uint64_t, &fioreqsts::by_fioreqid> >
     >
     fiorequest_status_table;
-
 }

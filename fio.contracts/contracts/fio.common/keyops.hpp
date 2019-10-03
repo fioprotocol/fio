@@ -16,7 +16,6 @@ using namespace eosio;
 
 namespace fioio {
 
-
     uint32_t acctcap = 12;
 
     const char *const ALPHABET =
@@ -85,17 +84,11 @@ namespace fioio {
             res |= trimmed_char << shuffle;
             len++;
             i++;
-
         }
-
-
         return res;
     }
 
-
     inline void key_to_account(const std::string &pubkey, std::string &new_account) {
-
-
         std::string pub_wif(pubkey);
         pub_wif.erase(0, 3); // Remove 'FIO'/'EOS' prefix from wif
         unsigned char *pub_key_bytes = new unsigned char[37]; // 1 byte head, 256 bit key (32 bytes), 4 bytes checksum (usually)
@@ -107,6 +100,5 @@ namespace fioio {
         //throw an error for safety, since this code was just ported.
         check(myStr.length() == 13, "Shortened key improper length");
         new_account = myStr.substr(0, 12);
-
     }
 }

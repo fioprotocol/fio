@@ -16,37 +16,37 @@
 #include <eosiolib/asset.hpp>
 
 namespace fioio {
-  using namespace eosio;
+    using namespace eosio;
 
-  // @abi table clockstate i64
-  struct [[eosio::table]] treasurystate {
-      uint64_t lasttpidpayout;
-      uint64_t payschedtimer;
-      uint64_t rewardspaid;
-      uint64_t reservetokensminted;
+    // @abi table clockstate i64
+    struct [[eosio::table]] treasurystate {
+        uint64_t lasttpidpayout;
+        uint64_t payschedtimer;
+        uint64_t rewardspaid;
+        uint64_t reservetokensminted;
 
-      // Set the primary key to a constant value to store only one row
-      uint64_t primary_key() const { return lasttpidpayout; }
-      EOSLIB_SERIALIZE(treasurystate,(lasttpidpayout)(payschedtimer)(rewardspaid)(reservetokensminted))
-  };
-  typedef eosio::multi_index<"clockstate"_n,treasurystate> rewards_table;
+        // Set the primary key to a constant value to store only one row
+        uint64_t primary_key() const { return lasttpidpayout; }
 
+        EOSLIB_SERIALIZE(treasurystate, (lasttpidpayout)(payschedtimer)(rewardspaid)(reservetokensminted)
+        )
+    };
 
+    typedef eosio::multi_index<"clockstate"_n, treasurystate> rewards_table;
 
-  //@abi table bppaysched
-  struct [[eosio::table]] bppaysched {
+    //@abi table bppaysched
+    struct [[eosio::table]] bppaysched {
 
-    name owner;
-    uint64_t abpayshare = 0;
-    uint64_t sbpayshare = 0;
-    double votes;
-    uint64_t primary_key() const {return owner.value; }
+        name owner;
+        uint64_t abpayshare = 0;
+        uint64_t sbpayshare = 0;
+        double votes;
 
-    EOSLIB_SERIALIZE( bppaysched, (owner)(abpayshare)(sbpayshare)(votes))
+        uint64_t primary_key() const { return owner.value; }
 
-  };
+        EOSLIB_SERIALIZE( bppaysched, (owner)(abpayshare)(sbpayshare)(votes)
+        )
+    };
 
-  typedef eosio::multi_index<"voteshares"_n,bppaysched> voteshares_table;
-
-
+    typedef eosio::multi_index<"voteshares"_n, bppaysched> voteshares_table;
 }

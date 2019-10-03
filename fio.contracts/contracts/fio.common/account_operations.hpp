@@ -1,3 +1,11 @@
+/** Account Operations implementation file
+ *  Description: This assists FIO is creating unique account names.
+ *  @author Casey Gardiner
+ *  @modifedby
+ *  @file account_operations.hpp
+ *  @copyright Dapix
+ */
+
 #include <algorithm>
 #include <cmath>
 #include "../fio.system/include/fio.system/fio.system.hpp"
@@ -15,7 +23,6 @@ using weight_type = uint16_t;
 
 #include "abieos_numeric.hpp"
 
-
 namespace fioio {
 
 // Temporary authority until native is fixed. Ref: https://github.com/EOSIO/eos/issues/4669
@@ -30,12 +37,11 @@ namespace fioio {
         weight_type weight;
     };
 
-
     struct authority {
         uint32_t threshold;
-        vector <eosiosystem::key_weight> keys;
-        vector <eosiosystem::permission_level_weight> accounts;
-        vector <wait_weight> waits;
+        vector<eosiosystem::key_weight> keys;
+        vector<eosiosystem::permission_level_weight> accounts;
+        vector<wait_weight> waits;
     };
 
     struct newaccount {
@@ -44,7 +50,6 @@ namespace fioio {
         authority owner;
         authority active;
     };
-
 
 // eosiosystem::native::newaccount Doesn't seem to want to take authorities.
     struct call {
@@ -95,7 +100,7 @@ namespace fioio {
                       "mapBase58.size() should be 256"); // guarantee not out of range
         while (*psz && !isspace(*psz)) {
             // Decode base58 character
-            int carry = mapBase58[(uint8_t) * psz];
+            int carry = mapBase58[(uint8_t) *psz];
             if (carry == -1)  // Invalid b58 character
                 return false;
             int i = 0;
@@ -129,6 +134,4 @@ namespace fioio {
     bool decode_base58(const string &str, vector<unsigned char> &vch) {
         return DecodeBase58(str.c_str(), vch);
     }
-
-
 }

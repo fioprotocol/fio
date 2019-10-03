@@ -1,7 +1,11 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE.txt
+/** FioToken implementation file
+ *  Description: FioToken is the smart contract that help manage the FIO Token.
+ *  @author Adam Androulidakis, Casey Gardiner
+ *  @modifedby
+ *  @file fio.token.cpp
+ *  @copyright Dapix
  */
+
 #pragma once
 
 #include <fio.common/fio.common.hpp>
@@ -14,7 +18,7 @@ namespace eosiosystem {
 }
 
 namespace eosio {
-using namespace fioio;
+    using namespace fioio;
 
     using std::string;
 
@@ -28,8 +32,10 @@ using namespace fioio;
 
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
-                                                                eosionames(fioio::SystemContract,fioio::SystemContract.value),
-                                                                fionames(fioio::SystemContract,fioio::SystemContract.value),
+                                                                eosionames(fioio::SystemContract,
+                                                                           fioio::SystemContract.value),
+                                                                fionames(fioio::SystemContract,
+                                                                         fioio::SystemContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value),
                                                                 tpids(TPIDContract, TPIDContract.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
