@@ -11,7 +11,6 @@
 #include <fio.name/fio.name.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include "native.hpp"
-#include "exchange_state.hpp"
 
 #include <string>
 #include <deque>
@@ -355,7 +354,6 @@ private:
     eosio_global_state _gstate;
     eosio_global_state2 _gstate2;
     eosio_global_state3 _gstate3;
-    rammarket _rammarket;
     fioio::fionames_table _fionames;
     fioio::domains_table _domains;
     fioio::fiofee_table _fiofees;
@@ -380,12 +378,6 @@ public:
     system_contract(name s, name code, datastream<const char *> ds);
 
     ~system_contract();
-
-    static symbol get_core_symbol(name system_account = "eosio"_n) {
-        rammarket rm(system_account, system_account.value);
-        const static auto sym = get_core_symbol(rm);
-        return sym;
-    }
 
     // Actions:
     [[eosio::action]]
@@ -547,45 +539,6 @@ public:
     void closerex(const name &owner);
 
     /**
-     *  Decreases the total tokens delegated by from to receiver and/or
-     *  frees the memory associated with the delegation if there is nothing
-     *  left to delegate.
-     *
-     *  This will cause an immediate reduction in net/cpu bandwidth of the
-     *  receiver.
-     *
-     *  A transaction is scheduled to send the tokens back to 'from' after
-     *  the staking period has passed. If existing transaction is scheduled, it
-     *  will be canceled and a new transaction issued that has the combined
-     *  undelegated amount.
-     *
-     *  The 'from' account loses voting power as a result of this call and
-     *  all producer tallies are updated.
-     */
-    [[eosio::action]]
-    void undelegatebw(name from, name receiver,
-                      asset unstake_net_quantity, asset unstake_cpu_quantity);
-
-
-    /**
-     * Increases receiver's ram quota based upon current price and quantity of
-     * tokens provided. An inline transfer from receiver to system contract of
-     * tokens will be executed.
-     */
-    [[eosio::action]]
-    void buyram(name payer, name receiver, asset quant);
-
-    [[eosio::action]]
-    void buyrambytes(name payer, name receiver, uint32_t bytes);
-
-    /**
-     *  Reduces quota my bytes and then performs an inline transfer of tokens
-     *  to receiver based upon the average purchase price of the original quota.
-     */
-    [[eosio::action]]
-    void sellram(name account, int64_t bytes);
-
-    /**
      *  This action is called after the delegation-period to claim all pending
      *  unstaked tokens belonging to owner
      */
@@ -604,12 +557,6 @@ public:
 
     [[eosio::action]]
     void unregprod(const string fio_address, const name actor, const uint64_t max_fee);
-
-    [[eosio::action]]
-    void setram(uint64_t max_ram_size);
-
-    [[eosio::action]]
-    void setramrate(uint16_t bytes_per_block);
 
     [[eosio::action]]
     void vproducer(const name voter, const name proxy, const std::vector<name> &producers); //server call
@@ -658,16 +605,12 @@ public:
     void updtrevision(uint8_t revision);
 
     [[eosio::action]]
-    void bidname(name bidder, name newname, asset bid);
-
-    [[eosio::action]]
     void bidrefund(name bidder, name newname);
 
     using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
     using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
     using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
     using setacctcpu_action = eosio::action_wrapper<"setacctcpu"_n, &system_contract::setacctcpu>;
-    using delegatebw_action = eosio::action_wrapper<"delegatebw"_n, &system_contract::delegatebw>;
     using deposit_action = eosio::action_wrapper<"deposit"_n, &system_contract::deposit>;
     using withdraw_action = eosio::action_wrapper<"withdraw"_n, &system_contract::withdraw>;
     using buyrex_action = eosio::action_wrapper<"buyrex"_n, &system_contract::buyrex>;
@@ -687,16 +630,10 @@ public:
     using mvfrsavings_action = eosio::action_wrapper<"mvfrsavings"_n, &system_contract::mvfrsavings>;
     using consolidate_action = eosio::action_wrapper<"consolidate"_n, &system_contract::consolidate>;
     using closerex_action = eosio::action_wrapper<"closerex"_n, &system_contract::closerex>;
-    using undelegatebw_action = eosio::action_wrapper<"undelegatebw"_n, &system_contract::undelegatebw>;
-    using buyram_action = eosio::action_wrapper<"buyram"_n, &system_contract::buyram>;
-    using buyrambytes_action = eosio::action_wrapper<"buyrambytes"_n, &system_contract::buyrambytes>;
-    using sellram_action = eosio::action_wrapper<"sellram"_n, &system_contract::sellram>;
     using refund_action = eosio::action_wrapper<"refund"_n, &system_contract::refund>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
     using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
-    using setram_action = eosio::action_wrapper<"setram"_n, &system_contract::setram>;
-    using setramrate_action = eosio::action_wrapper<"setramrate"_n, &system_contract::setramrate>;
     using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
     using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
     using voteproxy_action = eosio::action_wrapper<"voteproxy"_n, &system_contract::voteproxy>;
@@ -706,7 +643,6 @@ public:
     using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
     using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
     using updtrevision_action = eosio::action_wrapper<"updtrevision"_n, &system_contract::updtrevision>;
-    using bidname_action = eosio::action_wrapper<"bidname"_n, &system_contract::bidname>;
     using bidrefund_action = eosio::action_wrapper<"bidrefund"_n, &system_contract::bidrefund>;
     using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
     using setalimits_action = eosio::action_wrapper<"setalimits"_n, &system_contract::setalimits>;
@@ -716,12 +652,6 @@ private:
 
     // Implementation details:
 
-    static symbol get_core_symbol(const rammarket &rm) {
-        auto itr = rm.find(ramcore_symbol.raw());
-        check(itr != rm.end(), "system contract must first be initialized");
-        return itr->quote.balance.symbol;
-    }
-
     //defined in fio.system.cpp
     static eosio_global_state get_default_parameters();
 
@@ -730,10 +660,6 @@ private:
     static time_point_sec current_time_point_sec();
 
     static block_timestamp current_block_time();
-
-    symbol core_symbol() const;
-
-    void update_ram_supply();
 
     // defined in delegate_bandwidth.cpp
     void changebw(name from, name receiver,
@@ -747,11 +673,6 @@ private:
     void update_votes(const name voter, const name proxy, const std::vector <name> &producers, bool voting);
 
     void propagate_weight_change(const voter_info &voter);
-
-    /* MAS-522 eliminate producers2 double update_producer_votepay_share(const producers_table2::const_iterator &prod_itr,
-                                         time_point ct,
-                                         double shares_rate, bool reset_to_zero = false);
-                                         */
 
     double update_total_votepay_share(time_point ct,
                                       double additional_shares_delta = 0.0, double shares_rate_delta = 0.0);
