@@ -1,3 +1,11 @@
+/** FioFee implementation file
+ *  Description: FioFee is the smart contract that manages fees.
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @modifedby
+ *  @file fio.fee.cpp
+ *  @copyright Dapix
+ */
+
 #include "fio.fee.hpp"
 #include "../fio.name/fio.name.hpp"
 #include <fio.common/fio.common.hpp>
@@ -59,19 +67,19 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-
             uint32_t nowtime = now();
 
-              for ( auto &feeval : fee_ratios) {
+            for (auto &feeval : fee_ratios) {
                 uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
                 //look for this actor in the feevoters table, if not there error.
                 //look for this actor in the feevotes table, it not there add the record.
                 //  if there are records loop through the records, find teh matching endpoint and remove this record.
                 if (dbgout) {
-                  print("\nendPointHash: ", endPointHash, "\n");
+                    print("\nendPointHash: ", endPointHash, "\n");
                 }
                 auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point, "invalid end_point", ErrorEndpointNotFound);
+                fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
+                               "invalid end_point", ErrorEndpointNotFound);
 
                 auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
                 auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
@@ -99,10 +107,8 @@ namespace fioio {
                             found = true;
                             break;
                         }
-
                     }
                     votebyname_iter++;
-
                 }
 
                 if (found) {
@@ -124,7 +130,6 @@ namespace fioio {
             updatefees();
 
             nlohmann::json json = {{"status", "OK"}};
-
             send_response(json.dump().c_str());
         }
 
@@ -218,7 +223,6 @@ namespace fioio {
                     }
                     //empty the vector.set the last used.
                     feevalues.clear();
-
                 }
                 lastvalUsed = vote_item.end_point;
                 lastusedHash = vote_item.end_point_hash;
@@ -285,7 +289,6 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-
             fio_400_assert(bundled_transactions > 0, "bundled_transactions", to_string(bundled_transactions),
                            " Must be positive",
                            ErrorFioNameNotReg);
@@ -349,7 +352,6 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-
             fio_400_assert(multiplier > 0, "multiplier", to_string(multiplier),
                            " Must be positive",
                            ErrorFioNameNotReg);
@@ -370,7 +372,6 @@ namespace fioio {
                         a.lastvotetimestamp = nowtime;
                     });
                 }
-
             } else { //emplace it if its not there
                 //emplace the values into the table
                 feevoters.emplace(_self, [&](struct feevoter &f) {
@@ -383,7 +384,6 @@ namespace fioio {
             updatefees();
 
             nlohmann::json json = {{"status", "OK"}};
-
             send_response(json.dump().c_str());
             print("done setfeemult.", "\n");
         }

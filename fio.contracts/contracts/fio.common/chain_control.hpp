@@ -19,7 +19,7 @@ namespace fioio {
     };
 
     struct clist {
-        vector <clentry> chains;
+        vector<clentry> chains;
     };
 
     struct chainControl {

@@ -1,9 +1,14 @@
+/** FioFee implementation file
+ *  Description: FioFee is the smart contract that manages fees.
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
+ *  @modifedby
+ *  @file fio.fee.cpp
+ *  @copyright Dapix
+ */
+
 #pragma once
 
 #include <eosiolib/eosio.hpp>
-//#include <string>
-//#include <eosiolib/singleton.hpp>
-
 
 using std::string;
 
@@ -21,7 +26,7 @@ namespace fioio {
         string end_point;
         uint64_t value;
 
-        EOSLIB_SERIALIZE( feevalue, (end_point) (value))
+        EOSLIB_SERIALIZE( feevalue, (end_point)(value))
     };
 
     // Structure for "FIO fee" .
@@ -35,9 +40,7 @@ namespace fioio {
         // 1 billion per fio as of 04/23/2019
 
         uint64_t primary_key() const { return fee_id; }
-
         uint128_t by_endpoint() const { return end_point_hash; }
-
         uint64_t by_type() const { return type; }
 
         EOSLIB_SERIALIZE(fiofee, (fee_id)(end_point)(end_point_hash)(type)(suf_amount)
@@ -58,7 +61,6 @@ namespace fioio {
         name block_producer_name;     // name of the bp
         double fee_multiplier;    // this is the fee multiplier,
         uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
-
 
         uint64_t primary_key() const { return block_producer_name.value; }
 
@@ -106,9 +108,7 @@ namespace fioio {
     //fee votes table
     typedef multi_index<"feevotes"_n, feevote,
             indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint64_t, &feevote::by_endpoint>>,
-            indexed_by<"bybpname"_n, const_mem_fun < feevote, uint64_t, &feevote::by_bpname>>
+    indexed_by<"bybpname"_n, const_mem_fun<feevote, uint64_t, &feevote::by_bpname>>
     >
     feevotes_table;
-
-
 } // namespace fioio

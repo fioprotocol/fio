@@ -16,9 +16,7 @@
 #include <fio.common/fioerror.hpp>
 #include <fio.tpid/fio.tpid.hpp>
 
-
 namespace fioio {
-
 
     class [[eosio::contract("FioRequestObt")]]  FioRequestObt : public eosio::contract {
 
@@ -30,7 +28,6 @@ namespace fioio {
         fiofee_table fiofees;
         config appConfig;
         tpids_table tpids;
-
 
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
@@ -45,7 +42,6 @@ namespace fioio {
             appConfig = configsSingleton.get_or_default(config());
         }
 
-
         struct decrementcounter {
             string fio_address;
         };
@@ -58,9 +54,9 @@ namespace fioio {
                 i = i * 10 + (*s - '0');
                 s++;
             }
-
             return i;
         }
+
         /***
          * this action will record a send using Obt. the input json will be verified, if verification fails an exception will be thrown.
          * if verification succeeds then status tables will be updated...
@@ -107,7 +103,6 @@ namespace fioio {
                     fr.time_stamp = currentTime;
                 });
             }
-
             uint32_t present_time = now();
 
             //check the payer address, see that its a valid fio name
@@ -136,10 +131,6 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-
-
-
-
             //check the payee address, see that its a valid fio name
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
@@ -152,7 +143,6 @@ namespace fioio {
             name aactor = name(actor.c_str());
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
-
 
             //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("record_send");
@@ -170,9 +160,7 @@ namespace fioio {
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "record_send unexpected fee type for endpoint record_send, expected 1", ErrorNoEndpoint);
 
-
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-
             uint64_t fee_amount = 0;
 
             if (bundleeligiblecountdown > 0) {
@@ -186,7 +174,6 @@ namespace fioio {
                                 .fio_address = payer_fio_address
                         }
                 }.send();
-
             } else {
                 fee_amount = fee_iter->suf_amount;
                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
@@ -209,8 +196,6 @@ namespace fioio {
                              {aactor, true}
                             );
                 }
-
-
             }
             //end new fees, bundle eligible fee logic
 
@@ -298,7 +283,6 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-
             //payee must be the actor.
             uint64_t account = fioname_iter->owner_account;
 
@@ -311,9 +295,8 @@ namespace fioio {
             uint64_t currentTime = now();
             uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
             uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
-            string toHashStr = "0x"+ to_hex((char *)&toHash,sizeof(toHash));
-            string fromHashStr = "0x"+ to_hex((char *)&fromHash,sizeof(fromHash));
-
+            string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
+            string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
 
             //insert a send record into the status table using this id.
             fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
@@ -330,8 +313,6 @@ namespace fioio {
 
             //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("new_funds_request");
-
-
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
@@ -346,9 +327,7 @@ namespace fioio {
                            "new_funds_request unexpected fee type for endpoint new_funds_request, expected 1",
                            ErrorNoEndpoint);
 
-
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-
             uint64_t fee_amount = 0;
 
             if (bundleeligiblecountdown > 0) {
@@ -362,7 +341,6 @@ namespace fioio {
                                 .fio_address = payee_fio_address
                         }
                 }.send();
-
             } else {
                 fee_amount = fee_iter->suf_amount;
                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
@@ -385,7 +363,6 @@ namespace fioio {
                              {aActor, true}
                             );
                 }
-
             }
             //end new fees, bundle eligible fee logic
 
@@ -421,8 +398,7 @@ namespace fioio {
             fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                            "No such FIO Request", ErrorRequestContextNotFound);
 
-            uint128_t payer128FioAddHashed =fioreqctx_iter->payer_fio_address;
-
+            uint128_t payer128FioAddHashed = fioreqctx_iter->payer_fio_address;
             uint32_t present_time = now();
 
             //check the payer address, see that its a valid fio name
@@ -453,7 +429,6 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-
             string payer_fio_address = fioname_iter->name;
 
             name aactor = name(actor.c_str());
@@ -470,7 +445,6 @@ namespace fioio {
             });
 
             //begin new fees, bundle eligible fee logic
-
             uint128_t endpoint_hash = string_to_uint128_hash("reject_funds_request");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
@@ -487,9 +461,7 @@ namespace fioio {
                            "reject_funds_request unexpected fee type for endpoint reject_funds_request, expected 1",
                            ErrorNoEndpoint);
 
-
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-
             uint64_t fee_amount = 0;
 
             if (bundleeligiblecountdown > 0) {
@@ -503,7 +475,6 @@ namespace fioio {
                                 .fio_address = payer_fio_address
                         }
                 }.send();
-
             } else {
                 fee_amount = fee_iter->suf_amount;
                 fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee),
@@ -527,10 +498,8 @@ namespace fioio {
                              {aactor, true}
                             );
                 }
-
             }
             //end new fees, bundle eligible fee logic
-
             nlohmann::json json = {{"status",        "request_rejected"},
                                    {"fee_collected", fee_amount}};
             send_response(json.dump().c_str());

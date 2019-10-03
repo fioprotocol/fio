@@ -1,6 +1,9 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE.txt
+/** FioToken implementation file
+ *  Description: FioToken is the smart contract that help manage the FIO Token.
+ *  @author Adam Androulidakis, Casey Gardiner
+ *  @modifedby
+ *  @file fio.token.cpp
+ *  @copyright Dapix
  */
 
 #include "fio.token/fio.token.hpp"
@@ -16,7 +19,7 @@ namespace eosio {
         check(sym.is_valid(), "invalid symbol name");
         check(maximum_supply.is_valid(), "invalid supply");
         check(maximum_supply.amount > 0, "max-supply must be positive");
-        check(maximum_supply.symbol == FIOSYMBOL,"symbol precision mismatch");
+        check(maximum_supply.symbol == FIOSYMBOL, "symbol precision mismatch");
 
         stats statstable(_self, sym.code().raw());
         auto existing = statstable.find(sym.code().raw());
@@ -32,7 +35,7 @@ namespace eosio {
         auto sym = quantity.symbol;
         check(sym.is_valid(), "invalid symbol name");
         check(memo.size() <= 256, "memo has more than 256 bytes");
-        check(quantity.symbol == FIOSYMBOL,"symbol precision mismatch");
+        check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
 
         stats statstable(_self, sym.code().raw());
         auto existing = statstable.find(sym.code().raw());
@@ -60,15 +63,16 @@ namespace eosio {
     }
 
     void token::mintfio(const uint64_t &amount) {
-      //can only be called by fio.treasury@active
-      require_auth("fio.treasury"_n);
-      if (amount > 0 && amount < 100000000000000000) { //100,000,000 FIO max can be minted by this call
-        print("\n\nMintfio called\n");
-        action(permission_level{"eosio"_n, "active"_n},
-          "fio.token"_n, "issue"_n,
-          make_tuple("fio.treasury"_n, asset(amount, symbol("FIO",9)), string("New tokens produced from reserves"))
-        ).send();
-      }
+        //can only be called by fio.treasury@active
+        require_auth("fio.treasury"_n);
+        if (amount > 0 && amount < 100000000000000000) { //100,000,000 FIO max can be minted by this call
+            print("\n\nMintfio called\n");
+            action(permission_level{"eosio"_n, "active"_n},
+                   "fio.token"_n, "issue"_n,
+                   make_tuple("fio.treasury"_n, asset(amount, symbol("FIO", 9)),
+                              string("New tokens produced from reserves"))
+            ).send();
+        }
     }
 
     void token::retire(asset quantity, string memo) {
@@ -85,7 +89,7 @@ namespace eosio {
         require_auth(FIOISSUER);
         check(quantity.is_valid(), "invalid quantity");
         check(quantity.amount > 0, "must retire positive quantity");
-        check(quantity.symbol == FIOSYMBOL,"symbol precision mismatch");
+        check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
 
         check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
 
@@ -115,14 +119,13 @@ namespace eosio {
         check(quantity.is_valid(), "invalid quantity");
         check(quantity.amount > 0, "must transfer positive quantity");
         check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
-        check(quantity.symbol == FIOSYMBOL,"symbol precision mismatch");
+        check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
 
         auto payer = has_auth(to) ? to : from;
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
-
     }
 
     inline void token::fio_fees(const name &actor, const asset &fee) {
@@ -158,8 +161,6 @@ namespace eosio {
         int64_t i64 = stoi(amount.c_str());
         qty.amount = i64;
         qty.symbol = symbol("FIO", 9);
-
-        ///BEGIN new account management logic!!!!
 
         //first check the pub key for validity.
         fio_400_assert(payee_public_key.length() == 53, "payee_public_key", payee_public_key,
@@ -217,7 +218,7 @@ namespace eosio {
             INLINE_ACTION_SENDER(call::eosio, newaccount)
                     ("eosio"_n, {{_self, "active"_n}},
                      {_self, new_account_name, owner_auth, owner_auth}
-                     );
+                    );
 
             print("created the account!!!!", new_account_name, "\n");
 
@@ -243,11 +244,9 @@ namespace eosio {
                                       fioio::ErrorPubAddressExist);
         }
 
-        ///end new account management logic!!!!!
         //special note, though we have created the account and can use it herein,
         //the account is not yet officially on the chain and is_account will return false.
         //require_recipient will also fail.
-
 
         //begin new fees, logic for Mandatory fees.
         uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
@@ -274,15 +273,12 @@ namespace eosio {
         stats statstable(_self, sym.code().raw());
         const auto &st = statstable.get(sym.code().raw());
 
-
         asset reg_fee_asset = asset();
         reg_fee_asset.amount = reg_amount;
         reg_fee_asset.symbol = symbol("FIO", 9);
 
         fio_fees(actor, reg_fee_asset);
         process_rewards(tpid, reg_amount, get_self());
-
-
 
         require_recipient(actor);
         //require recipient if the account was found on the chain.
@@ -309,8 +305,6 @@ namespace eosio {
                      {new_account_name, true}
                     );
         }
-        //MAS-522 remove staking from voting.  END
-
 
         nlohmann::json json = {{"status",        "OK"},
                                {"fee_collected", reg_amount}};
@@ -323,7 +317,7 @@ namespace eosio {
         const auto &from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
 
         fio_400_assert(from.balance.amount >= value.amount, "amount", to_string(value.amount),
-                       "Insufficient balance",ErrorLowFunds);
+                       "Insufficient balance", ErrorLowFunds);
 
         from_acnts.modify(from, owner, [&](auto &a) {
             a.balance -= value;
@@ -343,7 +337,6 @@ namespace eosio {
             });
         }
     }
-
 } /// namespace eosio
 
 EOSIO_DISPATCH( eosio::token, (create)(issue)(mintfio)(transfer)(trnsfiopubky)
