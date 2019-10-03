@@ -78,16 +78,9 @@ namespace fioio {
 
 
                   }  else  { //Allocate to BP buckets instead
-
-                   auto bpfound = bprewards.begin();
-                   uint64_t reward = bpfound->rewards;
+                   uint64_t reward = bprewards.get().rewards;
                    reward += itr.rewards;
-                   bprewards.erase(bpfound);
-                   bprewards.emplace(_self, [&](struct bpreward& entry) {
-                     entry.rewards = reward;
-                  });
-
-
+                   bprewards.set(bpreward{reward}, _self);
                  }
 
                action(permission_level{get_self(), "active"_n},
@@ -167,24 +160,18 @@ namespace fioio {
             } // &itr : producers
 
             //Move 1/365 of the bucketpool to the bpshare
-            uint64_t temp = bprewards.begin()->rewards;
-            uint64_t amount = static_cast<uint64_t>(bucketrewards.begin()->rewards/365);
-            bprewards.erase(bprewards.begin());
-            bprewards.emplace(get_self(), [&](auto &p) {
-              p.rewards = temp + amount;
-            });
-            temp = bucketrewards.begin()->rewards;
-            bucketrewards.erase(bucketrewards.begin());
-            bucketrewards.emplace(get_self(), [&](auto &p) {
-              p.rewards = temp - amount;
-            });
+            uint64_t temp = bprewards.get().rewards;
+            uint64_t amount = static_cast<uint64_t>(bucketrewards.get().rewards/365);
+            bprewards.set(bpreward{temp + amount}, _self);
+            temp = bucketrewards.get().rewards;
+            bucketrewards.set(bucketpool{temp - amount}, _self);
 
             //uint64_t projectedpay = bprewards.begin()->rewards;
 
-            uint64_t tomint = 50000000000000 - bprewards.begin()->rewards;
+            uint64_t tomint = 50000000000000 - bprewards.get().rewards;
 
             // from DEV1 tests - if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
-            if (bprewards.begin()->rewards < 50000000000000 && clockiter->reservetokensminted < 50000000000000000) {
+            if (bprewards.get().rewards < 50000000000000 && clockiter->reservetokensminted < 50000000000000000) {
 
               //Mint new tokens up to 50,000 FIO
                 action(permission_level{get_self(), "active"_n},
@@ -197,11 +184,8 @@ namespace fioio {
               });
 
               //Include the minted tokens in the reward payout
-              temp = bprewards.begin()->rewards;
-              bprewards.erase(bprewards.begin());
-              bprewards.emplace(get_self(), [&](auto &p) {
-                p.rewards = temp + tomint;
-              });
+              temp = bprewards.get().rewards;
+              bprewards.set(bpreward{temp + tomint}, _self);
                 //This new reward amount that has been minted will be appended to the rewards being divied up next
             }
             //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
@@ -213,9 +197,9 @@ namespace fioio {
 
             if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
             if (bpcount <= 21) abpcount = bpcount;
-
-            uint64_t tostandbybps = static_cast<uint64_t>(bprewards.begin()->rewards * .60);
-            uint64_t toactivebps = static_cast<uint64_t>(bprewards.begin()->rewards * .40);
+            auto bprewardstat = bprewards.get();
+            uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
+            uint64_t toactivebps = static_cast<uint64_t>(bprewardstat.rewards * .40);
 
             bpcounter = 0;
             uint64_t abpayshare = 0;
@@ -277,11 +261,8 @@ namespace fioio {
          // Reduce the producer's share of daily rewards and bucketrewards
 
            if (bpiter->abpayshare > 0) {
-             auto temp = bprewards.begin()->rewards;
-             bprewards.erase(bprewards.begin());
-             bprewards.emplace(get_self(), [&](auto &p) {
-                 p.rewards = temp - payout;
-             });
+             auto temp = bprewards.get().rewards;
+             bprewards.set(bpreward{temp - payout}, _self);
            }
            //Keep track of rewards paid for reserve minting
            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
@@ -295,19 +276,16 @@ namespace fioio {
               ).send();
          }
         // PAY FOUNDATION //
-        auto fdtniter = fdtnrewards.begin();
-        if (fdtniter->rewards > 100000000000) { // 100 FIO = 100000000000 SUFs
+        fdtnreward fdtnstate = fdtnrewards.get();
+        if (fdtnstate.rewards > 100000000000) { // 100 FIO = 100000000000 SUFs
            action(permission_level{get_self(), "active"_n},
                  TokenContract, "transfer"_n,
-                 make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtniter->rewards,symbol("FIO",9)),
+                 make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards,symbol("FIO",9)),
                  string("Paying foundation from treasury."))
                ).send();
 
         //Clear the foundation rewards counter
-        fdtnrewards.erase(fdtniter);
-        fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
-          entry.rewards = 0;
-       });
+        fdtnrewards.set(fdtnreward{0}, _self);
            //////////////////////////////////////
         }
        //remove the producer from payschedule
@@ -346,10 +324,7 @@ namespace fioio {
         });
       }
 
-      bucketrewards.emplace(get_self(), [&](auto &p) {
-        p.rewards = 0;
-      });
-
+      bucketrewards.set(bucketpool{0}, _self);
       bprewdupdate(0);
 
     }
@@ -361,20 +336,10 @@ namespace fioio {
       eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
         "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
 
-        uint64_t size = std::distance(bprewards.begin(),bprewards.end());
-        if (size == 0)  {
-          bprewards.emplace(_self, [&](struct bpreward& entry) {
-            entry.rewards = amount;
-         });
-
+        if (!bprewards.exists())  {
+          bprewards.set(bpreward{amount}, _self);
        } else {
-         auto found = bprewards.begin();
-         uint64_t reward = found->rewards;
-         reward += amount;
-         bprewards.erase(found);
-         bprewards.emplace(_self, [&](struct bpreward& entry) {
-           entry.rewards = reward;
-        });
+         bprewards.set(bpreward{bprewards.get().rewards + amount}, _self);
        }
 
     }
@@ -386,20 +351,10 @@ namespace fioio {
       eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) || (has_auth("fio.reqobt"_n)),
         "missing required authority of fio.system, fio.treasury, fio.token, or fio.reqobt");
 
-        uint64_t size = std::distance(bucketrewards.begin(),bucketrewards.end());
-        if (size == 0)  {
-          bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
-            entry.rewards = amount;
-         });
-
+        if (!bucketrewards.exists())  {
+          bucketrewards.set(bucketpool{amount}, _self);
        } else {
-         auto found = bucketrewards.begin();
-         uint64_t reward = found->rewards;
-         reward += amount;
-         bucketrewards.erase(found);
-         bucketrewards.emplace(_self, [&](struct bucketpool& entry) {
-           entry.rewards = reward;
-        });
+         bucketrewards.set(bucketpool{bucketrewards.get().rewards + amount}, _self);
        }
 
     }
@@ -411,19 +366,10 @@ namespace fioio {
       eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) || (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
         "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
 
-        uint64_t size = std::distance(fdtnrewards.begin(),fdtnrewards.end());
-        if (size == 0)  {
-          fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
-            entry.rewards = amount;
-         });
-
+        if (!fdtnrewards.exists())  {
+            fdtnrewards.set(fdtnreward{0}, _self);
        } else {
-         uint64_t reward = fdtnrewards.begin()->rewards;
-         reward += amount;
-         fdtnrewards.erase(fdtnrewards.begin());
-         fdtnrewards.emplace(_self, [&](struct fdtnreward& entry) {
-           entry.rewards = reward;
-        });
+            fdtnrewards.set(fdtnreward{fdtnrewards.get().rewards + amount}, _self);
        }
 
     }
