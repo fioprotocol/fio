@@ -1309,6 +1309,7 @@ if( options.count(name) ) { \
             uint32_t search_limit = p.limit;
             uint32_t search_offset = p.offset;
             uint32_t returnCount = 0;
+            uint32_t search_notFound = 0;
             bool search_finished = false;
 
             fioio::key_to_account(p.fio_public_key, account_name);
@@ -1483,10 +1484,12 @@ if( options.count(name) ) { \
                             if (search_offset > 0) { search_offset--; }
 
                             if (returnCount == search_limit && search_limit != 0) {
-                                search_results = requests_rows_result.rows.size() - (pos + 1);
+                                search_results = requests_rows_result.rows.size() - (pos + 1 + search_notFound);
                                 search_finished = true;
                                 break;
                             }
+                        } else {
+                            search_notFound++;
                         }
                     }
                 } else if (search_finished) {
