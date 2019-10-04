@@ -229,98 +229,7 @@ typedef eosio::singleton<"global3"_n, eosio_global_state3> global_state3_singlet
 
 static constexpr uint32_t seconds_per_day = 24 * 3600;
 
-struct [[eosio::table, eosio::contract("fio.system")]] rex_pool {
-    uint8_t version = 0;
-    asset total_lent; /// total amount of CORE_SYMBOL in open rex_loans
-    asset total_unlent; /// total amount of CORE_SYMBOL available to be lent (connector)
-    asset total_rent; /// fees received in exchange for lent  (connector)
-    asset total_lendable; /// total amount of CORE_SYMBOL that have been lent (total_unlent + total_lent)
-    asset total_rex; /// total number of REX shares allocated to contributors to total_lendable
-    asset namebid_proceeds; /// the amount of CORE_SYMBOL to be transferred from namebids to REX pool
-    uint64_t loan_num = 0; /// increments with each new loan
 
-    uint64_t primary_key() const { return 0; }
-};
-
-typedef eosio::multi_index<"rexpool"_n, rex_pool> rex_pool_table;
-
-struct [[eosio::table, eosio::contract("fio.system")]] rex_fund {
-    uint8_t version = 0;
-    name owner;
-    asset balance;
-
-    uint64_t primary_key() const { return owner.value; }
-};
-
-typedef eosio::multi_index<"rexfund"_n, rex_fund> rex_fund_table;
-
-struct [[eosio::table, eosio::contract("fio.system")]] rex_balance {
-    uint8_t version = 0;
-    name owner;
-    asset vote_stake; /// the amount of CORE_SYMBOL currently included in owner's vote
-    asset rex_balance; /// the amount of REX owned by owner
-    int64_t matured_rex = 0; /// matured REX available for selling
-    std::deque <std::pair<time_point_sec, int64_t>> rex_maturities; /// REX daily maturity buckets
-
-    uint64_t primary_key() const { return owner.value; }
-};
-
-typedef eosio::multi_index<"rexbal"_n, rex_balance> rex_balance_table;
-
-struct [[eosio::table, eosio::contract("fio.system")]] rex_loan {
-    uint8_t version = 0;
-    name from;
-    name receiver;
-    asset payment;
-    asset balance;
-    asset total_staked;
-    uint64_t loan_num;
-    eosio::time_point expiration;
-
-    uint64_t primary_key() const { return loan_num; }
-
-    uint64_t by_expr() const { return expiration.elapsed.count(); }
-
-    uint64_t by_owner() const { return from.value; }
-};
-
-typedef eosio::multi_index<"cpuloan"_n, rex_loan,
-        indexed_by<"byexpr"_n, const_mem_fun < rex_loan, uint64_t, &rex_loan::by_expr>>,
-indexed_by<"byowner"_n, const_mem_fun<rex_loan, uint64_t, &rex_loan::by_owner>>
->
-rex_cpu_loan_table;
-
-typedef eosio::multi_index<"netloan"_n, rex_loan,
-        indexed_by<"byexpr"_n, const_mem_fun < rex_loan, uint64_t, &rex_loan::by_expr>>,
-indexed_by<"byowner"_n, const_mem_fun<rex_loan, uint64_t, &rex_loan::by_owner>>
->
-rex_net_loan_table;
-
-struct [[eosio::table, eosio::contract("fio.system")]] rex_order {
-    uint8_t version = 0;
-    name owner;
-    asset rex_requested;
-    asset proceeds;
-    asset stake_change;
-    eosio::time_point order_time;
-    bool is_open = true;
-
-    void close() { is_open = false; }
-
-    uint64_t primary_key() const { return owner.value; }
-
-    uint64_t by_time() const { return is_open ? order_time.elapsed.count() : std::numeric_limits<uint64_t>::max(); }
-};
-
-typedef eosio::multi_index<"rexqueue"_n, rex_order,
-        indexed_by<"bytime"_n, const_mem_fun < rex_order, uint64_t, &rex_order::by_time>>>
-rex_order_table;
-
-struct rex_order_outcome {
-    bool success;
-    asset proceeds;
-    asset stake_change;
-};
 
 class [[eosio::contract("fio.system")]] system_contract : public native {
 
@@ -349,11 +258,8 @@ public:
     static constexpr eosio::name vpay_account{"eosio.vpay"_n};
     static constexpr eosio::name names_account{"eosio.names"_n};
     static constexpr eosio::name saving_account{"eosio.saving"_n};
-    static constexpr eosio::name rex_account{"eosio.rex"_n};
     static constexpr eosio::name null_account{"eosio.null"_n};
     static constexpr symbol ramcore_symbol = symbol(symbol_code("FIO"),9);
-    static constexpr symbol ram_symbol = symbol(symbol_code("FIO"), 9);
-    static constexpr symbol rex_symbol = symbol(symbol_code("FIO"), 9);
 
     system_contract(name s, name code, datastream<const char *> ds);
 
@@ -389,55 +295,7 @@ public:
     void delegatebw(name from, name receiver,
                     asset stake_net_quantity, asset stake_cpu_quantity, bool transfer);
 
-    /**
-     * Sets total_rent balance of REX pool to the passed value
-     */
-    [[eosio::action]]
-    void setrex(const asset &balance);
 
-    /**
-     * Deposits core tokens to user REX fund. All proceeds and expenses related to REX are added to
-     * or taken out of this fund. Inline token transfer from user balance is executed.
-     */
-    [[eosio::action]]
-    void deposit(const name &owner, const asset &amount);
-
-    /**
-     * Withdraws core tokens from user REX fund. Inline token transfer to user balance is
-     * executed.
-     */
-    [[eosio::action]]
-    void withdraw(const name &owner, const asset &amount);
-
-    /**
-     * Transfers core tokens from user REX fund and converts them to REX stake.
-     * A voting requirement must be satisfied before action can be executed.
-     * User votes are updated following this action.
-     */
-    [[eosio::action]]
-    void buyrex(const name &from, const asset &amount);
-
-    /**
-     * Use staked core tokens to buy REX.
-     * A voting requirement must be satisfied before action can be executed.
-     * User votes are updated following this action.
-     */
-    [[eosio::action]]
-    void unstaketorex(const name &owner, const name &receiver, const asset &from_net, const asset &from_cpu);
-
-    /**
-     * Converts REX stake back into core tokens at current exchange rate. If order cannot be
-     * processed, it gets queued until there is enough in REX pool to fill order.
-     * If successful, user votes are updated.
-     */
-    [[eosio::action]]
-    void sellrex(const name &from, const asset &rex);
-
-    /**
-     * Cancels queued sellrex order. Order cannot be cancelled once it's been filled.
-     */
-    [[eosio::action]]
-    void cnclrexorder(const name &owner);
 
     /**
      * Use payment to rent as many SYS tokens as possible and stake them for either CPU or NET for the
@@ -474,49 +332,6 @@ public:
 
     [[eosio::action]]
     void defnetloan(const name &from, uint64_t loan_num, const asset &amount);
-
-    /**
-     * Updates REX vote stake of owner to its current value.
-     */
-    [[eosio::action]]
-    void updaterex(const name &owner);
-
-    /**
-     * Processes max CPU loans, max NET loans, and max queued sellrex orders.
-     * Action does not execute anything related to a specific user.
-     */
-    [[eosio::action]]
-    void rexexec(const name &user, uint16_t max);
-
-    /**
-     * Consolidate REX maturity buckets into one that can be sold only 4 days
-     * from the end of today.
-     */
-    [[eosio::action]]
-    void consolidate(const name &owner);
-
-    /**
-     * Moves a specified amount of REX into savings bucket. REX savings bucket
-     * never matures. In order for it to be sold, it has to be moved explicitly
-     * out of that bucket. Then the moved amount will have the regular maturity
-     * period of 4 days starting from the end of the day.
-     */
-    [[eosio::action]]
-    void mvtosavings(const name &owner, const asset &rex);
-
-    /**
-     * Moves a specified amount of REX out of savings bucket. The moved amount
-     * will have the regular REX maturity period of 4 days.
-     */
-    [[eosio::action]]
-    void mvfrsavings(const name &owner, const asset &rex);
-
-    /**
-     * Deletes owner records from REX tables and frees used RAM.
-     * Owner must not have an outstanding REX balance.
-     */
-    [[eosio::action]]
-    void closerex(const name &owner);
 
     /**
      *  This action is called after the delegation-period to claim all pending
@@ -588,25 +403,12 @@ public:
     using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
     using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
     using setacctcpu_action = eosio::action_wrapper<"setacctcpu"_n, &system_contract::setacctcpu>;
-    using deposit_action = eosio::action_wrapper<"deposit"_n, &system_contract::deposit>;
-    using withdraw_action = eosio::action_wrapper<"withdraw"_n, &system_contract::withdraw>;
-    using buyrex_action = eosio::action_wrapper<"buyrex"_n, &system_contract::buyrex>;
-    using unstaketorex_action = eosio::action_wrapper<"unstaketorex"_n, &system_contract::unstaketorex>;
-    using sellrex_action = eosio::action_wrapper<"sellrex"_n, &system_contract::sellrex>;
-    using cnclrexorder_action = eosio::action_wrapper<"cnclrexorder"_n, &system_contract::cnclrexorder>;
     using rentcpu_action = eosio::action_wrapper<"rentcpu"_n, &system_contract::rentcpu>;
     using rentnet_action = eosio::action_wrapper<"rentnet"_n, &system_contract::rentnet>;
     using fundcpuloan_action = eosio::action_wrapper<"fundcpuloan"_n, &system_contract::fundcpuloan>;
     using fundnetloan_action = eosio::action_wrapper<"fundnetloan"_n, &system_contract::fundnetloan>;
     using defcpuloan_action = eosio::action_wrapper<"defcpuloan"_n, &system_contract::defcpuloan>;
     using defnetloan_action = eosio::action_wrapper<"defnetloan"_n, &system_contract::defnetloan>;
-    using updaterex_action = eosio::action_wrapper<"updaterex"_n, &system_contract::updaterex>;
-    using rexexec_action = eosio::action_wrapper<"rexexec"_n, &system_contract::rexexec>;
-    using setrex_action = eosio::action_wrapper<"setrex"_n, &system_contract::setrex>;
-    using mvtosavings_action = eosio::action_wrapper<"mvtosavings"_n, &system_contract::mvtosavings>;
-    using mvfrsavings_action = eosio::action_wrapper<"mvfrsavings"_n, &system_contract::mvfrsavings>;
-    using consolidate_action = eosio::action_wrapper<"consolidate"_n, &system_contract::consolidate>;
-    using closerex_action = eosio::action_wrapper<"closerex"_n, &system_contract::closerex>;
     using refund_action = eosio::action_wrapper<"refund"_n, &system_contract::refund>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
     using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
