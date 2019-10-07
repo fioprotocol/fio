@@ -160,26 +160,11 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     )
 };
 
-/* MAS-522 eliminate producer2 table.
-struct [[eosio::table, eosio::contract("fio.system")]] producer_info2 {
-    name owner;
-    double votepay_share = 0;
-    time_point last_votepay_share_update;
-
-    uint64_t primary_key() const { return owner.value; }
-
-    // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( producer_info2, (owner)(votepay_share)(last_votepay_share_update)
-    )
-};
- */
 
 struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     name owner;     /// the voter
     name proxy;     /// the proxy set by the voter, if any
     std::vector <name> producers; /// the producers approved by this voter if no proxy set
-   // MAS-522 remove staked int64_t staked = 0;
-
     /**
      *  Every time a vote is cast we must first "undo" the last vote weight, before casting the
      *  new vote weight.  Vote weight is calculated as:
@@ -194,23 +179,13 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     double proxied_vote_weight = 0; /// the total vote weight delegated to this voter as a proxy
     bool is_proxy = 0; /// whether the voter is a proxy for others
     bool is_auto_proxy = 0;
-
-
-    uint32_t flags1 = 0;
     uint32_t reserved2 = 0;
     eosio::asset reserved3;
 
     uint64_t primary_key() const { return owner.value; }
 
-    enum class flags1_fields : uint32_t {
-        ram_managed = 1,
-        net_managed = 2,
-        cpu_managed = 4
-    };
-
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(
-            flags1)(reserved2)(reserved3)
+    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(reserved2)(reserved3)
     )
 };
 
@@ -272,73 +247,7 @@ public:
     [[eosio::action]]
     void onblock(ignore <block_header> header);
 
-    [[eosio::action]]
-    void setalimits(name account, int64_t ram_bytes, int64_t net_weight, int64_t cpu_weight);
-
-    [[eosio::action]]
-    void setacctram(name account, std::optional <int64_t> ram_bytes);
-
-    [[eosio::action]]
-    void setacctnet(name account, std::optional <int64_t> net_weight);
-
-    [[eosio::action]]
-    void setacctcpu(name account, std::optional <int64_t> cpu_weight);
-
     // functions defined in delegate_bandwidth.cpp
-
-    /**
-     *  Stakes SYS from the balance of 'from' for the benfit of 'receiver'.
-     *  If transfer == true, then 'receiver' can unstake to their account
-     *  Else 'from' can unstake at any time.
-     */
-    [[eosio::action]]
-    void delegatebw(name from, name receiver,
-                    asset stake_net_quantity, asset stake_cpu_quantity, bool transfer);
-
-
-
-    /**
-     * Use payment to rent as many SYS tokens as possible and stake them for either CPU or NET for the
-     * benefit of receiver, after 30 days the rented SYS delegation of CPU or NET will expire unless loan
-     * balance is larger than or equal to payment.
-     *
-     * If loan has enough balance, it gets renewed at current market price, otherwise, it is closed and
-     * remaining balance is refunded to loan owner.
-     *
-     * Owner can fund or defund a loan at any time before its expiration.
-     *
-     * All loan expenses and refunds come out of or are added to owner's REX fund.
-     */
-    [[eosio::action]]
-    void rentcpu(const name &from, const name &receiver, const asset &loan_payment, const asset &loan_fund);
-
-    [[eosio::action]]
-    void rentnet(const name &from, const name &receiver, const asset &loan_payment, const asset &loan_fund);
-
-    /**
-     * Loan owner funds a given CPU or NET loan.
-     */
-    [[eosio::action]]
-    void fundcpuloan(const name &from, uint64_t loan_num, const asset &payment);
-
-    [[eosio::action]]
-    void fundnetloan(const name &from, uint64_t loan_num, const asset &payment);
-
-    /**
-     * Loan owner defunds a given CPU or NET loan.
-     */
-    [[eosio::action]]
-    void defcpuloan(const name &from, uint64_t loan_num, const asset &amount);
-
-    [[eosio::action]]
-    void defnetloan(const name &from, uint64_t loan_num, const asset &amount);
-
-    /**
-     *  This action is called after the delegation-period to claim all pending
-     *  unstaked tokens belonging to owner
-     */
-    [[eosio::action]]
-    void refund(name owner);
 
     // functions defined in voting.cpp
 
@@ -400,16 +309,6 @@ public:
     void updtrevision(uint8_t revision);
 
     using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
-    using setacctram_action = eosio::action_wrapper<"setacctram"_n, &system_contract::setacctram>;
-    using setacctnet_action = eosio::action_wrapper<"setacctnet"_n, &system_contract::setacctnet>;
-    using setacctcpu_action = eosio::action_wrapper<"setacctcpu"_n, &system_contract::setacctcpu>;
-    using rentcpu_action = eosio::action_wrapper<"rentcpu"_n, &system_contract::rentcpu>;
-    using rentnet_action = eosio::action_wrapper<"rentnet"_n, &system_contract::rentnet>;
-    using fundcpuloan_action = eosio::action_wrapper<"fundcpuloan"_n, &system_contract::fundcpuloan>;
-    using fundnetloan_action = eosio::action_wrapper<"fundnetloan"_n, &system_contract::fundnetloan>;
-    using defcpuloan_action = eosio::action_wrapper<"defcpuloan"_n, &system_contract::defcpuloan>;
-    using defnetloan_action = eosio::action_wrapper<"defnetloan"_n, &system_contract::defnetloan>;
-    using refund_action = eosio::action_wrapper<"refund"_n, &system_contract::refund>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
     using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
@@ -423,7 +322,6 @@ public:
     using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
     using updtrevision_action = eosio::action_wrapper<"updtrevision"_n, &system_contract::updtrevision>;
     using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
-    using setalimits_action = eosio::action_wrapper<"setalimits"_n, &system_contract::setalimits>;
     using setparams_action = eosio::action_wrapper<"setparams"_n, &system_contract::setparams>;
 
 private:

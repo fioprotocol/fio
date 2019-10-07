@@ -75,12 +75,7 @@ namespace eosiosystem {
                 info.location = location;
                 info.last_claim_time = ct;
             });
-            /* MAS-522 eliminate producers2 table
-            _producers2.emplace(producer, [&](producer_info2 &info) {
-                info.owner = producer;
-                info.last_votepay_share_update = ct;
-            });
-             */
+
         }
 /* This adds a producer using the normal user typed account name to the account map table
         action{permission_level{_self, "active"_n},
@@ -296,17 +291,6 @@ namespace eosiosystem {
         ).send();
     }
 
-
-
-    double stake2vote(int64_t staked) {
-       //in EOS the weighting of a vote is strengthened each week. in FIO we remove this ever increasing vote strength
-       //and we just always use the amount staked.
-       // double weight =
-       //         int64_t((now() - (block_timestamp::block_timestamp_epoch / 1000)) / (seconds_per_day * 7)) / double(52);
-       // return double(staked) * std::pow(2, weight);
-       return double(staked);
-    }
-
     double system_contract::update_total_votepay_share(time_point ct,
                                                        double additional_shares_delta,
                                                        double shares_rate_delta) {
@@ -334,30 +318,6 @@ namespace eosiosystem {
         return _gstate2.total_producer_votepay_share;
     }
 
-    /* MAS-522 eliminate producers2 table
-    double system_contract::update_producer_votepay_share(const producers_table2::const_iterator &prod_itr,
-                                                          time_point ct,
-                                                          double shares_rate,
-                                                          bool reset_to_zero) {
-        double delta_votepay_share = 0.0;
-        if (shares_rate > 0.0 && ct > prod_itr->last_votepay_share_update) {
-            delta_votepay_share = shares_rate * double((ct - prod_itr->last_votepay_share_update).count() /
-                                                       1E6); // cannot be negative
-        }
-
-        double new_votepay_share = prod_itr->votepay_share + delta_votepay_share;
-        _producers2.modify(prod_itr, same_payer, [&](auto &p) {
-            if (reset_to_zero)
-                p.votepay_share = 0.0;
-            else
-                p.votepay_share = new_votepay_share;
-
-            p.last_votepay_share_update = ct;
-        });
-
-        return new_votepay_share;
-    }
-     */
 
     /**
      *  @pre producers must be sorted from lowest to highest and must be registered and active
@@ -551,28 +511,12 @@ namespace eosiosystem {
         check(voter != _voters.end(), "user must stake before they can vote"); /// staking creates voter object
         check(!proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
-        /**
-         * The first time som   eone votes we calculate and set last_vote_weight, since they cannot unstake until
-         * after total_activated_stake hits threshold, we can use last_vote_weight to determine that this is
-         * their first vote and should consider their stake activated.
-         */
-         //MAS-522 eliminate stake from voting.
-       // if (voter->last_vote_weight <= 0.0) {
-           // _gstate.total_activated_stake += voter->staked;
-           // if (_gstate.total_activated_stake >= min_activated_stake &&
-           //     _gstate.thresh_activated_stake_time == time_point()) {
-           //     _gstate.thresh_activated_stake_time = current_time_point();
-           // }
-       // }
-
         //get fio balance for this account, thats the vote weight.
-
         symbol sym_name = symbol("FIO", 9);
         const auto my_balance = eosio::token::get_balance("fio.token"_n,voter->owner, sym_name.code() );
         uint64_t amount = my_balance.amount;
 
-        //instead of staked amount we use the amount in the account.
-        auto new_vote_weight = stake2vote(amount);
+        auto new_vote_weight = (double)amount;
         if (voter->is_proxy) {
             new_vote_weight += voter->proxied_vote_weight;
         }
@@ -633,31 +577,6 @@ namespace eosiosystem {
                     _gstate.total_producer_vote_weight += pd.second.first;
                     //check( p.total_votes >= 0, "something bad happened" );
                 });
-
-                /* MAS-522 eliminate producers2 table
-                auto prod2 = _producers2.find(pd.first.value);
-                if (prod2 != _producers2.end()) {
-                    const auto last_claim_plus_3days = pitr->last_claim_time + microseconds(3 * useconds_per_day);
-                    bool crossed_threshold = (last_claim_plus_3days <= ct);
-                    bool updated_after_threshold = (last_claim_plus_3days <= prod2->last_votepay_share_update);
-                    // Note: updated_after_threshold implies cross_threshold
-
-                    double new_votepay_share = update_producer_votepay_share(prod2,
-                                                                             ct,
-                                                                             updated_after_threshold ? 0.0
-                                                                                                     : init_total_votes,
-                                                                             crossed_threshold &&
-                                                                             !updated_after_threshold // only reset votepay_share once after threshold
-                    );
-
-                    if (!crossed_threshold) {
-                        delta_change_rate += pd.second.first;
-                    } else if (!updated_after_threshold) {
-                        total_inactive_vpay_share += new_votepay_share;
-                        delta_change_rate -= init_total_votes;
-                    }
-                }
-                 */
             } else {
                 check(!pd.second.second , "Invalid or duplicated producers"); //data corruption
             }
@@ -700,10 +619,6 @@ namespace eosiosystem {
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
         auto itervi = _voters.find(proxy.value);
-        //this needs to be silent. so comment out this following check. remove after uat.
-        //check(itervi != _voters.end(), "specified proxy not found.");
-       //this needs to be silent. so comment out this following check. remove after uat.
-       // check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
         if (itervi != _voters.end() &&
            itervi->is_proxy) {
@@ -920,9 +835,8 @@ namespace eosiosystem {
         symbol sym_name = symbol("FIO", 9);
         const auto my_balance = eosio::token::get_balance("fio.token"_n,voter.owner, sym_name.code() );
         uint64_t amount = my_balance.amount;
-        //double new_weight = stake2vote(voter.staked);
         //instead of staked we use the voters current FIO balance MAS-522 eliminate stake from voting.
-        double new_weight = stake2vote(amount);
+        auto new_weight = (double)amount;
         if (voter.is_proxy) {
             new_weight += voter.proxied_vote_weight;
         }
@@ -948,31 +862,6 @@ namespace eosiosystem {
                         p.total_votes += delta;
                         _gstate.total_producer_vote_weight += delta;
                     });
-
-                    /* MAS-522 eliminate producers2 table
-                    auto prod2 = _producers2.find(acnt.value);
-                    if (prod2 != _producers2.end()) {
-                        const auto last_claim_plus_3days = prod.last_claim_time + microseconds(3 * useconds_per_day);
-                        bool crossed_threshold = (last_claim_plus_3days <= ct);
-                        bool updated_after_threshold = (last_claim_plus_3days <= prod2->last_votepay_share_update);
-                        // Note: updated_after_threshold implies cross_threshold
-
-                        double new_votepay_share = update_producer_votepay_share(prod2,
-                                                                                 ct,
-                                                                                 updated_after_threshold ? 0.0
-                                                                                                         : init_total_votes,
-                                                                                 crossed_threshold &&
-                                                                                 !updated_after_threshold // only reset votepay_share once after threshold
-                        );
-
-                        if (!crossed_threshold) {
-                            delta_change_rate += delta;
-                        } else if (!updated_after_threshold) {
-                            total_inactive_vpay_share += new_votepay_share;
-                            delta_change_rate -= init_total_votes;
-                        }
-                    }
-                    */
                 }
 
                 update_total_votepay_share(ct, -total_inactive_vpay_share, delta_change_rate);
