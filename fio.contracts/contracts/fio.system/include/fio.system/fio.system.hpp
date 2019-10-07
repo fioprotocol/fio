@@ -22,14 +22,6 @@
 #include <type_traits>
 #include <optional>
 
-#ifdef CHANNEL_RAM_AND_NAMEBID_FEES_TO_REX
-#undef CHANNEL_RAM_AND_NAMEBID_FEES_TO_REX
-#endif
-// CHANNEL_RAM_AND_NAMEBID_FEES_TO_REX macro determines whether ramfee and namebid proceeds are
-// channeled to REX pool. In order to stop these proceeds from being channeled, the macro must
-// be set to 0.
-#define CHANNEL_RAM_AND_NAMEBID_FEES_TO_REX 1
-
 namespace eosiosystem {
 
     using eosio::name;
@@ -78,12 +70,6 @@ static_cast
 }
 
 struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_state : eosio::blockchain_parameters {
-    uint64_t free_ram() const { return max_ram_size - total_ram_bytes_reserved; }
-
-    uint64_t max_ram_size = 64ll * 1024 * 1024 * 1024;
-    uint64_t total_ram_bytes_reserved = 0;
-    int64_t total_ram_stake = 0;
-
     block_timestamp last_producer_schedule_update;
     time_point last_pervote_bucket_fill;
     int64_t pervote_bucket = 0;
@@ -97,7 +83,6 @@ struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_st
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
     EOSLIB_SERIALIZE_DERIVED( eosio_global_state, eosio::blockchain_parameters,
-    (max_ram_size)(total_ram_bytes_reserved)(total_ram_stake)
             (last_producer_schedule_update)(last_pervote_bucket_fill)
             (pervote_bucket)(perblock_bucket)(total_unpaid_blocks)(total_activated_stake)(thresh_activated_stake_time)
             (last_producer_schedule_size)(total_producer_vote_weight)(last_name_close)
@@ -109,14 +94,11 @@ struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_st
  */
 struct [[eosio::table("global2"), eosio::contract("fio.system")]] eosio_global_state2 {
     eosio_global_state2() {}
-
-    uint16_t new_ram_per_block = 0;
-    block_timestamp last_ram_increase;
     block_timestamp last_block_num; /* deprecated */
     double total_producer_votepay_share = 0;
     uint8_t revision = 0; ///< used to track version updates in the future.
 
-    EOSLIB_SERIALIZE( eosio_global_state2, (new_ram_per_block)(last_ram_increase)(last_block_num)
+    EOSLIB_SERIALIZE( eosio_global_state2,(last_block_num)
             (total_producer_votepay_share)(revision)
     )
 };
