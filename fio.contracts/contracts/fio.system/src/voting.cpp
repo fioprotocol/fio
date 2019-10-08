@@ -77,12 +77,6 @@ namespace eosiosystem {
             });
 
         }
-/* This adds a producer using the normal user typed account name to the account map table
-        action{permission_level{_self, "active"_n},
-                "fio.system"_n,
-                "bind2eosio"_n,
-          std::make_tuple(producer, producer_key, false)
-        }.send(); */
 
     }
 
