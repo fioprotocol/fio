@@ -276,9 +276,6 @@ public:
 
     // functions defined in producer_pay.cpp
     [[eosio::action]]
-    void claimrewards(const name owner);
-
-    [[eosio::action]]
     void resetclaim(const name producer);
 
     [[eosio::action]]
@@ -300,7 +297,6 @@ public:
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;
     using regiproxy_action = eosio::action_wrapper<"regiproxy"_n, &system_contract::regiproxy>;
     using crautoproxy_action = eosio::action_wrapper<"crautoproxy"_n, &system_contract::crautoproxy>;
-    using claimrewards_action = eosio::action_wrapper<"claimrewards"_n, &system_contract::claimrewards>;
     using rmvproducer_action = eosio::action_wrapper<"rmvproducer"_n, &system_contract::rmvproducer>;
     using updtrevision_action = eosio::action_wrapper<"updtrevision"_n, &system_contract::updtrevision>;
     using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
