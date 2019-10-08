@@ -67,6 +67,8 @@ namespace fioio {
     constexpr auto ErrorNoFioAddressProducer = ident | httpDataError | 134; // producer does is not fioname
     constexpr auto AddressNotProxy = ident | httpDataError | 135; // This address is not a proxy
     constexpr auto InvalidAccountOrAction = ident | httpInvalidError | 136; // Provided account or action is not valid for this endpoint.
+    constexpr auto ErrorActorNotInFioAccountMap = ident | httpDataError | 137;   // Actor not in FIO account map
+    constexpr auto ErrorTokenCodeInvalid = ident | httpDataError | 138;   // token code invalid
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
