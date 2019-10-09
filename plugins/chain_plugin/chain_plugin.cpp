@@ -2122,7 +2122,7 @@ if( options.count(name) ) { \
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
                            "Invalid Token Code",
-                           fioio::ErrorInvalidFioNameFormat);
+                           fioio::ErrorTokenCodeInvalid);
 
             dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fioaddress)("domain", fa.fiodomain));
 
@@ -2237,8 +2237,9 @@ if( options.count(name) ) { \
 
             chains_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
 
-            FIO_404_ASSERT(!chains_result.rows.empty(), "Invalid Token Code", fioio::ErrorPubAddressNotFound);
-
+            FIO_400_ASSERT(!chains_result.rows.empty(), "token_code", p.token_code,
+                           "Invalid Token Code",
+                           fioio::ErrorTokenCodeInvalid);
             //   // Pick out chain specific key and populate result
             uint32_t c_type = (uint32_t) chains_result.rows[0]["id"].as_uint64();
             result.public_address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
