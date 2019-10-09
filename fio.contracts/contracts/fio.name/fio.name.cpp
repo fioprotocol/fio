@@ -44,14 +44,11 @@ namespace fioio {
         }
 
         inline name accountmgnt(const name &actor, const string &owner_fio_public_key) {
-            require_auth(actor); // check for requestor authority; required for fee transfer
+            require_auth(actor);
 
             name owner_account_name;
 
-            //if the owner public key is empty then lookup the actor in the binding table, make sure its bound
             if (owner_fio_public_key.length() == 0) {
-                //get the info from the binding table, and skip the public key verification
-                //check that the account exists, and use the account.
                 bool accountExists = is_account(actor);
 
                 auto other = accountmap.find(actor.value);
@@ -65,8 +62,6 @@ namespace fioio {
 
                 owner_account_name = actor;
             } else {
-                //check the owner_fio_public_key, if its empty then go and lookup the actor in the accountmap table
-                //and use this as the owner_fio_public_key.
                 eosio_assert(owner_fio_public_key.length() == 53, "Length of publik key should be 53");
 
                 string pubkey_prefix("FIO");
@@ -93,21 +88,16 @@ namespace fioio {
                 key_to_account(owner_fio_public_key, owner_account);
                 owner_account_name = name(owner_account.c_str());
 
-                print("hashed account name from the owner_fio_public_key ", owner_account, "\n");
-
                 eosio_assert(owner_account.length() == 12, "Length of account name should be 12");
 
                 bool accountExists = is_account(owner_account_name);
                 auto other = accountmap.find(owner_account_name.value);
 
                 if (other == accountmap.end()) { //the name is not in the table.
-                    // if account does exist on the chain this is an error. DANGER account was created without binding!
                     fio_400_assert(!accountExists, "owner_account", owner_account,
                                    "Account exists on FIO chain but is not bound in accountmap",
                                    ErrorPubAddressExist);
 
-                    //the account does not exist on the fio chain yet, and the binding does not exists
-                    //yet, so create the account and then and add it to the accountmap table.
                     const auto owner_pubkey = abieos::string_to_public_key(owner_fio_public_key);
 
                     eosiosystem::key_weight pubkey_weight = {
@@ -117,13 +107,10 @@ namespace fioio {
 
                     const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
 
-                    //create account
                     INLINE_ACTION_SENDER(call::eosio, newaccount)
                             ("eosio"_n, {{_self, "active"_n}},
                              {_self, owner_account_name, owner_auth, owner_auth}
                             );
-
-                    print("created the account!!!!", owner_account_name, "\n");
 
                     uint64_t nmi = owner_account_name.value;
 
@@ -132,18 +119,14 @@ namespace fioio {
                         p.clientkey = owner_fio_public_key;
                         p.keyhash = string_to_uint128_hash(owner_fio_public_key.c_str());
                     });
-
-                    print("performed bind of the account!!!!", owner_account_name, "\n");
                 } else {
-                    //if account does not on the chain this is an error. DANGER binding was recorded without the associated account.
                     fio_400_assert(accountExists, "owner_account", owner_account,
                                    "Account does not exist on FIO chain but is bound in accountmap",
                                    ErrorPubAddressExist);
-                    //if the payee public key doesnt match whats in the accountmap table this is an error,it means there is a collision on hashing!
                     eosio_assert_message_code(owner_fio_public_key == other->clientkey, "FIO account already bound",
                                               ErrorPubAddressExist);
                 }
-            }//end else, the owner_fio_public_key has a value and is not empty.
+            }
             return owner_account_name;
         }
 
@@ -207,7 +190,6 @@ namespace fioio {
 
         uint32_t fio_address_update(const name &owneractor, const name &actor, uint64_t max_fee, const FioAddress &fa,
                                     const string &tpid) {
-            // will not check the contents of tpid here, it was already checked at the beginning of regaddress that called this method
 
             uint32_t expiration_time = 0;
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
@@ -232,27 +214,17 @@ namespace fioio {
                                ErrorInvalidFioNameFormat);
             }
 
-            //check if the domain is expired.
             uint32_t domain_expiration = domains_iter->expiration;
             uint32_t present_time = now();
             fio_400_assert(present_time <= domain_expiration, "fio_address", fa.fioaddress, "FIO Domain expired",
                            ErrorDomainExpired);
 
-            // check if fioname is available
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
             fio_400_assert(fioname_iter == namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address already registered", ErrorFioNameAlreadyRegistered);
 
-            //set the expiration on this new fioname
             expiration_time = get_now_plus_one_year();
-
-            // check if callee has requisite dapix funds.
-            // DO SOMETHING
-
-            // Issue, create and transfer fioname token
-            // DO SOMETHING
-
             auto key_iter = accountmap.find(actor.value);
 
             fio_400_assert(key_iter != accountmap.end(), "actor", to_string(actor.value),
@@ -263,11 +235,10 @@ namespace fioio {
                   "\n");
 
             uint64_t id = fionames.available_primary_key();
-            // Add fioname entry in fionames table
             fionames.emplace(_self, [&](struct fioname &a) {
                 a.id = id;
                 a.name = fa.fioaddress;
-                a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
+                a.addresses = vector<string>(300, ""); // TODO: Remove prior to production
                 a.namehash = nameHash;
                 a.domain = fa.fiodomain;
                 a.domainhash = domainHash;
@@ -296,15 +267,11 @@ namespace fioio {
 
             fio_400_assert(domains_iter == domainsbyname.end(), "fio_name", fa.fioaddress,
                            "FIO domain already registered", ErrorDomainAlreadyRegistered);
-            // check if callee has requisite dapix funds. Also update to domain fees
 
-            //get the expiration for this new domain.
             expiration_time = get_now_plus_one_year();
 
             uint64_t id = domains.available_primary_key();
 
-            // Issue, create and transfer nft domain token
-            // Add domain entry in domain table
             domains.emplace(_self, [&](struct domain &d) {
                 d.id = id;
                 d.name = fa.fiodomain;
@@ -314,7 +281,6 @@ namespace fioio {
             });
             return expiration_time;
         }
-        //adddomain
 
         uint64_t
         chain_data_update(const string &fioaddress, const string &tokencode,
@@ -328,7 +294,6 @@ namespace fioio {
             auto fioname_iter = namesbyname.find(nameHash);
             fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
-            //check that the name is not expired
             uint32_t name_expiration = fioname_iter->expiration;
             uint32_t present_time = now();
 
@@ -347,47 +312,35 @@ namespace fioio {
                            ErrorDomainExpired);
 
             uint64_t chainhash = string_to_uint64_hash(tokencode.c_str());
-            //NOTE--this doesnt seem safe, what happens when multiple users are doing this on
-            //      multiple nodes.
-            //this needs to become get primary key value.
-            auto size = distance(chains.cbegin(), chains.cend());
             auto chain_iter = chains.find(chainhash);
 
-            //does this leave us vulnerable to someone just adding and adding new and garbage addresses,
-            // what are the consequences of this kind of behavior??
-            //should this be an error instead.
             if (chain_iter == chains.end()) {
-                //this helps limit spamming ability by limiting the size of teh data that can be added.
                 fio_400_assert(tokencode.length() <= 10, "token_code", tokencode, "Invalid token code format",
                                ErrorTokenCodeInvalid);
                 fio_400_assert(tokencode.length() > 0, "token_code", tokencode, "Invalid token code format",
                                ErrorTokenCodeInvalid);
 
                 chains.emplace(_self, [&](struct chainList &a) {
-                    a.id = size;
+                    a.id = chains.available_primary_key();
                     a.chainname = tokencode;
                     a.chainhash = chainhash;
                 });
                 chain_iter = chains.find(chainhash);
             }
 
-            // insert/update <chain, address> pair
             namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
             });
 
-            //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("add_pub_address");
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "add_pub_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             int64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a bundleeligible fee then this is an error.
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint add_pub_address, expected 0",
                            ErrorNoEndpoint);
@@ -395,8 +348,6 @@ namespace fioio {
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
             uint64_t fee_amount = 0;
 
-            //NOTE -- we have this override in here to return 0 fee, should this kind
-            //if we manage to call this with isFIO true we can blast the chain with new chains for free.
             if (isFIO) {
                 return fee_amount;
             }
@@ -422,9 +373,7 @@ namespace fioio {
 
                 fio_fees(actor, reg_fee_asset);
                 process_rewards(tpid, reg_amount, get_self());
-                //MAS-522 remove staking from voting.
                 if (reg_amount > 0) {
-                    //MAS-522 remove staking from voting.
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
                             ("eosio"_n, {{_self, "active"_n}},
                              {actor, true}
@@ -478,9 +427,7 @@ namespace fioio {
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor,
                    const string &tpid) {
-
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
-            // Split the fio name and domain portions
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
@@ -493,19 +440,16 @@ namespace fioio {
             fioio::convertfiotime(expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            //begin new fees, logic for Mandatory fees.
             uint128_t endpoint_hash = string_to_uint128_hash("register_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
                            ErrorNoEndpoint);
@@ -517,11 +461,10 @@ namespace fioio {
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
-            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
+
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
-            //end new fees, logic for Mandatory fees.
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    timebuffer},
                                    {"fee_collected", reg_amount}};
@@ -534,7 +477,6 @@ namespace fioio {
                   uint64_t max_fee, const name &actor, const string &tpid) {
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
-            // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -547,19 +489,16 @@ namespace fioio {
             fioio::convertfiotime(expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            //begin new fees, logic for Mandatory fees.
             uint128_t endpoint_hash = string_to_uint128_hash("register_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
                            ErrorNoEndpoint);
@@ -576,8 +515,6 @@ namespace fioio {
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
-            //end new fees, logic for Mandatory fees.
-
             nlohmann::json json = {{"status",        "OK"},
                                    {"expiration",    timebuffer},
                                    {"fee_collected", reg_amount}};
@@ -593,8 +530,6 @@ namespace fioio {
         [[eosio::action]]
         void
         renewdomain(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
-
-            // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -613,19 +548,16 @@ namespace fioio {
 
             expiration_time = domains_iter->expiration;
 
-            //begin new fees, logic for Mandatory fees.
             uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
                            ErrorNoEndpoint);
@@ -641,9 +573,7 @@ namespace fioio {
 
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
-            //end new fees, logic for Mandatory fees.
 
-            //update the index table.
             uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
             struct tm timeinfo;
@@ -669,8 +599,6 @@ namespace fioio {
         [[eosio::action]]
         void
         renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
-
-            // Split the fio name and domain portions
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, false);
@@ -688,36 +616,31 @@ namespace fioio {
                            "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
-            //check if the domain is expired.
             uint32_t domain_expiration = domains_iter->expiration;
             uint32_t present_time = now();
             fio_400_assert(present_time <= domain_expiration, "fio_address", fa.fioaddress, "FIO Domain expired",
                            ErrorDomainExpired);
 
-            // check if fioname is available
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
             fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address not registered", ErrorFioNameNotRegistered);
 
-            //set the expiration on this new fioname
             uint64_t expiration_time = fioname_iter->expiration;
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
 
-            //begin new fees, logic for Mandatory fees.
             uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            //if the fee isnt found for the endpoint, then 400 error.
+
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
                            ErrorNoEndpoint);
@@ -731,9 +654,6 @@ namespace fioio {
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
             processbucketrewards(tpid, reg_amount, get_self());
-            //end new fees, logic for Mandatory fees.
-
-            //update the index table.
 
             uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
@@ -811,7 +731,7 @@ namespace fioio {
                 auto iter1 = namesbyname.find(nameHash);
                 if (iter1 == namesbyname.end()) {
                     uint64_t id = fionames.available_primary_key();
-                    //set up a couple of expired names in the fionames table.
+
                     fionames.emplace(_self, [&](struct fioname &a) {
                         a.id = id;
                         a.name = name;
@@ -854,57 +774,38 @@ namespace fioio {
         [[eosio::action]]
         void burnexpired() {
 
-            //this is the burn list holding the list of address hashes that should be destroyed.
             std::vector<uint128_t> burnlist;
             std::vector<uint128_t> domainburnlist;
 
-            //we look back 20 years for expired things.
             int numbertoburn = 100;
             int windowmaxyears = 20;
-            //number of seconds in a day.
             uint64_t secondsperday = 86400;
-            //amount of time to wait to burn a domain beyond its expriation date
             uint64_t domainwaitforburndays = 90 * secondsperday;
-            //amount of time to wait to burn an address beyond its expriation date
             uint64_t addresswaitforburndays = 90 * secondsperday;
-            //the time now, use this everywhere to avoid any odd behaviors during execution..
             uint64_t nowtime = now();
-            //the minimum expiration to look for in searching for expired items
             uint32_t minexpiration = get_now_minus_years(windowmaxyears);
+
             //using this instead of now time will place everything in the to be burned list, for testing only.
             uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
 
             auto domainexpidx = domains.get_index<"byexpiration"_n>();
-            //first find all domains with expiration greater than or equal to minexpiration.
-            //since the index returns values in ascending order we get the oldest expired first.
-            //this is a good order to burn them in which is oldest to youngest.
             auto domainiter = domainexpidx.lower_bound(minexpiration);
 
-            //loop over all of the entries,until we find one with expire time plus wait time > now time.
-            //if its less than or equal to nowtime then it needs burned.
             while (domainiter != domainexpidx.end()) {
                 uint64_t expire = domainiter->expiration;
                 uint128_t domainnamehash = domainiter->domainhash;
 
-                if ((expire + domainwaitforburndays) > nowtime) //check for done searching.
-                    //if ((expire + domainwaitforburndays) > kludgedNow) //this is for testing only
-                {
+                if ((expire + domainwaitforburndays) > nowtime){
                     break;
-                } else {   //add up to 100 addresses, add all addresses in domain until 100 is hit, or all are added.
+                } else {
                     auto domainhash = domainiter->domainhash;
-                    print(" found expired domain ", domainiter->name, " expiration ", domainiter->expiration,
-                          " domain hash ", domainiter->domainhash, "\n");
-
                     auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
                     auto nmiter = fionamesbydomainhashidx.lower_bound(domainhash);
                     bool processed_all_in_domain = false;
 
                     while (nmiter != fionamesbydomainhashidx.end()) {
-                        //look at all addresses in this domain, add until 100
                         if (nmiter->domainhash == domainhash) {
                             burnlist.push_back(nmiter->namehash);
-                            //print(" adding name to burn from expired domain ", nmiter->name, " expiration ",
-                            //      nmiter->expiration, "\n");
 
                             if (burnlist.size() >= numbertoburn) {
                                 break;
@@ -916,15 +817,11 @@ namespace fioio {
                         }
                     }
 
-                    //if we processed all the addresses inside a domain then add the domain itself to the list
-                    //to be burned. since its in the fionames table.
                     if (processed_all_in_domain) {
                         //print(" adding domain to burn list ",domainiter->name," expiration ",domainiter->expiration,"\n");
                         //print(" adding domain to domain burn list", domainnamehash, "\n");
                         domainburnlist.push_back(domainnamehash);
                     }
-
-                    //since we can add the domain, check one more time for macx number to burn inserted.
                     if (burnlist.size() >= numbertoburn) {
                         break;
                     }
@@ -932,25 +829,18 @@ namespace fioio {
                 domainiter++;
             }
 
-            //check if we have enough to remove already, if not move on to the addresses
             if (burnlist.size() < numbertoburn) {
 
                 auto nameexpidx = fionames.get_index<"byexpiration"_n>();
-                //add addresses to the burn list until 100 total. if 100 total continue the loop. or exahaust the expired addresses
                 auto nameiter = nameexpidx.lower_bound(minexpiration);
 
                 while (nameiter != nameexpidx.end()) {
                     uint64_t expire = nameiter->expiration;
-                    if ((expire + addresswaitforburndays) > nowtime)
-                        //if ((expire + addresswaitforburndays) > kludgedNow) //this is for testing only.
-                    {
+                    if ((expire + addresswaitforburndays) > nowtime){
                         break;
                     } else {
-                        //if its in the burn list already, dont re-add. since we did expired domains first, we can
-                        //get duplicate names attempted to be inserted, keep the duplicates out.
                         if (!(std::find(burnlist.begin(), burnlist.end(), nameiter->namehash) != burnlist.end())) {
                             burnlist.push_back(nameiter->namehash);
-                            //print(" adding address to burn list ",nameiter->name," expiration ",nameiter->expiration,"\n");
 
                             if (burnlist.size() >= numbertoburn) {
                                 break;
@@ -964,39 +854,32 @@ namespace fioio {
             //do the burning.
             for (int i = 0; i < burnlist.size(); i++) {
                 uint128_t burner = burnlist[i];
-                //to call erase we need to have the primary key, get the list of primary keys out of keynames
                 vector <uint64_t> ids;
 
-                //remove the items from the fionames
                 auto namesbyname = fionames.get_index<"byname"_n>();
                 auto fionamesiter = namesbyname.find(burner);
                 if (fionamesiter != namesbyname.end()) {
-                    //print(" erasing fioname ",fionamesiter->name," expiration ",fionamesiter->expiration,"\n");
                     namesbyname.erase(fionamesiter);
                 }
             }
 
             for (int i = 0; i < domainburnlist.size(); i++) {
                 uint128_t burner = domainburnlist[i];
-                //print(" looking to erase domain ",burner,"\n");
 
                 auto domainsbyname = domains.get_index<"byname"_n>();
                 auto domainsiter = domainsbyname.find(burner);
 
                 if (domainsiter != domainsbyname.end()) {
-                    //print(" erasing domain ",domainsiter->name," expiration ",domainsiter->expiration,"\n");
                     domainsbyname.erase(domainsiter);
                 }
             }
 
-            //done with burning, return the result.
             nlohmann::json json = {{"status",       "OK"},
                                    {"items_burned", (burnlist.size() + domainburnlist.size())}
             };
 
             send_response(json.dump().c_str());
         }
-
 
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
@@ -1009,7 +892,6 @@ namespace fioio {
         void
         addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
                    const name &actor, const string &tpid) {
-
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
@@ -1034,10 +916,8 @@ namespace fioio {
             register_errors(fa, true);
 
             uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
-
             auto domainsbyname = domains.get_index<"byname"_n>();
             auto domain_iter = domainsbyname.find(domainHash);
-
 
             fio_400_assert(domain_iter != domainsbyname.end(), "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorDomainNotRegistered);
@@ -1072,7 +952,6 @@ namespace fioio {
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
             print(reg_fee_asset.amount);
-            //ADAM how to set thisreg_fee_asset = asset::from_string(to_string(reg_amount));
             fio_fees(actor, reg_fee_asset);
             process_rewards(tpid, reg_amount, get_self());
             if (reg_amount > 0) {
@@ -1155,7 +1034,7 @@ namespace fioio {
                 });
             }
         }
-    }; // class FioNameLookup
+    };
 
     EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(
             expaddresses)(setdomainpub)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)

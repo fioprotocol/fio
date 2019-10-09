@@ -72,7 +72,6 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-
             //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found in obt json blob", ErrorInvalidJsonInput);
@@ -82,9 +81,6 @@ namespace fioio {
             FioAddress payerfa;
             getFioAddressStruct(payer_fio_address, payerfa);
 
-            //if the request id is specified in the json then look to see if it is present
-            //in the table, if so then add the associated update into the status tables.
-            //if the id is present in the json and not in the table error.
             if (fio_request_id.length() > 0) {
                 uint64_t currentTime = current_time();
                 uint64_t requestId;
@@ -94,7 +90,7 @@ namespace fioio {
                 auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
                 fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                                "No such FIO Request ", ErrorRequestContextNotFound);
-                //insert a send record into the status table using this id.
+
                 fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
@@ -105,7 +101,6 @@ namespace fioio {
             }
             uint32_t present_time = now();
 
-            //check the payer address, see that its a valid fio name
             uint128_t nameHash = string_to_uint128_hash(payer_fio_address.c_str());
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
@@ -118,7 +113,6 @@ namespace fioio {
             fio_400_assert(present_time <= payernameexp, "payer_fio_address", payer_fio_address,
                            "FIO Address expired", ErrorFioNameExpired);
 
-            //check domain.
             uint128_t domHash = string_to_uint128_hash(payerfa.fiodomain.c_str());
 
             auto domainsbyname = domains.get_index<"byname"_n>();
@@ -131,7 +125,6 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-            //check the payee address, see that its a valid fio name
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
             fioname_iter = namesbyname.find(nameHash);
@@ -144,19 +137,17 @@ namespace fioio {
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
 
-            //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("record_send");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            //if the fee isnt found for the endpoint, then 400 error.
+
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "record_send",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a bundleeligible fee then this is an error.
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "record_send unexpected fee type for endpoint record_send, expected 1", ErrorNoEndpoint);
 
@@ -233,8 +224,6 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-
-            //check that names were found in the json.
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not specified",
                            ErrorInvalidJsonInput);
@@ -249,7 +238,6 @@ namespace fioio {
 
             uint32_t present_time = now();
 
-            //check the payer address, see that its a valid fio name
             uint128_t nameHash = string_to_uint128_hash(payer_fio_address.c_str());
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
@@ -257,7 +245,6 @@ namespace fioio {
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
-            //check the payee address, see that its a valid fio name
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
             fioname_iter = namesbyname.find(nameHash);
@@ -271,7 +258,6 @@ namespace fioio {
             fio_400_assert(present_time <= payeenameexp, "payee_fio_address", payee_fio_address,
                            "FIO Address expired", ErrorFioNameExpired);
 
-            //check domain.
             uint128_t domHash = string_to_uint128_hash(payeefa.fiodomain.c_str());
             auto domainsbyname = domains.get_index<"byname"_n>();
             auto iterdom = domainsbyname.find(domHash);
@@ -283,7 +269,6 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-            //payee must be the actor.
             uint64_t account = fioname_iter->owner_account;
 
             name aActor = name(actor.c_str());
@@ -386,9 +371,6 @@ namespace fioio {
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
-            //if the request id is specified in the json then look to see if it is present
-            //in the table, if so then add the associated update into the status tables.
-            //if the id is present in the json and not inthe table error.
             uint64_t currentTime = current_time();
             uint64_t requestId;
 
@@ -401,7 +383,6 @@ namespace fioio {
             uint128_t payer128FioAddHashed = fioreqctx_iter->payer_fio_address;
             uint32_t present_time = now();
 
-            //check the payer address, see that its a valid fio name
 
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(payer128FioAddHashed);
@@ -417,7 +398,6 @@ namespace fioio {
             fio_400_assert(present_time <= payernameexp, "payer_fio_address", payerFioAddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
-            //check domain.
             uint128_t domHash = string_to_uint128_hash(payerfa.fiodomain.c_str());
             auto domainsbyname = domains.get_index<"byname"_n>();
             auto iterdom = domainsbyname.find(domHash);
@@ -435,7 +415,6 @@ namespace fioio {
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
 
-            //insert a send record into the status table using this id.
             fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                 fr.id = fiorequestStatusTable.available_primary_key();;
                 fr.fio_request_id = requestId;
@@ -444,7 +423,6 @@ namespace fioio {
                 fr.time_stamp = currentTime;
             });
 
-            //begin new fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("reject_funds_request");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
@@ -456,7 +434,6 @@ namespace fioio {
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
-            //if its not a bundleeligible fee then this is an error.
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "reject_funds_request unexpected fee type for endpoint reject_funds_request, expected 1",
                            ErrorNoEndpoint);
@@ -490,7 +467,6 @@ namespace fioio {
                 fio_fees(aactor, reg_fee_asset);
                 process_rewards(tpid, fee_amount, get_self());
 
-                //MAS-522 remove staking from voting
                 if (fee_amount > 0) {
                     //MAS-522 remove staking from voting.
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)

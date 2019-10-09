@@ -25,16 +25,7 @@ namespace eosiosystem {
         name producer;
         _ds >> timestamp >> producer;
 
-        // _gstate2.last_block_num is not used anywhere in the system contract code anymore.
-        // Although this field is deprecated, we will continue updating it for now until the last_block_num field
-        // is eventually completely removed, at which point this line can be removed.
         _gstate2.last_block_num = timestamp;
-
-        /** until activated stake crosses this threshold no new rewards are paid */
-        //in FIO we are not concerned with staking so we will not check
-        //the min activated stake.
-        //if (_gstate.total_activated_stake < min_activated_stake)
-        //    return;
 
         if (_gstate.last_pervote_bucket_fill == time_point())  /// start the presses
             _gstate.last_pervote_bucket_fill = current_time_point();
