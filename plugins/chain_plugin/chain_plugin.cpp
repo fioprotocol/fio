@@ -1332,7 +1332,7 @@ if( options.count(name) ) { \
                     .scope       = fio_system_scope,
                     .table       = fio_address_table,
                     .lower_bound = boost::lexical_cast<string>(account.value),
-                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position = "4"};
             // Do secondary key lookup
@@ -1461,7 +1461,7 @@ if( options.count(name) ) { \
                                 .scope       = fio_reqobt_scope,
                                 .table       = fio_request_status_lookup_table,
                                 .lower_bound = boost::lexical_cast<string>(fio_request_id),
-                                .upper_bound = boost::lexical_cast<string>(fio_request_id + 1),
+                                .upper_bound = boost::lexical_cast<string>(fio_request_id),
                                 .key_type       = "i64",
                                 .index_position = "2"};
                         // Do secondary key lookup
@@ -1535,7 +1535,7 @@ if( options.count(name) ) { \
                     .scope       = fio_system_scope,
                     .table       = fio_address_table,
                     .lower_bound = boost::lexical_cast<string>(account.value),
-                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position = "4"};
             // Do secondary key lookup
@@ -1626,7 +1626,7 @@ if( options.count(name) ) { \
                                 .scope       = fio_reqobt_scope,
                                 .table       = fio_request_status_lookup_table,
                                 .lower_bound = boost::lexical_cast<string>(fio_request_id),
-                                .upper_bound = boost::lexical_cast<string>(fio_request_id + 1),
+                                .upper_bound = boost::lexical_cast<string>(fio_request_id),
                                 .key_type       = "i64",
                                 .index_position = "2"};
                         // Do secondary key lookup
@@ -1701,7 +1701,7 @@ if( options.count(name) ) { \
                     .scope          = fio_system_scope,
                     .table          = fio_accounts_table,
                     .lower_bound    = boost::lexical_cast<string>(account.value),
-                    .upper_bound    = boost::lexical_cast<string>(account.value + 1),
+                    .upper_bound    = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position = "1"};
 
@@ -1735,7 +1735,7 @@ if( options.count(name) ) { \
                     .scope       = fio_system_scope,
                     .table       = fio_address_table,
                     .lower_bound = boost::lexical_cast<string>(account.value),
-                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position ="4"};
 
@@ -1778,7 +1778,7 @@ if( options.count(name) ) { \
                     .scope=fio_system_scope,
                     .table=fio_domains_table,
                     .lower_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
-                    .upper_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str()) + 1),
+                    .upper_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
                     .key_type       = "i64",
                     .index_position = "2"};
 
@@ -2030,7 +2030,7 @@ if( options.count(name) ) { \
                     .scope       = fio_whitelst_scope,
                     .table       = fio_whitelist_table,
                     .lower_bound = boost::lexical_cast<string>(account.value),
-                    .upper_bound = boost::lexical_cast<string>(account.value + 1),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position ="2"};
 
@@ -2083,7 +2083,7 @@ if( options.count(name) ) { \
                     .scope       = fio_whitelst_scope,
                     .table       = fio_whitelist_table,
                     .lower_bound = boost::lexical_cast<string>(fio_pub_key_hash),
-                    .upper_bound = boost::lexical_cast<string>(fio_pub_key_hash + 1),
+                    .upper_bound = boost::lexical_cast<string>(fio_pub_key_hash),
                     .key_type       = "i64",
                     .index_position ="3"};
 
@@ -2232,7 +2232,7 @@ if( options.count(name) ) { \
                     .scope=fio_system_scope,
                     .table=fio_chains_table,
                     .lower_bound=boost::lexical_cast<string>(chain_hash),
-                    .upper_bound=boost::lexical_cast<string>(chain_hash + 1),
+                    .upper_bound=boost::lexical_cast<string>(chain_hash),
                     .encode_type="dec"};
 
             chains_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
