@@ -1345,6 +1345,7 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
                            fioio::ErrorNoFioRequestsFound);
 
+
             for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
                 //get the fio address associated with this public address
                 string fio_address = (string) names_rows_result.rows[knpos]["name"].as_string();
@@ -1362,13 +1363,6 @@ if( options.count(name) ) { \
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
                                                     sizeof(address_hash)));
 
-                uint128_t plusone = address_hash + 1;
-
-                std::string hexvalnamehashplus1 = "0x";
-                hexvalnamehashplus1.append(
-                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
-
                 dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
                      ("add_hash", address_hash));
 
@@ -1378,7 +1372,7 @@ if( options.count(name) ) { \
                         .scope=fio_reqobt_scope,
                         .table=fio_requests_lookup_table,
                         .lower_bound=hexvalnamehash,
-                        .upper_bound=hexvalnamehashplus1,
+                        .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position = "2"};//get all requests that i have received, IE that i must pay.
 
@@ -1390,11 +1384,13 @@ if( options.count(name) ) { \
 
                 dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
 
+                dlog("search_offset : '${size}'", ("size", search_offset));
+
                 //for each request look to see if there are associated statuses
                 //query the fioreqstss table by the fioreqid, if there is a match then take these
                 //out of the results, otherwise include in the results.
                 // Look through the keynames lookup results and push the fio_addresses into results
-                if (search_offset < requests_rows_result.rows.size() && !search_finished) {
+                if (search_offset <requests_rows_result.rows.size() && !search_finished) {
                     for (size_t pos = 0 + search_offset; pos < requests_rows_result.rows.size(); pos++) {
                         //get all the attributes of the fio request
                         uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
@@ -1481,7 +1477,7 @@ if( options.count(name) ) { \
                         if (request_status_rows_result.rows.empty()) {
                             result.requests.push_back(rr);
                             returnCount++;
-                            if (search_offset > 0) { search_offset--; }
+                           if (search_offset > 0) { search_offset--; }
 
                             if (returnCount == search_limit && search_limit != 0) {
                                 search_results = requests_rows_result.rows.size() - (pos + 1 + search_notFound);
@@ -1565,19 +1561,13 @@ if( options.count(name) ) { \
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
                                                     sizeof(address_hash)));
 
-                uint128_t plusone = address_hash + 1;
-
-                std::string hexvalnamehashplus1 = "0x";
-                hexvalnamehashplus1.append(
-                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
                 get_table_rows_params name_table_row_params = get_table_rows_params{
                         .json=true,
                         .code=fio_reqobt_code,
                         .scope=fio_reqobt_scope,
                         .table=fio_requests_lookup_table,
                         .lower_bound=hexvalnamehash,
-                        .upper_bound=hexvalnamehashplus1,
+                        .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position ="3"};
 
@@ -1849,6 +1839,8 @@ if( options.count(name) ) { \
             hexvalkeyhashplus1.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
 
+
+
             get_table_rows_params eosio_table_row_params = get_table_rows_params{
                     .json           = true,
                     .code           = fio_system_code,
@@ -1922,19 +1914,12 @@ if( options.count(name) ) { \
             hexvalendpointhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
 
-            uint128_t plusone = endpointhash + 1;
-
-            std::string hexvalendpointhashplus1 = "0x";
-            hexvalendpointhashplus1.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
-
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=fio_fee_code,
                     .scope=fio_fee_scope,
                     .table=fio_fees_table,
                     .lower_bound=hexvalendpointhash,
-                    .upper_bound=hexvalendpointhashplus1,
+                    .upper_bound=hexvalendpointhash,
                     .encode_type="hex",
                     .index_position ="2"};
 
@@ -1970,19 +1955,12 @@ if( options.count(name) ) { \
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
 
-                uint128_t plusone = name_hash + 1;
-
-                std::string hexvalnamehashplus1 = "0x";
-                hexvalnamehashplus1.append(
-                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
-
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
                         .table=fio_address_table,
                         .lower_bound=hexvalnamehash,
-                        .upper_bound=hexvalnamehashplus1,
+                        .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position ="5"};
 
@@ -2172,19 +2150,12 @@ if( options.count(name) ) { \
             hexvaldomainhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
 
-            uint128_t domplusone = domain_hash + 1;
-
-            std::string hexvaldomainhashplus1 = "0x";
-            hexvaldomainhashplus1.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domplusone), sizeof(domplusone)));
-
-
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=code,
                     .scope=fio_system_scope,
                     .table=fio_domains_table,
                     .lower_bound=hexvaldomainhash,
-                    .upper_bound=hexvaldomainhashplus1,
+                    .upper_bound=hexvaldomainhash,
                     .encode_type="hex",
                     .index_position ="4"};
 
@@ -2217,19 +2188,12 @@ if( options.count(name) ) { \
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
 
-                uint128_t plusone = name_hash + 1;
-
-                std::string hexvalnamehashplus1 = "0x";
-                hexvalnamehashplus1.append(
-                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
-
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
                         .table=fio_address_table,
                         .lower_bound=hexvalnamehash,
-                        .upper_bound=hexvalnamehashplus1,
+                        .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position ="5"};
 
@@ -2321,19 +2285,13 @@ if( options.count(name) ) { \
             hexvaldomainhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
 
-            uint128_t domplusone = domain_hash + 1;
-
-            std::string hexvaldomainhashplus1 = "0x";
-            hexvaldomainhashplus1.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domplusone), sizeof(domplusone)));
-
-
+            dlog("Searching for : ‘${size}‘", ("size", hexvaldomainhash));
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=fio_system_code,
                     .scope=fio_system_scope,
                     .table=fio_domains_table,
                     .lower_bound=hexvaldomainhash,
-                    .upper_bound=hexvaldomainhashplus1,
+                    .upper_bound=hexvaldomainhash,
                     .encode_type="hex",
                     .index_position ="4"};
 
@@ -2349,19 +2307,12 @@ if( options.count(name) ) { \
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
 
-                uint128_t plusone = name_hash + 1;
-
-                std::string hexvalnamehashplus1 = "0x";
-                hexvalnamehashplus1.append(
-                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
-
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
                         .table=fio_address_table,
                         .lower_bound=hexvalnamehash,
-                        .upper_bound=hexvalnamehashplus1,
+                        .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position ="5"};
 
