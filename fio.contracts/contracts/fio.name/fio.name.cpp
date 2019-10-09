@@ -332,9 +332,14 @@ namespace fioio {
                 a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
             });
 
+            //begin new fees, bundle eligible fee logic
+
             uint128_t endpoint_hash = string_to_uint128_hash("add_pub_address");
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+            //if the fee isnt found for the endpoint, then 400 error.
+
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "add_pub_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 

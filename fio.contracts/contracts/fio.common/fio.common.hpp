@@ -30,7 +30,6 @@
 #define MAXBOUNTYTOKENSTOMINT 200000000000000000
 #endif
 
-
 namespace fioio {
 
     using namespace eosio;
@@ -58,7 +57,6 @@ namespace fioio {
             return (c - '1') + 1;
         return 0;
     }
-
 
     static constexpr uint64_t string_to_name(const char *str) {
 
@@ -124,7 +122,6 @@ namespace fioio {
 
         return retval;
     }
-
 
     //use this for debug to see the value of your uint128_t, this will match what shows in get table.
     static std::string to_hex(const char *d, uint32_t s) {
@@ -232,7 +229,6 @@ namespace fioio {
                     std::make_tuple(tpid, actor, (amount / 10) + bamount)
             ).send();
 
-
             action(
                     permission_level{actor, "active"_n},
                     TREASURYACCOUNT,
@@ -309,7 +305,6 @@ namespace fioio {
             ).send();
         }
     }
-
 
     //Precondition: this method should only be called by register_producer, vote_producer, unregister_producer, register_proxy, unregister_proxy, vote_proxy
     // after transaction fees have been defined
