@@ -250,18 +250,6 @@
        "fields": [
        ]
      },{
-      "name": "removename",
-      "base": "",
-      "fields": []
-    },{
-      "name": "removedomain",
-      "base": "",
-      "fields": []
-    },{
-      "name": "rmvaddress",
-      "base": "",
-      "fields": []
-    },{
       "name": "decrcounter",
       "base": "",
       "fields": [{
@@ -314,18 +302,6 @@
     },{
       "name": "burnexpired",
       "type": "burnexpired",
-      "ricardian_contract": ""
-    },{
-      "name": "removename",
-      "type": "removename",
-      "ricardian_contract": ""
-    },{
-      "name": "removedomain",
-      "type": "removedomain",
-      "ricardian_contract": ""
-    },{
-      "name": "rmvaddress",
-      "type": "rmvaddress",
       "ricardian_contract": ""
     },{
       "name": "setdomainpub",

@@ -6,8 +6,10 @@
  *
  *  Changes:
  */
+#pragma once
 
 #include <string>
+
 //#include <boost/algorithm/string.hpp> // *DANGER - don't use! Severe performance side effects may result
 
 #pragma once
@@ -26,7 +28,7 @@ namespace fioio {
         bool domainOnly;
     };
 
-    inline bool isFioNameEmpty(string p) {
+    inline bool isFioNameEmpty(const string &p) {
         return p.empty();
     }
 
@@ -67,11 +69,11 @@ namespace fioio {
         return 0;
     }
 
-    inline int isDomainNameValid(string domain, bool domainOnly) {
+    inline int isDomainNameValid(const string &domain, const bool &domainOnly) {
         return domainOnly ? isFioNameValid(domain) * 10 : 0;
     }
 
-    inline int fioNameSizeCheck(string fn, string fd) {
+    inline int fioNameSizeCheck(const string &fn, const string &fd) {
         size_t totalsize = fn.size() + fd.size();
 
         if (totalsize > maxFioNameLen + maxFioDomainLen) {
@@ -80,7 +82,7 @@ namespace fioio {
         return 0;
     }
 
-    inline bool isChainNameValid(string chain) {
+    inline bool isChainNameValid(const string &chain) {
         if (chain.size() >= 1 && chain.size() <= 10) {
             if (chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
                 std::string::npos) {
@@ -90,7 +92,7 @@ namespace fioio {
         return true;
     }
 
-    inline bool isPubAddressValid(string address) {
+    inline bool isPubAddressValid(const string &address) {
         if (address.size() == 0 || address.find(" ")) {
             return true;
         }
@@ -104,5 +106,6 @@ namespace fioio {
 
         return my_chain;
     }
+
 
 }

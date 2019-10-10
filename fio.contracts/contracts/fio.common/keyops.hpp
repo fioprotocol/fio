@@ -98,7 +98,6 @@ namespace fioio {
         name tn = name{res};
         std::string myStr = tn.to_string();
         //throw an error for safety, since this code was just ported.
-        check(myStr.length() == 13, "Shortened key improper length");
         new_account = myStr.substr(0, 12);
     }
 }
