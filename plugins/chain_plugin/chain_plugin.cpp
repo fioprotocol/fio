@@ -38,6 +38,7 @@
 
 namespace eosio {
 
+//declare operator<< and validate funciton for read_mode in the same namespace as read_mode itself
     namespace chain {
 
         std::ostream &operator<<(std::ostream &osm, eosio::chain::db_read_mode m) {
@@ -123,6 +124,8 @@ namespace eosio {
 
     using boost::signals2::scoped_connection;
 
+//using txn_msg_rate_limits = controller::txn_msg_rate_limits;
+
 #define CATCH_AND_CALL(NEXT)\
    catch ( const fc::exception& err ) {\
       NEXT(err.dynamic_copy_exception());\
@@ -139,6 +142,7 @@ namespace eosio {
          std::current_exception());\
       NEXT(e.dynamic_copy_exception());\
    }
+
 
     class chain_plugin_impl {
     public:
@@ -1307,13 +1311,19 @@ if( options.count(name) ) { \
             bool search_finished = false;
 
             fioio::key_to_account(p.fio_public_key, account_name);
+            //get the public address.
 
             name account = name{account_name};
+
+            dlog("account: '${size}'", ("size", account));
+            dlog("account_name: '${size}'", ("size", account_name));
+
             get_pending_fio_requests_result result;
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
 
+            dlog("SENT ACCOUNT NAME: '${key_hash}'", ("key_hash", account));
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_system_code,
@@ -1323,21 +1333,26 @@ if( options.count(name) ) { \
                     .upper_bound = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position = "4"};
-
+            // Do secondary key lookup
             get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     table_row_params, system_abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
+            dlog("NAMES row count : '${size}'", ("size", names_rows_result.rows.size()));
             FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
                            fioio::ErrorNoFioRequestsFound);
 
 
             for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
+                //get the fio address associated with this public address
                 string fio_address = (string) names_rows_result.rows[knpos]["name"].as_string();
+                //get the name of the from associated with the request without looking up the
+                //hashed value. tricky.
                 string from_fioadd = fio_address;
                 uint128_t address_hash = fioio::string_to_uint128_t(fio_address.c_str());
 
+                //look up the requests for this fio name (look for matches in the tofioadd
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
 
                 std::string hexvalnamehash = "0x";
@@ -1345,6 +1360,9 @@ if( options.count(name) ) { \
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
                                                     sizeof(address_hash)));
+
+                dlog("Lookup fio requests in fioreqctxts using fio address hash: '${add_hash}'",
+                     ("add_hash", address_hash));
 
                 get_table_rows_params name_table_row_params = get_table_rows_params{
                         .json=true,
@@ -1354,12 +1372,17 @@ if( options.count(name) ) { \
                         .lower_bound=hexvalnamehash,
                         .upper_bound=hexvalnamehash,
                         .encode_type="hex",
-                        .index_position = "2"};
+                        .index_position = "2"};//get all requests that i have received, IE that i must pay.
 
+                // Do secondary key lookup
                 get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
                             return v;
                         });
+
+                dlog("fio requests unfiltered row count : '${size}'", ("size", requests_rows_result.rows.size()));
+
+                dlog("search_offset : '${size}'", ("size", search_offset));
 
                 //for each request look to see if there are associated statuses
                 //query the fioreqstss table by the fioreqid, if there is a match then take these
@@ -1373,6 +1396,13 @@ if( options.count(name) ) { \
                         string payee_fio_addr = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
                         uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+
+
+                        dlog("payee fio address hex str: '${add_hash}'",
+                             ("add_hash", payee_fio_address));
+
+                        dlog("payee fio address hex str: '${add_hash}'",
+                             ("add_hash", payee_fio_addr));
 
                         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                                 .code=fio_system_code,
@@ -1417,8 +1447,12 @@ if( options.count(name) ) { \
                         request_record rr{fio_request_id, from_fioadd,
                                           to_fioadd, payee_fio_public_key, payer_fio_public_key, content, buffer};
 
+                        //use this id and query the fioreqstss table for status updates to this fioreqid
+                        //look up the requests for this fio name (look for matches in the tofioadd
                         string fio_request_status_lookup_table = "fioreqstss";   // table name
 
+                        dlog("Lookup request statuses in fioreqstss using id: '${fio_request_id}'",
+                             ("fio_request_id", fio_request_id));
                         get_table_rows_params request_status_row_params = get_table_rows_params{
                                 .json        = true,
                                 .code        = fio_reqobt_code,
@@ -1428,11 +1462,14 @@ if( options.count(name) ) { \
                                 .upper_bound = boost::lexical_cast<string>(fio_request_id),
                                 .key_type       = "i64",
                                 .index_position = "2"};
-
+                        // Do secondary key lookup
                         get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                                 request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
                                     return v;
                                 });
+
+                        dlog("request status unfiltered row count : '${size}'",
+                             ("size", request_status_rows_result.rows.size()));
 
                         //if there are no statuses for this record then add it to the results
                         if (request_status_rows_result.rows.empty()) {
@@ -1499,7 +1536,7 @@ if( options.count(name) ) { \
                     .upper_bound = boost::lexical_cast<string>(account.value),
                     .key_type       = "i64",
                     .index_position = "4"};
-
+            // Do secondary key lookup
             get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     table_row_params, system_abi, [](uint64_t v) -> uint64_t {
                         return v;
@@ -1509,9 +1546,11 @@ if( options.count(name) ) { \
                            fioio::ErrorNoFioRequestsFound);
 
             for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
+                //get the fio address associated with this public address
                 string fio_address = names_rows_result.rows[knpos]["name"].as_string();
                 string to_fioadd = fio_address;
                 uint128_t address_hash = fioio::string_to_uint128_t(fio_address.c_str());
+                //look up the requests for this fio name (look for matches in the tofioadd
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
 
                 std::string hexvalnamehash = "0x";
@@ -1530,6 +1569,7 @@ if( options.count(name) ) { \
                         .encode_type="hex",
                         .index_position ="3"};
 
+                // Do secondary key lookup
                 get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
                             return v;
@@ -1724,6 +1764,7 @@ if( options.count(name) ) { \
                     strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
                     fioaddress_record fa{nam, buffer};
+                    //then push the address record result
                     result.fio_addresses.push_back(fa);
                 }
 
@@ -1840,10 +1881,10 @@ if( options.count(name) ) { \
         } //get_fio_balance
 
         /*** v1/chain/get_fee
-        * Retrieves the fee associated with the specified fio address and blockchain endpoint
-        * @param p
-        * @return result
-        */
+       * Retrieves the fee associated with the specified fio address and blockchain endpoint
+       * @param p
+       * @return result
+       */
         read_only::get_fee_result read_only::get_fee(const read_only::get_fee_params &p) const {
             // assert if empty chain key
             get_fee_result result;
@@ -1865,11 +1906,12 @@ if( options.count(name) ) { \
             //read the fees table.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_fee_code);
 
+
             dlog("Lookup using endpoint hash: ‘${endpoint_hash}‘", ("endpoint_hash", endpointhash));
             std::string hexvalendpointhash = "0x";
             hexvalendpointhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
-                    
+
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=fio_fee_code,
                     .scope=fio_fee_scope,
@@ -1885,6 +1927,7 @@ if( options.count(name) ) { \
                         return v;
                     });
 
+
             dlog("Lookup for fee, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
             FIO_400_ASSERT(!table_rows_result.rows.empty(), "end_point", p.end_point, "Invalid end point",
@@ -1895,7 +1938,7 @@ if( options.count(name) ) { \
             bool isbundleeligible = ((uint64_t) (table_rows_result.rows[0]["type"].as_uint64()) == 1);
             uint64_t feeamount = (uint64_t) table_rows_result.rows[0]["suf_amount"].as_uint64();
 
-            if (isbundleeligible) {
+            if (isbundleeligible) { //if bundle eligible check the countdown on the name, return the fee.
 
                 FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", "", "Invalid FIO Address",
                                fioio::ErrorChainAddressEmpty);
@@ -1919,6 +1962,7 @@ if( options.count(name) ) { \
                         .encode_type="hex",
                         .index_position ="5"};
 
+                // Do secondary key lookup
                 get_table_rows_result names_table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                             return v;
@@ -1954,15 +1998,16 @@ if( options.count(name) ) { \
             }
             //get the fee
 
+
             return result;
         } // get_fee
 
 
         /*** v1/chain/get_whitelist
-        * Retrieves the whitelist associated with the specified public key
-        * @param p
-        * @return result
-        */
+    * Retrieves the whitelist associated with the specified public key
+    * @param p
+    * @return result
+    */
         read_only::get_whitelist_result read_only::get_whitelist(const read_only::get_whitelist_params &p) const {
 
             get_whitelist_result result;
@@ -1987,10 +2032,13 @@ if( options.count(name) ) { \
                     .key_type       = "i64",
                     .index_position ="2"};
 
+
+            // Do secondary key lookup
             get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     table_row_params, abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
+
 
             dlog("Lookup for whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
@@ -2008,11 +2056,12 @@ if( options.count(name) ) { \
             return result;
         }
 
+
         /*** v1/chain/check_whitelist
-        * returns true if the specified fio_public_key_hash is in the whitelist, false if not.
-        * @param p
-        * @return result
-        */
+   * returns true if the specified fio_public_key_hash is in the whitelist, false if not.
+   * @param p
+   * @return result
+   */
         read_only::check_whitelist_result read_only::check_whitelist(const read_only::check_whitelist_params &p) const {
 
             check_whitelist_result result;
@@ -2036,6 +2085,8 @@ if( options.count(name) ) { \
                     .key_type       = "i64",
                     .index_position ="3"};
 
+
+            // Do secondary key lookup
             get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     table_row_params, abi, [](uint64_t v) -> uint64_t {
                         return v;
@@ -2062,7 +2113,6 @@ if( options.count(name) ) { \
             // assert if empty fio name
             int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
             dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
-
             FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", fa.fioaddress,
                            "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
@@ -2074,6 +2124,7 @@ if( options.count(name) ) { \
 
             dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fioaddress)("domain", fa.fiodomain));
 
+            //declare variables.
             const name code = ::eosio::string_to_name("fio.system");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
             const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
@@ -2086,8 +2137,9 @@ if( options.count(name) ) { \
             get_table_rows_result domain_result;
             get_table_rows_result fioname_result;
             get_table_rows_result chains_result;
+            //this is the table rows result to use after domain/fioname specific processing
             get_table_rows_result name_result;
-
+            //this is the result returned to the user
             pub_address_lookup_result result;
 
             result.public_address = "";
@@ -2105,15 +2157,23 @@ if( options.count(name) ) { \
                     .encode_type="hex",
                     .index_position ="4"};
 
+            // Do secondary key lookup
             domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                     name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                         return v;
                     });
 
+
+            // If no matches, then domain not found, return empty result
+            dlog("Domain matched: ${matched}", ("matched", !domain_result.rows.empty()));
             FIO_404_ASSERT(!domain_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
 
             uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            //This is not the local computer time, it is in fact the block time.
             uint32_t present_time = (uint32_t) time(0);
+
+            //if the domain is expired then return an empty result.
+            dlog("Domain expired: ${expired}", ("expired", present_time > domain_expiration));
             FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
                            fioio::ErrorFioNameEmpty);
 
@@ -2125,7 +2185,7 @@ if( options.count(name) ) { \
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
-                        
+
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
@@ -2135,15 +2195,22 @@ if( options.count(name) ) { \
                         .encode_type="hex",
                         .index_position ="5"};
 
+                // Do secondary key lookup
                 fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                             return v;
                         });
 
+
+                // If no matches, the name does not exist, return empty result
+                dlog("FIO address matched: ${matched}", ("matched", !fioname_result.rows.empty()));
                 FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found",
                                fioio::ErrorPubAddressNotFound);
 
                 uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+
+                //if the name is expired then return an empty result.
+                dlog("FIO name expired: ${expired}", ("expired", present_time > domain_expiration));
                 FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameEmpty);
 
@@ -2153,7 +2220,9 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
             }
 
+            // chain support check
             string my_chain = p.token_code;
+            //chain_type c_type= str_to_chain_type(my_chain);
 
             //Get Chains Table
             get_table_rows_params chain_table_row_params = get_table_rows_params{.json=true,
@@ -2215,6 +2284,7 @@ if( options.count(name) ) { \
             hexvaldomainhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
 
+            dlog("Searching for : ‘${size}‘", ("size", hexvaldomainhash));
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=fio_system_code,
                     .scope=fio_system_scope,
@@ -2230,11 +2300,12 @@ if( options.count(name) ) { \
                         return v;
                     });
 
+
             if (!fa.fioname.empty()) {
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
-                        
+
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
@@ -2250,6 +2321,7 @@ if( options.count(name) ) { \
                             return v;
                         });
 
+                // Not Registered
                 if (fioname_result.rows.empty()) {
                     return result;
                 }
@@ -2278,6 +2350,7 @@ if( options.count(name) ) { \
             result.is_registered = true;
             return result;
         }
+
         /*****************End of FIO API******************************/
         /*************************************************************/
 
@@ -3075,11 +3148,11 @@ if( options.count(name) ) { \
             } CATCH_AND_CALL(next);
         }
 
-        /***
-        * add_pub_address - Registers a public address onto the address container
-        * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-        * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
-        */
+/***
+ * add_pub_address - Registers a public address onto the address container
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
         void read_write::add_pub_address(const read_write::add_pub_address_params &params,
                                          next_function<read_write::add_pub_address_results> next) {
             try {
@@ -3128,11 +3201,11 @@ if( options.count(name) ) { \
             } CATCH_AND_CALL(next);
         }
 
-        /***
-         * transfer_tokens_pub_key - Transfers FIO tokens from actor to fio pub address
-         * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-         * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
-         */
+/***
+ * transfer_tokens_pub_key - Transfers FIO tokens from actor to fio pub address
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
         void read_write::transfer_tokens_pub_key(const read_write::transfer_tokens_pub_key_params &params,
                                                  next_function<read_write::transfer_tokens_pub_key_results> next) {
             try {
@@ -3182,11 +3255,11 @@ if( options.count(name) ) { \
             } CATCH_AND_CALL(next);
         }
 
-        /***
-         * burn_expired - This enpoint will burn the next 100 expired addresses.
-         * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-         * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
-         */
+/***
+ * burn_expired - This enpoint will burn the next 100 expired addresses.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
         void read_write::burn_expired(const read_write::burn_expired_params &params,
                                       next_function<read_write::burn_expired_results> next) {
             try {
@@ -3237,10 +3310,10 @@ if( options.count(name) ) { \
         }
 
         /***
-        * unregister_proxy - This enpoint will set the specified fio address account to no longer be a proxy.
-        * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-        * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
-        */
+* unregister_proxy - This enpoint will set the specified fio address account to no longer be a proxy.
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
         void read_write::unregister_proxy(const read_write::unregister_proxy_params &params,
                                           next_function<read_write::unregister_proxy_results> next) {
             try {
@@ -3293,10 +3366,10 @@ if( options.count(name) ) { \
 
 
         /***
-        * register_proxy - This enpoint will set the specified fio address account to be a proxy.
-        * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-        * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
-        */
+ * register_proxy - This enpoint will set the specified fio address account to be a proxy.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
         void read_write::register_proxy(const read_write::register_proxy_params &params,
                                         next_function<read_write::register_proxy_results> next) {
             try {
@@ -3855,11 +3928,11 @@ if( options.count(name) ) { \
         }
 
 
-        /***
-         * pay_tpid_rewards - This endpoint will pay TPIDs pending rewards payment.
-         * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-         * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
-         */
+/***
+ * pay_tpid_rewards - This endpoint will pay TPIDs pending rewards payment.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
         void read_write::pay_tpid_rewards(const read_write::pay_tpid_rewards_params &params,
                                           next_function<read_write::pay_tpid_rewards_results> next) {
             try {

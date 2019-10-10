@@ -21,21 +21,21 @@ namespace fioio {
 
     // Transaction status
     enum class trxstatus {
-        requested = 0,
-        rejected = 1,
-        sent_to_blockchain = 2
+        requested = 0,  // request sent
+        rejected = 1,  // request rejected
+        sent_to_blockchain = 2   // payment sent to blockchain
     };
 
     // Structure for "FIO request" context.
     // @abi table fioreqctxts i64
-    struct [[eosio::action]] fioreqctxt {
-        uint64_t fio_request_id;
-        uint128_t payer_fio_address;
-        uint128_t payee_fio_address;
-        string payer_fio_address_hex_str;
-        string payee_fio_address_hex_str;
-        string content;
-        uint64_t time_stamp;
+    struct [[eosio::action]] fioreqctxt {        // FIO funds request context; specific to requests native to FIO platform
+        uint64_t fio_request_id;     // one up index starting at 0
+        uint128_t payer_fio_address;  // requestee fio address of fio request
+        uint128_t payee_fio_address;    // requestor fio address of the fio request
+        string payer_fio_address_hex_str;  // hex string for payer fio address hash
+        string payee_fio_address_hex_str;    // hex string for payer fio address hash
+        string content;      // encrypted content
+        uint64_t time_stamp;      // FIO blockchain request received timestamp
         string payer_fio_addr;
         string payee_fio_addr;
 
@@ -59,11 +59,11 @@ namespace fioio {
     // Structure for "FIO request status" updates.
     // @abi table fioreqstss i64
     struct [[eosio::action]] fioreqsts {
-        uint64_t id;
-        uint64_t fio_request_id;
-        uint64_t status;
-        string metadata;
-        uint64_t time_stamp;
+        uint64_t id;             // primary key, auto-increment
+        uint64_t fio_request_id;       // FIO request {fioreqctxt.fioreqid} this request status update is related to
+        uint64_t status;         // request status
+        string metadata;       // JSON formatted meta data e.g. {"obt_hash": "962167B2F99B20"}
+        uint64_t time_stamp;        // FIO blockchain status update received timestamp
 
         uint64_t primary_key() const { return id; }
         uint64_t by_fioreqid() const { return fio_request_id; }

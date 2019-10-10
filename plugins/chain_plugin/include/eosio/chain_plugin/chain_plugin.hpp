@@ -96,7 +96,7 @@ namespace eosio {
         template<typename>
         struct resolver_factory;
 
-        // see specializations for uint64_t and double in source file
+// see specializations for uint64_t and double in source file
         template<typename Type>
         Type convert_to_type(const string &str, const string &desc) {
             try {
@@ -1224,6 +1224,7 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(sc
 (show_payer))
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more)
 );
+
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit)
 )

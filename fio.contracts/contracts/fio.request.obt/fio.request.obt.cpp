@@ -357,7 +357,7 @@ namespace fioio {
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
-          
+
             uint64_t currentTime = current_time();
             uint64_t requestId;
 
