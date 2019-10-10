@@ -78,7 +78,7 @@ namespace fioio {
 
     struct [[eosio::action]] chainList {
         string chainname = nullptr;
-        uint32_t id = 0;
+        uint64_t id = 0;
         uint64_t chainhash = 0;
 
         uint64_t primary_key() const { return chainhash; }
