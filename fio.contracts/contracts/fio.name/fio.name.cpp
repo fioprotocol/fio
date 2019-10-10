@@ -291,6 +291,7 @@ namespace fioio {
 
             uint64_t chainhash = string_to_uint64_hash(tokencode.c_str());
             auto chain_iter = chains.find(chainhash);
+            auto size = distance(chains.cbegin(), chains.cend());
 
             if (chain_iter == chains.end()) {
                 fio_400_assert(tokencode.length() <= 10, "token_code", tokencode, "Invalid token code format",
@@ -299,7 +300,7 @@ namespace fioio {
                                ErrorTokenCodeInvalid);
 
                 chains.emplace(_self, [&](struct chainList &a) {
-                    a.id = chains.available_primary_key();
+                    a.id = size;
                     a.chainname = tokencode;
                     a.chainhash = chainhash;
                 });
