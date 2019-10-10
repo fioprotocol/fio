@@ -69,6 +69,7 @@ namespace fioio {
     constexpr auto InvalidAccountOrAction = ident | httpInvalidError | 136; // Provided account or action is not valid for this endpoint.
     constexpr auto ErrorActorNotInFioAccountMap = ident | httpDataError | 137;   // Actor not in FIO account map
     constexpr auto ErrorTokenCodeInvalid = ident | httpDataError | 138;   // token code invalid
+    constexpr auto ErrorPubKeyValid = ident | httpDataError | 139; //Invalid FIO Public Key (400)
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values

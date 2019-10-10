@@ -65,29 +65,6 @@ namespace fioio {
 
                 owner_account_name = actor;
             } else {
-                //check the owner_fio_public_key, if its empty then go and lookup the actor in the accountmap table
-                //and use this as the owner_fio_public_key.
-                eosio_assert(owner_fio_public_key.length() == 53, "Length of publik key should be 53");
-
-                string pubkey_prefix("FIO");
-                auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
-                                       owner_fio_public_key.begin());
-                eosio_assert(result.first == pubkey_prefix.end(),
-                             "Public key should be prefix with FIO");
-                auto base58substr = owner_fio_public_key.substr(pubkey_prefix.length());
-
-                vector<unsigned char> vch;
-                eosio_assert(decode_base58(base58substr, vch), "Decode pubkey failed");
-                eosio_assert(vch.size() == 37, "Invalid public key");
-
-                array<unsigned char, 33> pubkey_data;
-                copy_n(vch.begin(), 33, pubkey_data.begin());
-
-                capi_checksum160 check_pubkey;
-                ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
-                eosio_assert(memcmp(&check_pubkey.hash, &vch.end()[-4], 4) == 0,
-                             "invalid public key");
-                //end of the public key validity check.
 
                 string owner_account;
                 key_to_account(owner_fio_public_key, owner_account);
@@ -479,6 +456,13 @@ namespace fioio {
         regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor,
                    const string &tpid) {
 
+
+            if (owner_fio_public_key.length() > 0) {
+              fio_400_assert(isPubKeyValid(owner_fio_public_key),"owner_fio_public_key", owner_fio_public_key,
+                          "Invalid FIO Public Key",
+                          ErrorPubKeyValid);
+            }
+
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
             // Split the fio name and domain portions
 
@@ -532,6 +516,13 @@ namespace fioio {
         void
         regdomain(const string &fio_domain, const string &owner_fio_public_key,
                   uint64_t max_fee, const name &actor, const string &tpid) {
+
+            if (owner_fio_public_key.length() > 0) {
+              fio_400_assert(isPubKeyValid(owner_fio_public_key),"owner_fio_public_key", owner_fio_public_key,
+                          "Invalid FIO Public Key",
+                          ErrorPubKeyValid);
+            }
+
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
             // Split the fio name and domain portions
@@ -1125,18 +1116,6 @@ namespace fioio {
             print("bind of account is done processing", "\n");
         }
 
-        void removename() {
-            print("Begin removename()");
-        }
-
-        void removedomain() {
-            print("Begin removedomain()");
-        }
-
-        void rmvaddress() {
-            print("Begin rmvaddress()");
-        }
-
         void decrcounter(const string &fio_address) {
 
             string tstr = fio_address;
@@ -1158,6 +1137,6 @@ namespace fioio {
     }; // class FioNameLookup
 
     EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(
-            expaddresses)(setdomainpub)(burnexpired)(removename)(removedomain)(rmvaddress)(decrcounter)
+            expaddresses)(setdomainpub)(burnexpired)(decrcounter)
     (bind2eosio))
 }
