@@ -92,7 +92,7 @@ Options:
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
 #include <eosio/chain/contract_types.hpp>
-#include <eosio/chain/fioio/keyops.hpp>
+#include <fio.common/keyops.hpp>
 
 #pragma push_macro("N")
 #undef N
