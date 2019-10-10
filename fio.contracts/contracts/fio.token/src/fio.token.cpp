@@ -157,12 +157,10 @@ namespace eosio {
                              const string &tpid) {
 
         asset qty;
-        //we assume the amount is in fio sufs.
         int64_t i64 = stoi(amount.c_str());
         qty.amount = i64;
         qty.symbol = symbol("FIO", 9);
 
-        //first check the pub key for validity.
         fio_400_assert(payee_public_key.length() == 53, "payee_public_key", payee_public_key,
                        "Invalid Public Key", ErrorChainAddressNotFound);
 
@@ -191,7 +189,6 @@ namespace eosio {
 
         print("hashed account name from the payee_public_key ", payee_account, "\n");
 
-        //see if the payee_actor is in the eosionames table.
         eosio_assert(payee_account.length() == 12, "Length of account name should be 12");
         name new_account_name = name(payee_account.c_str());
         bool accountExists = is_account(new_account_name);
@@ -199,13 +196,10 @@ namespace eosio {
         auto other = eosionames.find(new_account_name.value);
 
         if (other == eosionames.end()) { //the name is not in the table.
-            // if account does exist on the chain this is an error. DANGER account was created without binding!
             fio_400_assert(!accountExists, "payee_account", payee_account,
                            "Account exists on FIO chain but is not bound in eosionames",
                            ErrorPubAddressExist);
 
-            //the account does not exist on the fio chain yet, and the binding does not exists
-            //yet, so create the account and then and add it to the eosionames table.
             const auto owner_pubkey = abieos::string_to_public_key(payee_public_key);
 
             eosiosystem::key_weight pubkey_weight = {
@@ -235,32 +229,25 @@ namespace eosio {
 
             print("performed bind of the account!!!!", new_account_name, "\n");
         } else {
-            //if account does not on the chain this is an error. DANGER binding was recorded without the associated account.
             fio_400_assert(accountExists, "payee_account", payee_account,
                            "Account does not exist on FIO chain but is bound in eosionames",
                            ErrorPubAddressExist);
-            //if the payee public key doesnt match whats in the eosionames table this is an error,it means there is a collision on hashing!
+
             eosio_assert_message_code(payee_public_key == other->clientkey, "FIO account already bound",
                                       fioio::ErrorPubAddressExist);
         }
 
-        //special note, though we have created the account and can use it herein,
-        //the account is not yet officially on the chain and is_account will return false.
-        //require_recipient will also fail.
-
-        //begin new fees, logic for Mandatory fees.
         uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
 
         auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-        //if the fee isnt found for the endpoint, then 400 error.
+
         fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
         uint64_t fee_type = fee_iter->type;
 
-        //if its not a mandatory fee then this is an error.
         fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                        "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
                        ErrorNoEndpoint);
@@ -268,7 +255,6 @@ namespace eosio {
         fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
-        //end new fees, logic for Mandatory fees.
         auto sym = qty.symbol;
         stats statstable(_self, sym.code().raw());
         const auto &st = statstable.get(sym.code().raw());
@@ -281,7 +267,7 @@ namespace eosio {
         process_rewards(tpid, reg_amount, get_self());
 
         require_recipient(actor);
-        //require recipient if the account was found on the chain.
+
         if (accountExists) {
             require_recipient(new_account_name);
         }
@@ -293,7 +279,6 @@ namespace eosio {
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
 
-        //MAS-522 remove staking from voting.
         INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
                 ("eosio"_n, {{_self, "active"_n}},
                  {actor, true}

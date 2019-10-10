@@ -115,7 +115,6 @@ uses the standard template types.
 
 // #include <nlohmann/detail/macro_scope.hpp>
 
-
 // This file contains all internal macro definitions
 // You MUST include macro_unscope.hpp at the end of json.hpp to undef all of them
 
@@ -252,7 +251,6 @@ uses the standard template types.
 
 // #include <nlohmann/detail/meta/cpp_future.hpp>
 
-
 #include <ciso646> // not
 #include <cstddef> // size_t
 #include <type_traits> // conditional, enable_if, false_type, integral_constant, is_constructible, is_integral, is_same, remove_cv, remove_reference, true_type
@@ -323,7 +321,6 @@ namespace nlohmann {
 
 // #include <nlohmann/detail/meta/type_traits.hpp>
 
-
 #include <ciso646> // not
 #include <limits> // numeric_limits
 #include <type_traits> // false_type, is_constructible, is_integral, is_same, true_type
@@ -334,7 +331,6 @@ namespace nlohmann {
 // #include <nlohmann/detail/meta/cpp_future.hpp>
 
 // #include <nlohmann/detail/meta/detected.hpp>
-
 
 #include <type_traits>
 
@@ -350,7 +346,6 @@ namespace nlohmann {
         template<typename ...Ts> using void_t = typename make_void<Ts...>::type;
     } // namespace detail
 }  // namespace nlohmann
-
 
 // http://en.cppreference.com/w/cpp/experimental/is_detected
 namespace nlohmann {
