@@ -42,6 +42,8 @@ namespace fioio {
     static const name FOUNDATIONACCOUNT = name("fio.foundatn");
     static const name TREASURYACCOUNT = name("fio.treasury");
 
+    typedef long long  int64;
+
     struct config {
         name tokencontr; // owner of the token contract
         bool pmtson = true; // enable/disable payments

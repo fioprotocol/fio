@@ -77,7 +77,7 @@
         "base": "",
         "fields": [
            {"name":"block_producer_name", "type":"name"},
-           {"name":"bundledbvotenumber", "type":"float64"},
+           {"name":"bundledbvotenumber", "type":"int64"},
            {"name":"lastvotetimestamp", "type":"uint64"}
         ]
      }],
