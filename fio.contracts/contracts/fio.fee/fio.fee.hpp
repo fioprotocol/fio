@@ -29,6 +29,8 @@ namespace fioio {
         EOSLIB_SERIALIZE( feevalue, (end_point)(value))
     };
 
+    const uint32_t TIME_BETWEEN_VOTES_SECONDS = 120;
+
     // Structure for "FIO fee" .
     // @abi table fiofee i64
     struct [[eosio::action]] fiofee {        // FIO fee
@@ -75,7 +77,7 @@ namespace fioio {
     // @abi table bundlevoter i64
     struct [[eosio::action]] bundlevoter {
         name block_producer_name;     // name of the bp
-        double bundledbvotenumber;
+        long long bundledbvotenumber;
         uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
 
         uint64_t primary_key() const { return block_producer_name.value; }

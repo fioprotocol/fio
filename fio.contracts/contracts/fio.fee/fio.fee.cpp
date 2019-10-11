@@ -20,8 +20,11 @@ using std::string;
 namespace fioio {
 
     /***
-     * This contract maintains fee related actions and data. Most importantly its the host of the transaction fee
-     * structure that is used by sister contracts to
+     * This contract maintains fee related actions and data. It provides voting actions which allow the
+     * setting of fee amounts for mandatory fees, and the setting of bundle counts for bundled fees
+     * by the active block producers. It provides datga structures representing the fee construct within
+     * the FIO protocol. It provides the computation of fees from the voting
+     * results of block producers.
      */
     class [[eosio::contract("FioFee")]]  FioFee : public eosio::contract {
 
@@ -32,107 +35,13 @@ namespace fioio {
         feevotes_table feevotes;
         eosiosystem::producers_table producers;
 
-    public:
-        using contract::contract;
-
-        FioFee(name s, name code, datastream<const char *> ds)
-                : contract(s, code, ds),
-                  fiofees(_self, _self.value),
-                  bundlevoters(_self, _self.value),
-                  feevoters(_self, _self.value),
-                  feevotes(_self, _self.value),
-                  producers("eosio"_n, name("eosio").value) {
-        }
-
-        /***
-         * this action will record a send using Obt. the input json will be verified, if verification fails an exception will be thrown.
-         * if verification succeeds then status tables will be updated...
-         */
-        // @abi action
-        [[eosio::action]]
-        void setfeevote(const vector <feevalue> &fee_ratios, const string &actor) {
-            bool dbgout = true;
-
-            name aactor = name(actor.c_str());
-            auto prod_iter = producers.find(aactor.value);
-
-            //check if this actor is a registered producer.
-            fio_400_assert(prod_iter != producers.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            //add logic to check is active.
-            bool is_active = prod_iter->is_active;
-            fio_400_assert(is_active, "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            uint32_t nowtime = now();
-
-            for (auto &feeval : fee_ratios) {
-                uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
-                //look for this actor in the feevoters table, if not there error.
-                //look for this actor in the feevotes table, it not there add the record.
-                //  if there are records loop through the records, find teh matching endpoint and remove this record.
-                if (dbgout) {
-                    print("\nendPointHash: ", endPointHash, "\n");
-                }
-                auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
-                               "invalid end_point", ErrorEndpointNotFound);
-
-                auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
-                auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
-
-                uint64_t idtoremove;
-                bool found = false;
-                bool timeviolation = false;
-                while (votebyname_iter != feevotesbybpname.end()) //update if it exists
-                {
-                    if (votebyname_iter->block_producer_name.value != aactor.value) {
-                        //exit loop if not found.
-                        break;
-                    }
-
-                    if (votebyname_iter->end_point_hash == endPointHash) {
-                        //check the time, if the time is good then add to remove list
-                        uint32_t lastupdate = votebyname_iter->lastvotetimestamp;
-
-                        //be silent and dont update until 2 minutes goes by since last vote call.
-                        if (lastupdate > (nowtime - 120)) {
-                            timeviolation = true;
-                            break;
-                        } else {
-                            idtoremove = votebyname_iter->id;
-                            found = true;
-                            break;
-                        }
-                    }
-                    votebyname_iter++;
-                }
-
-                if (found) {
-                    auto myiter = feevotes.find(idtoremove);
-                    feevotes.erase(myiter);
-                }
-
-                if (!timeviolation) {
-                    feevotes.emplace(_self, [&](struct feevote &fv) {
-                        fv.id = feevotes.available_primary_key();
-                        fv.block_producer_name = aactor;
-                        fv.end_point = feeval.end_point;
-                        fv.end_point_hash = endPointHash;
-                        fv.suf_amount = feeval.value;
-                        fv.lastvotetimestamp = nowtime;
-                    });
-                }
-            }
-            updatefees();
-
-            nlohmann::json json = {{"status", "OK"}};
-            send_response(json.dump().c_str());
-        }
-
+        /*******
+        * This method will compute the median fee from the fee votes that are cast.
+        *
+        * @param feevalues
+        * @param fee_endpoint
+        * @param fee_endpoint_hash
+        */
         void
         compute_median_and_update_fees(vector <uint64_t> feevalues, string fee_endpoint, uint128_t fee_endpoint_hash) {
             bool dbgout = false;
@@ -174,6 +83,120 @@ namespace fioio {
             }
         }
 
+
+
+
+    public:
+        using contract::contract;
+
+        FioFee(name s, name code, datastream<const char *> ds)
+                : contract(s, code, ds),
+                  fiofees(_self, _self.value),
+                  bundlevoters(_self, _self.value),
+                  feevoters(_self, _self.value),
+                  feevotes(_self, _self.value),
+                  producers("eosio"_n, name("eosio").value) {
+        }
+
+        /*********
+         * This action provides the ability to set a fee vote by a block producer.
+         * the user submits a list of feevalue objects each of which contains a suf amount
+         * (to which a multiplier will later be applied, and an endpoint name which must
+         * match one of the endpoint names in the fees table.
+         * @param fee_values this is a vector of feevalue objects each has the
+         *                     endpoint name and desired fee in FIO SUF
+         * @param actor this is the string rep of the fio account for the user making the call, a block producer.
+         */
+        // @abi action
+        [[eosio::action]]
+        void setfeevote(const vector <feevalue> &fee_values, const string &actor) {
+            bool dbgout = true;
+
+            name aactor = name(actor.c_str());
+            //validate the actor.
+            //check that the actor is in the block producers.
+            auto prod_iter = producers.find(aactor.value);
+            fio_400_assert(prod_iter != producers.end(), "actor", actor,
+                           " Not an active BP",
+                           ErrorFioNameNotReg);
+
+            //check that the producer is active
+            bool is_active = prod_iter->is_active;
+            fio_400_assert(is_active, "actor", actor,
+                           " Not an active BP",
+                           ErrorFioNameNotReg);
+
+            uint32_t nowtime = now();
+
+            //check the submitted fee values.
+            for (auto &feeval : fee_values) {
+                //check the endpoint exists for this fee
+                uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
+                if (dbgout) {
+                    print("\nendPointHash: ", endPointHash, "\n");
+                }
+                auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
+                fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
+                               "invalid end_point", ErrorEndpointNotFound);
+
+                //get all the votes made by this actor. go through the list
+                //and find the fee vote to update.
+                auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
+                auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
+
+                uint64_t idtoremove;
+                bool found = false;
+                bool timeviolation = false;
+                while (votebyname_iter != feevotesbybpname.end())
+                {
+                    if (votebyname_iter->block_producer_name.value != aactor.value) {
+                        //if the bp name changes we have exited the items of interest, so quit.
+                        break;
+                    }
+
+                    if (votebyname_iter->end_point_hash == endPointHash) {
+                        //check the time of the last update, remove and replace if
+                        //its been longer than the time between votes
+                        uint32_t lastupdate = votebyname_iter->lastvotetimestamp;
+
+                        //be silent if the time between votes has not yet elapsed.
+                        if (lastupdate > (nowtime - TIME_BETWEEN_VOTES_SECONDS)) {
+                            timeviolation = true;
+                            break;
+                        } else {
+                            idtoremove = votebyname_iter->id;
+                            found = true;
+                            break;
+                        }
+                    }
+                    votebyname_iter++;
+                }
+
+                if (found) {
+                    auto myiter = feevotes.find(idtoremove);
+                    feevotes.erase(myiter);
+                }
+
+                if (!timeviolation) {
+                    feevotes.emplace(_self, [&](struct feevote &fv) {
+                        fv.id = feevotes.available_primary_key();
+                        fv.block_producer_name = aactor;
+                        fv.end_point = feeval.end_point;
+                        fv.end_point_hash = endPointHash;
+                        fv.suf_amount = feeval.value;
+                        fv.lastvotetimestamp = nowtime;
+                    });
+                }
+            }
+            updatefees();
+
+            nlohmann::json json = {{"status", "OK"}};
+            send_response(json.dump().c_str());
+        }
+
+        /**********
+      * This method will update the fees based upon the present votes made by producers.
+      */
         [[eosio::action]]
         void updatefees() {
 
@@ -208,7 +231,10 @@ namespace fioio {
             string lastvalUsed = "";
             uint64_t lastusedHash;
             vector <uint64_t> feevalues;
+            //traverse all of the fee votes grouped by endpoint.
             for (const auto &vote_item : feevotesbyendpoint) {
+                //if we have changed the endpoint name then we are in the next endpoints grouping,
+                // so compute median fee for this endpoint and then clear the list.
                 if (vote_item.end_point.compare(lastvalUsed) != 0) {
                     compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
 
@@ -217,6 +243,9 @@ namespace fioio {
                 lastvalUsed = vote_item.end_point;
                 lastusedHash = vote_item.end_point_hash;
 
+                //if the vote item block producer name is in the multiplier map, then multiply
+                //the suf amount by the multiplier and add it to the list of feevalues to be
+                //averaged
                 if (producer_fee_multipliers_map.find(vote_item.block_producer_name.to_string()) !=
                     producer_fee_multipliers_map.end()) {
 
@@ -227,16 +256,23 @@ namespace fioio {
                 }
             }
 
+            //compute the median on the remaining feevalues, this remains to be
+            //processed after we have gone through the loop.
             compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
         }
 
-        /***
-       * This action will allow BPs to vote for bundled transactions for new users.
-       */
+
+
+       /********
+        * This action allows block producers to vote for the number of transactions that will be permitted
+        * for free in the FIO bundled transaction model.
+        * @param bundled_transactions the number of bundled transactions per FIO user.
+        * @param actor the block producer actor that is presently voting, the signer of this tx.
+        */
         // @abi action
         [[eosio::action]]
         void bundlevote(
-                double bundled_transactions,
+                int64 bundled_transactions,
                 const string &actor
         ) {
 
@@ -262,16 +298,14 @@ namespace fioio {
             if (voter_iter != bundlevoters.end()) //update if it exists
             {
                 uint32_t lastupdate = voter_iter->lastvotetimestamp;
-                if (lastupdate <= (nowtime - 120)) {
+                if (lastupdate <= (nowtime - TIME_BETWEEN_VOTES_SECONDS)) {
                     bundlevoters.modify(voter_iter, _self, [&](struct bundlevoter &a) {
                         a.block_producer_name = aactor;
                         a.bundledbvotenumber = bundled_transactions;
                         a.lastvotetimestamp = nowtime;
                     });
                 }
-
-            } else { //emplace it if its not there
-                //emplace the values into the table
+            } else {
                 bundlevoters.emplace(_self, [&](struct bundlevoter &f) {
                     f.block_producer_name = aactor;
                     f.bundledbvotenumber = bundled_transactions;
@@ -285,11 +319,16 @@ namespace fioio {
             print("done bundlevote.", "\n");
         }
 
-        /***
-        * This action will create a new fee voter record if the specified block producer does not exist,
-         * it will verify that the producer making the request is a present block producer, it will update the voter
-         * record if a pre-existing voter record exists.
-        */
+
+        /**********
+         * This action will create a new feevoters record if the specified block producer does not yet exist in the
+         * feevoters table,
+         * it will verify that the producer making the request is a present active block producer, it will update the
+         * feevoters record if a pre-existing feevoters record exists.
+         * @param multiplier this is the multiplier that will be applied to all fee votes for this producer before
+         * computing the median fee.
+         * @param actor this is the block producer voter.
+         */
         // @abi action
         [[eosio::action]]
         void setfeemult(
@@ -316,7 +355,7 @@ namespace fioio {
             uint32_t nowtime = now();
 
             auto voter_iter = feevoters.find(aactor.value);
-            if (voter_iter != feevoters.end()) //update if it exists
+            if (voter_iter != feevoters.end())
             {
                 uint32_t lastupdate = voter_iter->lastvotetimestamp;
                 if (lastupdate <= (nowtime - 120)) {
@@ -340,9 +379,13 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        /***
-        * This action will create a new fee on the FIO protocol.
-        */
+
+        /*******
+         * This action will create a new fee on the FIO protocol.
+         * @param end_point  this is the api endpoint name associated with the fee
+         * @param type consult feetype, mandatory is 0 bundle eligible is 1
+         * @param suf_amount this is the fee amount in FIO SUFs
+         */
         // @abi action
         [[eosio::action]]
         void create(
