@@ -1,5 +1,5 @@
 /** FioFee implementation file
- *  Description: FioFee is the smart contract that manages fees.
+ *  Description: FioFee is the smart contract that manages fees. see fio.fee.cpp
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @modifedby
  *  @file fio.fee.cpp
@@ -19,27 +19,28 @@ namespace fioio {
     enum class feetype {
         mandatory = 0,  // these fees are applied each time an operation takes place.
         bundleeligible = 1  // these fees are free until a predetermined number of operations takes place,
-        // then a fee is applied
+        // then a fee is applied. the number of free transactions is determined by votes of the block producers.
     };
 
     struct feevalue {
-        string end_point;
-        uint64_t value;
+        string end_point; //this is the name of the endpoint, which is by convention the same as the
+                          //url to which the signed transaction is sent.
+        uint64_t value;   //this it the value of the fee in FIO SUFs (Smallest unit of FIO).
 
         EOSLIB_SERIALIZE( feevalue, (end_point)(value))
     };
 
+    //this is the amount of time that must elapse for votes to be recorded into the FIO protocol for fees.
     const uint32_t TIME_BETWEEN_VOTES_SECONDS = 120;
 
-    // Structure for "FIO fee" .
+    // This table contains the data attributes associated with a fee.
     // @abi table fiofee i64
-    struct [[eosio::action]] fiofee {        // FIO fee
+    struct [[eosio::action]] fiofee {
         uint64_t fee_id;     // one up index starting at 0
-        string end_point;  // the blockchain endpoint to which the fee relates.
-        uint128_t end_point_hash;    // this is a hash of the end point, lending search-ability
+        string end_point;
+        uint128_t end_point_hash;
         uint64_t type;      // this is the fee type from the feetype enumeration.
-        uint64_t suf_amount;      // this is the amount of the fee in small units of FIO.
-        // 1 billion per fio as of 04/23/2019
+        uint64_t suf_amount;
 
         uint64_t primary_key() const { return fee_id; }
         uint128_t by_endpoint() const { return end_point_hash; }
@@ -49,7 +50,6 @@ namespace fioio {
         )
     };
 
-    // FIO fee table
     typedef multi_index<"fiofees"_n, fiofee,
             indexed_by<"byendpoint"_n, const_mem_fun < fiofee, uint128_t, &fiofee::by_endpoint>>,
     indexed_by<"bytype"_n, const_mem_fun<fiofee, uint64_t, &fiofee::by_type>
@@ -57,12 +57,13 @@ namespace fioio {
     fiofee_table;
 
 
-    // Structure for "feevoter" .
+    // this is the feevoter table, it holds the votes made for fees, a fee vote has producer name and
+    // a multiplier that will be applied to the vote to arrive at the final fee amount used.
     // @abi table feevoter i64
     struct [[eosio::action]] feevoter {
-        name block_producer_name;     // name of the bp
-        double fee_multiplier;    // this is the fee multiplier,
-        uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
+        name block_producer_name;
+        double fee_multiplier;
+        uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return block_producer_name.value; }
 
@@ -70,15 +71,15 @@ namespace fioio {
         )
     };
 
-    //  fee voters table
     typedef multi_index<"feevoters"_n, feevoter> feevoters_table;
 
-    // Structure for "bundlevoter" .
+    // the bundlevoter table holds the block producer votes for the number of transactions that will be
+    // free before the user is charged a fee.
     // @abi table bundlevoter i64
     struct [[eosio::action]] bundlevoter {
-        name block_producer_name;     // name of the bp
+        name block_producer_name;
         long long bundledbvotenumber;
-        uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
+        uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return block_producer_name.value; }
 
@@ -88,16 +89,16 @@ namespace fioio {
 
     typedef multi_index<"bundlevoters"_n, bundlevoter> bundlevoters_table;
 
-    // Structure for "feevote" .
+    // This table holds block producer votes for fees. this table holds the vote for each fee for each block producer
+    // in SUFs. The votes here will be multiplied by the multiplier in the feevoters table.
     // @abi table feevote i64
     struct [[eosio::action]] feevote {
-        uint64_t id;       //unique id
-        name block_producer_name;  // bp name for searching.
-        string end_point;    // this is the name of the fee end point
-        uint64_t end_point_hash;  // hash of the end point for searching.
-        uint64_t suf_amount;      // this is the amount of the fee in small units of FIO.
-        // 1 billion per fio as of 04/23/2019
-        uint64_t lastvotetimestamp;      // this is the timestamp of the last successful vote for this BP.
+        uint64_t id;       //unique one up id
+        name block_producer_name;
+        string end_point;
+        uint64_t end_point_hash;
+        uint64_t suf_amount;
+        uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return id; }
         uint64_t by_endpoint() const { return end_point_hash; }
@@ -107,7 +108,6 @@ namespace fioio {
         )
     };
 
-    //fee votes table
     typedef multi_index<"feevotes"_n, feevote,
             indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint64_t, &feevote::by_endpoint>>,
     indexed_by<"bybpname"_n, const_mem_fun<feevote, uint64_t, &feevote::by_bpname>>
