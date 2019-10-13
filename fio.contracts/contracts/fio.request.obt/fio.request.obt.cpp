@@ -1,5 +1,6 @@
 /** Fio Request Obt implementation file
- *  Description: FioRequestObt smart contract supports funds request and other block chain transaction recording.
+ *  Description: The FIO request obt contract supports request for funds and also may record other
+ *  block chain transactions (such as send of funds from one FIO address to another).
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fio.request.obt.cpp
  *  @copyright Dapix
@@ -44,6 +45,19 @@ namespace fioio {
             return i;
         }
 
+        inline void fio_fees(const name &actor, const asset &fee) const {
+            if (appConfig.pmtson) {
+                print("Collecting FIO API fees: ", fee);
+                action(permission_level{actor, "active"_n},
+                       TokenContract, "transfer"_n,
+                       make_tuple(actor, "fio.treasury"_n, fee,
+                                  string("FIO API fees. Thank you."))
+                ).send();
+            } else {
+                print("Payments currently disabled.");
+            }
+        }
+
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
                 : contract(s, code, ds),
@@ -57,9 +71,19 @@ namespace fioio {
             appConfig = configsSingleton.get_or_default(config());
         }
 
-        /***
-         * this action will record a send using Obt.
-         */
+
+         /*******
+          * This action will record the send of funds from one FIO address to another, either
+          * in response to a request for funds or as a result of a direct send of funds from
+          * one user to another
+          * @param fio_request_id   This is the one up id of the fio request
+          * @param payer_fio_address The payer of the request
+          * @param payee_fio_address  The payee (recieve of funds) of the request.
+          * @param content  this is the encrypted blob of content containing details of the request.
+          * @param max_fee  this is maximum fee the user is willing to pay as a result of this transaction.
+          * @param actor  this is the actor (the account which has signed this transaction)
+          * @param tpid  this is the tpid for the owner of the domain (this is optional)
+          */
         // @abi action
         [[eosio::action]]
         void recordsend(
@@ -192,21 +216,16 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        inline void fio_fees(const name &actor, const asset &fee) const {
-            if (appConfig.pmtson) {
-                print("Collecting FIO API fees: ", fee);
-                action(permission_level{actor, "active"_n},
-                       TokenContract, "transfer"_n,
-                       make_tuple(actor, "fio.treasury"_n, fee,
-                                  string("FIO API fees. Thank you."))
-                ).send();
-            } else {
-                print("Payments currently disabled.");
-            }
-        }
 
-        /***
-        * this action will record a new funds request
+
+       /*********
+        * This action will record a request for funds into the FIO protocol.
+        * @param payer_fio_address this is the fio address of the payer of the request for funds.
+        * @param payee_fio_address this is the requestor of the funds (or the payee) for this request for funds.
+        * @param content  this is the blob of encrypted data associated with this request for funds.
+        * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay for this tx.
+        * @param actor this is the string representation of the fio account that has signed this transaction
+        * @param tpid
         */
         // @abi action
         [[eosio::action]]
@@ -344,11 +363,16 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        /***
-         * this action will add a rejection status to the specified request id.
-         * the input fiorequest id will be verified to ensure there is a request in the contexts table matching this id
-         * before the status record is added to the index tables.
-         f*/
+
+         /********
+          * this action will add a rejection status to the request for funds with the specified request id.
+          * the input fiorequest id will be verified to ensure there is a request in the contexts table matching this id
+          * before the status record is added to the index tables.
+          * @param fio_request_id this is the id of the request in the fio request contexts table.
+          * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay.
+          * @param actor  this is the string representation of the FIO account that is associated with the signer of this tx.
+          * @param tpid  this is the fio address of the domain owner associated with this request.
+          */
         // @abi action
         [[eosio::action]]
         void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
