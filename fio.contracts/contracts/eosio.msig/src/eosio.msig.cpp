@@ -1,3 +1,14 @@
+/** Fio multi signature implementation file
+ *  Description: eosio msig is the smart contract that creates and manages multi signature operations for the
+ *  FIO protocol. this allows the proposal of multi signature transactions including the list of required
+ *  approvers. approvers may approve and dis-approve of the proposed multi signature transaction. the proposer
+ *  of the multi signature transaction may choose to cancel the proposal. The approvers may choose to invalidate
+ *  themselves from all future required approvers for all present and future proposals.
+ *  @author
+ *  @modifedby
+ *  @file eosio.msig.cpp
+ *  @copyright Dapix
+ */
 #include <eosio.msig/eosio.msig.hpp>
 #include <eosiolib/action.hpp>
 #include <eosiolib/permission.hpp>
@@ -10,6 +21,15 @@ namespace eosio {
         return ct;
     }
 
+    /**********
+     * This action permits the invoker to propose a multi signature operation. The operaton must be
+     * signed by the list of requested accounts, once the accounts sign the approval then the tx
+     * will be executed.
+     * @param proposer this is the account proposing the multi signature operation.
+     * @param proposal_name this is the name of the proposal being proposed.
+     * @param requested  this is the list of the accounts requested to approve the multi signature operation.
+     * @param trx this is the list of transactions to be executed when the multi signature transaction is satisfied.
+     */
     void multisig::propose(ignore <name> proposer,
                            ignore <name> proposal_name,
                            ignore <std::vector<permission_level>> requested,
@@ -57,6 +77,14 @@ namespace eosio {
         });
     }
 
+    /**********
+     * This action is used by those approving a multi signature proposal.
+     * @param proposer  this is the account name of the proposer of the proposal.
+     * @param proposal_name  this is the proposal name
+     * @param level  this is the actor and permission approving the multi signature operation
+     *              ex: '{"actor": "partner22222", "permission": "active"}'
+     * @param proposal_hash this is optional, the sha256 hash of the packed transaction being proposed
+     */
     void multisig::approve(name proposer, name proposal_name, permission_level level,
                            const eosio::binary_extension<eosio::checksum256> &proposal_hash) {
         require_auth(level);
@@ -92,6 +120,13 @@ namespace eosio {
         }
     }
 
+    /***********
+     * This action will indicate the dis-approval of the specified proposal by the signer of the transaction.
+     * @param proposer  this is the account name of the proposer of the multi signature operation.
+     * @param proposal_name  the proposal name of the multi signature operation.
+     * @param level this is the actor and permission dis-approving the multi signature operation
+     *              ex: '{"actor": "partner22222", "permission": "active"}'
+     */
     void multisig::unapprove(name proposer, name proposal_name, permission_level level) {
         require_auth(level);
 
@@ -117,6 +152,15 @@ namespace eosio {
         }
     }
 
+
+    /*******
+     * This action will perform the cancellation of the specified proposal.
+     * @param proposer this is the account name of the proposer of the multi signature operation.
+     * @param proposal_name this is the proposal name of the multi signature operation.
+     * @param canceler this is the canceller of the operation, this must be the same as the proposer.
+     *                 unless the proposal transaction is expired then the canceler may be other
+     *                 than the proposer.
+     */
     void multisig::cancel(name proposer, name proposal_name, name canceler) {
         require_auth(canceler);
 
@@ -142,6 +186,14 @@ namespace eosio {
         }
     }
 
+    /******
+     * This action will attempt to execute the specified multi signature transaction.
+     * if the necessary approvals are not present this operation will fail, but may be
+     * called again once the necessary approvals are present.
+     * @param proposer the account name of the proposer of this multi signature transaction.
+     * @param proposal_name the proposal name of this multi signature transaction
+     * @param executer the account name of the executor of this multi signature transaction.
+     */
     void multisig::exec(name proposer, name proposal_name, name executer) {
         require_auth(executer);
 
@@ -189,6 +241,13 @@ namespace eosio {
         proptable.erase(prop);
     }
 
+    /*****
+     * this action will invalidate the specified account as part of any/all multi signature transactions.
+     * when invalidated this account will no longer be considered as necessary for the completion of
+     * a proposed muti signature transaction. only the owner of the specified account may call invalidate
+     * for thier account. this invalidates the specified account for all proposed multi signature transactions.
+     * @param account the account to invalidate
+     */
     void multisig::invalidate(name account) {
         require_auth(account);
         invalidations inv_table(_self, _self.value);
