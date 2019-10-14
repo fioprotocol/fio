@@ -43,7 +43,7 @@ namespace fioio {
         * @param fee_endpoint_hash
         */
         void
-        compute_median_and_update_fees(vector <int64> feevalues, string fee_endpoint, uint128_t fee_endpoint_hash) {
+        compute_median_and_update_fees(vector <uint64_t> feevalues, string fee_endpoint, uint128_t fee_endpoint_hash) {
             bool dbgout = false;
             //one more time
             if (feevalues.size() > 0) {
@@ -56,7 +56,7 @@ namespace fioio {
                     if (dbgout) {
                         print(" odd size is ", feevalues.size(), " using index for median ", useIdx, "\n");
                     }
-                    median_fee = (uint64_t)(feevalues[useIdx]);
+                    median_fee = feevalues[useIdx];
                 } else {//even number in the list. use the middle 2
                     int useIdx = (feevalues.size() / 2) - 1;
                     if (dbgout) {
@@ -230,7 +230,7 @@ namespace fioio {
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
             uint64_t lastusedHash;
-            vector <int64> feevalues;
+            vector <uint64_t> feevalues;
             //traverse all of the fee votes grouped by endpoint.
             for (const auto &vote_item : feevotesbyendpoint) {
                 //if we have changed the endpoint name then we are in the next endpoints grouping,
@@ -249,14 +249,14 @@ namespace fioio {
                 if (producer_fee_multipliers_map.find(vote_item.block_producer_name.to_string()) !=
                     producer_fee_multipliers_map.end()) {
 
-                    //NOTE -- we need to protect against overflows here in this block of code.
-                    //if this overflows it should throw an execution error here since we are using
-                    //the signed type int64
-                    int64 valToUse = (int64)(
-                            producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
-                            (int64) vote_item.suf_amount);
+                    //note -- we protect against both overflow and negative values here, an
+                    //overflow error should result computing the dresult,and we check if the
+                    //result is negative.
+                    double dresult =  producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
+                                      (double) vote_item.suf_amount;
+                    fio_403_assert(dresult > 0, ErrorInvalidMultiplier);
 
-                    uint64_t voted_fee = (uint64_t)valToUse;
+                    uint64_t voted_fee = (uint64_t) (dresult);
                     feevalues.push_back(voted_fee);
                 }
             }
