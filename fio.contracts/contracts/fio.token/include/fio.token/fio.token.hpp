@@ -64,10 +64,10 @@ namespace eosio {
                       string memo);
 
         [[eosio::action]]
-        void trnsfiopubky(string payee_public_key,
-                          string amount,
-                          uint64_t max_fee,
-                          name actor,
+        void trnsfiopubky(const string &payee_public_key,
+                          const int64_t &amount,
+                          const int64_t &max_fee,
+                          const name &actor,
                           const string &tpid);
 
         static asset get_supply(name token_contract_account, symbol_code sym_code) {

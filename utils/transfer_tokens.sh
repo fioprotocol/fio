@@ -33,8 +33,8 @@ fioactor=`programs/cleos/cleos convert fiokey_to_account $fiopubkey`
 echo ------------------------------------------
 dataJson="{
   \"payee_public_key\": \"FIO6ZnHNENybLCe6n221dgTbEYgizrWG4NGot6h5cdtPk5XXjxtez\",
-  \"amount\": \"100000000000\",
-  \"max_fee\":\"2000000000\",
+  \"amount\": 100000000000,
+  \"max_fee\":4000000000,
   \"actor\": \"${fioactor}\",
   \"tpid\": \"adam:dapix\",
 }"
