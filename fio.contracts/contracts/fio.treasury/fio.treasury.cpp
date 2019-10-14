@@ -58,7 +58,7 @@ namespace fioio {
                                                                       fdtnrewards(_self, _self.value),
                                                                       bucketrewards(_self, _self.value) {
         }
-        
+
         // @abi action
         [[eosio::action]]
         void tpidclaim(const name &actor) {
@@ -113,7 +113,7 @@ namespace fioio {
                                    {"tpids_paid", tpids_paid}};
             send_response(json.dump().c_str());
         } //tpid_claim
-        
+
         // @abi action
         [[eosio::action]]
         void bpclaim(const string &fio_address, const name &actor) {
@@ -122,7 +122,13 @@ namespace fioio {
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioiter = namesbyname.find(string_to_uint128_hash(fio_address.c_str()));
 
+            fio_400_assert(fioiter != namesbyname.end(), fio_address, "fio_address",
+                           "Invalid FIO Address", ErrorNoFioAddressProducer);
+
             uint64_t producer = fioiter->owner_account;
+
+            fio_400_assert(producers.find(producer) != producers.end(), fio_address, "fio_address",
+                           "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
             auto clockiter = clockstate.begin();
 
@@ -188,7 +194,7 @@ namespace fioio {
                     //This new reward amount that has been minted will be appended to the rewards being divied up next
                 }
                 //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
-                
+
                 // All bps are now in pay schedule, calculate the shares
                 uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                 uint64_t abpcount = 21;
@@ -226,14 +232,12 @@ namespace fioio {
             //*********** END OF CREATE PAYSCHEDULE **************
 
             auto bpiter = voteshares.find(producer);
+
             const auto &prod = producers.get(producer);
 
             /******* Payouts *******/
             //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
             uint64_t payout = 0;
-
-            fio_400_assert(fioiter != namesbyname.end(), fio_address, "fio_address",
-                           "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
             if (bpiter != voteshares.end()) {
                 payout = static_cast<uint64_t>(bpiter->abpayshare + bpiter->sbpayshare);
@@ -370,7 +374,7 @@ namespace fioio {
             }
         }
     }; //class FIOTreasury
-    
+
     EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)
     (bpclaim))
 }
