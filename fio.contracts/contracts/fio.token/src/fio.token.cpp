@@ -138,18 +138,6 @@ namespace eosio {
         }
     }
 
-    inline int64_t stoi(const char *s) //1000000000000
-    {
-        int64_t i;
-        i = 0;
-
-        while (*s >= '0' && *s <= '9') {
-            i = i * 10 + (*s - '0');
-            s++;
-        }
-        return i;
-    }
-
     void token::trnsfiopubky(const string &payee_public_key,
                              const int64_t &amount,
                              const int64_t &max_fee,
@@ -219,7 +207,7 @@ namespace eosio {
 
             action{
                     permission_level{_self, "active"_n},
-                    "fio.system"_n,
+                    SystemContract,
                     "bind2eosio"_n,
                     bind2eosio{
                             .accountName = new_account_name,
@@ -236,10 +224,6 @@ namespace eosio {
             eosio_assert_message_code(payee_public_key == other->clientkey, "FIO account already bound",
                                       fioio::ErrorPubAddressExist);
         }
-
-        auto sym = qty.symbol;
-        stats statstable(_self, sym.code().raw());
-        const auto &st = statstable.get(sym.code().raw());
 
         fio_fees(actor, asset{(int64_t)reg_amount, symbol("FIO", 9)});
         process_rewards(tpid, reg_amount, get_self());
