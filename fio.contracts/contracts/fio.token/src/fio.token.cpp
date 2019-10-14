@@ -150,46 +150,49 @@ namespace eosio {
         return i;
     }
 
-    void token::trnsfiopubky(string payee_public_key,
-                             string amount,
-                             uint64_t max_fee,
-                             name actor,
+    void token::trnsfiopubky(const string &payee_public_key,
+                             const int64_t &amount,
+                             const int64_t &max_fee,
+                             const name &actor,
                              const string &tpid) {
 
         asset qty;
-        int64_t i64 = stoi(amount.c_str());
-        qty.amount = i64;
+
+        fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
+                       "Invalid FIO Public Key", ErrorPubKeyValid);
+
+        qty.amount = amount;
         qty.symbol = symbol("FIO", 9);
 
-        fio_400_assert(payee_public_key.length() == 53, "payee_public_key", payee_public_key,
-                       "Invalid Public Key", ErrorChainAddressNotFound);
+        fio_400_assert(amount > 0 && qty.amount > 0 , "amount", std::to_string(amount),
+                       "Invalid amount value", ErrorInvalidAmount);
 
-        string pubkey_prefix("FIO");
-        auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
-                               payee_public_key.begin());
-        eosio_assert(result.first == pubkey_prefix.end(),
-                     "Public key should be prefix with FIO");
-        auto base58substr = payee_public_key.substr(pubkey_prefix.length());
+        fio_400_assert(qty.is_valid(), "amount", std::to_string(amount), "Invalid amount value", ErrorLowFunds);
 
-        vector<unsigned char> vch;
-        eosio_assert(fioio::decode_base58(base58substr, vch), "Decode pubkey failed");
-        fio_400_assert(vch.size() == 37, "payee_public_address", payee_public_key, "Invalid FIO Public Key",
-                       fioio::ErrorChainAddressNotFound);
+        fio_400_assert(max_fee > 0, "max_fee", to_string(max_fee), "Invalid fee value.",
+                       ErrorMaxFeeInvalid);
 
-        array<unsigned char, 33> pubkey_data;
-        copy_n(vch.begin(), 33, pubkey_data.begin());
+        uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
 
-        capi_checksum160 check_pubkey;
-        ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
-        fio_400_assert(memcmp(&check_pubkey.hash, &vch.end()[-4], 4) == 0, "payee_public_address", payee_public_key,
-                       "Invalid FIO Public Key", ErrorChainAddressNotFound);
+        auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
+                      "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+        uint64_t reg_amount = fee_iter->suf_amount;
+        uint64_t fee_type = fee_iter->type;
+
+        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                      "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
+                       ErrorNoEndpoint);
+
+        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                       ErrorMaxFeeExceeded);
 
         string payee_account;
         fioio::key_to_account(payee_public_key, payee_account);
 
-        print("hashed account name from the payee_public_key ", payee_account, "\n");
-
-        eosio_assert(payee_account.length() == 12, "Length of account name should be 12");
         name new_account_name = name(payee_account.c_str());
         bool accountExists = is_account(new_account_name);
 
@@ -214,8 +217,6 @@ namespace eosio {
                      {_self, new_account_name, owner_auth, owner_auth}
                     );
 
-            print("created the account!!!!", new_account_name, "\n");
-
             action{
                     permission_level{_self, "active"_n},
                     "fio.system"_n,
@@ -227,7 +228,6 @@ namespace eosio {
                     }
             }.send();
 
-            print("performed bind of the account!!!!", new_account_name, "\n");
         } else {
             fio_400_assert(accountExists, "payee_account", payee_account,
                            "Account does not exist on FIO chain but is bound in eosionames",
@@ -237,33 +237,11 @@ namespace eosio {
                                       fioio::ErrorPubAddressExist);
         }
 
-        uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
-
-        auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
-        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
-                       "FIO fee not found for endpoint", ErrorNoEndpoint);
-
-        uint64_t reg_amount = fee_iter->suf_amount;
-        uint64_t fee_type = fee_iter->type;
-
-        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                       "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
-                       ErrorNoEndpoint);
-
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
-                       ErrorMaxFeeExceeded);
-
         auto sym = qty.symbol;
         stats statstable(_self, sym.code().raw());
         const auto &st = statstable.get(sym.code().raw());
 
-        asset reg_fee_asset = asset();
-        reg_fee_asset.amount = reg_amount;
-        reg_fee_asset.symbol = symbol("FIO", 9);
-
-        fio_fees(actor, reg_fee_asset);
+        fio_fees(actor, asset{(int64_t)reg_amount, symbol("FIO", 9)});
         process_rewards(tpid, reg_amount, get_self());
 
         require_recipient(actor);
@@ -271,10 +249,6 @@ namespace eosio {
         if (accountExists) {
             require_recipient(new_account_name);
         }
-
-        fio_400_assert(qty.is_valid(), "amount", amount.c_str(), "Invalid quantity", ErrorLowFunds);
-        eosio_assert(qty.amount > 0, "must transfer positive quantity");
-        eosio_assert(qty.symbol == st.supply.symbol, "symbol precision mismatch");
 
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
