@@ -166,12 +166,15 @@ namespace fioio {
                            ErrorChainAddressEmpty);
         }
 
-        uint32_t fio_address_update(const name &owneractor, const name &actor, uint64_t max_fee, const FioAddress &fa,
+        uint32_t fio_address_update(const name &owneractor, const name &actor, int64_t max_fee, const FioAddress &fa,
                                     const string &tpid) {
 
             uint32_t expiration_time = 0;
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
                            ErrorInvalidFioNameFormat);
@@ -262,8 +265,11 @@ namespace fioio {
 
         uint64_t
         chain_data_update(const string &fioaddress, const string &tokencode,
-                          const string &pubaddress, uint64_t max_fee, const FioAddress &fa,
+                          const string &pubaddress, int64_t max_fee, const FioAddress &fa,
                           const name &actor, const bool isFIO, const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
@@ -345,7 +351,7 @@ namespace fioio {
                 });
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset;
@@ -409,7 +415,7 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regaddress(const string &fio_address, const string &owner_fio_public_key, uint64_t max_fee, const name &actor,
+        regaddress(const string &fio_address, const string &owner_fio_public_key, int64_t max_fee, const name &actor,
                    const string &tpid) {
               if (owner_fio_public_key.length() > 0) {
               fio_400_assert(isPubKeyValid(owner_fio_public_key),"owner_fio_public_key", owner_fio_public_key,
@@ -444,7 +450,7 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
@@ -464,7 +470,10 @@ namespace fioio {
         [[eosio::action]]
         void
         regdomain(const string &fio_domain, const string &owner_fio_public_key,
-                  uint64_t max_fee, const name &actor, const string &tpid) {
+                  int64_t max_fee, const name &actor, const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             if (owner_fio_public_key.length() > 0) {
               fio_400_assert(isPubKeyValid(owner_fio_public_key),"owner_fio_public_key", owner_fio_public_key,
@@ -473,6 +482,8 @@ namespace fioio {
             }
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
+
+
 
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
@@ -500,7 +511,7 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
@@ -519,15 +530,23 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        /*
-         * This action will renew the specified domain.
-         * NOTE-- TPID is not used, this needs to be integrated properly when tpid recording is integrated
-         *
-         */
+       /***********
+        * This action will renew a fio domain, the domains expiration time will be extended by one year.
+        * @param fio_domain this is the fio domain to be renewed.
+        * @param max_fee  this is the maximum fee that is willing to be paid for this transaction on the blockchain.
+        * @param tpid  this is the fio address of the owner of the domain.
+        * @param actor this is the fio account that has sent this transaction.
+        */
         [[eosio::action]]
         void
-        renewdomain(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
-            FioAddress fa;
+        renewdomain(const string &fio_domain, int64_t max_fee, const string &tpid, const name &actor) {
+
+            require_auth(actor);
+
+           fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                          ErrorMaxFeeInvalid);
+
+           FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
@@ -559,7 +578,7 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
@@ -595,7 +614,11 @@ namespace fioio {
         */
         [[eosio::action]]
         void
-        renewaddress(const string &fio_domain, uint64_t max_fee, const string &tpid, const name &actor) {
+        renewaddress(const string &fio_domain, int64_t max_fee, const string &tpid, const name &actor) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, false);
@@ -642,7 +665,7 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
@@ -887,7 +910,7 @@ namespace fioio {
          */
         [[eosio::action]]
         void
-        addaddress(const string &fio_address, const string &token_code, const string &public_address, uint64_t max_fee,
+        addaddress(const string &fio_address, const string &token_code, const string &public_address, int64_t max_fee,
                    const name &actor, const string &tpid) {
 
             FioAddress fa;
@@ -904,8 +927,11 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        setdomainpub(const string &fio_domain, const uint8_t is_public, uint64_t max_fee, const name &actor,
+        setdomainpub(const string &fio_domain, const uint8_t is_public, int64_t max_fee, const name &actor,
                      const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             FioAddress fa;
             uint32_t present_time = now();
@@ -940,7 +966,7 @@ namespace fioio {
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t fee_amount = fee_iter->suf_amount;
-            fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;

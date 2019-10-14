@@ -91,12 +91,15 @@ namespace fioio {
                 const string &payer_fio_address,
                 const string &payee_fio_address,
                 const string &content,
-                uint64_t max_fee,
+                int64_t max_fee,
                 const string &actor,
                 const string &tpid) {
 
             name aactor = name(actor.c_str());
             require_auth(aactor);
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found", ErrorInvalidJsonInput);
@@ -174,7 +177,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset = asset();
@@ -236,12 +239,15 @@ namespace fioio {
                 const string &payer_fio_address,
                 const string &payee_fio_address,
                 const string &content,
-                uint64_t max_fee,
+                int64_t max_fee,
                 const string &actor,
                 const string &tpid) {
 
             name aActor = name(actor.c_str());
             require_auth(aActor);
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not specified",
@@ -324,7 +330,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset = asset();
@@ -381,11 +387,14 @@ namespace fioio {
           */
         // @abi action
         [[eosio::action]]
-        void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
+        void rejectfndreq(const string &fio_request_id, int64_t max_fee, const string &actor, const string &tpid) {
 
             print("call reject funds request\n");
             name aactor = name(actor.c_str());
             require_auth(aactor);
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
@@ -463,7 +472,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee),
+                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee),
                                "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 

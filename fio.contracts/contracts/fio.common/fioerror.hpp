@@ -76,6 +76,8 @@ namespace fioio {
     constexpr auto ErrorTokenCodeInvalid = ident | httpDataError | 138;   // token code invalid
     constexpr auto ErrorPubKeyValid = ident | httpDataError | 139; //Invalid FIO Public Key (400)
     constexpr auto ErrorInvalidMultiplier = ident | httpInvalidError | 140;   // invalid fee multiplier
+    constexpr auto ErrorMaxFeeInvalid = ident | httpDataError | 141; // max fee invalid.
+    constexpr auto ErrorFeeInvalid = ident | httpDataError | 142; // fee invalid.
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
