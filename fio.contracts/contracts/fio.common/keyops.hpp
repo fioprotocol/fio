@@ -100,4 +100,5 @@ namespace fioio {
         //throw an error for safety, since this code was just ported.
         new_account = myStr.substr(0, 12);
     }
+
 }
