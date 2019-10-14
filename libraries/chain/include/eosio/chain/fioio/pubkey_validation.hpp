@@ -1,7 +1,7 @@
-/** fio_address_validator definitions file
- *  Description: Takes a fio.name and validates it as spec.
- *  @author Casey Gardiner
- *  @file fio_name_validator.hpp
+/** pubkey_validation header file - for use in plugins where contract public key validation was not possible
+ *  Description: Verifies public key format
+ *  @author Adam Androulidakis
+ *  @file pubkey_validation.hpp
  *  @copyright Dapix
  *
  *  Changes:
