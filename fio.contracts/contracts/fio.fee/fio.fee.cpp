@@ -110,9 +110,13 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void setfeevote(const vector <feevalue> &fee_values, const string &actor) {
-            bool dbgout = true;
 
             name aactor = name(actor.c_str());
+            require_auth(aactor);
+
+            bool dbgout = true;
+
+
             //validate the actor.
             //check that the actor is in the block producers.
             auto prod_iter = producers.find(aactor.value);
@@ -280,8 +284,10 @@ namespace fioio {
                 int64 bundled_transactions,
                 const string &actor
         ) {
-
             name aactor = name(actor.c_str());
+            require_auth(aactor);
+
+
             auto prod_iter = producers.find(aactor.value);
 
             fio_400_assert(prod_iter != producers.end(), "actor", actor,
@@ -342,6 +348,8 @@ namespace fioio {
         ) {
 
             name aactor = name(actor.c_str());
+            require_auth(aactor);
+
             auto prod_iter = producers.find(aactor.value);
 
             fio_400_assert(prod_iter != producers.end(), "actor", actor,

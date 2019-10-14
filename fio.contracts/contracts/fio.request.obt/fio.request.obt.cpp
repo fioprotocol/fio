@@ -95,6 +95,9 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
+            name aactor = name(actor.c_str());
+            require_auth(aactor);
+
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found", ErrorInvalidJsonInput);
             fio_400_assert(payee_fio_address.length() > 0, "payee_fio_address", payee_fio_address,
@@ -137,7 +140,7 @@ namespace fioio {
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
-            name aactor = name(actor.c_str());
+
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
 
@@ -237,6 +240,9 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
+            name aActor = name(actor.c_str());
+            require_auth(aActor);
+
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not specified",
                            ErrorInvalidJsonInput);
@@ -284,7 +290,7 @@ namespace fioio {
 
             uint64_t account = fioname_iter->owner_account;
 
-            name aActor = name(actor.c_str());
+
             print("account: ", account, " actor: ", aActor, "\n");
             fio_403_assert(account == aActor.value, ErrorSignature);
 
@@ -378,6 +384,8 @@ namespace fioio {
         void rejectfndreq(const string &fio_request_id, uint64_t max_fee, const string &actor, const string &tpid) {
 
             print("call reject funds request\n");
+            name aactor = name(actor.c_str());
+            require_auth(aactor);
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
@@ -420,7 +428,7 @@ namespace fioio {
 
             string payer_fio_address = fioname_iter->name;
 
-            name aactor = name(actor.c_str());
+
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
 
