@@ -18,7 +18,7 @@
 #include <eosio/chain/eosio_contract.hpp>
 #include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/fioserialize.h>
-
+#include <eosio/chain/fioio/pubkey_validation.hpp>
 #include <fio.common/fioerror.hpp>
 #include <fio.common/keyops.hpp>
 #include <fio.common/fio_common_validator.hpp>
@@ -1677,7 +1677,8 @@ if( options.count(name) ) { \
             // assert if empty chain key
             get_fio_names_result result;
             //first check the pub key for validity.
-            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO names", fioio::ErrorNoFIONames);
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
@@ -1869,7 +1870,7 @@ if( options.count(name) ) { \
             std::string hexvalendpointhash = "0x";
             hexvalendpointhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
-                    
+
             get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                     .code=fio_fee_code,
                     .scope=fio_fee_scope,
@@ -2125,7 +2126,7 @@ if( options.count(name) ) { \
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
-                        
+
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
@@ -2234,7 +2235,7 @@ if( options.count(name) ) { \
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
-                        
+
                 get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                         .code=fio_system_code,
                         .scope=fio_system_scope,
