@@ -7,15 +7,15 @@
         "base": "",
         "fields": [
             {"name":"end_point", "type":"string"},
-            {"name":"type", "type":"uint64"},
-            {"name":"suf_amount", "type":"uint64"}
+            {"name":"type", "type":"int64"},
+            {"name":"suf_amount", "type":"int64"}
         ]
       },{
              "name": "feevalue",
              "base": "",
              "fields": [
                 {"name":"end_point", "type":"string"},
-                {"name":"value", "type":"uint64"}
+                {"name":"value", "type":"int64"}
              ]
       },{
         "name": "setfeevote",

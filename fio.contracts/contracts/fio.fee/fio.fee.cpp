@@ -143,6 +143,9 @@ namespace fioio {
                 fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
                                "invalid end_point", ErrorEndpointNotFound);
 
+                fio_400_assert(feeval.value >= 0, "fee_value", feeval.end_point,
+                               "invalid fee value", ErrorFeeInvalid);
+
                 //get all the votes made by this actor. go through the list
                 //and find the fee vote to update.
                 auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
@@ -403,10 +406,14 @@ namespace fioio {
         [[eosio::action]]
         void create(
                 string end_point,
-                uint64_t type,
-                uint64_t suf_amount
+                int64_t type,
+                int64_t suf_amount
         ) {
             require_auth(_self);
+
+            fio_400_assert(suf_amount >= 0, "suf_amount", to_string(suf_amount),
+                           " invalid suf amount",
+                           ErrorFeeInvalid);
 
             uint128_t endPointHash = string_to_uint128_hash(end_point.c_str());
             uint64_t fee_id = fiofees.available_primary_key();

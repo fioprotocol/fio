@@ -58,7 +58,7 @@ namespace fioio {
         [[eosio::action]]
         void addwhitelist(string fio_public_key_hash,
                           const string &content,
-                          uint64_t max_fee,
+                          int64_t max_fee,
                           const string &tpid,
                           const name &actor) {
 
@@ -67,6 +67,9 @@ namespace fioio {
             print("called addwhitelist.", "\n");
 
             require_auth(actor);
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             uint64_t hashed_str = string_to_uint64_hash(fio_public_key_hash.c_str());
             auto whitelistbylookup = whitelist.get_index<"bylookupidx"_n>();
@@ -141,7 +144,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
@@ -173,7 +176,7 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void remwhitelist(string fio_public_key_hash,
-                          uint64_t max_fee,
+                          int64_t max_fee,
                           const string &tpid,
                           const name &actor) {
 
@@ -181,6 +184,8 @@ namespace fioio {
             bool dbgout = true;
 
             require_auth(actor);
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             uint64_t hashed_str = string_to_uint64_hash(fio_public_key_hash.c_str());
             auto whitelistbylookup = whitelist.get_index<"bylookupidx"_n>();
@@ -249,7 +254,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
