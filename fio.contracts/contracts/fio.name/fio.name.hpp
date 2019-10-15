@@ -56,7 +56,7 @@ namespace fioio {
         uint64_t id;
         string name;
         uint128_t domainhash;
-        uint8_t is_public = false;
+        uint8_t is_public = 0;
         uint64_t expiration;
         uint64_t account;
 

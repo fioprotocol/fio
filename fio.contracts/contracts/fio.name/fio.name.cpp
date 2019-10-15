@@ -421,7 +421,6 @@ namespace fioio {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                           ErrorMaxFeeInvalid);
 
-
               if (owner_fio_public_key.length() > 0) {
               fio_400_assert(isPubKeyValid(owner_fio_public_key),"owner_fio_public_key", owner_fio_public_key,
                           "Invalid FIO Public Key",
@@ -944,7 +943,11 @@ namespace fioio {
         setdomainpub(const string &fio_domain, const uint8_t is_public, const int64_t &max_fee, const name &actor,
                      const string &tpid) {
 
+            require_auth(actor);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
+            fio_400_assert(is_public <= 1, "is_public", to_string(is_public), "Only 0 or 1 allowed",
                            ErrorMaxFeeInvalid);
 
             FioAddress fa;
@@ -1029,7 +1032,6 @@ namespace fioio {
             if (other != accountmap.end()) {
                 eosio_assert_message_code(existing && client_key == other->clientkey, "EOSIO account already bound",
                                           ErrorPubAddressExist);
-                // name in the table and it matches
             } else {
                 eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
                 accountmap.emplace(_self, [&](struct eosio_name &p) {
