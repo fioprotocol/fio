@@ -612,20 +612,25 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        /*
-        * This action will renew the specified address.
-        * NOTE-- TPID is not used, this needs to be integrated properly when tpid recording is integrated
-        *
-        */
+        /**********
+         * This action will renew a fio address, the expiration will be extended by one year from the
+         * previous value of the expiration
+         * @param fio_address this is the fio address to be renewed.
+         * @param max_fee this is the maximum fee the user is willing to pay for this transaction
+         * @param tpid this is the owner of the domain
+         * @param actor this is the account for the user requesting the renewal.
+         */
         [[eosio::action]]
         void
-        renewaddress(const string &fio_domain, const int64_t &max_fee, const string &tpid, const name &actor) {
+        renewaddress(const string &fio_address, const int64_t &max_fee, const string &tpid, const name &actor) {
+
+            require_auth(actor);
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
             FioAddress fa;
-            getFioAddressStruct(fio_domain, fa);
+            getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
 
             uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());

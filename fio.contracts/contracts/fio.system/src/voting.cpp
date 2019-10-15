@@ -93,7 +93,12 @@ namespace eosiosystem {
 
     void
     system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                                 const uint64_t max_fee) {
+                                 const int64_t max_fee) {
+
+        require_auth(actor);
+
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -144,7 +149,7 @@ namespace eosiosystem {
                        "register_producer unexpected fee type for endpoint register_producer, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -161,9 +166,11 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::unregprod(const string fio_address, const name actor, const uint64_t max_fee) {
+    void system_contract::unregprod(const string fio_address, const name actor, const int64_t max_fee) {
         require_auth(actor);
 
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -219,7 +226,7 @@ namespace eosiosystem {
                        "register_producer unexpected fee type for endpoint register_producer, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -334,8 +341,11 @@ namespace eosiosystem {
         update_votes(voter_name, proxy, producers, true);
     }
 
-    void system_contract::voteproducer(const std::vector<string> &producers, const name actor, const uint64_t max_fee) {
+    void system_contract::voteproducer(const std::vector<string> &producers, const name actor, const int64_t max_fee) {
         require_auth(actor);
+
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
         name proxy;
         std::vector<name> producers_accounts;
 
@@ -392,7 +402,7 @@ namespace eosiosystem {
                        "vote_producer unexpected fee type for endpoint vote_producer, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -408,8 +418,11 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::voteproxy(const string fio_address, const name actor, const uint64_t max_fee) {
+    void system_contract::voteproxy(const string fio_address, const name actor, const int64_t max_fee) {
         require_auth(actor);
+
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -470,7 +483,7 @@ namespace eosiosystem {
                        "proxy_vote unexpected fee type for endpoint proxy_vote, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -637,7 +650,11 @@ namespace eosiosystem {
 
     }
 
-    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee) {
+    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const int64_t max_fee) {
+       require_auth(actor);
+
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -688,7 +705,7 @@ namespace eosiosystem {
                        "unregister_proxy unexpected fee type for endpoint unregister_proxy, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -706,7 +723,12 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::regproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee) {
+    void system_contract::regproxy(const std::string &fio_address, const name &actor, const int64_t max_fee) {
+       require_auth(actor);
+
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
+
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -756,7 +778,7 @@ namespace eosiosystem {
                        "register_proxy unexpected fee type for endpoint register_proxy, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
