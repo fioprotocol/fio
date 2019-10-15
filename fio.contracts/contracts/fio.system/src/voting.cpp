@@ -40,8 +40,8 @@ namespace eosiosystem {
      *
      */
     void
-    system_contract::regiproducer(const name producer, const string &producer_key, const std::string &url,
-                                  uint16_t location, string fio_address) {
+    system_contract::regiproducer(const name &producer, const string &producer_key, const std::string &url,
+                                  const uint16_t &location, const string &fio_address) {
         check(url.size() < 512, "url too long");
         check(producer_key != "", "public key should not be the default value");
         require_auth(producer);
@@ -92,8 +92,12 @@ namespace eosiosystem {
     }
 
     void
-    system_contract::regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                                 const int64_t max_fee) {
+    system_contract::regproducer(
+            const string &fio_address,
+            const std::string &url,
+            const uint16_t &location,
+            const name &actor,
+            const int64_t &max_fee) {
 
         require_auth(actor);
 
@@ -166,7 +170,10 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::unregprod(const string fio_address, const name actor, const int64_t max_fee) {
+    void system_contract::unregprod(
+            const string &fio_address,
+            const name &actor,
+            const int64_t &max_fee) {
         require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -336,12 +343,12 @@ namespace eosiosystem {
      *
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
-    void system_contract::vproducer(const name voter_name, const name proxy, const std::vector <name> &producers) {
+    void system_contract::vproducer(const name &voter_name, const name &proxy, const std::vector <name> &producers) {
         require_auth(voter_name);
         update_votes(voter_name, proxy, producers, true);
     }
 
-    void system_contract::voteproducer(const std::vector<string> &producers, const name actor, const int64_t max_fee) {
+    void system_contract::voteproducer(const std::vector<string> &producers, const name &actor, const int64_t &max_fee) {
         require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -418,7 +425,7 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::voteproxy(const string fio_address, const name actor, const int64_t max_fee) {
+    void system_contract::voteproxy(const string &fio_address, const name &actor, const int64_t &max_fee) {
         require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -499,8 +506,11 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::update_votes(const name voter_name, const name proxy, const std::vector <name> &producers,
-                                       bool voting) {
+    void system_contract::update_votes(
+            const name &voter_name,
+            const name &proxy,
+            const std::vector <name> &producers,
+            const bool &voting) {
 
         print("called update votes.","\n");
         //validate input
@@ -599,7 +609,7 @@ namespace eosiosystem {
         });
     }
 
-    void system_contract::setautoproxy(name proxy,name owner)
+    void system_contract::setautoproxy(const name &proxy,const name &owner)
     {
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
@@ -619,7 +629,7 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::crautoproxy(name proxy,name owner)
+    void system_contract::crautoproxy(const name &proxy,const name &owner)
     {
         print ("call to set auto proxy for voter ",owner," to proxy ",proxy,"\n");
         //first verify that the proxy exists and is registered as a proxy.
@@ -650,7 +660,7 @@ namespace eosiosystem {
 
     }
 
-    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const int64_t max_fee) {
+    void system_contract::unregproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee) {
        require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -723,7 +733,7 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::regproxy(const std::string &fio_address, const name &actor, const int64_t max_fee) {
+    void system_contract::regproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee) {
        require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -805,7 +815,7 @@ namespace eosiosystem {
      *
      *  @param isproxy - true if proxy wishes to vote on behalf of others, false otherwise
      */
-    void system_contract::regiproxy(const name proxy, const string &fio_address, bool isproxy) {
+    void system_contract::regiproxy(const name &proxy, const string &fio_address, const bool &isproxy) {
 
        require_auth(proxy);
 
