@@ -106,6 +106,9 @@ namespace fioio {
             fio_400_assert(payee_fio_address.length() > 0, "payee_fio_address", payee_fio_address,
                            "to fio address not found", ErrorInvalidJsonInput);
 
+            fio_400_assert(content.size() >= 64 && content.size() <= 296, "content", content,
+                           "Requires min 64 max 296 size", ErrorContentLimit);
+
             FioAddress payerfa;
             getFioAddressStruct(payer_fio_address, payerfa);
 
@@ -402,7 +405,7 @@ namespace fioio {
 
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
-          
+
             uint64_t currentTime = current_time();
             uint64_t requestId;
 
