@@ -239,22 +239,22 @@ public:
 
     [[eosio::action]]
     void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                     const uint64_t max_fee);
+                     const int64_t max_fee);
 
     [[eosio::action]]
-    void unregprod(const string fio_address, const name actor, const uint64_t max_fee);
+    void unregprod(const string fio_address, const name actor, const int64_t max_fee);
 
     [[eosio::action]]
     void vproducer(const name voter, const name proxy, const std::vector<name> &producers); //server call
 
     [[eosio::action]]
-    void voteproducer(const std::vector<string> &producers, const name actor, const uint64_t max_fee);
+    void voteproducer(const std::vector<string> &producers, const name actor, const int64_t max_fee);
 
     [[eosio::action]]
     void updatepower(const name &voter, bool updateonly);
 
     [[eosio::action]]
-    void voteproxy(const string fio_address, const name actor, const uint64_t max_fee);
+    void voteproxy(const string fio_address, const name actor, const int64_t max_fee);
 
     [[eosio::action]]
     void setautoproxy(name proxy,name owner);
@@ -263,10 +263,10 @@ public:
     void crautoproxy(name proxy,name owner);
 
     [[eosio::action]]
-    void unregproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee);
+    void unregproxy(const std::string &fio_address, const name &actor, const int64_t max_fee);
 
     [[eosio::action]]
-    void regproxy(const std::string &fio_address, const name &actor, const uint64_t max_fee);
+    void regproxy(const std::string &fio_address, const name &actor, const int64_t max_fee);
 
     [[eosio::action]]
     void regiproxy(const name proxy, const string &fio_address, bool isproxy);
