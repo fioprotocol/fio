@@ -79,6 +79,8 @@ namespace fioio {
     constexpr auto ErrorMaxFeeInvalid = ident | httpDataError | 141; // max fee invalid.
     constexpr auto ErrorFeeInvalid = ident | httpDataError | 142; // fee invalid.
     constexpr auto ErrorInvalidAmount = ident | httpDataError | 143; // Invalid amount value
+    constexpr auto ErrorContentLimit = ident | httpDataError | 144; //     constexpr auto ErrorInvalidAmount = ident | httpDataError | 143; // Invalid amount value
+
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
