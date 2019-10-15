@@ -1293,9 +1293,9 @@ if( options.count(name) ) { \
         */
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
-            // assert if empty fio name
-            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO Requests",
-                           fioio::ErrorNoFioRequestsFound);
+
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
+            fioio::ErrorPubKeyValid);
 
             string account_name;
 
@@ -1470,9 +1470,9 @@ if( options.count(name) ) { \
         */
         read_only::get_sent_fio_requests_result
         read_only::get_sent_fio_requests(const read_only::get_sent_fio_requests_params &p) const {
-            // assert if empty fio name
-            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO Requests",
-                           fioio::ErrorNoFioRequestsFound);
+
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
+            fioio::ErrorPubKeyValid);
 
             string account_name;
 
