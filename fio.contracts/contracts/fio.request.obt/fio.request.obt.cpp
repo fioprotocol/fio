@@ -87,11 +87,11 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void recordsend(
-                const string fio_request_id,
+                const string &fio_request_id,
                 const string &payer_fio_address,
                 const string &payee_fio_address,
                 const string &content,
-                int64_t max_fee,
+                const int64_t &max_fee,
                 const string &actor,
                 const string &tpid) {
 
@@ -239,7 +239,7 @@ namespace fioio {
                 const string &payer_fio_address,
                 const string &payee_fio_address,
                 const string &content,
-                int64_t max_fee,
+                const int64_t &max_fee,
                 const string &actor,
                 const string &tpid) {
 
@@ -387,7 +387,11 @@ namespace fioio {
           */
         // @abi action
         [[eosio::action]]
-        void rejectfndreq(const string &fio_request_id, int64_t max_fee, const string &actor, const string &tpid) {
+        void rejectfndreq(
+                const string &fio_request_id,
+                const int64_t &max_fee,
+                const string &actor,
+                const string &tpid) {
 
             print("call reject funds request\n");
             name aactor = name(actor.c_str());
