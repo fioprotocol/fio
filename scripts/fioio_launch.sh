@@ -106,7 +106,13 @@ if [ $mChoice == 1 ]; then
                 fio_whitelist_name_path="$PWD/../fio.contracts/build/contracts/fio.whitelist"
             else
                 echo 'No wasm file found at $PWD/build/contracts/fio.whitelist'
-        fi
+    fi
+
+    if [ -f ../fio.contracts/build/contracts/eosio.wrap/eosio.wrap.wasm ]; then
+               eosio_wrap_name_path="$PWD/../fio.contracts/build/contracts/eosio.wrap"
+            else
+                echo 'No wasm file found at $PWD/build/contracts/eosio.wrap'
+    fi
 
     sleep 2s
     cd ~/opt/eosio/bin
@@ -183,6 +189,7 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8879 create account eosio fio.whitelst FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.foundatn FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio eosio.msig FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8879 create account eosio eosio.wrap FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
 
         #Set Contracts..done using the bios node
         ./cleos -u http://localhost:8879 set contract fio.token $fio_token_contract_name_path fio.token.wasm fio.token.abi
@@ -210,6 +217,8 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8889 set contract -j fio.treasury $fio_treasury_name_path fio.treasury.wasm fio.treasury.abi --permission fio.treasury@active
         sleep 3s
         ./cleos -u http://localhost:8889 set contract -j fio.whitelst $fio_whitelist_name_path fio.whitelist.wasm fio.whitelist.abi --permission fio.whitelst@active
+        sleep 3s
+        ./cleos -u http://localhost:8889 set contract -j eosio.wrap $eosio_wrap_name_path eosio.wrap.wasm eosio.wrap.abi --permission eosio.wrap@active
         sleep 3s
 
         echo creating accounts
@@ -297,6 +306,9 @@ if [ $mChoice == 1 ]; then
         ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt3 fioproducerc -p myvoteracnt3@active
         ./cleos -u http://localhost:8889 system vproducer prods myvoteracnt4 fioproducerd -p myvoteracnt4@active
 
+
+
+
     fi
 
     if [ $restartneeded == 0 ]; then
@@ -370,8 +382,8 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 5
     echo setdomainpub
-    ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","is_public":1,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
-    sleep 5
+    ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","is_public":true,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
+    sleep 2
 
     ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":""}' --permission 5spujqoyq4ie@active
     sleep 5
