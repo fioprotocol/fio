@@ -1857,9 +1857,6 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.end_point.size() <= FEEMAXLENGTH, "end_point", p.end_point.c_str(), "Invalid end point",
                            fioio::ErrorNoEndpoint);
 
-            FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", p.fio_address.c_str(),
-                           "Invalid FIO Address",
-                           fioio::ErrorInvalidFioNameFormat);
 
             //get_fee
             const uint128_t endpointhash = fioio::string_to_uint128_t(p.end_point.c_str());
@@ -1901,6 +1898,10 @@ if( options.count(name) ) { \
 
                 FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", "", "Invalid FIO Address",
                                fioio::ErrorChainAddressEmpty);
+
+                FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", p.fio_address.c_str(),
+                               "Invalid FIO Address",
+                               fioio::ErrorInvalidFioNameFormat);
 
                 //read the fio names table using the specified address
                 //read the fees table.
