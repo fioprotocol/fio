@@ -1775,8 +1775,9 @@ if( options.count(name) ) { \
         } // get_fio_names
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
-            FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "Public key not found",
-                           fioio::ErrorPubAddressNotFound);
+
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
 
             get_account_results actor_lookup_results;
             get_account_params actor_lookup_params;
