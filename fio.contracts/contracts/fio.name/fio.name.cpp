@@ -156,7 +156,7 @@ namespace fioio {
         }
 
         inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa) const {
-            fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "Invalid public address format",
+            fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "FIO Address not found",
                            ErrorDomainAlreadyRegistered);
             fio_400_assert(isChainNameValid(tokencode), "token_code", tokencode, "Invalid token code format",
                            ErrorInvalidFioNameFormat);
@@ -923,9 +923,9 @@ namespace fioio {
         addaddress(const string &fio_address, const string &token_code, const string &public_address, const int64_t &max_fee,
                    const name &actor, const string &tpid) {
 
+            require_auth(actor);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
-
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
