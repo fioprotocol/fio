@@ -382,8 +382,8 @@ if [ $mChoice == 1 ]; then
     ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 5
     echo setdomainpub
-    ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","is_public":true,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
-    sleep 2
+    ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","is_public":1,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
+    sleep 5
 
     ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":""}' --permission 5spujqoyq4ie@active
     sleep 5
