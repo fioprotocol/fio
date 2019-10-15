@@ -234,42 +234,42 @@ public:
     // functions defined in voting.cpp
 
     [[eosio::action]]
-    void regiproducer(const name producer, const string &producer_key, const std::string &url, uint16_t location,
-                      string fio_address);
+    void regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
+                      const string &fio_address);
 
     [[eosio::action]]
-    void regproducer(const string fio_address, const std::string &url, uint16_t location, const name actor,
-                     const int64_t max_fee);
+    void regproducer(const string &fio_address, const std::string &url, const uint16_t &location, const name &actor,
+                     const int64_t &max_fee);
 
     [[eosio::action]]
-    void unregprod(const string fio_address, const name actor, const int64_t max_fee);
+    void unregprod(const string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
-    void vproducer(const name voter, const name proxy, const std::vector<name> &producers); //server call
+    void vproducer(const name &voter, const name &proxy, const std::vector<name> &producers); //server call
 
     [[eosio::action]]
-    void voteproducer(const std::vector<string> &producers, const name actor, const int64_t max_fee);
+    void voteproducer(const std::vector<string> &producers, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
     void updatepower(const name &voter, bool updateonly);
 
     [[eosio::action]]
-    void voteproxy(const string fio_address, const name actor, const int64_t max_fee);
+    void voteproxy(const string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
-    void setautoproxy(name proxy,name owner);
+    void setautoproxy(const name &proxy,const name &owner);
 
     [[eosio::action]]
-    void crautoproxy(name proxy,name owner);
+    void crautoproxy(const name &proxy,const name &owner);
 
     [[eosio::action]]
-    void unregproxy(const std::string &fio_address, const name &actor, const int64_t max_fee);
+    void unregproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
-    void regproxy(const std::string &fio_address, const name &actor, const int64_t max_fee);
+    void regproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
-    void regiproxy(const name proxy, const string &fio_address, bool isproxy);
+    void regiproxy(const name &proxy, const string &fio_address, const bool &isproxy);
 
     [[eosio::action]]
     void setparams(const eosio::blockchain_parameters &params);
@@ -324,7 +324,7 @@ private:
     // defined in voting.hpp
     void update_elected_producers(block_timestamp timestamp);
 
-    void update_votes(const name voter, const name proxy, const std::vector <name> &producers, bool voting);
+    void update_votes(const name &voter, const name &proxy, const std::vector <name> &producers, const bool &voting);
 
     void propagate_weight_change(const voter_info &voter);
 
