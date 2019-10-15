@@ -157,7 +157,7 @@ namespace eosio {
 
         fio_400_assert(qty.is_valid(), "amount", std::to_string(amount), "Invalid amount value", ErrorLowFunds);
 
-        fio_400_assert(max_fee > 0, "max_fee", to_string(max_fee), "Invalid fee value.",
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value.",
                        ErrorMaxFeeInvalid);
 
         uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");

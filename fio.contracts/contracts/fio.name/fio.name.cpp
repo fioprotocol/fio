@@ -415,8 +415,13 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        regaddress(const string &fio_address, const string &owner_fio_public_key, int64_t max_fee, const name &actor,
+        regaddress(const string &fio_address, const string &owner_fio_public_key, const int64_t &max_fee, const name &actor,
                    const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                          ErrorMaxFeeInvalid);
+
+
               if (owner_fio_public_key.length() > 0) {
               fio_400_assert(isPubKeyValid(owner_fio_public_key),"owner_fio_public_key", owner_fio_public_key,
                           "Invalid FIO Public Key",
@@ -470,7 +475,7 @@ namespace fioio {
         [[eosio::action]]
         void
         regdomain(const string &fio_domain, const string &owner_fio_public_key,
-                  int64_t max_fee, const name &actor, const string &tpid) {
+                  const int64_t &max_fee, const name &actor, const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -539,7 +544,7 @@ namespace fioio {
         */
         [[eosio::action]]
         void
-        renewdomain(const string &fio_domain, int64_t max_fee, const string &tpid, const name &actor) {
+        renewdomain(const string &fio_domain, const int64_t &max_fee, const string &tpid, const name &actor) {
 
             require_auth(actor);
 
@@ -614,7 +619,7 @@ namespace fioio {
         */
         [[eosio::action]]
         void
-        renewaddress(const string &fio_domain, int64_t max_fee, const string &tpid, const name &actor) {
+        renewaddress(const string &fio_domain, const int64_t &max_fee, const string &tpid, const name &actor) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -724,7 +729,7 @@ namespace fioio {
          */
         [[eosio::action]]
         void expaddresses(const name &actor, const string &domain, const string &address_prefix,
-                          uint64_t number_addresses_to_add) {
+                          const uint64_t &number_addresses_to_add) {
 
             uint128_t nameHash;
             uint64_t domainHash = string_to_uint128_hash(domain.c_str());
@@ -910,8 +915,12 @@ namespace fioio {
          */
         [[eosio::action]]
         void
-        addaddress(const string &fio_address, const string &token_code, const string &public_address, int64_t max_fee,
+        addaddress(const string &fio_address, const string &token_code, const string &public_address, const int64_t &max_fee,
                    const name &actor, const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
@@ -927,7 +936,7 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        setdomainpub(const string &fio_domain, const uint8_t is_public, int64_t max_fee, const name &actor,
+        setdomainpub(const string &fio_domain, const uint8_t is_public, const int64_t &max_fee, const name &actor,
                      const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
