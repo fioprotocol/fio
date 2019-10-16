@@ -940,14 +940,14 @@ namespace fioio {
 
         [[eosio::action]]
         void
-        setdomainpub(const string &fio_domain, const uint8_t is_public, const int64_t &max_fee, const name &actor,
+        setdomainpub(const string &fio_domain, const int8_t is_public, const int64_t &max_fee, const name &actor,
                      const string &tpid) {
 
             require_auth(actor);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
-            fio_400_assert(is_public <= 1, "is_public", to_string(is_public), "Only 0 or 1 allowed",
+            fio_400_assert(is_public <= 1 && is_public > 0, "is_public", to_string(is_public), "Only 0 or 1 allowed",
                            ErrorMaxFeeInvalid);
 
             FioAddress fa;
