@@ -155,7 +155,7 @@ namespace fioio {
             return returnvalue / totalcount;
         }
 
-        inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa, const &max_fee) const {
+        inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa, const int64_t &max_fee) const {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
             fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "FIO Address not found",
