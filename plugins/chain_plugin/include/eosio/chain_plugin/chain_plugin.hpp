@@ -354,8 +354,8 @@ namespace eosio {
             //begin get pending fio requests
             struct get_pending_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
-                uint32_t offset = 0;
-                uint32_t limit = 0;
+                int32_t offset = 0;
+                int32_t limit = 0;
             };
 
             struct get_pending_fio_requests_result {
@@ -370,8 +370,8 @@ namespace eosio {
             //begin get sent fio requests
             struct get_sent_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
-                uint32_t offset = 0;
-                uint32_t limit = 0;
+                int32_t offset = 0;
+                int32_t limit = 0;
             };
 
             struct get_sent_fio_requests_result {
