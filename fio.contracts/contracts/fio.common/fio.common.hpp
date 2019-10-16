@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <string>
+#include <regex>
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/system.hpp>
 #include <eosiolib/singleton.hpp>
@@ -350,6 +351,14 @@ namespace fioio {
       //end of the public key validity check.
 
       return true;
+    }
+
+    inline bool isURLValid(const string &url) {
+        if ((sizeof(url) >= 10 && sizeof(url) <= 50) &&
+            std::regex_match(url, std::regex("^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$"))) {
+            return false;
+        }
+        return true;
     }
 
 

@@ -103,6 +103,9 @@ namespace eosiosystem {
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
+        fio_400_assert(fioio::isURLValid(url), "url", url, "Invalid url",
+                       ErrorMaxFeeInvalid);
+
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
