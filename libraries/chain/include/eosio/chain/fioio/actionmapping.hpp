@@ -18,7 +18,7 @@ namespace fioio {
 
     //map<string, string> ctType;
     vector <string> eosioActions;
-    vector <string> fiosystemActions;
+    vector <string> fioAddressActions;
     vector <string> fioFinanceActions;
     vector <string> fioFeeActions;
     vector <string> fioRequestObtActions;
@@ -34,16 +34,16 @@ namespace fioio {
         whitelistActions.push_back("remwhitelist");
 
         //fio.system actions
-        fiosystemActions.push_back("regaddress");
-        fiosystemActions.push_back("regdomain");
-        fiosystemActions.push_back("addaddress");
-        fiosystemActions.push_back("renewdomain");
-        fiosystemActions.push_back("renewaddress");
-        fiosystemActions.push_back("expdomain");
-        fiosystemActions.push_back("setdomainpub");
-        fiosystemActions.push_back("expaddresses");
-        fiosystemActions.push_back("bind2eosio");
-        fiosystemActions.push_back("burnexpired");
+        fioAddressActions.push_back("regaddress");
+        fioAddressActions.push_back("regdomain");
+        fioAddressActions.push_back("addaddress");
+        fioAddressActions.push_back("renewdomain");
+        fioAddressActions.push_back("renewaddress");
+        fioAddressActions.push_back("expdomain");
+        fioAddressActions.push_back("setdomainpub");
+        fioAddressActions.push_back("expaddresses");
+        fioAddressActions.push_back("bind2eosio");
+        fioAddressActions.push_back("burnexpired");
 
         //fio.fee actions
         fioFeeActions.push_back("setfeemult");
@@ -52,7 +52,7 @@ namespace fioio {
 
         fioTreasuryActions.push_back("tpidclaim");
         fioTreasuryActions.push_back("bpclaim");
-        
+
         //fio.token actions
         fioTokenActions.push_back("trnsfiopubky");
         //fio.finance actions
@@ -65,8 +65,8 @@ namespace fioio {
     }
 
     static string map_to_contract(string t) {
-        if (find(fiosystemActions.begin(), fiosystemActions.end(), t) != fiosystemActions.end()) {
-            return "fio.system";
+        if (find(fioAddressActions.begin(), fioAddressActions.end(), t) != fioAddressActions.end()) {
+            return "fio.address";
         }
         if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()) {
             return "fio.finance";

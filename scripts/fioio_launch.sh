@@ -39,7 +39,7 @@ if [ $mChoice == 2 ]; then
 
        echo COPYING ABI FILES FROM contracts TO ./build/contracts!
             cp ./contracts/fio.fee/fio.fee.abi ./build/contracts/fio.fee/fio.fee.abi
-            cp ./contracts/fio.name/fio.name.abi ./build/contracts/fio.name/fio.name.abi
+            cp ./contracts/fio.address/fio.address.abi ./build/contracts/fio.address/fio.address.abi
             cp ./contracts/fio.request.obt/fio.request.obt.abi ./build/contracts/fio.request.obt/fio.request.obt.abi
             cp ./contracts/fio.whitelist/fio.whitelist.abi ./build/contracts/fio.whitelist/fio.whitelist.abi
     exit -1
@@ -72,10 +72,10 @@ if [ $mChoice == 1 ]; then
         echo 'No wasm file found at $PWD/build/contracts/fio.token'
     fi
     #Fio Name Directory Check
-    if [ -f ../fio.contracts/build/contracts/fio.name/fio.name.wasm ]; then
-        fio_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.name"
+    if [ -f ../fio.contracts/build/contracts/fio.address/fio.address.wasm ]; then
+        fio_contract_name_path="$PWD/../fio.contracts/build/contracts/fio.address"
     else
-        echo 'No wasm file found at $PWD/build/contracts/fio.name'
+        echo 'No wasm file found at $PWD/build/contracts/fio.address'
     fi
 
     if [ -f ../fio.contracts/build/contracts/fio.fee/fio.fee.wasm ]; then
@@ -181,7 +181,7 @@ if [ $mChoice == 1 ]; then
 
         echo $'Creating Accounts...done using the bios node\n'
         ./cleos -u http://localhost:8879 create account eosio fio.token FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
-        ./cleos -u http://localhost:8879 create account eosio fio.system FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
+        ./cleos -u http://localhost:8879 create account eosio fio.address FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.fee FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.reqobt FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
         ./cleos -u http://localhost:8879 create account eosio fio.tpid FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS
@@ -196,7 +196,7 @@ if [ $mChoice == 1 ]; then
         sleep 2s
         ./cleos -u http://localhost:8879 set contract fio.tpid $fio_tpid_name_path fio.tpid.wasm fio.tpid.abi
         ./cleos -u http://localhost:8879 set contract eosio.msig $eosio_msig_contract_name_path eosio.msig.wasm eosio.msig.abi
-        ./cleos -u http://localhost:8879 set contract -j fio.system $fio_contract_name_path fio.name.wasm fio.name.abi --permission fio.system@active
+        ./cleos -u http://localhost:8879 set contract -j fio.address $fio_contract_name_path fio.address.wasm fio.address.abi --permission fio.address@active
 
         sleep 5s
 
@@ -320,9 +320,9 @@ if [ $mChoice == 1 ]; then
           ./cleos -u http://localhost:8879 set account permission fio.token active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.token","permission":"eosio.code"},"weight":1}]}}' owner -p fio.token@owner
           #make the fio.token into a privileged account
           ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.token",1]' -p eosio@active
-          ./cleos -u http://localhost:8879 set account permission fio.system active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.system","permission":"eosio.code"},"weight":1}]}}' owner -p fio.system@owner
+          ./cleos -u http://localhost:8879 set account permission fio.address active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.address","permission":"eosio.code"},"weight":1}]}}' owner -p fio.address@owner
           #make the fio.system into a privileged account
-          ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.system",1]' -p eosio@active
+          ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.address",1]' -p eosio@active
           ./cleos -u http://localhost:8879 set account permission fio.reqobt active '{"threshold": 1,"keys": [{"key": "FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS","weight": 1}],"accounts": [{"permission":{"actor":"fio.reqobt","permission":"eosio.code"},"weight":1}]}}' owner -p fio.reqobt@owner
           #make the fio.reqobt into a privileged account
           ./cleos -u http://localhost:8879 push action eosio setpriv '["fio.reqobt",1]' -p eosio@active
@@ -379,26 +379,26 @@ if [ $mChoice == 1 ]; then
     dom=1
     retries=3
     echo regdomain
-    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regdomain '{"fio_domain":"dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 5
     echo setdomainpub
-    ./cleos -u http://localhost:8889 push action -j fio.system setdomainpub '{"fio_domain":"dapix","is_public":1,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.address setdomainpub '{"fio_domain":"dapix","is_public":1,"max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     sleep 5
 
-    ./cleos -u http://localhost:8889 push action -j fio.system regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":""}' --permission 5spujqoyq4ie@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regdomain '{"fio_domain":"cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":""}' --permission 5spujqoyq4ie@active
     sleep 5
 
     #Create Account Name
     echo casey
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regaddress '{"fio_address":"casey:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":""}' --permission r41zuwovtn44@active
     echo adam
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":""}' --permission htjonrkf1lgs@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regaddress '{"fio_address":"adam:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"htjonrkf1lgs","tpid":""}' --permission htjonrkf1lgs@active
     echo ed
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"euwdcp13zlrj","tpid":"adam:dapix"}' --permission euwdcp13zlrj@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regaddress '{"fio_address":"ed:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"euwdcp13zlrj","tpid":"adam:dapix"}' --permission euwdcp13zlrj@active
     echo ada
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regaddress '{"fio_address":"ada:dapix","owner_fio_public_key":"","max_fee":"40000000000","actor":"r41zuwovtn44","tpid":"adam:dapix"}' --permission r41zuwovtn44@active
     echo 5spujqoyq4ie
-    ./cleos -u http://localhost:8889 push action -j fio.system regaddress '{"fio_address":"producera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
+    ./cleos -u http://localhost:8889 push action -j fio.address regaddress '{"fio_address":"producera:cryptowallet","owner_fio_public_key":"","max_fee":"40000000000","actor":"5spujqoyq4ie","tpid":"adam:dapix"}' --permission 5spujqoyq4ie@active
 
     #we do these 3 lines to create a record in voter_info for adam:dapix, then we set that record to NOT proxy,
     #then we give that record some votes...after doing this we can run the register_proxy signing script and this

@@ -7,7 +7,7 @@
  */
 
 #include "fio.fee.hpp"
-#include "../fio.name/fio.name.hpp"
+#include "../fio.address/fio.address.hpp"
 #include <fio.common/fio.common.hpp>
 #include <fio.common/fioerror.hpp>
 #include <eosio/native/intrinsics.hpp>

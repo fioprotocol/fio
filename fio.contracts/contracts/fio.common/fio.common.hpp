@@ -36,7 +36,7 @@ namespace fioio {
     using namespace std;
 
     static const name FeeContract = name("fio.fee");    // account hosting the fee contract
-    static const name SystemContract = name("fio.system");
+    static const name AddressContract = name("fio.address");
     static const name TPIDContract = name("fio.tpid");
     static const name TokenContract = name("fio.token");
     static const name FOUNDATIONACCOUNT = name("fio.foundatn");
@@ -196,7 +196,7 @@ namespace fioio {
                 "fdtnrwdupdat"_n,
                 std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
         ).send();
-        fionames_table fionames(SystemContract, SystemContract.value);
+        fionames_table fionames(AddressContract, AddressContract.value);
         uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
 
         auto namesbyname = fionames.get_index<"byname"_n>();
@@ -257,7 +257,7 @@ namespace fioio {
                 std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
         ).send();
 
-        fionames_table fionames(SystemContract, SystemContract.value);
+        fionames_table fionames(AddressContract, AddressContract.value);
         uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
         auto namesbyname = fionames.get_index<"byname"_n>();
         auto fionamefound = namesbyname.find(fioaddhash);

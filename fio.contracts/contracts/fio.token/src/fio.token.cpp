@@ -207,7 +207,7 @@ namespace eosio {
 
             action{
                     permission_level{_self, "active"_n},
-                    SystemContract,
+                    AddressContract,
                     "bind2eosio"_n,
                     bind2eosio{
                             .accountName = new_account_name,

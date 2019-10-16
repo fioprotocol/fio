@@ -23,8 +23,8 @@ namespace fioio {
 
         TPIDController(name s, name code, datastream<const char *> ds) :
                 contract(s, code, ds), tpids(_self, _self.value), bounties(_self, _self.value),
-                fionames(SystemContract, SystemContract.value),
-                voters(SystemContract, SystemContract.value) {
+                fionames(AddressContract, AddressContract.value),
+                voters(AddressContract, AddressContract.value) {
         }
 
         // this action will perform the logic of checking the voter_info,
@@ -51,7 +51,7 @@ namespace fioio {
                     return;
                 }
 
-                //invoke the fio.system contract action to set auto proxy and proxy name.
+                //invoke the fio.address contract action to set auto proxy and proxy name.
                 action(
                         permission_level{get_self(), "active"_n},
                         "eosio"_n,
@@ -84,9 +84,9 @@ namespace fioio {
         [[eosio::action]]
         void updatetpid(const string &tpid, const name owner, const uint64_t &amount) {
 
-            eosio_assert(has_auth(SystemContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+            eosio_assert(has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
                          has_auth("fio.reqobt"_n) || has_auth("eosio"_n),
-                         "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
+                         "missing required authority of fio.address, fio.treasury, fio.token, eosio or fio.reqobt");
 
             uint128_t tpidhash = string_to_uint128_hash(tpid.c_str());
             auto tpidsbyname = tpids.get_index<"byname"_n>();

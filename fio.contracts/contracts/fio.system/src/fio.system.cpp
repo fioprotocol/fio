@@ -12,7 +12,7 @@
 #include "producer_pay.cpp"
 #include "delegate_bandwidth.cpp"
 #include "voting.cpp"
-#include <fio.name/fio.name.hpp>
+#include <fio.address/fio.address.hpp>
 #include <fio.fee/fio.fee.hpp>
 
 namespace eosiosystem {
@@ -24,9 +24,9 @@ namespace eosiosystem {
               _global(_self, _self.value),
               _global2(_self, _self.value),
               _global3(_self, _self.value),
-              _fionames(SystemContract, SystemContract.value),
-              _domains(SystemContract, SystemContract.value),
-              _accountmap(SystemContract, SystemContract.value),
+              _fionames(AddressContract, AddressContract.value),
+              _domains(AddressContract, AddressContract.value),
+              _accountmap(AddressContract, AddressContract.value),
               _fiofees(FeeContract, FeeContract.value){
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
         _gstate2 = _global2.exists() ? _global2.get() : eosio_global_state2{};

@@ -13,7 +13,7 @@
 #include <eosiolib/time.hpp>
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
-#include <fio.name/fio.name.hpp>
+#include <fio.address/fio.address.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include "native.hpp"
 

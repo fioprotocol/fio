@@ -1,11 +1,11 @@
 /** FioName Token implementation file
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
  *  @author Adam Androulidakis, Casey Gardiner, Ciju John, Ed Rotthoff, Phil Mesnier
- *  @file fio.name.hpp
+ *  @file fio.address.hpp
  *  @copyright Dapix
  */
 
-#include "fio.name.hpp"
+#include "fio.address.hpp"
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <fio.common/fiotime.hpp>
@@ -14,7 +14,7 @@
 
 namespace fioio {
 
-    class [[eosio::contract("FioNameLookup")]]  FioNameLookup : public eosio::contract {
+    class [[eosio::contract("FioAddressLookup")]]  FioNameLookup : public eosio::contract {
 
     private:
         domains_table domains;
@@ -38,7 +38,7 @@ namespace fioio {
                                                                         accountmap(_self, _self.value),
                                                                         chains(_self, _self.value),
                                                                         tpids(TPIDContract, TPIDContract.value),
-                                                                        voters(SystemContract, SystemContract.value) {
+                                                                        voters(AddressContract, AddressContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -789,9 +789,9 @@ namespace fioio {
          * and addresses.
          *   Dev note on testing
          *   to make an expired domain.
-         *   cleos -u http://localhost:8889 push action -j fio.system expdomain '{"actor":"r41zuwovtn44","domain":"expired"}' --permission r41zuwovtn44@active
+         *   cleos -u http://localhost:8889 push action -j fio.address expdomain '{"actor":"r41zuwovtn44","domain":"expired"}' --permission r41zuwovtn44@active
          *   to create expired addresses under the specified domain.
-         *   cleos -u http://localhost:8889 push action -j fio.system expaddresses '{"actor":"r41zuwovtn44","domain":"expired","address_prefix":"eddieexp","number_addresses_to_add":"5"}' --permission r41zuwovtn44@active
+         *   cleos -u http://localhost:8889 push action -j fio.address expaddresses '{"actor":"r41zuwovtn44","domain":"expired","address_prefix":"eddieexp","number_addresses_to_add":"5"}' --permission r41zuwovtn44@active
          *   scenarios that need tested.
          *   1) create an expired domain with fewer than 100 expired addresses within it. run the burnexpired
          *   2) create an expired domain with over 100 expired addresses within it. run the burnexpired repeatedly until all are removed.

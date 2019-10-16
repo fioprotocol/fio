@@ -28,10 +28,10 @@ namespace fioio {
         FIOWhitelist(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                        whitelist(_self, _self.value),
                                                                        fiofees(FeeContract, FeeContract.value),
-                                                                       fionames(SystemContract, SystemContract.value),
-                                                                       domains(SystemContract, SystemContract.value),
-                                                                       accountmap(fioio::SystemContract,
-                                                                                  fioio::SystemContract.value) {
+                                                                       fionames(AddressContract, AddressContract.value),
+                                                                       domains(AddressContract, AddressContract.value),
+                                                                       accountmap(fioio::AddressContract,
+                                                                                  fioio::AddressContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -136,7 +136,7 @@ namespace fioio {
                 }
                 action{
                         permission_level{_self, "active"_n},
-                        "fio.system"_n,
+                        AddressContract,
                         "decrcounter"_n,
                         decrementcounter{
                                 .fio_address = fio_address
@@ -246,7 +246,7 @@ namespace fioio {
                 }
                 action{
                         permission_level{_self, "active"_n},
-                        "fio.system"_n,
+                        AddressContract,
                         "decrcounter"_n,
                         decrementcounter{
                                 .fio_address = fio_address

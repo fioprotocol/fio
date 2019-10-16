@@ -269,7 +269,7 @@ namespace eosio {
                  "Disable the check which subjectively fails a transaction if a contract bills more RAM to another account within the context of a notification handler (i.e. when the receiver is not the code of the action).")
                 ("trusted-producer", bpo::value<vector<string>>()->composing(),
                  "Indicate a producer whose blocks headers signed by it will be fully validated, but transactions in those validated blocks will be trusted.")
-                ("fio-proxy", boost::program_options::value<string>()->default_value("fio.system"),
+                ("fio-proxy", boost::program_options::value<string>()->default_value("fio.address"),
                  "Account to serve as a procy for FIO name creation actions")
                 ("fio-proxy-key", bpo::value<string>(), "Private key used to sign transactions")
                 ("fio-proxy-key-file", bpo::value<bfs::path>(),
@@ -1264,8 +1264,8 @@ if( options.count(name) ) { \
 
 //*******************BEGIN FIO API
 
-        const name fio_system_code = N(fio.system);    // FIO name contract account, init in the top of this class
-        const string fio_system_scope = "fio.system";   // FIO name contract scope
+        const name fio_system_code = N(fio.address);    // FIO name contract account, init in the top of this class
+        const string fio_system_scope = "fio.address";   // FIO name contract scope
         const name fio_reqobt_code = N(
                 fio.reqobt);    // FIO request obt contract account, init in the top of this class
         const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
@@ -2077,7 +2077,7 @@ if( options.count(name) ) { \
 
             dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fioaddress)("domain", fa.fiodomain));
 
-            const name code = ::eosio::string_to_name("fio.system");
+            const name code = ::eosio::string_to_name("fio.address");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
             const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
@@ -2944,7 +2944,7 @@ if( options.count(name) ) { \
                 dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "regaddress", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
@@ -2999,7 +2999,7 @@ if( options.count(name) ) { \
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "setdomainpub", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
@@ -3048,7 +3048,7 @@ if( options.count(name) ) { \
                 dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "regdomain", fioio::InvalidAccountOrAction);
 
 
@@ -3102,7 +3102,7 @@ if( options.count(name) ) { \
                 dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "addaddress", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
@@ -3210,7 +3210,7 @@ if( options.count(name) ) { \
                 dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "burnexpired", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
@@ -3772,7 +3772,7 @@ if( options.count(name) ) { \
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "renewdomain", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
@@ -3828,7 +3828,7 @@ if( options.count(name) ) { \
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].name.to_string() == "renewaddress", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](

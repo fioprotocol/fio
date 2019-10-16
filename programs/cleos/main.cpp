@@ -579,7 +579,7 @@ chain::action create_bind2eosio(const string &fiopubkey, const string &new_accou
             ("account", new_account.c_str())
             ("client_key", fiopubkey.c_str())
             ("existing", false);
-    return create_action(vector < permission_level > {{N(fio.system), "active"}}, N(fio.system), N(bind2eosio),
+    return create_action(vector < permission_level > {{N(fio.address), "active"}}, N(fio.address), N(bind2eosio),
                          act_payload);
 
 }
@@ -1119,12 +1119,12 @@ struct create_account_subcommand {
 
             if (hashed_name == account_name) {
                 try {
-                    //Check if fio.system account exists first. Cannot make call to bind2eosio without this
+                    //Check if fio.address account exists first. Cannot make call to bind2eosio without this
                     fc::variant json;
-                    json = call(get_account_func, fc::mutable_variant_object("account_name", "fio.system"));
+                    json = call(get_account_func, fc::mutable_variant_object("account_name", "fio.address"));
                 }
                 catch (boost::tuples::null_type) {
-                    std::cout << "Required fio.system account does not exist" << std::endl;
+                    std::cout << "Required fio.address account does not exist" << std::endl;
                 }
                 //Create bind2eosio action
                 auto bind = create_bind2eosio(active_key_str, hashed_name);

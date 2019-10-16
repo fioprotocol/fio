@@ -113,9 +113,9 @@ namespace eosio {
         double convert_to_type(const string &str, const string &desc);
 
         struct fio_config_parameters {
-            string proxy_account = "fio.system";
+            string proxy_account = "fio.address";
             string proxy_key = "5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY";
-            uint64_t proxy_name = N(fio.system);
+            uint64_t proxy_name = N(fio.address);
         };
 
 

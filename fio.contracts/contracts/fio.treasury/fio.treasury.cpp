@@ -48,8 +48,8 @@ namespace fioio {
 
         FIOTreasury(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                                                                       tpids(TPIDContract, TPIDContract.value),
-                                                                      fionames(SystemContract, SystemContract.value),
-                                                                      domains(SystemContract, SystemContract.value),
+                                                                      fionames(AddressContract, AddressContract.value),
+                                                                      domains(AddressContract, AddressContract.value),
                                                                       bprewards(_self, _self.value),
                                                                       clockstate(_self, _self.value),
                                                                       voteshares(_self, _self.value),
@@ -272,7 +272,7 @@ namespace fioio {
 
                     //Invoke system contract to reset producer last_claim_time and unpaid_blocks
                     action(permission_level{get_self(), "active"_n},
-                           SystemContract, "resetclaim"_n,
+                           AddressContract, "resetclaim"_n,
                            make_tuple(producer)
                     ).send();
                 }
@@ -333,9 +333,9 @@ namespace fioio {
         [[eosio::action]]
         void bprewdupdate(const uint64_t &amount) {
 
-            eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
+            eosio_assert((has_auth(AddressContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
                          (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
-                         "missing required authority of fio.system, fio.treasury, fio.token, eosio or fio.reqobt");
+                         "missing required authority of fio.address, fio.treasury, fio.token, eosio or fio.reqobt");
 
             if (!bprewards.exists()) {
                 bprewards.set(bpreward{amount}, _self);
@@ -348,9 +348,9 @@ namespace fioio {
         [[eosio::action]]
         void bppoolupdate(const uint64_t &amount) {
 
-            eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
+            eosio_assert((has_auth(AddressContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
                          (has_auth("fio.reqobt"_n)),
-                         "missing required authority of fio.system, fio.treasury, fio.token, or fio.reqobt");
+                         "missing required authority of fio.address, fio.treasury, fio.token, or fio.reqobt");
 
             if (!bucketrewards.exists()) {
                 bucketrewards.set(bucketpool{amount}, _self);
@@ -363,9 +363,9 @@ namespace fioio {
         [[eosio::action]]
         void fdtnrwdupdat(const uint64_t &amount) {
 
-            eosio_assert((has_auth(SystemContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
+            eosio_assert((has_auth(AddressContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
                          (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
-                         "missing required authority of fio.system, fio.token, fio.treasury or fio.reqobt");
+                         "missing required authority of fio.address, fio.token, fio.treasury or fio.reqobt");
 
             if (!fdtnrewards.exists()) {
                 fdtnrewards.set(fdtnreward{amount}, _self);

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <fio.common/fio.common.hpp>
-#include <fio.name/fio.name.hpp>
+#include <fio.address/fio.address.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.tpid/fio.tpid.hpp>
 
@@ -32,10 +32,10 @@ namespace eosio {
 
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
-                                                                eosionames(fioio::SystemContract,
-                                                                           fioio::SystemContract.value),
-                                                                fionames(fioio::SystemContract,
-                                                                         fioio::SystemContract.value),
+                                                                eosionames(fioio::AddressContract,
+                                                                           fioio::AddressContract.value),
+                                                                fionames(fioio::AddressContract,
+                                                                         fioio::AddressContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value),
                                                                 tpids(TPIDContract, TPIDContract.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);

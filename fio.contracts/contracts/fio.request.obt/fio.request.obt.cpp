@@ -10,7 +10,7 @@
 
 #include <eosiolib/asset.hpp>
 #include "fio.request.obt.hpp"
-#include <fio.name/fio.name.hpp>
+#include <fio.address/fio.address.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <fio.common/json.hpp>
@@ -63,10 +63,10 @@ namespace fioio {
                 : contract(s, code, ds),
                   fiorequestContextsTable(_self, _self.value),
                   fiorequestStatusTable(_self, _self.value),
-                  fionames(SystemContract, SystemContract.value),
-                  domains(SystemContract, SystemContract.value),
+                  fionames(AddressContract, AddressContract.value),
+                  domains(AddressContract, AddressContract.value),
                   fiofees(FeeContract, FeeContract.value),
-                  tpids(SystemContract, SystemContract.value) {
+                  tpids(AddressContract, AddressContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -172,7 +172,7 @@ namespace fioio {
                 fee_amount = 0;
                 action{
                         permission_level{_self, "active"_n},
-                        "fio.system"_n,
+                        AddressContract,
                         "decrcounter"_n,
                         decrementcounter{
                                 .fio_address = payer_fio_address
@@ -325,7 +325,7 @@ namespace fioio {
                 fee_amount = 0;
                 action{
                         permission_level{_self, "active"_n},
-                        "fio.system"_n,
+                        AddressContract,
                         "decrcounter"_n,
                         decrementcounter{
                                 .fio_address = payee_fio_address
@@ -471,7 +471,7 @@ namespace fioio {
                 fee_amount = 0;
                 action{
                         permission_level{_self, "active"_n},
-                        "fio.system"_n,
+                        AddressContract,
                         "decrcounter"_n,
                         decrementcounter{
                                 .fio_address = payer_fio_address
