@@ -122,12 +122,12 @@ namespace fioio {
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioiter = namesbyname.find(string_to_uint128_hash(fio_address.c_str()));
 
-            fio_400_assert(fioiter != namesbyname.end(), fio_address, "fio_address",
+            fio_400_assert(fioiter != namesbyname.end(), "fio_address", fio_address,
                            "Invalid FIO Address", ErrorNoFioAddressProducer);
 
             uint64_t producer = fioiter->owner_account;
 
-            fio_400_assert(producers.find(producer) != producers.end(), fio_address, "fio_address",
+            fio_400_assert(producers.find(producer) != producers.end(), "fio_address", fio_address,
                            "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
             auto clockiter = clockstate.begin();
@@ -245,10 +245,10 @@ namespace fioio {
                 auto domainsbyname = domains.get_index<"byname"_n>();
                 auto domiter = domainsbyname.find(fioiter->domainhash);
 
-                fio_400_assert(now() < domiter->expiration, domiter->name, "domain",
+                fio_400_assert(now() < domiter->expiration, "domain", domiter->name,
                                "FIO Domain expired", ErrorDomainExpired);
 
-                fio_400_assert(now() < fioiter->expiration, fio_address, "fio_address",
+                fio_400_assert(now() < fioiter->expiration, "fio_address", fio_address,
                                "FIO Address expired", ErrorFioNameExpired);
 
                 check(prod.active(), "producer does not have an active key");
