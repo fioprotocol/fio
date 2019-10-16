@@ -93,7 +93,7 @@ namespace fioio {
     }
 
     inline bool isPubAddressValid(const string &address) {
-        if (( address.size() == 0 && address.size() < 128 ) || address.find(" ")) {
+        if (( address.size() == 0 && address.size() <= 127 ) || address.find(" ")) {
             return true;
         }
         return false;
