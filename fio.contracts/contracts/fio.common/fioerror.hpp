@@ -80,6 +80,7 @@ namespace fioio {
     constexpr auto ErrorFeeInvalid = ident | httpDataError | 142; // fee invalid.
     constexpr auto ErrorInvalidAmount = ident | httpDataError | 143; // Invalid amount value
     constexpr auto ErrorContentLimit = ident | httpDataError | 144; //     constexpr auto ErrorInvalidAmount = ident | httpDataError | 143; // Invalid amount value
+    constexpr auto ErrorPagingInvalid = ident | httpDataError | 145; //Invalid FIO Public Key (400)
 
 
     /**

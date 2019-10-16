@@ -1295,7 +1295,13 @@ if( options.count(name) ) { \
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
 
             FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
-            fioio::ErrorPubKeyValid);
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
 
             string account_name;
 
