@@ -156,6 +156,8 @@ namespace fioio {
         }
 
         inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa) const {
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
             fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "FIO Address not found",
                            ErrorDomainAlreadyRegistered);
             fio_400_assert(isChainNameValid(tokencode), "token_code", tokencode, "Invalid token code format",
@@ -163,7 +165,7 @@ namespace fioio {
             fio_400_assert(isPubAddressValid(pubaddress), "public_address", pubaddress, "Invalid public address format",
                            ErrorChainAddressEmpty);
             fio_400_assert(!(pubaddress.size() == 0), "public_address", pubaddress, "Invalid public address format",
-                           ErrorChainAddressEmpty);
+                           ErrorChainAddressEmpty); // for some reason this one-off validation is necessary.
         }
 
         uint32_t fio_address_update(const name &owneractor, const name &actor, int64_t max_fee, const FioAddress &fa,
@@ -923,8 +925,6 @@ namespace fioio {
                    const name &actor, const string &tpid) {
 
             require_auth(actor);
-            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
-                           ErrorMaxFeeInvalid);
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
