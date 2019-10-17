@@ -22,11 +22,10 @@ namespace fioio {
           if (pubkey.length() != 53) return false;
 
           string pubkey_prefix("FIO");
-          auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
-                                 pubkey.begin());
-          if (result.first != pubkey_prefix.end()) return false;
+          if (pubkey.substr(0,3) != pubkey_prefix) return false;
+          dlog("\n");
+          dlog(pubkey.substr(0,2));
           auto base58substr = pubkey.substr(pubkey_prefix.length());
-
           vector<unsigned char> vch;
           if (!decode_base58(base58substr, vch) || (vch.size() != 37) ) return false;
 
