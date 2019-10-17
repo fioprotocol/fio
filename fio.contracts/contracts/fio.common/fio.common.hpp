@@ -10,7 +10,6 @@
 
 #include <vector>
 #include <string>
-#include <regex>
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/system.hpp>
 #include <eosiolib/singleton.hpp>
@@ -329,37 +328,27 @@ namespace fioio {
         ).send();
     }
 
-    inline bool isPubKeyValid(const string &pubkey){
+    inline bool isPubKeyValid(const string &pubkey) {
 
-      if (pubkey.length() != 53) return false;
+        if (pubkey.length() != 53) return false;
 
-      string pubkey_prefix("FIO");
-      auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
-                             pubkey.begin());
-      if (result.first != pubkey_prefix.end()) return false;
-      auto base58substr = pubkey.substr(pubkey_prefix.length());
+        string pubkey_prefix("FIO");
+        auto result = mismatch(pubkey_prefix.begin(), pubkey_prefix.end(),
+                               pubkey.begin());
+        if (result.first != pubkey_prefix.end()) return false;
+        auto base58substr = pubkey.substr(pubkey_prefix.length());
 
-      vector<unsigned char> vch;
-      if (!decode_base58(base58substr, vch) || (vch.size() != 37) ) return false;
+        vector<unsigned char> vch;
+        if (!decode_base58(base58substr, vch) || (vch.size() != 37)) return false;
 
-      array<unsigned char, 33> pubkey_data;
-      copy_n(vch.begin(), 33, pubkey_data.begin());
+        array<unsigned char, 33> pubkey_data;
+        copy_n(vch.begin(), 33, pubkey_data.begin());
 
-      capi_checksum160 check_pubkey;
-      ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
-      if (memcmp(&check_pubkey.hash, &vch.end()[-4], 4) != 0) return false;
-      //end of the public key validity check.
+        capi_checksum160 check_pubkey;
+        ripemd160(reinterpret_cast<char *>(pubkey_data.data()), 33, &check_pubkey);
+        if (memcmp(&check_pubkey.hash, &vch.end()[-4], 4) != 0) return false;
+        //end of the public key validity check.
 
-      return true;
-    }
-
-    inline bool isURLValid(const string &url) {
-        if ((sizeof(url) >= 10 && sizeof(url) <= 50) &&
-            std::regex_match(url, std::regex("^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$"))) {
-            return false;
-        }
         return true;
     }
-
-
 } // namespace fioio

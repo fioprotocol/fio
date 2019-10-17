@@ -20,6 +20,7 @@
 
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
+#include <fio.common/fio_common_validator.hpp>
 #include <eosiolib/asset.hpp>
 
 #include <algorithm>
@@ -104,6 +105,8 @@ namespace eosiosystem {
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
         fio_400_assert(fioio::isURLValid(url), "url", url, "Invalid url",
+                       ErrorMaxFeeInvalid);
+        fio_400_assert(fioio::isLocationValid(location), "location", to_string(location), "Invalid location",
                        ErrorMaxFeeInvalid);
 
         FioAddress fa;

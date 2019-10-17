@@ -9,6 +9,7 @@
 #pragma once
 
 #include <string>
+#include <regex>
 
 //#include <boost/algorithm/string.hpp> // *DANGER - don't use! Severe performance side effects may result
 
@@ -27,6 +28,8 @@ namespace fioio {
         string fiodomain;
         bool domainOnly;
     };
+
+    std::vector<int> locationMap { 10, 20, 30, 40, 50, 60, 70, 80 };
 
     inline bool isFioNameEmpty(const string &p) {
         return p.empty();
@@ -107,6 +110,23 @@ namespace fioio {
         return my_chain;
     }
 
+    inline bool isURLValid(const string &url) {
+        std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
+        if (sizeof(url) >= 10 && sizeof(url) <= 50 && std::regex_match(url, re)) {
+            return false;
+        }
+        return true;
+    }
+
+    inline bool isLocationValid(const uint16_t &location){
+        std::vector<int>::iterator it;
+        it = std::find(locationMap.begin(), locationMap.end(), location);
+
+        if(it != locationMap.end()){
+            return false;
+        }
+        return true;
+    }
 
     /** All alphanumeric characters except for "0", "I", "O", and "l" */
 
