@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string>
-#include <regex>
+//#include <regex>
 
 //#include <boost/algorithm/string.hpp> // *DANGER - don't use! Severe performance side effects may result
 
