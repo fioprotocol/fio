@@ -1935,13 +1935,10 @@ if( options.count(name) ) { \
 
                 dlog("Lookup for fio name, row count: ‘${size}‘", ("size", names_table_rows_result.rows.size()));
 
-                bool isInvalid = (names_table_rows_result.rows.empty() &&
-                                  (p.fio_address.find_first_not_of(
-                                          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890:") !=
-                                   std::string::npos));
-
-
-                FIO_400_ASSERT(!isInvalid, "fio_address", p.fio_address, "Invalid FIO Address",
+                fioio::FioAddress fa;
+                fioio::getFioAddressStruct(p.fio_address, fa);
+                int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
+                FIO_400_ASSERT(res == 0, "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameNotReg);
 
                 FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", p.fio_address,
