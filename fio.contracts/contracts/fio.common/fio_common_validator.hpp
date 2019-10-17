@@ -110,9 +110,9 @@ namespace fioio {
         return my_chain;
     }
 
-    inline bool isURLValid(const string &url) {
+    inline bool isURLValid(const std::string &url) {
         std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
-        if (sizeof(url) >= 10 && sizeof(url) <= 50 && std::regex_match(url, re)) {
+        if (url.length() >= 10 && url.length() <= 50 && std::regex_match(url, re)) {
             return false;
         }
         return true;

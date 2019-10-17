@@ -20,7 +20,6 @@
 
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
-#include <fio.common/fio_common_validator.hpp>
 #include <eosiolib/asset.hpp>
 
 #include <algorithm>
