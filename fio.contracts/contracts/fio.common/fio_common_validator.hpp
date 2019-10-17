@@ -113,9 +113,9 @@ namespace fioio {
     inline bool isURLValid(const std::string &url) {
         //std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
         if ((url.length() >= 10 && url.length() <= 50)) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     inline bool isLocationValid(const uint16_t &location){
@@ -123,9 +123,9 @@ namespace fioio {
         it = std::find(locationMap.begin(), locationMap.end(), location);
 
         if(it != locationMap.end()){
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     /** All alphanumeric characters except for "0", "I", "O", and "l" */
