@@ -111,8 +111,8 @@ namespace fioio {
     }
 
     inline bool isURLValid(const std::string &url) {
-        std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
-        if (url.length() >= 10 && url.length() <= 50 && std::regex_match(url, re)) {
+        //std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
+        if ((url.length() >= 10 && url.length() <= 50)) {
             return false;
         }
         return true;
