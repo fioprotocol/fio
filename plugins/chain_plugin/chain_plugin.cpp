@@ -2489,6 +2489,9 @@ if( options.count(name) ) { \
             const auto &d = db.db();
             const auto lower = name{p.lower_bound};
 
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
             static const uint8_t secondary_index_num = 0;
             const auto *const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
                     boost::make_tuple(config::system_account_name, config::system_account_name, N(producers)));
