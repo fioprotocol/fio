@@ -23,8 +23,6 @@ namespace fioio {
 
           string pubkey_prefix("FIO");
           if (pubkey.substr(0,3) != pubkey_prefix) return false;
-          dlog("\n");
-          dlog(pubkey.substr(0,2));
           auto base58substr = pubkey.substr(pubkey_prefix.length());
           vector<unsigned char> vch;
           if (!decode_base58(base58substr, vch) || (vch.size() != 37) ) return false;
