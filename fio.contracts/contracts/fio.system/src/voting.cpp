@@ -469,15 +469,21 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
+        auto proxy_name = name{account};
+        auto voter_iter = _voters.find(account);
 
-        uint64_t proxy_account = fioname_iter->owner_account;
-        fio_400_assert(_voters.find(fioname_iter->owner_account)->is_proxy, "fio_address", fio_address,
+        //the first opportunity to throw this error is when the owner account is not present
+        //in the table.
+        fio_400_assert(voter_iter != _voters.end(), "fio_address", fio_address,
                        "This address is not a proxy", AddressNotProxy);
 
-        auto proxy_name = name{proxy_account};
+        //the second opportunity to throw this error is when the row is present and is not a proxy
+        fio_400_assert(voter_iter->is_proxy, "fio_address", fio_address,
+                       "This address is not a proxy", AddressNotProxy);
+
 
         std::vector<name> producers{}; // Empty
-        auto voter_iter = _voters.find(actor.value);
+        voter_iter = _voters.find(actor.value);
 
         if (voter_iter == _voters.end()) {
             _voters.emplace(actor, [&](auto &p) {
