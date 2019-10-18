@@ -95,9 +95,11 @@ namespace fioio {
         return true;
     }
 
-    inline bool isPubAddressValid(const string &address) {
-        if (( address.size() > 0 && address.size() <= 127 ) && !address.find(" ")) {
-            return true;
+    inline bool isPubAddressValid(const std::string &address) {
+        if ( address.length() > 0 && address.length() <= 128 ) {
+            if(address.find_first_not_of(' ') != std::string::npos) {
+                return true;
+            }
         }
         return false;
     }
