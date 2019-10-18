@@ -133,6 +133,10 @@ namespace eosiosystem {
         fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
+
+        //add 30 days to the domain expiration, this call will work until 30 days past expire.
+        expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
+
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
@@ -458,10 +462,14 @@ namespace eosiosystem {
         fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
+
+        //add 30 days to the domain expiration, this call will work until 30 days past expire.
+        expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
+
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-    
+
         uint64_t proxy_account = fioname_iter->owner_account;
         fio_400_assert(_voters.find(fioname_iter->owner_account)->is_proxy, "fio_address", fio_address,
                        "This address is not a proxy", AddressNotProxy);
@@ -771,6 +779,10 @@ namespace eosiosystem {
         fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
         uint32_t expiration = domains_iter->expiration;
+
+        //add 30 days to the domain expiration, this call will work until 30 days past expire.
+        expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
+
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 

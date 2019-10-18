@@ -26,6 +26,10 @@
 #define YEARTOSECONDS 31536000
 #endif
 
+#ifndef SECONDS30DAYS
+#define SECONDS30DAYS 2592000
+#endif
+
 #ifndef MAXBOUNTYTOKENSTOMINT
 #define MAXBOUNTYTOKENSTOMINT 200000000000000000
 #endif
@@ -135,6 +139,19 @@ namespace fioio {
 
         }
         return r;
+    }
+
+    /***
+        * This function will increment the specified time by the specified number of seconds.
+        * @param timetoincrement   this is the number of years from now to return as a value
+        * @param numbverseconds   this is the number of seconds to add to the time
+        * @return  the incremented time
+        */
+    inline uint32_t get_time_plus_seconds(uint32_t timetoincrement, int numberseconds) {
+
+
+        uint32_t incremented_time = timetoincrement + numberseconds;
+        return incremented_time;
     }
 
     struct [[eosio::action]] bpreward {

@@ -102,9 +102,9 @@ namespace fioio {
                            ErrorMaxFeeInvalid);
 
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
-                           "from fio address not found", ErrorInvalidJsonInput);
+                           "from fio address not found", ErrorInvalidFioNameFormat);
             fio_400_assert(payee_fio_address.length() > 0, "payee_fio_address", payee_fio_address,
-                           "to fio address not found", ErrorInvalidJsonInput);
+                           "to fio address not found", ErrorInvalidFioNameFormat);
 
             fio_400_assert(content.size() >= 64 && content.size() <= 432, "content", content,
                            "Requires min 64 max 432 size", ErrorContentLimit);
@@ -134,7 +134,11 @@ namespace fioio {
             fio_400_assert(iterdom != domainsbyname.end(), "payer_fio_address", payer_fio_address,
                            "No such domain",
                            ErrorDomainNotRegistered);
-            uint64_t domexp = iterdom->expiration;
+            uint32_t domexp = iterdom->expiration;
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
+
+
             fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
@@ -145,7 +149,6 @@ namespace fioio {
             fio_400_assert(fioname_iter != namesbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
-
 
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
@@ -299,6 +302,9 @@ namespace fioio {
                            "No such domain",
                            ErrorDomainNotRegistered);
             uint64_t domexp = iterdom->expiration;
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
+
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
@@ -444,6 +450,10 @@ namespace fioio {
                            "No such domain",
                            ErrorDomainNotRegistered);
             uint64_t domexp = iterdom->expiration;
+
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
+
             fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
                            "FIO Domain expired", ErrorFioNameExpired);
 
