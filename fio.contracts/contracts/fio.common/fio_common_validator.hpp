@@ -9,6 +9,7 @@
 #pragma once
 
 #include <string>
+//#include <regex>
 
 //#include <boost/algorithm/string.hpp> // *DANGER - don't use! Severe performance side effects may result
 
@@ -27,6 +28,8 @@ namespace fioio {
         string fiodomain;
         bool domainOnly;
     };
+
+    std::vector<int> locationMap { 10, 20, 30, 40, 50, 60, 70, 80 };
 
     inline bool isFioNameEmpty(const string &p) {
         return p.empty();
@@ -92,9 +95,11 @@ namespace fioio {
         return true;
     }
 
-    inline bool isPubAddressValid(const string &address) {
-        if (( address.size() > 0 && address.size() <= 127 ) || address.find(" ")) {
-            return true;
+    inline bool isPubAddressValid(const std::string &address) {
+        if ( address.length() > 0 && address.length() <= 128 ) {
+            if(address.find_first_not_of(' ') != std::string::npos) {
+                return true;
+            }
         }
         return false;
     }
@@ -107,6 +112,28 @@ namespace fioio {
         return my_chain;
     }
 
+    inline bool isURLValid(const std::string &url) {
+        //std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
+        if ((url.length() >= 10 && url.length() <= 50)) {
+            return true;
+        }
+        return false;
+    }
+
+    inline bool isLocationValid(const uint16_t &location){
+        std::vector<int>::iterator it;
+        it = std::find(locationMap.begin(), locationMap.end(), location);
+
+        if(it != locationMap.end()){
+            return true;
+        }
+        return false;
+    }
+
+    bool isStringInt(const std::string &s) {
+        return !s.empty() && std::find_if(s.begin(),
+                                          s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+    }
 
     /** All alphanumeric characters except for "0", "I", "O", and "l" */
 
