@@ -130,6 +130,11 @@ namespace fioio {
         return false;
     }
 
+    bool isStringInt(const std::string &s) {
+        return !s.empty() && std::find_if(s.begin(),
+                                          s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+    }
+
     /** All alphanumeric characters except for "0", "I", "O", and "l" */
 
         static const char *pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";

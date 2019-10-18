@@ -2489,6 +2489,7 @@ if( options.count(name) ) { \
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
             const auto table_type = get_table_type(abi, N(producers));
             const abi_serializer abis{abi, abi_serializer_max_time};
+
             EOS_ASSERT(table_type == KEYi64, chain::contract_table_query_exception,
                        "Invalid table type ${type} for table producers", ("type", table_type));
 
@@ -2497,6 +2498,8 @@ if( options.count(name) ) { \
 
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
                            fioio::ErrorPagingInvalid);
+            //FIO_400_ASSERT(!fioio::isStringInt(p.lower_bound), "lower_bound", p.lower_bound, "Invalid lower bound",
+            //               fioio::ErrorPagingInvalid);
 
             static const uint8_t secondary_index_num = 0;
             const auto *const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(

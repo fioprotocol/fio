@@ -531,7 +531,7 @@ namespace eosio {
             struct get_producers_params {
                 bool json = true;
                 string lower_bound;
-                uint32_t limit = 50;
+                int32_t limit = 50;
             };
 
             struct get_producers_result {
