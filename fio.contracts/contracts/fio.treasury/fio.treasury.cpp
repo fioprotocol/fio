@@ -130,6 +130,19 @@ namespace fioio {
             fio_400_assert(producers.find(producer) != producers.end(), "fio_address", fio_address,
                            "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domiter = domainsbyname.find(fioiter->domainhash);
+
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            uint32_t expiration = domiter->expiration;
+            expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
+
+            fio_400_assert(now() < expiration, "domain", domiter->name,
+                           "FIO Domain expired", ErrorDomainExpired);
+
+            fio_400_assert(now() < fioiter->expiration, "fio_address", fio_address,
+                           "FIO Address expired", ErrorFioNameExpired);
+
             auto clockiter = clockstate.begin();
 
             /***************  Pay schedule expiration *******************/
@@ -241,15 +254,6 @@ namespace fioio {
 
             if (bpiter != voteshares.end()) {
                 payout = static_cast<uint64_t>(bpiter->abpayshare + bpiter->sbpayshare);
-
-                auto domainsbyname = domains.get_index<"byname"_n>();
-                auto domiter = domainsbyname.find(fioiter->domainhash);
-
-                fio_400_assert(now() < domiter->expiration, "domain", domiter->name,
-                               "FIO Domain expired", ErrorDomainExpired);
-
-                fio_400_assert(now() < fioiter->expiration, "fio_address", fio_address,
-                               "FIO Address expired", ErrorFioNameExpired);
 
                 check(prod.active(), "producer does not have an active key");
                 if (payout > 0) {

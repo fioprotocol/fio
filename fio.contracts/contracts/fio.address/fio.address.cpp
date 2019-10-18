@@ -294,6 +294,9 @@ namespace fioio {
             fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
             uint32_t expiration = domains_iter->expiration;
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
+
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
 
@@ -648,6 +651,9 @@ namespace fioio {
                            ErrorDomainNotRegistered);
 
             uint32_t domain_expiration = domains_iter->expiration;
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            domain_expiration = get_time_plus_seconds(domain_expiration,SECONDS30DAYS);
+
             uint32_t present_time = now();
             fio_400_assert(present_time <= domain_expiration, "fio_address", fa.fioaddress, "FIO Domain expired",
                            ErrorDomainExpired);
@@ -814,10 +820,13 @@ namespace fioio {
             uint64_t domainwaitforburndays = 90 * secondsperday;
             uint64_t addresswaitforburndays = 90 * secondsperday;
             uint64_t nowtime = now();
+
+            //this allows us to search through all of the domains.
             uint32_t minexpiration = get_now_minus_years(windowmaxyears);
 
             //using this instead of now time will place everything in the to be burned list, for testing only.
-            uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
+           //comment this out because we arent testing
+           // uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
 
             auto domainexpidx = domains.get_index<"byexpiration"_n>();
             auto domainiter = domainexpidx.lower_bound(minexpiration);
@@ -889,9 +898,11 @@ namespace fioio {
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
                 auto fionamesiter = namesbyname.find(burner);
+
                 if (fionamesiter != namesbyname.end()) {
                     namesbyname.erase(fionamesiter);
                 }
+                //remove from the
             }
 
             for (int i = 0; i < domainburnlist.size(); i++) {
