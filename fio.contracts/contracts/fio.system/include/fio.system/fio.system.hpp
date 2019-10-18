@@ -69,10 +69,6 @@ static_cast
 );
 }
 
-struct decrementcounter {
-    string fio_address;
-};
-
 struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_state : eosio::blockchain_parameters {
     block_timestamp last_producer_schedule_update;
     time_point last_pervote_bucket_fill;
