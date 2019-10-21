@@ -32,8 +32,9 @@ namespace fioio {
         inline void autoproxy(name proxy_name, name owner_name) {
 
             //check the voter_info table for a record matching owner_name.
-            auto viter = voters.find(owner_name.value);
-            if (viter == voters.end()) {
+            auto votersbyowner = voters.get_index<"byowner"_n>();
+            auto viter = votersbyowner.find(owner_name.value);
+            if (viter == votersbyowner.end()) {
                 //if the record is not there then send inline action to crautoprx (a new action in the system contract).
                 //note this action will set the auto proxy and is_aut_proxy, so return after.
                 INLINE_ACTION_SENDER(eosiosystem::system_contract, crautoproxy)(

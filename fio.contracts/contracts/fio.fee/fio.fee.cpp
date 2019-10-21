@@ -119,8 +119,9 @@ namespace fioio {
 
             //validate the actor.
             //check that the actor is in the block producers.
-            auto prod_iter = producers.find(aactor.value);
-            fio_400_assert(prod_iter != producers.end(), "actor", actor,
+            auto prodbyowner = producers.get_index<"byowner"_n>();
+            auto prod_iter = prodbyowner.find(aactor.value);
+            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -290,10 +291,10 @@ namespace fioio {
             name aactor = name(actor.c_str());
             require_auth(aactor);
 
+            auto prodbyowner = producers.get_index<"byowner"_n>();
+            auto prod_iter = prodbyowner.find(aactor.value);
 
-            auto prod_iter = producers.find(aactor.value);
-
-            fio_400_assert(prod_iter != producers.end(), "actor", actor,
+            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -353,9 +354,10 @@ namespace fioio {
             name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            auto prod_iter = producers.find(aactor.value);
+            auto prodbyowner = producers.get_index<"byowner"_n>();
+            auto prod_iter = prodbyowner.find(aactor.value);
 
-            fio_400_assert(prod_iter != producers.end(), "actor", actor,
+            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 

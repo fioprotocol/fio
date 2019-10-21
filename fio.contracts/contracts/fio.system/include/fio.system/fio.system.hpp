@@ -114,8 +114,11 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
 };
 
 struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
+    uint64_t id;
     name owner;
     string fio_address;
+    uint128_t addresshash;
+
     double total_votes = 0;
     eosio::public_key producer_fio_public_key; /// a packed public key object
     bool is_active = true;
@@ -125,7 +128,9 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     //init this to zero here to ensure that if the location is not specified, sorting will still work.
     uint16_t location = 0;
 
-    uint64_t primary_key() const { return owner.value; }
+    uint64_t primary_key() const { return id; }
+    uint64_t by_owner() const{return owner.value;}
+    uint128_t by_address() const{return addresshash;}
 
     double by_votes() const { return is_active ? -total_votes : total_votes; }
 
@@ -137,13 +142,24 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( producer_info, (owner)(fio_address)(total_votes)(producer_fio_public_key)(is_active)(url)
+    EOSLIB_SERIALIZE( producer_info, (id)(owner)(fio_address)(addresshash)(total_votes)(producer_fio_public_key)(is_active)(url)
             (unpaid_blocks)(last_claim_time)(location)
     )
 };
 
+typedef eosio::multi_index<"producers"_n, producer_info,
+        indexed_by<"prototalvote"_n, const_mem_fun < producer_info, double, &producer_info::by_votes> >,
+        indexed_by<"byaddress"_n, const_mem_fun < producer_info, uint128_t, &producer_info::by_address> >,
+        indexed_by<"byowner"_n, const_mem_fun < producer_info, uint64_t, &producer_info::by_owner> >
+
+>
+producers_table;
+
 
 struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
+    uint64_t id; //one up id is primary key.
+    string fioaddress; //the fio address of this vote
+    uint128_t addresshash; //this is the hash of the fio address for searching
     name owner;     /// the voter
     name proxy;     /// the proxy set by the voter, if any
     std::vector <name> producers; /// the producers approved by this voter if no proxy set
@@ -164,20 +180,22 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     uint32_t reserved2 = 0;
     eosio::asset reserved3;
 
-    uint64_t primary_key() const { return owner.value; }
+    uint64_t primary_key() const{return id;}
+    uint128_t by_address() const {return addresshash;}
+    uint64_t by_owner() const { return owner.value; }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( voter_info, (owner)(proxy)(producers)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(reserved2)(reserved3)
+    EOSLIB_SERIALIZE( voter_info, (id)(fioaddress)(addresshash)(owner)(proxy)(producers)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(reserved2)(reserved3)
     )
 };
 
-typedef eosio::multi_index<"voters"_n, voter_info> voters_table;
+typedef eosio::multi_index<"voters"_n, voter_info,
+indexed_by<"byaddress"_n, const_mem_fun<voter_info, uint128_t, &voter_info::by_address>>,
+indexed_by<"byowner"_n, const_mem_fun<voter_info, uint64_t, &voter_info::by_owner>>
+> voters_table;
 
 
-typedef eosio::multi_index<"producers"_n, producer_info,
-        indexed_by<"prototalvote"_n, const_mem_fun < producer_info, double, &producer_info::by_votes> >
->
-producers_table;
+
 //MAS-522 eliminate producers2 table typedef eosio::multi_index<"producers2"_n, producer_info2> producers_table2;
 
 typedef eosio::singleton<"global"_n, eosio_global_state> global_state_singleton;
