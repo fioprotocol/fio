@@ -46,15 +46,16 @@ namespace eosiosystem {
         check(producer_key != "", "public key should not be the default value");
         require_auth(producer);
 
-        auto prod = _producers.find(producer.value);
+        auto prodbyowner = _producers.get_index<"byowner"_n>();
+        auto prod = prodbyowner.find(producer.value);
         const auto ct = current_time_point();
 
-        if (prod != _producers.end()) {
+        if (prod != prodbyowner.end()) {
             if (prod->is_active) {
                 fio_400_assert(false, "fio_address", fio_address,
                                "Already registered as producer", ErrorFioNameNotReg);
             } else {
-                _producers.modify(prod, producer, [&](producer_info &info) {
+                prodbyowner.modify(prod, producer, [&](producer_info &info) {
                     info.is_active = true;
                     info.fio_address = fio_address;
                     info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
@@ -65,7 +66,10 @@ namespace eosiosystem {
                 });
             }
         } else {
+            uint64_t id = _producers.available_primary_key();
+
             _producers.emplace(producer, [&](producer_info &info) {
+                info.id = id;
                 info.owner = producer;
                 info.fio_address = fio_address;
                 info.total_votes = 0;
@@ -216,12 +220,13 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        const auto &prod = _producers.find(actor.value);
+        auto prodbyowner = _producers.get_index<"byowner"_n>();
+        const auto &prod = prodbyowner.find(actor.value);
 
-        fio_400_assert(prod != _producers.end(), "fio_address", fio_address,
+        fio_400_assert(prod != prodbyowner.end(), "fio_address", fio_address,
                        "Not registered as producer", ErrorFioNameNotReg);
 
-        _producers.modify(prod, same_payer, [&](producer_info &info) {
+        prodbyowner.modify(prod, same_payer, [&](producer_info &info) {
             info.deactivate();
         });
 
@@ -470,11 +475,12 @@ namespace eosiosystem {
                        ErrorDomainExpired);
 
         auto proxy_name = name{account};
-        auto voter_iter = _voters.find(account);
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto voter_iter = votersbyowner.find(account);
 
         //the first opportunity to throw this error is when the owner account is not present
         //in the table.
-        fio_400_assert(voter_iter != _voters.end(), "fio_address", fio_address,
+        fio_400_assert(voter_iter != votersbyowner.end(), "fio_address", fio_address,
                        "This address is not a proxy", AddressNotProxy);
 
         //the second opportunity to throw this error is when the row is present and is not a proxy
@@ -483,10 +489,14 @@ namespace eosiosystem {
 
 
         std::vector<name> producers{}; // Empty
-        voter_iter = _voters.find(actor.value);
 
-        if (voter_iter == _voters.end()) {
+
+        voter_iter = votersbyowner.find(actor.value);
+
+        if (voter_iter == votersbyowner.end()) {
+            uint64_t id = _voters.available_primary_key();
             _voters.emplace(actor, [&](auto &p) {
+                p.id = id;
                 p.owner = actor;
             });
         }
@@ -542,9 +552,9 @@ namespace eosiosystem {
                 check(producers[i - 1] < producers[i], "producer votes must be unique and sorted");
             }
         }
-
-        auto voter = _voters.find(voter_name.value);
-        check(voter != _voters.end(), "user must stake before they can vote"); /// staking creates voter object
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto voter = votersbyowner.find(voter_name.value);
+        check(voter != votersbyowner.end(), "user must vote before votes can be updated");
         check(!proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
         //get fio balance for this account, thats the vote weight.
@@ -560,9 +570,9 @@ namespace eosiosystem {
         boost::container::flat_map <name, pair<double, bool /*new*/>> producer_deltas;
         if (voter->last_vote_weight > 0) {
             if (voter->proxy) {
-                auto old_proxy = _voters.find(voter->proxy.value);
-                check(old_proxy != _voters.end(), "old proxy not found"); //data corruption
-                _voters.modify(old_proxy, same_payer, [&](auto &vp) {
+                auto old_proxy = votersbyowner.find(voter->proxy.value);
+                check(old_proxy != votersbyowner.end(), "old proxy not found"); //data corruption
+                votersbyowner.modify(old_proxy, same_payer, [&](auto &vp) {
                     vp.proxied_vote_weight -= voter->last_vote_weight;
                 });
                 propagate_weight_change(*old_proxy);
@@ -576,12 +586,12 @@ namespace eosiosystem {
         }
 
         if (proxy) {
-            auto new_proxy = _voters.find(proxy.value);
-            check(new_proxy != _voters.end(),
+            auto new_proxy = votersbyowner.find(proxy.value);
+            check(new_proxy != votersbyowner.end(),
                   "invalid proxy specified"); //if ( !voting ) { data corruption } else { wrong vote }
             fio_403_assert(!voting || new_proxy->is_proxy, ErrorProxyNotFound);
             if (new_vote_weight >= 0) {
-                _voters.modify(new_proxy, same_payer, [&](auto &vp) {
+                votersbyowner.modify(new_proxy, same_payer, [&](auto &vp) {
                     vp.proxied_vote_weight += new_vote_weight;
                 });
                 propagate_weight_change(*new_proxy);
@@ -600,12 +610,13 @@ namespace eosiosystem {
         double delta_change_rate = 0.0;
         double total_inactive_vpay_share = 0.0;
         for (const auto &pd : producer_deltas) {
-            auto pitr = _producers.find(pd.first.value);
-            if (pitr != _producers.end()) {
+            auto prodbyowner = _producers.get_index<"byowner"_n>();
+            auto pitr = prodbyowner.find(pd.first.value);
+            if (pitr != prodbyowner.end()) {
                 check(!voting || pitr->active() || !pd.second.second /* not from new set */,
                       "Invalid or duplicated producers");
                 double init_total_votes = pitr->total_votes;
-                _producers.modify(pitr, same_payer, [&](auto &p) {
+                prodbyowner.modify(pitr, same_payer, [&](auto &p) {
                     p.total_votes += pd.second.first;
                     if (p.total_votes < 0) { // floating point arithmetics can give small negative numbers
                         p.total_votes = 0;
@@ -621,7 +632,7 @@ namespace eosiosystem {
 
         update_total_votepay_share(ct, -total_inactive_vpay_share, delta_change_rate);
 
-        _voters.modify(voter, same_payer, [&](auto &av) {
+        votersbyowner.modify(voter, same_payer, [&](auto &av) {
             av.last_vote_weight = new_vote_weight;
             av.producers = producers;
             av.proxy = proxy;
@@ -633,14 +644,15 @@ namespace eosiosystem {
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
-        auto itervi = _voters.find(proxy.value);
-        check(itervi != _voters.end(), "specified proxy not found.");
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto itervi = votersbyowner.find(proxy.value);
+        check(itervi != votersbyowner.end(), "specified proxy not found.");
         check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
 
-        itervi = _voters.find(owner.value);
-        check(itervi != _voters.end(), "specified owner not found.");
-        _voters.modify(itervi, same_payer, [&](auto &av) {
+        itervi = votersbyowner.find(owner.value);
+        check(itervi != votersbyowner.end(), "specified owner not found.");
+        votersbyowner.modify(itervi, same_payer, [&](auto &av) {
             av.is_auto_proxy = true;
             av.proxy = proxy;
         });
@@ -654,21 +666,24 @@ namespace eosiosystem {
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
-        auto itervi = _voters.find(proxy.value);
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto itervi = votersbyowner.find(proxy.value);
 
-        if (itervi != _voters.end() &&
+        if (itervi != votersbyowner.end() &&
            itervi->is_proxy) {
 
-            auto itervoter = _voters.find(owner.value);
-            if (itervoter == _voters.end()) {
+            auto itervoter = votersbyowner.find(owner.value);
+            if (itervoter == votersbyowner.end()) {
+                uint64_t id = _voters.available_primary_key();
                 _voters.emplace(owner, [&](auto &p) {
+                    p.id = id;
                     p.owner = owner;
                     p.is_auto_proxy = true;
                     p.proxy = proxy;
                 });
                 print("new proxy has been set to tpid ", proxy, "\n");
             } else if (itervoter->is_auto_proxy && itervoter->proxy != proxy) {
-                _voters.modify(itervoter, _self, [&](struct voter_info &a) {
+                votersbyowner.modify(itervoter, _self, [&](struct voter_info &a) {
                     a.proxy = proxy;
                 });
                 print("auto proxy was updated to be tpid ",proxy,"\n");
@@ -844,21 +859,22 @@ namespace eosiosystem {
 
        print ("called regiproxy with proxy ",proxy, " isproxy ", isproxy,"\n");
 
-        auto pitr = _voters.find(proxy.value);
-        if (pitr != _voters.end()) {
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto pitr = votersbyowner.find(proxy.value);
+        if (pitr != votersbyowner.end()) {
 
             //if the values are equal and isproxy, then show this error.
             fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "fio_address", fio_address,
                            "Already registered as proxy. ", ErrorPubAddressExist);
             //check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
             if (isproxy && !pitr->proxy) {
-                _voters.modify(pitr, same_payer, [&](auto &p) {
+                votersbyowner.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
                     p.is_auto_proxy = false;
                 });
             }else if (!isproxy) { //this is how we undo/clear a proxy
                 name nm;
-                _voters.modify(pitr, same_payer, [&](auto &p) {
+                votersbyowner.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
                     p.is_auto_proxy = false;
                     p.proxy = nm; //set to a null state, an uninitialized name,
@@ -871,7 +887,13 @@ namespace eosiosystem {
                               //it makes no sense to emplace a voter record when isproxy is false,
                               // this means making a voting record with no votes, and not a proxy,
                               //and not having a proxy, its kind of a null vote, so dont emplace unless isproxy is true.
+
+            uint64_t id = _voters.available_primary_key();
+            uint128_t addresshash = string_to_uint128_hash(fio_address.c_str());
             _voters.emplace(proxy, [&](auto &p) {
+                p.id = id;
+                p.fioaddress = fio_address;
+                p.addresshash = addresshash;
                 p.owner = proxy;
                 p.is_proxy = isproxy;
             });
@@ -889,25 +911,31 @@ namespace eosiosystem {
         if (voter.is_proxy) {
             new_weight += voter.proxied_vote_weight;
         }
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
 
         /// don't propagate small changes (1 ~= epsilon)
         if (fabs(new_weight - voter.last_vote_weight) > 1) {
             if (voter.proxy) {
-                auto &proxy = _voters.get(voter.proxy.value, "proxy not found"); //data corruption
-                _voters.modify(proxy, same_payer, [&](auto &p) {
+
+                auto pitr = votersbyowner.find(voter.proxy.value);
+                check(pitr != votersbyowner.end(),"proxy not found");
+
+                votersbyowner.modify(pitr, same_payer, [&](auto &p) {
                                    p.proxied_vote_weight += new_weight - voter.last_vote_weight;
                                }
                 );
-                propagate_weight_change(proxy);
+                propagate_weight_change(*pitr);
             } else {
                 auto delta = new_weight - voter.last_vote_weight;
                 const auto ct = current_time_point();
                 double delta_change_rate = 0;
                 double total_inactive_vpay_share = 0;
                 for (auto acnt : voter.producers) {
-                    auto &prod = _producers.get(acnt.value, "producer not found"); //data corruption
-                    const double init_total_votes = prod.total_votes;
-                    _producers.modify(prod, same_payer, [&](auto &p) {
+                    auto prodbyowner = _producers.get_index<"byowner"_n>();
+                    auto prod =  prodbyowner.find(acnt.value);
+                    check(prod != prodbyowner.end(), "producer not found"); //data corruption
+                    const double init_total_votes = prod->total_votes;
+                    prodbyowner.modify(prod, same_payer, [&](auto &p) {
                         p.total_votes += delta;
                         _gstate.total_producer_vote_weight += delta;
                     });
@@ -916,7 +944,9 @@ namespace eosiosystem {
                 update_total_votepay_share(ct, -total_inactive_vpay_share, delta_change_rate);
             }
         }
-        _voters.modify(voter, same_payer, [&](auto &v) {
+        auto pitr = votersbyowner.find(voter.owner.value);
+        check(pitr != votersbyowner.end(),"voter not found");
+        votersbyowner.modify(pitr, same_payer, [&](auto &v) {
                            v.last_vote_weight = new_weight;
                        }
         );

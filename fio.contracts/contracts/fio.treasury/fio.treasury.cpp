@@ -126,8 +126,10 @@ namespace fioio {
                            "Invalid FIO Address", ErrorNoFioAddressProducer);
 
             uint64_t producer = fioiter->owner_account;
+            auto prodbyowner = producers.get_index<"byowner"_n>();
+            auto proditer = prodbyowner.find(producer);
 
-            fio_400_assert(producers.find(producer) != producers.end(), "fio_address", fio_address,
+            fio_400_assert(proditer != prodbyowner.end(), "fio_address", fio_address,
                            "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
             auto domainsbyname = domains.get_index<"byname"_n>();
@@ -246,7 +248,9 @@ namespace fioio {
 
             auto bpiter = voteshares.find(producer);
 
-            const auto &prod = producers.get(producer);
+            prodbyowner = producers.get_index<"byowner"_n>();
+            proditer = prodbyowner.find(producer);
+            check(proditer != prodbyowner.end(),"producer not found");
 
             /******* Payouts *******/
             //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
@@ -255,7 +259,7 @@ namespace fioio {
             if (bpiter != voteshares.end()) {
                 payout = static_cast<uint64_t>(bpiter->abpayshare + bpiter->sbpayshare);
 
-                check(prod.active(), "producer does not have an active key");
+                check(proditer->is_active, "producer does not have an active key");
                 if (payout > 0) {
                     action(permission_level{get_self(), "active"_n},
                            TokenContract, "transfer"_n,
