@@ -164,7 +164,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     string fioaddress;  //this is the fio address to be used for bundled fee collection
     //for tx that are fee type bundled, just use the one fio address
     //you want to have pay for the bundled fee transactions associated
-    //with this producer.
+    //with this voter.
     uint128_t addresshash; //this is the hash of the fio address for searching
     name owner;     /// the voter
     name proxy;     /// the proxy set by the voter, if any
