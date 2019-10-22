@@ -116,7 +116,10 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
 struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     uint64_t id;
     name owner;
-    string fio_address;
+    string fio_address;  //this is the fio address to be used for bundled fee collection
+                         //for tx that are fee type bundled, just use the one fio address
+                         //you want to have pay for the bundled fee transactions associated
+                         //with this producer.
     uint128_t addresshash;
 
     double total_votes = 0;
@@ -158,7 +161,10 @@ producers_table;
 
 struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     uint64_t id; //one up id is primary key.
-    string fioaddress; //the fio address of this vote
+    string fioaddress;  //this is the fio address to be used for bundled fee collection
+    //for tx that are fee type bundled, just use the one fio address
+    //you want to have pay for the bundled fee transactions associated
+    //with this producer.
     uint128_t addresshash; //this is the hash of the fio address for searching
     name owner;     /// the voter
     name proxy;     /// the proxy set by the voter, if any
