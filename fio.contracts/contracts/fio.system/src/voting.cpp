@@ -31,6 +31,51 @@ namespace eosiosystem {
     using eosio::singleton;
     using eosio::transaction;
 
+   /*******
+    * this action will do the required work in the system tables that is necessary
+    * before performing the burning of a fio address, the voters and producers
+    * table must be cleaned up appropriately for the specified address
+    * @param fioaddrhash  this is the hash of the fio address being considered for burning.
+    */
+    void
+    system_contract::burnaction(const uint128_t &fioaddrhash) {
+        //verify that this address is expired.
+        //this helps to ensure bad actors cant use this action unintentionally.
+        uint64_t nowtime = now();
+        auto namesbyname = _fionames.get_index<"byname"_n>();
+        auto nameiter = namesbyname.find(fioaddrhash);
+        check(nameiter != namesbyname.end(),"unexpected error verifying expired address");
+
+        uint64_t expire = nameiter->expiration;
+
+        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime){
+            auto prodbyaddress = _producers.get_index<"byaddress"_n>();
+            auto prod = prodbyaddress.find(fioaddrhash);
+            if (prod != prodbyaddress.end())
+            {
+                prodbyaddress.modify(prod, _self, [&](producer_info &info) {
+                    info.fio_address = "";
+                    info.addresshash = 0;
+                    info.is_active = false;
+                });
+
+            }
+            auto votersbyaddress = _voters.get_index<"byaddress"_n>();
+            auto voters = votersbyaddress.find(fioaddrhash);
+            if (voters != votersbyaddress.end())
+            {
+                //be absolutely certain to only delete the record we are interested in.
+                if (voters->addresshash == fioaddrhash)
+                {
+                    votersbyaddress.erase(voters);
+                }
+
+            }
+        }
+    }
+
+
+
     /**
      *  This method will create a producer_config and producer_info object for 'producer'
      *

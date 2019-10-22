@@ -256,6 +256,8 @@ public:
     // functions defined in delegate_bandwidth.cpp
 
     // functions defined in voting.cpp
+    [[eosio::action]]
+    void burnaction(const uint128_t &fioaddrhash);
 
     [[eosio::action]]
     void regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
