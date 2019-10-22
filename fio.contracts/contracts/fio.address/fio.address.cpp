@@ -1020,7 +1020,6 @@ namespace fioio {
             }
 
             nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    expiration},
                                    {"fee_collected", fee_amount}};
             send_response(json.dump().c_str());
         }
