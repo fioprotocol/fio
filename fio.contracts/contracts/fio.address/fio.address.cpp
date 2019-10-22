@@ -816,9 +816,7 @@ namespace fioio {
 
             int numbertoburn = 100;
             int windowmaxyears = 20;
-            uint64_t secondsperday = 86400;
-            uint64_t domainwaitforburndays = 90 * secondsperday;
-            uint64_t addresswaitforburndays = 90 * secondsperday;
+
             uint64_t nowtime = now();
 
             //this allows us to search through all of the domains.
@@ -835,7 +833,7 @@ namespace fioio {
                 uint64_t expire = domainiter->expiration;
                 uint128_t domainnamehash = domainiter->domainhash;
 
-                if ((expire + domainwaitforburndays) > nowtime){
+                if ((expire + DOMAINWAITFORBURNDAYS) > nowtime){
                     break;
                 } else {
                     auto domainhash = domainiter->domainhash;
@@ -876,7 +874,7 @@ namespace fioio {
 
                 while (nameiter != nameexpidx.end()) {
                     uint64_t expire = nameiter->expiration;
-                    if ((expire + addresswaitforburndays) > nowtime){
+                    if ((expire + ADDRESSWAITFORBURNDAYS) > nowtime){
                         break;
                     } else {
                         if (!(std::find(burnlist.begin(), burnlist.end(), nameiter->namehash) != burnlist.end())) {
@@ -898,6 +896,14 @@ namespace fioio {
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
                 auto fionamesiter = namesbyname.find(burner);
+
+                //look for any producer, or voter records associated with this name.
+                action(
+                        permission_level{_self, "active"_n},
+                        "eosio"_n,
+                        "burnaction"_n,
+                        std::make_tuple(burner)
+                ).send();
 
                 if (fionamesiter != namesbyname.end()) {
                     namesbyname.erase(fionamesiter);
