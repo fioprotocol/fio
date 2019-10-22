@@ -48,6 +48,7 @@ namespace eosiosystem {
 
         auto prodbyowner = _producers.get_index<"byowner"_n>();
         auto prod = prodbyowner.find(producer.value);
+        uint128_t addresshash = string_to_uint128_hash(fio_address.c_str());
         const auto ct = current_time_point();
 
         if (prod != prodbyowner.end()) {
@@ -58,6 +59,7 @@ namespace eosiosystem {
                 prodbyowner.modify(prod, producer, [&](producer_info &info) {
                     info.is_active = true;
                     info.fio_address = fio_address;
+                    info.addresshash = addresshash;
                     info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
                     info.url = url;
                     info.location = location;
@@ -72,6 +74,7 @@ namespace eosiosystem {
                 info.id = id;
                 info.owner = producer;
                 info.fio_address = fio_address;
+                info.addresshash = addresshash;
                 info.total_votes = 0;
                 info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
                 info.is_active = true;
@@ -861,6 +864,7 @@ namespace eosiosystem {
 
         auto votersbyowner = _voters.get_index<"byowner"_n>();
         auto pitr = votersbyowner.find(proxy.value);
+        uint128_t addresshash = string_to_uint128_hash(fio_address.c_str());
         if (pitr != votersbyowner.end()) {
 
             //if the values are equal and isproxy, then show this error.
