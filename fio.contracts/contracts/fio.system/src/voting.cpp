@@ -405,6 +405,11 @@ namespace eosiosystem {
      *
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
+    
+    struct decrementcounter {
+        string fio_address;
+    };
+    
     void system_contract::vproducer(const name &voter_name, const name &proxy, const std::vector <name> &producers) {
         require_auth(voter_name);
         update_votes(voter_name, proxy, producers, true);
@@ -486,9 +491,14 @@ namespace eosiosystem {
         uint64_t fee_amount = 0;
 
         if (bundleeligiblecountdown > 0) {
-            namesbyname.modify(voter_iter, _self, [&](struct fioname &a) {
-                a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
-            });
+            action{
+                    permission_level{_self, "active"_n},
+                    AddressContract,
+                    "decrcounter"_n,
+                    decrementcounter{
+                            .fio_address = fio_address
+                    }
+            }.send();
         } else {
             fee_amount = fee_iter->suf_amount;
             fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
@@ -610,9 +620,14 @@ namespace eosiosystem {
         uint64_t fee_amount = 0;
 
         if (bundleeligiblecountdown > 0) {
-            namesbyname.modify(voter_iter, _self, [&](struct fioname &a) {
-                a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
-            });
+            action{
+                    permission_level{_self, "active"_n},
+                    AddressContract,
+                    "decrcounter"_n,
+                    decrementcounter{
+                            .fio_address = fio_address
+                    }
+            }.send();
         } else {
             fee_amount = fee_iter->suf_amount;
             fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
