@@ -274,13 +274,13 @@ public:
     void vproducer(const name &voter, const name &proxy, const std::vector<name> &producers); //server call
 
     [[eosio::action]]
-    void voteproducer(const std::vector<string> &producers, const name &actor, const int64_t &max_fee);
+    void voteproducer(const std::vector<string> &producers, const string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
     void updatepower(const name &voter, bool updateonly);
 
     [[eosio::action]]
-    void voteproxy(const string &fio_address, const name &actor, const int64_t &max_fee);
+    void voteproxy(const string &proxy, const string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
     void setautoproxy(const name &proxy,const name &owner);
