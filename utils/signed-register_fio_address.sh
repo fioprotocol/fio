@@ -30,7 +30,7 @@ dataJson="{
 }"
 
 expectedPackedData=056461706978104208414933a95b
-cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.system regaddress '${dataJson}'"
+cmd="programs/cleos/cleos --no-auto-keosd --url http://$hostname:$nPort --wallet-url http://$hostname:$wPort  convert pack_action_data fio.address regaddress '${dataJson}'"
 echo CMD: $cmd
 actualPackedData=`eval $cmd`
 ret=$?
@@ -73,7 +73,7 @@ unsignedRequest='{
     "delay_sec": 0,
     "context_free_actions": [],
     "actions": [{
-        "account":"fio.system",
+        "account":"fio.address",
         "name": "regaddress"
         "authorization":[{
              "actor":"'${fioactor}'",
