@@ -437,16 +437,16 @@ namespace eosio {
             get_fee_result get_fee(const get_fee_params &params) const;
             //Fio API get_fee
 
-            struct pub_address_lookup_params {
+            struct get_pub_address_params {
                 fc::string fio_address;
                 fc::string token_code;
             };
 
-            struct pub_address_lookup_result {
+            struct get_pub_address_result {
                 fc::string public_address;
             };
 
-            pub_address_lookup_result pub_address_lookup(const pub_address_lookup_params &params) const;
+            get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
 
             /**
              * Lookup FIO domains and addresses based upon public address
@@ -1249,9 +1249,9 @@ FC_REFLECT(eosio::chain_apis::request_status_record,
 (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(time_stamp)
 (status))
 
-FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_params, (fio_address)(token_code)
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)
 )
-FC_REFLECT(eosio::chain_apis::read_only::pub_address_lookup_result, (public_address)
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address)
 );
 
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)

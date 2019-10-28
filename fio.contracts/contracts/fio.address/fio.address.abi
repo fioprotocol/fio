@@ -119,18 +119,27 @@
           "type": "string"
         }
       ]
-    },{
+    },
+    {
+                 "name": "tokenpubaddr",
+                 "base": "",
+                 "fields": [
+                    {"name":"token_code", "type":"string"},
+                    {"name":"public_address", "type":"string"}
+                 ]
+          },
+
+
+
+    {
       "name": "addaddress",
       "base": "",
       "fields": [{
           "name": "fio_address",
           "type": "string"
         },{
-          "name": "token_code",
-          "type": "string"
-        },{
-          "name": "public_address",
-          "type": "string"
+          "name": "public_addresses",
+          "type": "tokenpubaddr[]"
         },{
           "name": "max_fee",
           "type": "int64"

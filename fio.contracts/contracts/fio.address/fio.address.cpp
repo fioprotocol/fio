@@ -155,17 +155,20 @@ namespace fioio {
             return returnvalue / totalcount;
         }
 
-        inline void addaddress_errors(const string &tokencode, const string &pubaddress, const FioAddress &fa, const int64_t &max_fee) const {
+        inline void addaddress_errors(const vector<tokenpubaddr> pubaddresses, const FioAddress &fa, const int64_t &max_fee) const {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
             fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "FIO Address not found",
                            ErrorDomainAlreadyRegistered);
-            fio_400_assert(isChainNameValid(tokencode), "token_code", tokencode, "Invalid token code format",
-                           ErrorInvalidFioNameFormat);
-            fio_400_assert(isPubAddressValid(pubaddress), "public_address", pubaddress, "Invalid public address format",
-                           ErrorChainAddressEmpty);
-            fio_400_assert(!(pubaddress.size() == 0), "public_address", pubaddress, "Invalid public address format",
-                           ErrorChainAddressEmpty); // for some reason this one-off validation is necessary.
+            for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
+                fio_400_assert(isChainNameValid(tpa->token_code), "token_code", tpa->token_code, "Invalid token code format",
+                               ErrorInvalidFioNameFormat);
+                fio_400_assert(isPubAddressValid(tpa->public_address), "public_address", tpa->public_address,
+                               "Invalid public address format",
+                               ErrorChainAddressEmpty);
+                fio_400_assert(!(tpa->public_address.size() == 0), "public_address", tpa->public_address, "Invalid public address format",
+                               ErrorChainAddressEmpty); // for some reason this one-off validation is necessary.
+            }
         }
 
         uint32_t fio_address_update(const name &owneractor, const name &actor, int64_t max_fee, const FioAddress &fa,
@@ -230,7 +233,13 @@ namespace fioio {
                 a.bundleeligiblecountdown = getBundledAmount();
             });
 
-            uint64_t fee_amount = chain_data_update(fa.fioaddress, "FIO", key_iter->clientkey, max_fee, fa, actor,
+            vector<tokenpubaddr> pubaddresses;
+            tokenpubaddr t1;
+            t1.public_address = key_iter->clientkey;
+            t1.token_code = "FIO";
+            pubaddresses.push_back(t1);
+
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, actor,
                                                     true, tpid);
 
             return expiration_time;
@@ -266,8 +275,8 @@ namespace fioio {
         }
 
         uint64_t
-        chain_data_update(const string &fioaddress, const string &tokencode,
-                          const string &pubaddress, int64_t max_fee, const FioAddress &fa,
+        chain_data_update(const string &fioaddress, const vector<tokenpubaddr> pubaddresses,
+                          int64_t max_fee, const FioAddress &fa,
                           const name &actor, const bool isFIO, const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -300,27 +309,29 @@ namespace fioio {
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
 
-            uint64_t chainhash = string_to_uint64_hash(tokencode.c_str());
-            auto chain_iter = chains.find(chainhash);
-            auto size = distance(chains.cbegin(), chains.cend());
+            for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
+                uint64_t chainhash = string_to_uint64_hash(tpa->token_code.c_str());
+                auto chain_iter = chains.find(chainhash);
+                auto size = distance(chains.cbegin(), chains.cend());
 
-            if (chain_iter == chains.end()) {
-                fio_400_assert(tokencode.length() <= 10, "token_code", tokencode, "Invalid token code format",
-                               ErrorTokenCodeInvalid);
-                fio_400_assert(tokencode.length() > 0, "token_code", tokencode, "Invalid token code format",
-                               ErrorTokenCodeInvalid);
+                if (chain_iter == chains.end()) {
+                    fio_400_assert(tpa->token_code.length() <= 10, "token_code", tpa->token_code, "Invalid token code format",
+                                   ErrorTokenCodeInvalid);
+                    fio_400_assert(tpa->token_code.length() > 0, "token_code", tpa->token_code, "Invalid token code format",
+                                   ErrorTokenCodeInvalid);
 
-                chains.emplace(_self, [&](struct chainList &a) {
-                    a.id = size;
-                    a.chainname = tokencode;
-                    a.chainhash = chainhash;
+                    chains.emplace(_self, [&](struct chainList &a) {
+                        a.id = size;
+                        a.chainname = tpa->token_code;
+                        a.chainhash = chainhash;
+                    });
+                    chain_iter = chains.find(chainhash);
+                }
+
+                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                    a.addresses[static_cast<size_t>((chain_iter)->by_index())] = tpa->public_address;
                 });
-                chain_iter = chains.find(chainhash);
             }
-
-            namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
-                a.addresses[static_cast<size_t>((chain_iter)->by_index())] = pubaddress;
-            });
 
             //begin new fees, bundle eligible fee logic
 
@@ -938,16 +949,16 @@ namespace fioio {
          */
         [[eosio::action]]
         void
-        addaddress(const string &fio_address, const string &token_code, const string &public_address, const int64_t &max_fee,
+        addaddress(const string &fio_address,  const vector<tokenpubaddr> &public_addresses, const int64_t &max_fee,
                    const name &actor, const string &tpid) {
 
             require_auth(actor);
 
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
-            addaddress_errors(token_code, public_address, fa, max_fee);
+            addaddress_errors(public_addresses, fa, max_fee);
 
-            uint64_t fee_amount = chain_data_update(fio_address, token_code, public_address, max_fee, fa, actor, false,
+            uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
                                                     tpid);
 
             nlohmann::json json = {{"status",        "OK"},
