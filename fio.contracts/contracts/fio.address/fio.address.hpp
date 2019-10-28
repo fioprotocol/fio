@@ -18,6 +18,13 @@ namespace fioio {
 
     using namespace eosio;
 
+    struct tokenpubaddr {
+        string token_code;
+        string public_address;
+        EOSLIB_SERIALIZE( tokenpubaddr, (token_code)(public_address))
+    };
+
+
     struct [[eosio::action]] fioname {
 
         uint64_t id = 0;

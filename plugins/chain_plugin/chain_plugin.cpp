@@ -2067,8 +2067,8 @@ if( options.count(name) ) { \
         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
         * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
         */
-        read_only::pub_address_lookup_result
-        read_only::pub_address_lookup(const read_only::pub_address_lookup_params &p) const {
+        read_only::get_pub_address_result
+        read_only::get_pub_address(const read_only::get_pub_address_params &p) const {
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_address, fa);
             // assert if empty fio name
@@ -2100,7 +2100,7 @@ if( options.count(name) ) { \
             get_table_rows_result chains_result;
             get_table_rows_result name_result;
 
-            pub_address_lookup_result result;
+            get_pub_address_result result;
 
             result.public_address = "";
 
@@ -2188,7 +2188,7 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(!(result.public_address == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
 
             return result;
-        } // pub_address_lookup
+        } // get_pub_address
 
 
 
