@@ -1479,7 +1479,7 @@ if( options.count(name) ) { \
 
             FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
             fioio::ErrorPubKeyValid);
-            
+
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
                            fioio::ErrorPagingInvalid);
 
@@ -1717,7 +1717,6 @@ if( options.count(name) ) { \
                     });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
-            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
             std::string nam;
             uint64_t namexpiration;
@@ -1761,7 +1760,7 @@ if( options.count(name) ) { \
             dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
 
             if (domain_result.rows.empty()) {
-                FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names",
+                FIO_404_ASSERT(!domain_result.rows.empty() && !table_rows_result.rows.empty(), "No FIO names",
                                fioio::ErrorNoFIONames);
                 return result;
             }
