@@ -1479,7 +1479,7 @@ if( options.count(name) ) { \
 
             FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(), "Invalid FIO Public Key",
             fioio::ErrorPubKeyValid);
-            
+
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
                            fioio::ErrorPagingInvalid);
 
@@ -1717,7 +1717,6 @@ if( options.count(name) ) { \
                     });
 
             dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
-            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO names", fioio::ErrorNoFIONames);
 
             std::string nam;
             uint64_t namexpiration;
@@ -1725,23 +1724,24 @@ if( options.count(name) ) { \
             struct tm *timeinfo;
             char buffer[80];
 
-            // Look through the keynames lookup results and push the fio_addresses into results
-            for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
+            if (!table_rows_result.rows.empty()) {
 
-                nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                if (nam.find(':') != std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
-                    namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+              // Look through the keynames lookup results and push the fio_addresses into results
+              for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
 
-                    temptime = namexpiration;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                  nam = (string) table_rows_result.rows[pos]["name"].as_string();
+                  if (nam.find(':') != std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
+                      namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
 
-                    fioaddress_record fa{nam, buffer};
-                    result.fio_addresses.push_back(fa);
-                }
+                      temptime = namexpiration;
+                      timeinfo = gmtime(&temptime);
+                      strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-            } // Get FIO domains and push
-
+                      fioaddress_record fa{nam, buffer};
+                      result.fio_addresses.push_back(fa);
+                  }
+              } // Get FIO domains and push
+            }
             //Get the domain record
             get_table_rows_params domain_row_params = get_table_rows_params{.json=true,
                     .code=fio_system_code,
@@ -1757,14 +1757,15 @@ if( options.count(name) ) { \
                                                                                                     [](uint64_t v) -> uint64_t {
                                                                                                         return v;
                                                                                                     });
-
-            dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
+            FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names",
+                           fioio::ErrorNoFIONames);
 
             if (domain_result.rows.empty()) {
-                FIO_404_ASSERT(!(domain_result.rows.empty() && table_rows_result.rows.empty()), "No FIO names",
-                               fioio::ErrorNoFIONames);
-                return result;
+
+              return result;
             }
+
+            dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
 
             std::string dom;
             uint64_t domexpiration;
