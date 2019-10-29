@@ -104,6 +104,10 @@ namespace eosiosystem {
                                          ignore <authority> owner,
                                          ignore <authority> active) {
 
+
+        check((creator == SYSTEMACCOUNT || creator == TokenContract ||
+                 creator == AddressContract), "new account is not permitted");
+        
         if (creator != _self) {
             uint64_t tmp = newact.value >> 4;
             bool has_dot = false;
@@ -119,7 +123,6 @@ namespace eosiosystem {
                 }
             }
         }
-
 
        //in the FIO protocol we want all of our accounts to be created with unlimited
        //CPU NET and RAM. to do this we need our accounts to NOT have entrees in the
