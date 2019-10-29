@@ -18,6 +18,7 @@
 #include "json.hpp"
 #include "keyops.hpp"
 #include "fioerror.hpp"
+#include "fio.accounts.hpp"
 #include "fio_common_validator.hpp"
 #include "chain_control.hpp"
 #include "account_operations.hpp"
@@ -51,15 +52,6 @@ namespace fioio {
 
     using namespace eosio;
     using namespace std;
-
-    static const name FeeContract = name("fio.fee");    // account hosting the fee contract
-    static const name AddressContract = name("fio.address");
-    static const name TPIDContract = name("fio.tpid");
-    static const name TokenContract = name("fio.token");
-    static const name FOUNDATIONACCOUNT = name("fio.foundatn");
-    static const name TREASURYACCOUNT = name("fio.treasury");
-    static const name SYSTEMACCOUNT = name("eosio");
-
 
     typedef long long  int64;
 

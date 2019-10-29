@@ -140,6 +140,19 @@ namespace eosiosystem {
     }
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
+
+        check( (acnt == MSIGACCOUNT ||
+                acnt == WHITELISTACCOUNT ||
+                acnt == WRAPACCOUNT ||
+                acnt == FeeContract ||
+                acnt == AddressContract ||
+                acnt == TPIDContract ||
+                acnt == TokenContract ||
+                acnt == FOUNDATIONACCOUNT ||
+                acnt == TREASURYACCOUNT ||
+                acnt == SYSTEMACCOUNT), "setabi is not permitted");
+
+
         eosio::multi_index<"abihash"_n, abi_hash> table(_self, _self.value);
         auto itr = table.find(acnt.value);
         if (itr == table.end()) {
