@@ -269,7 +269,7 @@ echo "$logging01" > $path/$lName
 echo "$genesis" > $path/$gName
 
 
-programs/eosio-launcher/eosio-launcher -p $pnodes -n $total_nodes --nogen -d $delay
+programs/fio-launcher/fio-launcher -p $pnodes -n $total_nodes --nogen -d $delay
 
 sleep 5
 res=$(grep "reason = duplicate" var/lib/node_*/stderr.txt | wc -l)
@@ -298,7 +298,7 @@ if [ $ret  -eq 0 ]; then
     echo SUCCESS
 fi
 
-programs/eosio-launcher/eosio-launcher -k 15
+programs/fio-launcher/fio-launcher -k 15
 rm -rf staging
 rm -rf var/lib/node_*
 rm -rf etc/eosio/node_*

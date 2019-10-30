@@ -28,12 +28,12 @@ class Utils:
     EosServerName = "nodeos"
     EosServerPath = "programs/nodeos/" + EosServerName
 
-    EosLauncherPath = "programs/eosio-launcher/eosio-launcher"
+    EosLauncherPath = "programs/fio-launcher/fio-launcher"
     MongoPath = "mongo"
     ShuttingDown = False
     CheckOutputDeque = deque(maxlen=10)
 
-    EosBlockLogPath = "programs/eosio-blocklog/eosio-blocklog"
+    EosBlockLogPath = "programs/fio-blocklog/fio-blocklog"
 
     FileDivider = "================================================================="
 

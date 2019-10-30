@@ -1,7 +1,7 @@
 #!/bin/bash
 ##########################################################################
-# This is the FIOIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/dapixio/fio
+# This is the FIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/fioprotocol/fio
 #
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
@@ -27,11 +27,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/dapixio/fio/blob/master/LICENSE.txt
+# https://github.com/fioprotocol/fio/blob/master/LICENSE.txt
 ##########################################################################
 
 if [ "$(id -u)" -ne 0 ]; then
-        printf "\n\tFIO install requires sudo. Please run sudo ./fioio_install.sh\n\n"
+        printf "\n\tFIO install requires sudo. Please run sudo ./fio_install.sh\n\n"
         exit -1
 fi
 
@@ -46,7 +46,7 @@ mkdir -p $LIB_LOCATION
 
 CMAKE_BUILD_TYPE=Release
 TIME_BEGIN=$( date -u +%s )
-INSTALL_PREFIX=$OPT_LOCATION/eosio
+INSTALL_PREFIX=$OPT_LOCATION/fio
 VERSION=1.2
 
 txtbld=$(tput bold)
@@ -54,7 +54,7 @@ bldred=${txtbld}$(tput setaf 1)
 txtrst=$(tput sgr0)
 
 if [ ! -d $BUILD_DIR ]; then
-   printf "\\nError, fioio_build.sh has not ran.  Please run ./fioio_build.sh first!\\n\\n"
+   printf "\\nError, fio_build.sh has not ran.  Please run ./fio_build.sh first!\\n\\n"
    exit -1
 fi
 
@@ -64,7 +64,7 @@ if ! pushd "${BUILD_DIR}" &> /dev/null;then
 fi
 
 if ! make install; then
-   printf "\\nMAKE installing FIOIO has exited with the above error.\\n\\n"
+   printf "\\nMAKE installing FIO has exited with the above error.\\n\\n"
    exit -1
 fi
 popd &> /dev/null
@@ -96,11 +96,11 @@ printf "     \\/__/         \\/__/       \\/__/             \n"
 printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
 
 printf "==============================================================================================\\n"
-printf "FIOIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
-printf "If you need to, you can fully uninstall using fioio_uninstall.sh && scripts/clean_old_install.sh.\\n"
+printf "FIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
+printf "If you need to, you can fully uninstall using fio_uninstall.sh && full_uninstaller.sh.\\n"
 printf "==============================================================================================\\n\\n"
 
 printf "For more information:\\n"
-printf "FIOIO website: https://fio.foundation\\n"
-printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n"
-printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
+printf "FIO website: https://fio.foundation\\n"
+printf "FIO wiki: https://github.com/fioprotocol/fio/wiki\\n"
+printf "FIO wiki: https://github.com/fioprotocol/fio/wiki\\n\\n\\n"

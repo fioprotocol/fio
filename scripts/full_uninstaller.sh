@@ -52,7 +52,7 @@ if [ -d "/usr/local/include/eosio" ] || [ -d "$HOME/opt/eosio" ] || [ $FORCED ==
                esac
             fi
             rm -rf $HOME/opt/eosio
-            rm -f $HOME/bin/eosio-launcher
+            rm -f $HOME/bin/fio-launcher
             rm -rf $HOME/lib/cmake/eosios
             rm -rf $HOME/opt/llvm
             rm -f $HOME/opt/boost
@@ -77,7 +77,7 @@ if [ -d "/usr/local/include/eosio" ] || [ -d "$HOME/opt/eosio" ] || [ $FORCED ==
             rm -rf eosio 2>/dev/null
             popd &> /dev/null
             pushd bin &> /dev/null
-            rm cleos eosio-abigen eosio-applesedemo eosio-launcher eosio-s2wasm eosio-wast2wasm eosiocpp keosd nodeos 2>/dev/null
+            rm cleos eosio-abigen eosio-applesedemo fio-launcher eosio-s2wasm eosio-wast2wasm eosiocpp keosd nodeos 2>/dev/null
             popd &> /dev/null
             libraries=(
                libeosio_testing
