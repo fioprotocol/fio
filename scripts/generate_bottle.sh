@@ -32,11 +32,11 @@ export SSUBPREFIX
 
 hash=`openssl dgst -sha256 ${NAME}.tar.gz | awk 'NF>1{print $NF}'`
 
-echo "class Eosio < Formula
+echo "class fio < Formula
 
    homepage \"${URL}\"
    revision 0
-   url \"https://github.com/eosio/eos/archive/v${VERSION}.tar.gz\"
+   url \"https://github.com/fioprotocol/fio/archive/v${VERSION}.tar.gz\"
    version \"${VERSION}\"
 
    option :universal
@@ -49,7 +49,7 @@ echo "class Eosio < Formula
    depends_on :arch =>  :intel
 
    bottle do
-      root_url \"https://github.com/eosio/eos/releases/download/v${VERSION}\"
+      root_url \"https://github.com/fioprotocol/fio/releases/download/v${VERSION}\"
       sha256 \"${hash}\" => :${MAC_VERSION}
    end
    def install

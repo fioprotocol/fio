@@ -5,7 +5,7 @@ OPT_LOCATION=$HOME/opt
 binaries=(
    cleos
    eosio-abigen
-   eosio-launcher
+   fio-launcher
    eosio-s2wasm
    eosio-wast2wasm
    eosiocpp
@@ -14,13 +14,13 @@ binaries=(
    eosio-applesdemo
 )
 
-if [ -d $OPT_LOCATION/eosio ]; then
+if [ -d $OPT_LOCATION/fio ]; then
    printf "Do you wish to remove this install? (requires sudo)\n"
    select yn in "Yes" "No"; do
       case $yn in
          [Yy]* )
             if [ "$(id -u)" -ne 0 ]; then
-               printf "\nThis requires sudo, please run ./fioio_uninstall.sh with sudo\n\n"
+               printf "\nThis requires sudo, please run ./fio_uninstall.sh with sudo\n\n"
                exit -1
             fi
 
@@ -56,7 +56,7 @@ if [ -d "/usr/local/eosio" ]; then
       case $yn in
          [Yy]* )
             if [ "$(id -u)" -ne 0 ]; then
-               printf "\nThis requires sudo, please run ./fioio_uninstall.sh with sudo\n\n"
+               printf "\nThis requires sudo, please run ./fio_uninstall.sh with sudo\n\n"
                exit -1
             fi
 

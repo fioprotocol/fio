@@ -39,13 +39,13 @@ if [ "${MEM_GIG}" -lt 7 ]; then
 fi
 
 if [ "${OS_MIN}" -lt 12 ]; then
-	echo "You must be running Mac OS 10.12.x or higher to install EOSIO."
+	echo "You must be running Mac OS 10.12.x or higher to install FIO."
 	echo "Exiting now."
 	exit 1
 fi
 
 if [ "${DISK_AVAIL}" -lt "$DISK_MIN" ]; then
-	echo "You must have at least ${DISK_MIN}GB of available storage to install EOSIO."
+	echo "You must have at least ${DISK_MIN}GB of available storage to install FIO."
 	echo "Exiting now."
 	exit 1
 fi
@@ -109,7 +109,7 @@ while read -r name tester testee brewname uri; do
 	DISPLAY="${DISPLAY}${COUNT}. ${name}\\n"
 	printf " - %s ${bldred}NOT${txtrst} found.\\n" "${name}"
 	(( COUNT++ ))
-done < "${REPO_ROOT}/scripts/eosio_build_darwin_deps"
+done < "${REPO_ROOT}/scripts/fio_build_darwin_deps"
 IFS="${var_ifs}"
 
 if [ ! -d /usr/local/Frameworks ]; then
@@ -119,7 +119,7 @@ if [ ! -d /usr/local/Frameworks ]; then
 fi
 
 if [ $COUNT -gt 1 ]; then
-	printf "\\nThe following dependencies are required to install EOSIO:\\n"
+	printf "\\nThe following dependencies are required to install FIO:\\n"
 	printf "${DISPLAY}\\n\\n"
 	if [ $ANSWER != 1 ]; then read -p "Do you wish to install these packages? (y/n) " ANSWER; fi
 	case $ANSWER in

@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# eosio-tn_roll is used to have all of the instances of the EOS daemon on a host brought down
+# fio-tn_roll is used to have all of the instances of the EOS daemon on a host brought down
 # so that the underlying executable image file (the "text file") can be replaced. Then
 # all instances are restarted.
-# usage: eosio-tn_roll.sh [arglist]
+# usage: fio-tn_roll.sh [arglist]
 # arglist will be passed to the node's command line. First with no modifiers
 # then with --hard-replay-blockchain and then a third time with --delete-all-blocks
 #
 # The data directory and log file are set by this script. Do not pass them on
 # the command line.
 #
-# In most cases, simply running ./eosio-tn_roll.sh is sufficient.
+# In most cases, simply running ./fio-tn_roll.sh is sufficient.
 #
 
 if [ -z "$EOSIO_HOME" ]; then
