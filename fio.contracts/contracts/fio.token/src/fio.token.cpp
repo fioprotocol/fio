@@ -105,6 +105,13 @@ namespace eosio {
                          asset quantity,
                          string memo) {
 
+        /* we permit the use of transfer from the system account to any other accounts,
+         * we permit the use of transfer from the treasury account to any other accounts.
+         * we permit the use of transfer from any other accounts to the treasury account.
+         */
+        if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
+            check(to == TREASURYACCOUNT, "transfer not allowed");
+        }
 
         check(from != to, "cannot transfer to self");
         require_auth(from);
