@@ -259,7 +259,6 @@ public:
     [[eosio::action]]
     void burnaction(const uint128_t &fioaddrhash);
 
-    [[eosio::action]]
     void regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
                       const string &fio_address);
 
@@ -294,7 +293,6 @@ public:
     [[eosio::action]]
     void regproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee);
 
-    [[eosio::action]]
     void regiproxy(const name &proxy, const string &fio_address, const bool &isproxy);
 
     [[eosio::action]]
