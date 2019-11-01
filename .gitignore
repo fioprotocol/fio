@@ -50,8 +50,8 @@ programs/data-dir
 programs/eosio-abigen/eosio-abigen
 programs/cleos/config.hpp
 programs/eosio-applesedemo/eosio-applesedemo
-programs/eosio-launcher/config.hpp
-programs/eosio-launcher/eosio-launcher
+programs/fio-launcher/config.hpp
+programs/fio-launcher/fio-launcher
 programs/keosd/keosd
 programs/nodeos/config.hpp
 programs/nodeos/nodeos

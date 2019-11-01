@@ -1,13 +1,6 @@
 if [ $1 == 1 ]; then ANSWER=1; else ANSWER=0; fi
 
-OS_VER=$( grep VERSION_ID /etc/os-release | cut -d'=' -f2 | sed 's/[^0-9\.]//gI' \
-| cut -d'.' -f1 )
-
-MEM_MEG=$( free -m | sed -n 2p | tr -s ' ' | cut -d\  -f2 )
-CPU_SPEED=$( lscpu | grep "MHz" | tr -s ' ' | cut -d\  -f3 | cut -d'.' -f1 )
-CPU_CORE=$( nproc )
-MEM_GIG=$(( ((MEM_MEG / 1000) / 2) ))
-export JOBS=$(( MEM_GIG > CPU_CORE ? CPU_CORE : MEM_GIG ))
+OS_VER=$( grep VERSION_ID /etc/os-release | cut -d'=' -f2 | sed 's/[^0-9\.]//gI' | cut -d'.' -f1 )
 
 DISK_INSTALL=$( df -h . | tail -1 | tr -s ' ' | cut -d\  -f1 )
 DISK_TOTAL_KB=$( df . | tail -1 | awk '{print $2}' )
@@ -15,48 +8,49 @@ DISK_AVAIL_KB=$( df . | tail -1 | awk '{print $4}' )
 DISK_TOTAL=$(( DISK_TOTAL_KB / 1048576 ))
 DISK_AVAIL=$(( DISK_AVAIL_KB / 1048576 ))
 
-printf "\\nOS name: ${OS_NAME}\\n"
-printf "OS Version: ${OS_VER}\\n"
-printf "CPU speed: ${CPU_SPEED}Mhz\\n"
-printf "CPU cores: ${CPU_CORE}\\n"
-printf "Physical Memory: ${MEM_MEG}Mgb\\n"
-printf "Disk install: ${DISK_INSTALL}\\n"
-printf "Disk space total: ${DISK_TOTAL%.*}G\\n" 
-printf "Disk space available: ${DISK_AVAIL%.*}G\\n"
-printf "Concurrent Jobs (make -j): ${JOBS}\\n"
-
-if [ "${MEM_MEG}" -lt 7000 ]; then
-	printf "\\nYour system must have 7 or more Gigabytes of physical memory installed.\\n"
-	printf "Exiting now.\\n\\n"
-	exit 1;
+if [[ "${OS_NAME}" == "Amazon Linux AMI" ]]; then
+	DEP_ARRAY=( 
+		sudo procps util-linux which gcc72 gcc72-c++ autoconf automake libtool make doxygen graphviz \
+		bzip2 bzip2-devel openssl-devel gmp gmp-devel libstdc++72 python27 python27-devel python34 python34-devel \
+		libedit-devel ncurses-devel swig wget file libcurl-devel libusb1-devel
+	)
+else
+	DEP_ARRAY=( 
+		git procps-ng util-linux gcc gcc-c++ autoconf automake libtool make bzip2 \
+		bzip2-devel openssl-devel gmp-devel libstdc++ libcurl-devel libusbx-devel \
+		python3 python3-devel python-devel libedit-devel doxygen graphviz 
+	)
 fi
 
-if [ "${OS_VER}" -lt 7 ]; then
-	printf "\\nYou must be running Centos 7 or higher to install EOSIO.\\n"
-	printf "Exiting now.\\n\\n"
-	exit 1;
+COUNT=1
+DISPLAY=""
+DEP=""
+
+if [[ "${OS_NAME}" == "Amazon Linux AMI" && "${OS_VER}" -lt 2017 ]]; then
+	printf "You must be running Amazon Linux 2017.09 or higher to install FIO.\\n"
+	printf "exiting now.\\n"
+	exit 1
 fi
 
-if [ "${DISK_AVAIL%.*}" -lt "${DISK_MIN}" ]; then
-	printf "\\nYou must have at least %sGB of available storage to install EOSIO.\\n" "${DISK_MIN}"
-	printf "Exiting now.\\n\\n"
-	exit 1;
+if [ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]; then
+	printf "You must have at least %sGB of available storage to install FIO.\\n" "${DISK_MIN}"
+	printf "exiting now.\\n"
+	exit 1
 fi
 
-printf "\\n"
-
-printf "Checking Yum installation...\\n"
-if ! YUM=$( command -v yum 2>/dev/null ); then
-		printf "!! Yum must be installed to compile EOS.IO !!\\n"
-		printf "Exiting now.\\n"
-		exit 1;
+printf "\\nChecking Yum installation.\\n"
+if ! YUM=$( command -v yum 2>/dev/null )
+then
+	printf "\\nYum must be installed to compile EOS.IO.\\n"
+	printf "\\nExiting now.\\n"
+	exit 1
 fi
-printf " - Yum installation found at %s.\\n" "${YUM}"
+printf "Yum installation found at ${YUM}.\\n"
 
 if [ $ANSWER != 1 ]; then read -p "Do you wish to update YUM repositories? (y/n) " ANSWER; fi
 case $ANSWER in
 	1 | [Yy]* )
-		if ! "${YUM}" -y update; then
+		if ! sudo $YUM -y update; then
 			printf " - YUM update failed.\\n"
 			exit 1;
 		else
@@ -67,66 +61,6 @@ case $ANSWER in
 	* ) echo "Please type 'y' for yes or 'n' for no."; exit;;
 esac
 
-printf "Checking installation of Centos Software Collections Repository...\\n"
-SCL=$( rpm -qa | grep -E 'centos-release-scl-[0-9].*' )
-if [ -z "${SCL}" ]; then
-	if [ $ANSWER != 1 ]; then read -p "Do you wish to install and enable this repository? (y/n)? " ANSWER; fi
-	case $ANSWER in
-		1 | [Yy]* )
-			printf "Installing SCL...\\n"
-			if ! "${YUM}" -y --enablerepo=extras install centos-release-scl 2>/dev/null; then
-				printf "!! Centos Software Collections Repository installation failed !!\\n"
-				printf "Exiting now.\\n\\n"
-				exit 1;
-			else
-				printf "Centos Software Collections Repository installed successfully.\\n"
-			fi
-		;;
-		[Nn]* ) echo "User aborting installation of required Centos Software Collections Repository, Exiting now."; exit;;
-	* ) echo "Please type 'y' for yes or 'n' for no."; exit;;
-	esac
-else
-	printf " - ${SCL} found.\\n"
-fi
-
-printf "Checking installation of devtoolset-7...\\n"
-DEVTOOLSET=$( rpm -qa | grep -E 'devtoolset-7-[0-9].*' )
-if [ -z "${DEVTOOLSET}" ]; then
-	if [ $ANSWER != 1 ]; then read -p "Do you wish to install devtoolset-7? (y/n)? " ANSWER; fi
-	case $ANSWER in
-		1 | [Yy]* )
-			printf "Installing devtoolset-7...\\n"
-			if ! "${YUM}" install -y devtoolset-7; then
-					printf "!! Centos devtoolset-7 installation failed !!\\n"
-					printf "Exiting now.\\n"
-					exit 1;
-			else
-					printf " - Centos devtoolset installed successfully!\\n"
-			fi
-		;;
-		[Nn]* ) echo "User aborting installation of devtoolset-7. Exiting now."; exit;;
-		* ) echo "Please type 'y' for yes or 'n' for no."; exit;;
-	esac
-else
-	printf " - ${DEVTOOLSET} found.\\n"
-fi
-if [ -d /opt/rh/devtoolset-7 ]; then
-	printf "Enabling Centos devtoolset-7 so we can use GCC 7...\\n"
-	source /opt/rh/devtoolset-7/enable || exit 1
-	printf " - Centos devtoolset-7 successfully enabled!\\n"
-fi
-
-printf "\\n"
-
-DEP_ARRAY=( 
-	git autoconf automake libtool make bzip2 doxygen graphviz \
-	bzip2-devel openssl-devel gmp-devel \
-	ocaml libicu-devel python python-devel python33 \
-	gettext-devel file sudo libusbx-devel libcurl-devel
- )
-COUNT=1
-DISPLAY=""
-DEP=""
 printf "Checking RPM for installed dependencies...\\n"
 for (( i=0; i<${#DEP_ARRAY[@]}; i++ )); do
 	pkg=$( rpm -qi "${DEP_ARRAY[$i]}" 2>/dev/null | grep Name )
@@ -141,12 +75,12 @@ for (( i=0; i<${#DEP_ARRAY[@]}; i++ )); do
 	fi
 done
 if [ "${COUNT}" -gt 1 ]; then
-	printf "\\nThe following dependencies are required to install EOSIO:\\n"
+	printf "\\nThe following dependencies are required to install FIO:\\n"
 	printf "${DISPLAY}\\n\\n"
 	if [ $ANSWER != 1 ]; then read -p "Do you wish to install these dependencies? (y/n) " ANSWER; fi
 	case $ANSWER in
 		1 | [Yy]* )
-			if ! "${YUM}" -y install ${DEP}; then
+			if ! sudo $YUM -y install ${DEP}; then
 				printf " - YUM dependency installation failed!\\n"
 				exit 1;
 			else
@@ -160,13 +94,30 @@ else
 	printf " - No required YUM dependencies to install.\\n"
 fi
 
-if [ -d /opt/rh/python33 ]; then
-	printf "Enabling python33...\\n"
-	source /opt/rh/python33/enable || exit 1
-	printf " - Python33 successfully enabled!\\n"
+# util-linux includes lscpu
+# procps includes free -m
+MEM_MEG=$( free -m | sed -n 2p | tr -s ' ' | cut -d\  -f2 )
+CPU_SPEED=$( lscpu | grep "MHz" | tr -s ' ' | cut -d\  -f3 | cut -d'.' -f1 )
+CPU_CORE=$( nproc )
+MEM_GIG=$(( ((MEM_MEG / 1000) / 2) ))
+export JOBS=$(( MEM_GIG > CPU_CORE ? CPU_CORE : MEM_GIG ))
+
+printf "\\nOS name: %s\\n" "${OS_NAME}"
+printf "OS Version: %s\\n" "${OS_VER}"
+printf "CPU speed: %sMhz\\n" "${CPU_SPEED}"
+printf "CPU cores: %s\\n" "${CPU_CORE}"
+printf "Physical Memory: %sMgb\\n" "${MEM_MEG}"
+printf "Disk space total: %sGb\\n" "${DISK_TOTAL}"
+printf "Disk space available: %sG\\n" "${DISK_AVAIL}"
+
+if [ "${MEM_MEG}" -lt 7000 ]; then
+	printf "Your system must have 7 or more Gigabytes of physical memory installed.\\n"
+	printf "exiting now.\\n"
+	exit 1
 fi
 
 printf "\\n"
+
 
 printf "Checking CMAKE installation...\\n"
 if [ ! -e $CMAKE ]; then
@@ -190,7 +141,6 @@ if [ $? -ne 0 ]; then exit -1; fi
 printf "\\n"
 
 
-export CPATH="$CPATH:/opt/rh/python33/root/usr/include/python3.3m" # m on the end causes problems with boost finding python3
 printf "Checking Boost library (${BOOST_VERSION}) installation...\\n"
 BOOSTVERSION=$( grep "#define BOOST_VERSION" "$HOME/opt/boost/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 )
 if [ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]; then
@@ -233,7 +183,7 @@ if [ ! -d $MONGODB_ROOT ]; then
 	printf " - MongoDB successfully installed @ ${MONGODB_ROOT} (Symlinked to ${MONGODB_LINK_LOCATION}).\\n"
 else
 	printf " - MongoDB found with correct version @ ${MONGODB_ROOT} (Symlinked to ${MONGODB_LINK_LOCATION}).\\n"
-fi 
+fi
 if [ $? -ne 0 ]; then exit -1; fi
 printf "Checking MongoDB C driver installation...\\n"
 if [ ! -d $MONGO_C_DRIVER_ROOT ]; then
@@ -299,7 +249,5 @@ cd ..
 printf "\\n"
 
 function print_instructions() {
-	printf "source /opt/rh/python33/enable\\n"
-	printf "source /opt/rh/devtoolset-7/enable\\n"
 	return 0
 }

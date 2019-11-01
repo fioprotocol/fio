@@ -1,7 +1,7 @@
 #!/bin/bash
 ##########################################################################
-# This is the FIOIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/dapixio/fio
+# This is the FIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/fioprotocol/fio
 #
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
@@ -27,12 +27,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/dapixio/fio/blob/master/LICENSE
+# https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
 VERSION=2.1 # Build script version
 CMAKE_BUILD_TYPE=Release
-export DISK_MIN=20
+export DISK_MIN=25
 DOXYGEN=false
 ENABLE_COVERAGE_TESTING=false
 CORE_SYMBOL_NAME="FIO"
@@ -49,9 +49,9 @@ export VAR_LOCATION=${HOME}/var
 export ETC_LOCATION=${HOME}/etc
 export BIN_LOCATION=${HOME}/bin
 export DATA_LOCATION=${HOME}/data
-export CMAKE_VERSION_MAJOR=3
-export CMAKE_VERSION_MINOR=13
-export CMAKE_VERSION_PATCH=2
+export CMAKE_VERSION_MAJOR=0
+export CMAKE_VERSION_MINOR=6
+export CMAKE_VERSION_PATCH=0
 export CMAKE_VERSION=${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}
 export MONGODB_VERSION=3.6.3
 export MONGODB_ROOT=${OPT_LOCATION}/mongodb-${MONGODB_VERSION}
@@ -166,7 +166,7 @@ fi
 if [ ! -d "${REPO_ROOT}/.git" ]; then
    printf "\\nThis build script only works with sources cloned from git\\n"
    printf "Please clone a new eos directory with 'git clone https://github.com/dapixio/fio --recursive'\\n"
-   printf "See the wiki for instructions: https://github.com/dapixio/fio/wiki\\n"
+   printf "See the wiki for instructions: https://github.com/fioprotocol/fio/wiki\\n"
    exit 1
 fi
 
@@ -197,7 +197,7 @@ if [ "$ARCH" == "Linux" ]; then
    export OS_NAME=$( cat /etc/os-release | grep ^NAME | cut -d'=' -f2 | sed 's/\"//gI' )
    OPENSSL_ROOT_DIR=/usr/include/openssl
    if [ ! -e /etc/os-release ]; then
-      printf "\\nFIOIO currently supports Amazon, Centos, Fedora, Mint & Ubuntu Linux only.\\n"
+      printf "\\nFIO currently supports Amazon, Centos, Fedora, Mint & Ubuntu Linux only.\\n"
       printf "Please install on the latest version of one of these Linux distributions.\\n"
       printf "https://aws.amazon.com/amazon-linux-ami/\\n"
       printf "https://www.centos.org/\\n"
@@ -209,38 +209,38 @@ if [ "$ARCH" == "Linux" ]; then
    fi
    case "$OS_NAME" in
       "Amazon Linux AMI"|"Amazon Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_amazon.sh"
+         FILE="${REPO_ROOT}/scripts/build_amazon.sh"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "CentOS Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_centos.sh"
+         FILE="${REPO_ROOT}/scripts/build_centos.sh"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "elementary OS")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
       "Fedora")
          export CPATH=/usr/include/llvm4.0:$CPATH # llvm4.0 for fedora package path inclusion
-         FILE="${REPO_ROOT}/scripts/eosio_build_fedora.sh"
+         FILE="${REPO_ROOT}/scripts/build_fedora.sh"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "Linux Mint")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
       "Ubuntu")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
       "Debian GNU/Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
@@ -257,7 +257,7 @@ if [ "$ARCH" == "Darwin" ]; then
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
    # HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
    LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 
-   FILE="${REPO_ROOT}/scripts/eosio_build_darwin.sh"
+   FILE="${REPO_ROOT}/scripts/build_darwin.sh"
    CXX_COMPILER=clang++
    C_COMPILER=clang
    OPENSSL_ROOT_DIR=/usr/local/opt/openssl
@@ -272,7 +272,7 @@ pushd $SRC_LOCATION &> /dev/null
 popd &> /dev/null
 
 printf "\\n========================================================================\\n"
-printf "======================= Starting FIOIO Build =======================\\n"
+printf "======================= Starting FIO Build =======================\\n"
 printf "## CMAKE_BUILD_TYPE=%s\\n" "${CMAKE_BUILD_TYPE}"
 printf "## ENABLE_COVERAGE_TESTING=%s\\n" "${ENABLE_COVERAGE_TESTING}"
 
@@ -306,7 +306,7 @@ printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
 printf "     \\/__/         \\/__/       \\/__/             \n"
 printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
 
-printf "\\nFIOIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
+printf "\\nFIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
 printf "==============================================================================================\\n${bldred}"
 printf "(Optional) Testing Instructions:\\n"
 print_instructions
@@ -314,6 +314,6 @@ printf "${BIN_LOCATION}/mongod --dbpath ${MONGODB_DATA_LOCATION} -f ${MONGODB_CO
 printf "cd ./build && PATH=\$PATH:$HOME/opt/mongodb/bin make test\\n" # PATH is set as currently 'mongo' binary is required for the mongodb test
 printf "${txtrst}==============================================================================================\\n"
 printf "For more information:\\n"
-printf "FIOIO website: https://fio.foundation\\n"
-printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n"
-printf "FIOIO wiki: https://github.com/dapixio/fio/wiki\\n\\n\\n"
+printf "FIO website: https://fio.foundation\\n"
+printf "FIO wiki: https://github.com/fioprotocol/fio/wiki\\n"
+printf "FIO wiki: https://github.com/fioprotocol/fio/wiki\\n\\n\\n"

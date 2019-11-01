@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eosio/LICENSE.txt
+ *  @copyright defined in fio/LICENSE.txt
  */
 #include <eosio/chain/abi_serializer.hpp>
 #include <eosio/chain/block_log.hpp>
@@ -174,7 +174,7 @@ void blocklog::initialize(const variables_map &options) {
 
 int main(int argc, char **argv) {
     std::ios::sync_with_stdio(false); // for potential performance boost for large block log files
-    options_description cli("eosio-blocklog command line options");
+    options_description cli("fio-blocklog command line options");
     try {
         blocklog blog;
         blog.set_program_options(cli);
