@@ -209,38 +209,38 @@ if [ "$ARCH" == "Linux" ]; then
    fi
    case "$OS_NAME" in
       "Amazon Linux AMI"|"Amazon Linux")
-         FILE="${REPO_ROOT}/scripts/build_amazon.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_amazon.sh"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "CentOS Linux")
-         FILE="${REPO_ROOT}/scripts/build_centos.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_centos.sh"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "elementary OS")
-         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
       "Fedora")
          export CPATH=/usr/include/llvm4.0:$CPATH # llvm4.0 for fedora package path inclusion
-         FILE="${REPO_ROOT}/scripts/build_fedora.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_fedora.sh"
          CXX_COMPILER=g++
          C_COMPILER=gcc
       ;;
       "Linux Mint")
-         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
       "Ubuntu")
-         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
       "Debian GNU/Linux")
-         FILE="${REPO_ROOT}/scripts/build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/build/build_ubuntu.sh"
          CXX_COMPILER=clang++-4.0
          C_COMPILER=clang-4.0
       ;;
@@ -257,7 +257,7 @@ if [ "$ARCH" == "Darwin" ]; then
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
    # HOME/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
    LOCAL_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=/usr/local/opt/gettext;$HOME/lib/cmake ${LOCAL_CMAKE_FLAGS}" 
-   FILE="${REPO_ROOT}/scripts/build_darwin.sh"
+   FILE="${REPO_ROOT}/scripts/build/build_darwin.sh"
    CXX_COMPILER=clang++
    C_COMPILER=clang
    OPENSSL_ROOT_DIR=/usr/local/opt/openssl
