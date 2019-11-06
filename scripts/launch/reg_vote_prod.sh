@@ -44,16 +44,16 @@ sleep 5
 echo setting up voters
 #ensure a record is in the voters table
 echo setting up vote1:dapix
-./cleos -u http://localhost:8889 push action -j eosio regproxy '{"fio_address":"vote1:dapix","actor":"o2ouxipw2rt4",,"max_fee":"40000000000"}' --permission o2ouxipw2rt4@active
-./cleos -u http://localhost:8889 push action -j eosio unregproxy '{"fio_address":"vote1:dapix","actor":"o2ouxipw2rt4",,"max_fee":"40000000000"}' --permission o2ouxipw2rt4@active
+./cleos -u http://localhost:8889 push action -j eosio regproxy '{"fio_address":"vote1:dapix","actor":"o2ouxipw2rt4","max_fee":"40000000000"}' --permission o2ouxipw2rt4@active
+./cleos -u http://localhost:8889 push action -j eosio unregproxy '{"fio_address":"vote1:dapix","actor":"o2ouxipw2rt4","max_fee":"40000000000"}' --permission o2ouxipw2rt4@active
 
 echo setting up vote2:dapix
-./cleos -u http://localhost:8889 push action -j eosio regproxy '{"fio_address":"vote2:dapix","actor":"extjnqh3j3gt",,"max_fee":"40000000000"}' --permission extjnqh3j3gt@active
-./cleos -u http://localhost:8889 push action -j eosio unregproxy '{"fio_address":"vote2:dapix","actor":"extjnqh3j3gt",,"max_fee":"40000000000"}' --permission extjnqh3j3gt@active
+./cleos -u http://localhost:8889 push action -j eosio regproxy '{"fio_address":"vote2:dapix","actor":"extjnqh3j3gt","max_fee":"40000000000"}' --permission extjnqh3j3gt@active
+./cleos -u http://localhost:8889 push action -j eosio unregproxy '{"fio_address":"vote2:dapix","actor":"extjnqh3j3gt","max_fee":"40000000000"}' --permission extjnqh3j3gt@active
 
 echo setting up vote3:dapix
-./cleos -u http://localhost:8889 push action -j eosio regproxy '{"fio_address":"vote3:dapix","actor":"npe3obkgoteh",,"max_fee":"40000000000"}' --permission npe3obkgoteh@active
-./cleos -u http://localhost:8889 push action -j eosio unregproxy '{"fio_address":"vote3:dapix","actor":"npe3obkgoteh",,"max_fee":"40000000000"}' --permission npe3obkgoteh@active
+./cleos -u http://localhost:8889 push action -j eosio regproxy '{"fio_address":"vote3:dapix","actor":"npe3obkgoteh","max_fee":"40000000000"}' --permission npe3obkgoteh@active
+./cleos -u http://localhost:8889 push action -j eosio unregproxy '{"fio_address":"vote3:dapix","actor":"npe3obkgoteh","max_fee":"40000000000"}' --permission npe3obkgoteh@active
 
 echo calling vproducer
 #vote for the producers, now block production may occur.
