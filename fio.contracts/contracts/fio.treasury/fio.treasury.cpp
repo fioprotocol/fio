@@ -1,6 +1,6 @@
 /** FioTreasury implementation file
  *  Description: FioTreasury smart contract controls block producer and tpid payments.
- *  @author Adam Androulidakis
+ *  @author Adam Androulidakis Ed Rotthoff
  *  @modifedby
  *  @file fio.treasury.cpp
  *  @copyright Dapix
@@ -119,6 +119,11 @@ namespace fioio {
         void bpclaim(const string &fio_address, const name &actor) {
 
             require_auth(actor);
+
+            gstate = global.get();
+            check( gstate.total_voted_fio >= MINVOTEDFIO,
+                   "cannot claim rewards until the chain voting threshold is exceeded" );
+
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioiter = namesbyname.find(string_to_uint128_hash(fio_address.c_str()));
 
@@ -223,7 +228,7 @@ namespace fioio {
                 bpcounter = 0;
                 uint64_t abpayshare = 0;
                 uint64_t sbpayshare = 0;
-                gstate = global.get();
+
                 for (const auto &itr : voteshares) {
                     abpayshare = static_cast<uint64_t>(toactivebps / abpcount);
                     sbpayshare = static_cast<uint64_t>((tostandbybps) *

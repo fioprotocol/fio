@@ -5,7 +5,6 @@
 namespace eosiosystem {
 
     const int64_t min_pervote_daily_pay = 100'0000;
-    const int64_t min_activated_stake = 150'000'000'0000;
     const double continuous_rate = 0.04879;          // 5% annual rate
     const double perblock_rate = 0.0025;           // 0.25%
     const double standby_rate = 0.0075;           // 0.75%
@@ -26,6 +25,11 @@ namespace eosiosystem {
         _ds >> timestamp >> producer;
 
         _gstate2.last_block_num = timestamp;
+
+        /** until voting activated fio crosses this threshold no new rewards are paid */
+        if( _gstate.total_voted_fio < MINVOTEDFIO ){
+            return;
+        }
 
         if (_gstate.last_pervote_bucket_fill == time_point())  /// start the presses
             _gstate.last_pervote_bucket_fill = current_time_point();
