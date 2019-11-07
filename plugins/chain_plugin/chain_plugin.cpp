@@ -1466,7 +1466,6 @@ if( options.count(name) ) { \
 
             FIO_404_ASSERT(!(result.requests.size() == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
             result.more = search_results;
-            result.block_num = db.fork_db_head_block_num();
             return result;
         } // get_pending_fio_requests
 
@@ -1660,7 +1659,6 @@ if( options.count(name) ) { \
 
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             result.more = search_results;
-            result.block_num = db.fork_db_head_block_num();
             return result;
         }
 
@@ -2187,7 +2185,6 @@ if( options.count(name) ) { \
             //   // Pick out chain specific key and populate result
             uint32_t c_type = (uint32_t) chains_result.rows[0]["id"].as_uint64();
             result.public_address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
-            result.block_num = db.fork_db_head_block_num();
 
             FIO_404_ASSERT(!(result.public_address == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
 

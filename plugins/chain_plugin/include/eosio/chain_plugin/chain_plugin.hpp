@@ -360,7 +360,6 @@ namespace eosio {
 
             struct get_pending_fio_requests_result {
                 vector <request_record> requests;
-                int block_num;
                 uint32_t more;
             };
 
@@ -377,7 +376,6 @@ namespace eosio {
 
             struct get_sent_fio_requests_result {
                 vector <request_status_record> requests;
-                int block_num;
                 uint32_t more;
             };
 
@@ -446,7 +444,6 @@ namespace eosio {
 
             struct get_pub_address_result {
                 fc::string public_address;
-                int block_num;
             };
 
             get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
@@ -1230,11 +1227,11 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more)
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit)
 )
-FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(block_num)(more)
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more)
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit)
 )
-FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(block_num)(more)
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more)
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key)
 )
@@ -1254,7 +1251,7 @@ FC_REFLECT(eosio::chain_apis::request_status_record,
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)
 )
-FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address)(block_num)
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address)
 );
 
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)
