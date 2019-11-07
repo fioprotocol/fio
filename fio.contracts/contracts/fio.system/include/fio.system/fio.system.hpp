@@ -123,7 +123,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     uint128_t addresshash;
 
     double total_votes = 0;
-    eosio::public_key producer_fio_public_key; /// a packed public key object
+    eosio::public_key producer_public_key; /// a packed public key object
     bool is_active = true;
     std::string url;
     uint32_t unpaid_blocks = 0;
@@ -140,12 +140,12 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     bool active() const { return is_active; }
 
     void deactivate() {
-        producer_fio_public_key = public_key();
+        producer_public_key = public_key();
         is_active = false;
     }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( producer_info, (id)(owner)(fio_address)(addresshash)(total_votes)(producer_fio_public_key)(is_active)(url)
+    EOSLIB_SERIALIZE( producer_info, (id)(owner)(fio_address)(addresshash)(total_votes)(producer_public_key)(is_active)(url)
             (unpaid_blocks)(last_claim_time)(location)
     )
 };
@@ -263,14 +263,15 @@ public:
                       const string &fio_address);
 
     [[eosio::action]]
-    void regproducer(const string &fio_address, const std::string &url, const uint16_t &location, const name &actor,
+    void regproducer(const string &fio_address, const string &fio_pub_key, const std::string &url, const uint16_t &location, const name &actor,
                      const int64_t &max_fee);
 
     [[eosio::action]]
     void unregprod(const string &fio_address, const name &actor, const int64_t &max_fee);
-
+/*
     [[eosio::action]]
     void vproducer(const name &voter, const name &proxy, const std::vector<name> &producers); //server call
+    */
 
     [[eosio::action]]
     void voteproducer(const std::vector<string> &producers, const string &fio_address, const name &actor, const int64_t &max_fee);
@@ -315,7 +316,7 @@ public:
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
     using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
-    using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
+   // using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
     using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
     using voteproxy_action = eosio::action_wrapper<"voteproxy"_n, &system_contract::voteproxy>;
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;

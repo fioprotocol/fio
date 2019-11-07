@@ -105,7 +105,7 @@ namespace eosiosystem {
                     info.is_active = true;
                     info.fio_address = fio_address;
                     info.addresshash = addresshash;
-                    info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
+                    info.producer_public_key = abieos::string_to_public_key(producer_key);
                     info.url = url;
                     info.location = location;
                     if (info.last_claim_time == time_point())
@@ -121,7 +121,7 @@ namespace eosiosystem {
                 info.fio_address = fio_address;
                 info.addresshash = addresshash;
                 info.total_votes = 0;
-                info.producer_fio_public_key = abieos::string_to_public_key(producer_key);
+                info.producer_public_key = abieos::string_to_public_key(producer_key);
                 info.is_active = true;
                 info.url = url;
                 info.location = location;
@@ -143,9 +143,20 @@ namespace eosiosystem {
             ).send();
     }
 
+    /******
+     * reg producer will register a producer using the specified information
+     * @param fio_address  this is the fio address that will be used to claim rewards.
+     * @param fio_pub_key  this is the pub key that will be used to generate block, this
+     *                      can be for a different account than the fio address.
+     * @param url  this is the url of the block producer.
+     * @param location this is the location number, sorting these determines BP order in the schedule.
+     * @param actor  the account associated with signing.
+     * @param max_fee the max fee willing to be paid.
+     */
     void
     system_contract::regproducer(
             const string &fio_address,
+            const string &fio_pub_key,
             const std::string &url,
             const uint16_t &location,
             const name &actor,
@@ -159,6 +170,9 @@ namespace eosiosystem {
                        ErrorMaxFeeInvalid);
         fio_400_assert(fioio::isLocationValid(location), "location", to_string(location), "Invalid location",
                        ErrorMaxFeeInvalid);
+        fio_400_assert(isPubKeyValid(fio_pub_key),"fio_pub_key", fio_pub_key,
+                       "Invalid FIO Public Key",
+                       ErrorPubKeyValid);
 
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
@@ -192,9 +206,7 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        auto key_iter = _accountmap.find(account);
-
-        regiproducer(actor, key_iter->clientkey, url, location, fio_address);
+        regiproducer(actor, fio_pub_key, url, location, fio_address);
 
         //TODO: REFACTOR FEE ( PROXY / PRODUCER )
         //begin new fees, logic for Mandatory fees.
@@ -328,7 +340,7 @@ namespace eosiosystem {
         for (auto it = idx.cbegin();
              it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it) {
             top_producers.emplace_back(
-                    std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_fio_public_key}, it->location}));
+                    std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
         }
 
         if (top_producers.size() < _gstate.last_producer_schedule_size) {
@@ -409,11 +421,13 @@ namespace eosiosystem {
     struct decrementcounter {
         string fio_address;
     };
-    
+
+    /*** remove vproducer
     void system_contract::vproducer(const name &voter_name, const name &proxy, const std::vector <name> &producers) {
         require_auth(voter_name);
         update_votes(voter_name, proxy, producers, true);
     }
+     ****/
 
     void system_contract::voteproducer(const std::vector<string> &producers, const string &fio_address, const name &actor, const int64_t &max_fee) {
         require_auth(actor);
