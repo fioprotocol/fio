@@ -657,7 +657,7 @@ namespace eosiosystem {
             const std::vector <name> &producers,
             const bool &voting) {
 
-        print("called update votes.","\n");
+        print("called update votes. voter name ","\n");
         //validate input
         if (proxy) {
             check(producers.size() == 0, "cannot vote for producers and proxy at same time");
@@ -677,6 +677,14 @@ namespace eosiosystem {
         symbol sym_name = symbol("FIO", 9);
         const auto my_balance = eosio::token::get_balance("fio.token"_n,voter->owner, sym_name.code() );
         uint64_t amount = my_balance.amount;
+
+        //on the first vote we update the total voted fio.
+        if( voter->last_vote_weight <= 0.0 ) {
+            _gstate.total_voted_fio += amount;
+            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
+                _gstate.thresh_voted_fio_time = current_time_point();
+            }
+        }
 
         auto new_vote_weight = (double)amount;
         if (voter->is_proxy) {
@@ -1063,6 +1071,15 @@ namespace eosiosystem {
         }
         auto pitr = votersbyowner.find(voter.owner.value);
         check(pitr != votersbyowner.end(),"voter not found");
+
+        //on the first vote we update the total voted fio.
+        if( pitr->last_vote_weight <= 0.0 ) {
+            _gstate.total_voted_fio += new_weight;
+            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
+                _gstate.thresh_voted_fio_time = current_time_point();
+            }
+        }
+
         votersbyowner.modify(pitr, same_payer, [&](auto &v) {
                            v.last_vote_weight = new_weight;
                        }

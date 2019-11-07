@@ -48,6 +48,12 @@
 #define MAXBOUNTYTOKENSTOMINT 200000000000000000
 #endif
 
+#ifndef MINVOTEDFIO
+#define MINVOTEDFIO 64'000'000'000000000
+#endif
+
+
+
 namespace fioio {
 
     using namespace eosio;
