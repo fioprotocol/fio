@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(EOSIO)
+project(FIO)
 
 enable_testing()
 
@@ -24,14 +24,14 @@ include(SetupTargetMacros)
 include(InstallDirectoryPermissions)
 include(MASSigning)
 
-set(BLOCKCHAIN_NAME "EOSIO")
+set(BLOCKCHAIN_NAME "FIO")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CXX_STANDARD_REQUIRED ON)
 
-set(VERSION_MAJOR 1)
-set(VERSION_MINOR 7)
-set(VERSION_PATCH 3)
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 6)
+set(VERSION_PATCH 0)
 
 if (VERSION_SUFFIX)
     set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_SUFFIX}")
@@ -122,7 +122,7 @@ link_libraries(Threads::Threads)
 
 if (WIN32)
 
-    message(STATUS "Configuring EOSIO on WIN32")
+    message(STATUS "Configuring FIO on WIN32")
     set(DB_VERSION 60)
     set(BDB_STATIC_LIBS 1)
 
@@ -157,11 +157,11 @@ else (WIN32) # Apple AND Linux
 
     if (APPLE)
         # Apple Specific Options Here
-        message(STATUS "Configuring EOSIO on OS X")
+        message(STATUS "Configuring FIO on OS X")
         set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-deprecated-declarations")
     else (APPLE)
         # Linux Specific Options Here
-        message(STATUS "Configuring EOSIO on Linux")
+        message(STATUS "Configuring FIO on Linux")
         set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wall")
         if (FULL_STATIC_BUILD)
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
@@ -186,7 +186,7 @@ else (WIN32) # Apple AND Linux
 
 endif (WIN32)
 
-set(ENABLE_COVERAGE_TESTING FALSE CACHE BOOL "Build EOSIO for code coverage analysis")
+set(ENABLE_COVERAGE_TESTING FALSE CACHE BOOL "Build FIO for code coverage analysis")
 
 if (ENABLE_COVERAGE_TESTING)
     SET(CMAKE_CXX_FLAGS "--coverage ${CMAKE_CXX_FLAGS}")
