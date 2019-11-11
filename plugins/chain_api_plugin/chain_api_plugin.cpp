@@ -157,7 +157,7 @@ namespace eosio {
                                                          chain_apis::read_write::renew_fio_domain_results, 202),
                                      CHAIN_RW_CALL_ASYNC(renew_fio_address,
                                                          chain_apis::read_write::renew_fio_address_results, 202),
-                                     CHAIN_RW_CALL_ASYNC(record_send, chain_apis::read_write::record_send_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(record_obt_data, chain_apis::read_write::record_obt_data_results, 202),
                                      CHAIN_RW_CALL_ASYNC(reject_funds_request,
                                                          chain_apis::read_write::reject_funds_request_results, 202),
                                      CHAIN_RW_CALL_ASYNC(new_funds_request,

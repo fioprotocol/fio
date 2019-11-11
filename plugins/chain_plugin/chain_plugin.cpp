@@ -2882,18 +2882,18 @@ if( options.count(name) ) { \
         }
 
 /***
-* record_send - This api method will invoke the fio.request.obt smart contract for recordsend. this api method is
+* record_obt_data - This api method will invoke the fio.request.obt smart contract for recordobt. this api method is
 * intended to add the json passed into this method to the block log so that it can be scraped as necessary.
 * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
 * @return result, result.processed (fc::variant) json blob meeting the api specification.
 */
-        void read_write::record_send(const record_send_params &params,
-                                     chain::plugin_interface::next_function<record_send_results> next) {
+        void read_write::record_obt_data(const record_obt_data_params &params,
+                                     chain::plugin_interface::next_function<record_obt_data_results> next) {
             try {
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("record_send called");
+                dlog("record_obt_data called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -2907,7 +2907,7 @@ if( options.count(name) ) { \
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::InvalidAccountOrAction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "recordsend", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "recordobt", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
@@ -2925,7 +2925,7 @@ if( options.count(name) ) { \
                             }
 
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::record_send_results{id, output});
+                            next(read_write::record_obt_data_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
