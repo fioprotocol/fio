@@ -112,7 +112,7 @@ namespace fioio {
 
             //if its not a bundleeligible fee then this is an error.
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
-                           "record_send unexpected fee type for endpoint, expected 1", ErrorNoEndpoint);
+                           "record_obt_data unexpected fee type for endpoint, expected 1", ErrorNoEndpoint);
 
             if (dbgout) {
                 print("whitelist fee is. ", to_string(reg_amount), "\n");

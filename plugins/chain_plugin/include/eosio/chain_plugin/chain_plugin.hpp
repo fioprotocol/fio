@@ -1006,15 +1006,15 @@ namespace eosio {
             //End added for record send api method.
 
             //Begin Added for record send api method
-            using record_send_params = fc::variant_object;
+            using record_obt_data_params = fc::variant_object;
 
-            struct record_send_results {
+            struct record_obt_data_results {
                 chain::transaction_id_type transaction_id;
                 fc::variant processed;
             };
 
-            void record_send(const record_send_params &params,
-                             chain::plugin_interface::next_function <record_send_results> next);
+            void record_obt_data(const record_obt_data_params &params,
+                             chain::plugin_interface::next_function <record_obt_data_results> next);
             //End added for record send api method.
 
             //Begin Added for new funds request api method
@@ -1285,7 +1285,7 @@ FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_results, (transact
 )
 FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (transaction_id)(processed)
 )
-FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed)
+FC_REFLECT(eosio::chain_apis::read_write::record_obt_data_results, (transaction_id)(processed)
 )
 FC_REFLECT(eosio::chain_apis::read_write::submit_bundled_transaction_results, (transaction_id)(processed)
 )

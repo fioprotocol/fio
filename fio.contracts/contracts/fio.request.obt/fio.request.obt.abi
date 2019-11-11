@@ -55,7 +55,7 @@
         }
       ]
     },{
-      "name": "recordsend",
+      "name": "recordobt",
       "base": "",
       "fields": [{
             "name": "fio_request_id",
@@ -123,8 +123,8 @@
         }
     ],
   "actions": [{
-      "name": "recordsend",
-      "type": "recordsend",
+      "name": "recordobt",
+      "type": "recordobt",
       "ricardian_contract": ""
     },{
       "name": "newfundsreq",

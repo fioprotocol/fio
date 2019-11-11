@@ -86,7 +86,7 @@ namespace fioio {
           */
         // @abi action
         [[eosio::action]]
-        void recordsend(
+        void recordobt(
                 const string &fio_request_id,
                 const string &payer_fio_address,
                 const string &payee_fio_address,
@@ -154,19 +154,19 @@ namespace fioio {
             fio_403_assert(account == aactor.value, ErrorSignature);
 
             //begin fees, bundle eligible fee logic
-            uint128_t endpoint_hash = string_to_uint128_hash("record_send");
+            uint128_t endpoint_hash = string_to_uint128_hash("record_obt_data");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
-            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "record_send",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "record_obt_data",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
-                           "record_send unexpected fee type for endpoint record_send, expected 1", ErrorNoEndpoint);
+                           "record_obt_data unexpected fee type for endpoint record_obt_data, expected 1", ErrorNoEndpoint);
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
             uint64_t fee_amount = 0;
@@ -529,6 +529,6 @@ namespace fioio {
         }
     };
 
-    EOSIO_DISPATCH(FioRequestObt, (recordsend)(newfundsreq)
+    EOSIO_DISPATCH(FioRequestObt, (recordobt)(newfundsreq)
     (rejectfndreq))
 }
