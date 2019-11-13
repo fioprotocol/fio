@@ -117,6 +117,7 @@ namespace eosio {
                                                          chain_apis::read_write::push_transactions_results, 202),
                                      CHAIN_RO_CALL(get_pub_address, 200),
                                      CHAIN_RO_CALL(get_pending_fio_requests, 200),
+                                     CHAIN_RO_CALL(get_obt_data, 200),
                                      CHAIN_RO_CALL(get_whitelist, 200),
                                      CHAIN_RO_CALL(check_whitelist, 200),
                                      CHAIN_RO_CALL(get_sent_fio_requests, 200),

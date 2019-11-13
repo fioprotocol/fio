@@ -76,6 +76,17 @@ namespace eosio {
             string time_stamp;    // FIO blockchain request received timestamp
         };
 
+        struct obt_records {
+            string payer_fio_address;   // sender FIO address e.g. john.xyz
+            string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+            string payer_fio_public_key;
+            string payee_fio_public_key;
+            string content;             // this is encrypted content
+            uint64_t fio_request_id;     // one up index starting at 0
+            string time_stamp;    // FIO blockchain request received timestamp
+            string status;          //the status of the request.
+        };
+
         struct request_status_record {
             uint64_t fio_request_id;       // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
@@ -91,7 +102,6 @@ namespace eosio {
             string fio_public_key_hash;
             string content;
         };
-
 
         template<typename>
         struct resolver_factory;
@@ -382,6 +392,22 @@ namespace eosio {
             get_sent_fio_requests_result
             get_sent_fio_requests(const get_sent_fio_requests_params &params) const;
             //end get sent fio requests
+
+            //begin get obt data
+            struct get_obt_data_params {
+                string fio_public_key;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+
+            struct get_obt_data_result {
+                vector <obt_records> obt_data_records;
+                uint32_t more;
+            };
+
+            get_obt_data_result
+            get_obt_data(const get_obt_data_params &params) const;
+            //end get obt data
 
             struct get_whitelist_params {
                 string fio_public_key;
@@ -1233,6 +1259,10 @@ FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_publ
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more)
 )
+FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit)
+)
+FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more)
+)
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key)
 )
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties)
@@ -1247,6 +1277,9 @@ FC_REFLECT(eosio::chain_apis::request_record,
 (time_stamp))
 FC_REFLECT(eosio::chain_apis::request_status_record,
 (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(time_stamp)
+(status))
+FC_REFLECT(eosio::chain_apis::obt_records,
+(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(fio_request_id)(time_stamp)
 (status))
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)
