@@ -2,6 +2,7 @@ add_contract(eosio.bios eosio.bios ${CMAKE_CURRENT_SOURCE_DIR}/src/eosio.bios.cp
 
 target_include_directories(eosio.bios
         PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/../
         ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set_target_properties(eosio.bios
