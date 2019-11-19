@@ -11,6 +11,7 @@
 
 
 namespace fioio {
+    using eosio::name;
 
     static const name MSIGACCOUNT = name("eosio.msig");
     static const name REQOBTACCOUNT = name("fio.reqobt");
@@ -23,5 +24,8 @@ namespace fioio {
     static const name FOUNDATIONACCOUNT = name("fio.foundatn");
     static const name TREASURYACCOUNT = name("fio.treasury");
     static const name SYSTEMACCOUNT = name("eosio");
+
+    //owner permission
+    static const name OWNER = name("owner");
 
 } // namespace fioio

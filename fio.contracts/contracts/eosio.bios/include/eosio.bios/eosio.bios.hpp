@@ -5,11 +5,13 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/producer_schedule.hpp>
+#include "fio.common/fio.accounts.hpp"
 
 namespace eosio {
     using eosio::permission_level;
     using eosio::public_key;
     using eosio::ignore;
+    using eosio::name;
 
     struct permission_level_weight {
         permission_level permission;
@@ -68,59 +70,53 @@ namespace eosio {
         void newaccount(name creator,
                         name name,
                         ignore<authority> owner,
-                        ignore<authority> active) {}
+                        ignore<authority> active) {
+            check((creator == fioio::SYSTEMACCOUNT || creator == fioio::TokenContract ||
+                   creator == fioio::AddressContract), "new account is not permitted");
+
+        }
 
 
         [[eosio::action]]
-        void updateauth(ignore<name> account,
-                        ignore<name> permission,
-                        ignore<name> parent,
-                        ignore<authority> auth) {}
+        void updateauth(name account,
+                        name permission,
+                        name parent,
+                        authority auth) {
+
+            require_auth(account);
+            check (permission != fioio::OWNER,
+                    "update to owner permission not permitted in FIO.");
+            //TODO this needs a fee.
+
+        }
 
         [[eosio::action]]
-        void deleteauth(ignore<name> account,
-                        ignore<name> permission) {}
+        void deleteauth(name account,
+                        ignore<name> permission) {
+            require_auth(account);
+
+        }
 
         [[eosio::action]]
-        void linkauth(ignore<name> account,
+        void linkauth(name account,
                       ignore<name> code,
                       ignore<name> type,
-                      ignore<name> requirement) {}
+                      ignore<name> requirement) {
+            require_auth(account);
+
+        }
 
         [[eosio::action]]
-        void unlinkauth(ignore<name> account,
+        void unlinkauth(name account,
                         ignore<name> code,
-                        ignore<name> type) {}
-
-        [[eosio::action]]
-        void canceldelay(ignore<permission_level> canceling_auth, ignore<capi_checksum256> trx_id) {}
-
-        [[eosio::action]]
-        void onerror(ignore<uint128_t> sender_id, ignore<std::vector < char>>
-
-        sent_trx ) {}
-
-        [[eosio::action]]
-        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code) {}
+                        ignore<name> type) {
+            require_auth(account);
+        }
 
         [[eosio::action]]
         void setpriv(name account, uint8_t is_priv) {
             require_auth(_self);
             set_privileged(account.value, is_priv);
-        }
-
-        [[eosio::action]]
-        void setalimits(name account, int64_t ram_bytes, int64_t net_weight, int64_t cpu_weight) {
-            require_auth(_self);
-            set_resource_limits(account.value, ram_bytes, net_weight, cpu_weight);
-        }
-
-        [[eosio::action]]
-        void setglimits(uint64_t ram, uint64_t net, uint64_t cpu) {
-            (void) ram;
-            (void) net;
-            (void) cpu;
-            require_auth(_self);
         }
 
         [[eosio::action]]
@@ -142,12 +138,20 @@ namespace eosio {
         }
 
         [[eosio::action]]
-        void reqauth(name from) {
-            require_auth(from);
-        }
-
-        [[eosio::action]]
         void setabi(name account, const std::vector<char> &abi) {
+
+            check( (account == fioio::MSIGACCOUNT ||
+                    account == fioio::WHITELISTACCOUNT ||
+                    account == fioio::WRAPACCOUNT ||
+                    account == fioio::FeeContract ||
+                    account == fioio::AddressContract ||
+                    account == fioio::TPIDContract ||
+                    account == fioio::TokenContract ||
+                    account == fioio::FOUNDATIONACCOUNT ||
+                    account == fioio::REQOBTACCOUNT ||
+                    account == fioio::TREASURYACCOUNT ||
+                    account == fioio::SYSTEMACCOUNT), "setabi is not permitted");
+
             abi_hash_table table(_self, _self.value);
             auto itr = table.find(account.value);
             if (itr == table.end()) {
@@ -179,14 +183,9 @@ namespace eosio {
         using deleteauth_action = action_wrapper<"deleteauth"_n, &bios::deleteauth>;
         using linkauth_action = action_wrapper<"linkauth"_n, &bios::linkauth>;
         using unlinkauth_action = action_wrapper<"unlinkauth"_n, &bios::unlinkauth>;
-        using canceldelay_action = action_wrapper<"canceldelay"_n, &bios::canceldelay>;
-        using setcode_action = action_wrapper<"setcode"_n, &bios::setcode>;
         using setpriv_action = action_wrapper<"setpriv"_n, &bios::setpriv>;
-        using setalimits_action = action_wrapper<"setalimits"_n, &bios::setalimits>;
-        using setglimits_action = action_wrapper<"setglimits"_n, &bios::setglimits>;
         using setprods_action = action_wrapper<"setprods"_n, &bios::setprods>;
         using setparams_action = action_wrapper<"setparams"_n, &bios::setparams>;
-        using reqauth_action = action_wrapper<"reqauth"_n, &bios::reqauth>;
         using setabi_action = action_wrapper<"setabi"_n, &bios::setabi>;
     };
 
