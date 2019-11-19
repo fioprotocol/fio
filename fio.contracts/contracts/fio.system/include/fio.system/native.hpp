@@ -18,6 +18,7 @@ namespace eosiosystem {
     using eosio::permission_level;
     using eosio::public_key;
     using eosio::ignore;
+    using eosio::check;
 
     struct permission_level_weight {
         permission_level permission;
@@ -107,10 +108,14 @@ namespace eosiosystem {
 
 
         [[eosio::action]]
-        void updateauth(ignore <name> account,
-                        ignore <name> permission,
-                        ignore <name> parent,
-                        ignore <authority> auth) {}
+        void updateauth(name account,
+                        name permission,
+                        name parent,
+                        authority auth) {
+            require_auth(account);
+            check (permission != fioio::OWNER,
+                   "update to owner permission not permitted in FIO.");
+        }
 
         [[eosio::action]]
         void deleteauth(ignore <name> account,
