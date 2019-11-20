@@ -1311,6 +1311,7 @@ if( options.count(name) ) { \
             uint32_t returnCount = 0;
             uint32_t search_notFound = 0;
             bool search_finished = false;
+            string payee_fio_public_key = p.fio_public_key;
 
             fioio::key_to_account(p.fio_public_key, account_name);
 
@@ -1379,6 +1380,7 @@ if( options.count(name) ) { \
                         string payee_fio_addr = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
                         uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = requests_rows_result.rows[pos]["payer_key"].as_string();
 
                         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                                 .code=fio_system_code,
@@ -1400,16 +1402,6 @@ if( options.count(name) ) { \
 
                         string to_fioadd = fioname_result.rows[0]["name"].as_string();
                         name account = name{fioname_result.rows[0]["owner_account"].as_string()};
-
-                        read_only::get_table_rows_result account_result;
-                        GetFIOAccount(account, account_result);
-
-                        FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                       fioio::ErrorPubAddressNotFound);
-
-                        string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-
-                        string payee_fio_public_key = p.fio_public_key;
 
                         //convert the time_stamp to string formatted time.
                         time_t temptime;
