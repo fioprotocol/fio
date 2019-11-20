@@ -32,6 +32,12 @@
         },{
           "name": "payee_fio_addr",
           "type": "string"
+         },{
+          "name": "payer_key",
+          "type": "string"
+         },{
+          "name": "payee_key",
+          "type": "string"
          }
       ]
     },{

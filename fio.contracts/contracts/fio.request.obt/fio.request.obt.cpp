@@ -202,7 +202,6 @@ namespace fioio {
             }
             //end fees, bundle eligible fee logic
 
-
             if (fio_request_id.length() > 0) {
                 uint64_t currentTime = current_time();
                 uint64_t requestId;
@@ -277,6 +276,7 @@ namespace fioio {
             uint128_t nameHash = string_to_uint128_hash(payer_fio_address.c_str());
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
+            string payer_key = fioname_iter->addresses[0];
             fio_400_assert(fioname_iter != namesbyname.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
@@ -284,7 +284,7 @@ namespace fioio {
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
             fioname_iter = namesbyname.find(nameHash);
-
+            string payee_key = fioname_iter->addresses[0];
             fio_400_assert(fioname_iter != namesbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
@@ -309,7 +309,6 @@ namespace fioio {
                            "FIO Domain expired", ErrorFioNameExpired);
 
             uint64_t account = fioname_iter->owner_account;
-
 
             print("account: ", account, " actor: ", aActor, "\n");
             fio_403_assert(account == aActor.value, ErrorSignature);
@@ -380,6 +379,8 @@ namespace fioio {
                 frc.time_stamp = currentTime;
                 frc.payer_fio_addr = payer_fio_address;
                 frc.payee_fio_addr = payee_fio_address;
+                frc.payer_key = payer_key;
+                frc.payee_key = payee_key;
             });
 
             nlohmann::json json = {{"fio_request_id", id},
