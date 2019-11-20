@@ -113,8 +113,12 @@ namespace eosiosystem {
                         name parent,
                         authority auth) {
             require_auth(account);
-            check (permission != fioio::OWNER,
-                   "update to owner permission not permitted in FIO.");
+            //if its owner or active look at the keys, the number of keys must be empty or 1
+            //the key must match what is in the accountmap table for this account. otherwise error.
+            
+
+            // check (permission != fioio::OWNER,
+            //        "update to owner permission not permitted in FIO.");
         }
 
         [[eosio::action]]
