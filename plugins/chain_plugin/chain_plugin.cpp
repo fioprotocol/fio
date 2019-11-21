@@ -1338,12 +1338,10 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
                            fioio::ErrorNoFioRequestsFound);
 
-
             for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
                 string fio_address = (string) names_rows_result.rows[knpos]["name"].as_string();
                 string from_fioadd = fio_address;
                 uint128_t address_hash = fioio::string_to_uint128_t(fio_address.c_str());
-
                 string fio_requests_lookup_table = "fioreqctxts";   // table name
 
                 std::string hexvalnamehash = "0x";
@@ -1379,6 +1377,8 @@ if( options.count(name) ) { \
                         string payee_fio_addr = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
                         uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = requests_rows_result.rows[pos]["payer_key"].as_string();
+                        string payee_fio_public_key = requests_rows_result.rows[pos]["payee_key"].as_string();
 
                         get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
                                 .code=fio_system_code,
@@ -1401,16 +1401,6 @@ if( options.count(name) ) { \
                         string to_fioadd = fioname_result.rows[0]["name"].as_string();
                         name account = name{fioname_result.rows[0]["owner_account"].as_string()};
 
-                        read_only::get_table_rows_result account_result;
-                        GetFIOAccount(account, account_result);
-
-                        FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                       fioio::ErrorPubAddressNotFound);
-
-                        string payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-
-                        string payee_fio_public_key = p.fio_public_key;
-
                         //convert the time_stamp to string formatted time.
                         time_t temptime;
                         struct tm *timeinfo;
@@ -1421,7 +1411,7 @@ if( options.count(name) ) { \
                         strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
                         request_record rr{fio_request_id, from_fioadd,
-                                          to_fioadd, payee_fio_public_key, payer_fio_public_key, content, buffer};
+                                          to_fioadd, payer_fio_public_key, payee_fio_public_key, content, buffer};
 
                         string fio_request_status_lookup_table = "fioreqstss";   // table name
 
@@ -1495,8 +1485,8 @@ if( options.count(name) ) { \
             bool search_finished = false;
 
             fioio::key_to_account(p.fio_public_key, account_name);
-            name account = name{account_name};
 
+            name account = name{account_name};
             get_sent_fio_requests_result result;
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -1556,36 +1546,9 @@ if( options.count(name) ) { \
                         string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
                         uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = requests_rows_result.rows[pos]["payer_key"].as_string();
+                        string payee_fio_public_key = requests_rows_result.rows[pos]["payee_key"].as_string();
 
-                        get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                                .code=fio_system_code,
-                                .scope=fio_system_scope,
-                                .table=fio_address_table,
-                                .lower_bound=payer_hash_address,
-                                .upper_bound=payer_hash_address,
-                                .encode_type="hex",
-                                .index_position ="5"};
-
-                        // Do secondary key lookup
-                        get_table_rows_result fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
-                                name_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
-                                    return v;
-                                });
-
-                        string payee_fio_public_key = p.fio_public_key;
-                        string payer_fio_public_key = "NotFound";
-
-                        if (!fioname_result.rows.empty()) {
-                            name account = name{fioname_result.rows[0]["owner_account"].as_string()};
-
-                            read_only::get_table_rows_result account_result;
-                            GetFIOAccount(account, account_result);
-
-                            FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                           fioio::ErrorPubAddressNotFound);
-
-                            payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-                        }
                         //query the statuses
                         //use this id and query the fioreqstss table for status updates to this fioreqid
                         //look up the requests for this fio name (look for matches in the tofioadd
@@ -1683,8 +1646,8 @@ if( options.count(name) ) { \
             bool search_finished = false;
 
             fioio::key_to_account(p.fio_public_key, account_name);
-            name account = name{account_name};
 
+            name account = name{account_name};
             get_obt_data_result result;
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -1744,36 +1707,9 @@ if( options.count(name) ) { \
                         string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
                         uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = requests_rows_result.rows[pos]["payer_key"].as_string();
+                        string payee_fio_public_key = requests_rows_result.rows[pos]["payee_key"].as_string();
 
-                        get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                                .code=fio_system_code,
-                                .scope=fio_system_scope,
-                                .table=fio_address_table,
-                                .lower_bound=payer_hash_address,
-                                .upper_bound=payer_hash_address,
-                                .encode_type="hex",
-                                .index_position ="5"};
-
-                        // Do secondary key lookup
-                        get_table_rows_result fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
-                                name_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
-                                    return v;
-                                });
-
-                        string payee_fio_public_key = p.fio_public_key;
-                        string payer_fio_public_key = "NotFound";
-
-                        if (!fioname_result.rows.empty()) {
-                            name account = name{fioname_result.rows[0]["owner_account"].as_string()};
-
-                            read_only::get_table_rows_result account_result;
-                            GetFIOAccount(account, account_result);
-
-                            FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found",
-                                           fioio::ErrorPubAddressNotFound);
-
-                            payer_fio_public_key = account_result.rows[0]["clientkey"].as_string();
-                        }
                         //query the statuses
                         //use this id and query the fioreqstss table for status updates to this fioreqid
                         //look up the requests for this fio name (look for matches in the tofioadd

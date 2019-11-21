@@ -26,6 +26,7 @@ namespace fioio {
         fiorequest_status_table fiorequestStatusTable;
         fionames_table fionames;
         domains_table domains;
+        eosio_names_table clientkeys;
         fiofee_table fiofees;
         config appConfig;
         tpids_table tpids;
@@ -66,6 +67,7 @@ namespace fioio {
                   fionames(AddressContract, AddressContract.value),
                   domains(AddressContract, AddressContract.value),
                   fiofees(FeeContract, FeeContract.value),
+                  clientkeys(AddressContract, AddressContract.value),
                   tpids(AddressContract, AddressContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
@@ -228,8 +230,6 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-
-
        /*********
         * This action will record a request for funds into the FIO protocol.
         * @param payer_fio_address this is the fio address of the payer of the request for funds.
@@ -266,31 +266,35 @@ namespace fioio {
                            "Requires min 64 max 296 size",
                            ErrorContentLimit);
 
-            FioAddress payerfa;
-            getFioAddressStruct(payer_fio_address, payerfa);
-
-            FioAddress payeefa;
-            getFioAddressStruct(payee_fio_address, payeefa);
-
             uint32_t present_time = now();
+
+            FioAddress payerfa, payeefa;
+            getFioAddressStruct(payer_fio_address, payerfa);
+            getFioAddressStruct(payee_fio_address, payeefa);
 
             uint128_t nameHash = string_to_uint128_hash(payer_fio_address.c_str());
             auto namesbyname = fionames.get_index<"byname"_n>();
-            auto fioname_iter = namesbyname.find(nameHash);
-            fio_400_assert(fioname_iter != namesbyname.end(), "payer_fio_address", payer_fio_address,
+            auto fioname_iter2 = namesbyname.find(nameHash);
+            fio_400_assert(fioname_iter2 != namesbyname.end(), "payer_fio_address", payer_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
+            uint64_t account = fioname_iter2->owner_account;
+            auto account_iter = clientkeys.find(account);
+            string payer_key = account_iter->clientkey; // Index 0 is FIO
+
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
-            fioname_iter = namesbyname.find(nameHash);
-
+            auto fioname_iter = namesbyname.find(nameHash);
             fio_400_assert(fioname_iter != namesbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
-            uint64_t payeenameexp = fioname_iter->expiration;
+            account = fioname_iter->owner_account;
+            account_iter = clientkeys.find(account);
+            string payee_key = account_iter->clientkey;
 
+            uint64_t payeenameexp = fioname_iter->expiration;
             fio_400_assert(present_time <= payeenameexp, "payee_fio_address", payee_fio_address,
                            "FIO Address expired", ErrorFioNameExpired);
 
@@ -302,14 +306,12 @@ namespace fioio {
                            "No such domain",
                            ErrorDomainNotRegistered);
             uint64_t domexp = iterdom->expiration;
+
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
             domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
 
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
-
-            uint64_t account = fioname_iter->owner_account;
-
 
             print("account: ", account, " actor: ", aActor, "\n");
             fio_403_assert(account == aActor.value, ErrorSignature);
@@ -380,6 +382,8 @@ namespace fioio {
                 frc.time_stamp = currentTime;
                 frc.payer_fio_addr = payer_fio_address;
                 frc.payee_fio_addr = payee_fio_address;
+                frc.payee_key = payee_key;
+                frc.payer_key = payer_key;
             });
 
             nlohmann::json json = {{"fio_request_id", id},
@@ -388,7 +392,6 @@ namespace fioio {
 
             send_response(json.dump().c_str());
         }
-
 
          /********
           * this action will add a rejection status to the request for funds with the specified request id.
@@ -458,7 +461,6 @@ namespace fioio {
                            "FIO Domain expired", ErrorFioNameExpired);
 
             string payer_fio_address = fioname_iter->name;
-
 
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
