@@ -113,6 +113,31 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
     )
 };
 
+//begin locked token holders table
+//this table holds the list of FIO accounts that hold locked FIO tokens
+struct [[eosio::table, eosio::contract("fio.system")]] locked_token_holder_info {
+    name owner;
+    uint64_t total_grant_amount = 0;
+    uint32_t unlocked_period_count = 0; //this indicates time periods processed and unlocked thus far.
+    uint32_t grant_type = 0;   //1,2 see FIO spec for details
+    uint32_t inhibit_unlocking = 0;
+    uint64_t remaining_locked_amount = 0;
+
+
+    uint64_t primary_key() const { return owner.value; }
+
+    // explicit serialization macro is not necessary, used here only to improve compilation time
+    EOSLIB_SERIALIZE( locked_token_holder_info, (owner)(total_grant_amount)
+    (unlocked_period_count)(grant_type)(inhibit_unlocking)(remaining_locked_amount)
+    )
+};
+
+typedef eosio::multi_index<"lockedtokens"_n, locked_token_holder_info>
+locked_tokens_table;
+//end locked token holders table.
+
+
+
 struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     uint64_t id;
     name owner;
@@ -217,6 +242,7 @@ class [[eosio::contract("fio.system")]] system_contract : public native {
 private:
     voters_table _voters;
     producers_table _producers;
+    locked_tokens_table _lockedtokens;
    //MAS-522 eliminate producers2 producers_table2 _producers2;
     global_state_singleton _global;
     global_state2_singleton _global2;
@@ -249,6 +275,10 @@ public:
     // Actions:
     [[eosio::action]]
     void init(unsigned_int version, symbol core);
+
+    //this action inits the locked token holder table.
+    [[eosio::action]]
+    void initlocked();
 
     [[eosio::action]]
     void onblock(ignore <block_header> header);

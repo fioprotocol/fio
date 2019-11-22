@@ -24,6 +24,7 @@ namespace eosiosystem {
               _global(_self, _self.value),
               _global2(_self, _self.value),
               _global3(_self, _self.value),
+              _lockedtokens(_self,_self.value),
               _fionames(AddressContract, AddressContract.value),
               _domains(AddressContract, AddressContract.value),
               _accountmap(AddressContract, AddressContract.value),
@@ -172,6 +173,26 @@ namespace eosiosystem {
         check(version.value == 0, "unsupported version for init action");
     }
 
+    //use this action to initialize the locked token holders table for the FIO protocol.
+    void eosiosystem::system_contract::initlocked() {
+        require_auth(_self);
+        auto size = std::distance(_lockedtokens.cbegin(),_lockedtokens.cend());
+        if(size > 0){
+            //we disallow updates to the table once its initialized.
+            return;
+        }else{
+            _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                a.owner = "euwdcp13zlrj"_n;
+                a.total_grant_amount = 1000000000000;
+                a.unlocked_period_count = 0;
+                a.grant_type = 1;
+                a.inhibit_unlocking = 0;
+                a.remaining_locked_amount = 1000000000000;
+            });
+        }
+
+    }
+
 } /// fio.system
 
 
@@ -179,7 +200,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
 // native.hpp (newaccount definition is actually in fio.system.cpp)
 (newaccount)(updateauth)(deleteauth)(linkauth)(unlinkauth)(canceldelay)(onerror)(setabi)
         // fio.system.cpp
-        (init)(setparams)(setpriv)
+        (init)(initlocked)(setparams)(setpriv)
         (rmvproducer)(updtrevision)
         // delegate_bandwidth.cpp
         (updatepower)
