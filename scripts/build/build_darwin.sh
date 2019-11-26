@@ -109,7 +109,7 @@ while read -r name tester testee brewname uri; do
 	DISPLAY="${DISPLAY}${COUNT}. ${name}\\n"
 	printf " - %s ${bldred}NOT${txtrst} found.\\n" "${name}"
 	(( COUNT++ ))
-done < "${REPO_ROOT}/scripts/fio_build_darwin_deps"
+done < "${REPO_ROOT}/scripts/build/build_darwin_deps"
 IFS="${var_ifs}"
 
 if [ ! -d /usr/local/Frameworks ]; then
