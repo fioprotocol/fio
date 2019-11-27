@@ -690,7 +690,7 @@ namespace eosiosystem {
                 print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
                // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
                //we kludge the time block evaluation to become one block per minute
-                uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 60) / 1;
+                uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 180) / 1;
                 print("--------------------DANGER------------------------------ ","\n");
                 print("--------------------DANGER------------------------------ ","\n");
                 print("--------------------DANGER------------------------------ ","\n");
