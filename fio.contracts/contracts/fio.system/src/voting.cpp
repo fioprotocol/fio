@@ -682,7 +682,7 @@ namespace eosiosystem {
 
         auto lockiter = _lockedtokens.find(actor.value);
         if(lockiter != _lockedtokens.end()){
-            if(lockiter->inhibit_unlocking){
+            if(lockiter->inhibit_unlocking && (lockiter->grant_type == 2)){
                 return;
             }
             if (lockiter->unlocked_period_count < 9)  {
