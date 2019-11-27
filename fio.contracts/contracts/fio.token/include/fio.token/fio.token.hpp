@@ -29,6 +29,7 @@ namespace eosio {
         fioio::config appConfig;
         fioio::tpids_table tpids;
         fioio::fionames_table fionames;
+        eosiosystem::locked_tokens_table lockedTokensTable;
 
     public:
         token(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
@@ -37,7 +38,8 @@ namespace eosio {
                                                                 fionames(fioio::AddressContract,
                                                                          fioio::AddressContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value),
-                                                                tpids(TPIDContract, TPIDContract.value) {
+                                                                tpids(TPIDContract, TPIDContract.value),
+                                                                lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value){
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
             appConfig = configsSingleton.get_or_default(fioio::config());
         }
@@ -107,6 +109,7 @@ namespace eosio {
 
         void sub_balance(name owner, asset value);
         void add_balance(name owner, asset value, name ram_payer);
+        bool can_transfer(const name &tokenowner,const uint64_t &transferamount, const bool &isfee);
 
     public:
 

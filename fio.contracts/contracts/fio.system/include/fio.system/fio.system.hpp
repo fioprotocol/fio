@@ -122,13 +122,14 @@ struct [[eosio::table, eosio::contract("fio.system")]] locked_token_holder_info 
     uint32_t grant_type = 0;   //1,2 see FIO spec for details
     uint32_t inhibit_unlocking = 0;
     uint64_t remaining_locked_amount = 0;
+    uint32_t timestamp = 0;
 
 
     uint64_t primary_key() const { return owner.value; }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
     EOSLIB_SERIALIZE( locked_token_holder_info, (owner)(total_grant_amount)
-    (unlocked_period_count)(grant_type)(inhibit_unlocking)(remaining_locked_amount)
+    (unlocked_period_count)(grant_type)(inhibit_unlocking)(remaining_locked_amount)(timestamp)
     )
 };
 
@@ -289,6 +290,12 @@ public:
     [[eosio::action]]
     void burnaction(const uint128_t &fioaddrhash);
 
+    [[eosio::action]]
+    void updlocked(const name &owner,const uint64_t &amountremaining);
+
+    [[eosio::action]]
+    void unlocktokens(const name &actor);
+
     void regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
                       const string &fio_address);
 
@@ -378,6 +385,11 @@ private:
 
     // defined in voting.hpp
     void update_elected_producers(block_timestamp timestamp);
+
+    uint64_t get_votable_balance(const name &tokenowner);
+
+    void unlock_tokens(const name &actor);
+
 
     void update_votes(const name &voter, const name &proxy, const std::vector <name> &producers, const bool &voting);
 

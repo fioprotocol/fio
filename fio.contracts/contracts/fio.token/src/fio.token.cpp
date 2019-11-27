@@ -100,6 +100,84 @@ namespace eosio {
         sub_balance(FIOISSUER, quantity);
     }
 
+    bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
+            const bool &isfee){
+        print(" calling can transfer ",tokenowner,"\n");
+        //get fio balance for this account,
+        uint32_t present_time = now();
+        symbol sym_name = symbol("FIO", 9);
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, sym_name.code() );
+        uint64_t amount = my_balance.amount;
+
+        //see if the user is in the lockedtokens table, if so recompute the balance
+        //based on grant type.
+        auto lockiter = lockedTokensTable.find(tokenowner.value);
+        if(lockiter != lockedTokensTable.end()){
+            print(" found item in lockedtokens","\n");
+            check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
+
+            uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
+            if(
+                    //if lock type 1 always subtract remaining locked amount from balance
+                    (lockiter->grant_type == 1) ||
+                    //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
+                    ((lockiter->grant_type == 2)&&
+                    ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
+                    //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
+                    ((lockiter->grant_type == 2)&&  !isfee)
+                ){
+                print(" type is ",lockiter->grant_type,"\n");
+                //subtract the lock amount from the balance
+                if (lockiter->remaining_locked_amount < amount) {
+                    print(" transferrable balance is being recomputed -- subtracting locked amount ",lockiter->remaining_locked_amount,
+                          " from balance ", amount, " for account ", tokenowner,"\n");
+                    amount -= lockiter->remaining_locked_amount;
+                    print(" resulting amount is  ",amount,
+                          " transferamount is ", transferamount,"\n");
+                    if (amount >= transferamount){
+                        print(" transfer approved","\n");
+                    } else{
+                        print(" transfer NOT approved","\n");
+                    }
+                    return (amount >= transferamount);
+                } else {
+                    print(" transfer NOT approved, remaining locked amount >= amount","\n");
+                    return false;
+                }
+
+            } else if ((lockiter->grant_type == 2) && isfee){
+
+                print("type is 2 ","\n");
+                  uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
+                print(" unlocked balance is ",unlockedbalance,"\n");
+                  if (unlockedbalance >= transferamount){
+                      print(" unlocked amount in account greater than transfer, transfer is ok. ","\n");
+                    return true;
+                  }else {
+
+                      print(" unlocked amount is less than transfer. ","\n");
+                      uint64_t new_remaining_unlocked_amount =
+                                lockiter->remaining_locked_amount - (transferamount - unlockedbalance);
+                      print(" new unlocked amount is ", new_remaining_unlocked_amount,
+                              "\n");
+
+                      INLINE_ACTION_SENDER(eosiosystem::system_contract, updlocked)
+                                ("eosio"_n, {{_self, "active"_n}},
+                                 {tokenowner, new_remaining_unlocked_amount}
+                                );
+                      print(" transfer is approved ","\n");
+                      return true;
+                }
+            }
+        }else{
+            print(" transfer is approved, account is not locked token holder ","\n");
+            return true;
+        }
+        //avoid compile warning.
+        return true;
+
+    }
+
     void token::transfer(name from,
                          name to,
                          asset quantity,
@@ -112,6 +190,7 @@ namespace eosio {
         if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
             check(to == TREASURYACCOUNT, "transfer not allowed");
         }
+
 
         check(from != to, "cannot transfer to self");
         require_auth(from);
@@ -128,12 +207,18 @@ namespace eosio {
         check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
+        //we need to check the from, check for locked amount remaining
+        check(can_transfer(from, quantity.amount,true),"insufficient unlocked funds for transfer.");
+
+
 
         auto payer = has_auth(to) ? to : from;
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
     }
+
+
 
     inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
@@ -240,6 +325,15 @@ namespace eosio {
         if (accountExists) {
             require_recipient(new_account_name);
         }
+
+        print(" calling unlock tokens from token account","\n");
+        INLINE_ACTION_SENDER(eosiosystem::system_contract, unlocktokens)
+                ("eosio"_n, {{_self, "active"_n}},
+                 {actor}
+                );
+
+        //we need to check the from, check for locked amount remaining
+        check(can_transfer(actor, qty.amount,false),"insufficient unlocked funds for transfer.");
 
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
