@@ -294,7 +294,7 @@ public:
     void updlocked(const name &owner,const uint64_t &amountremaining);
 
     [[eosio::action]]
-    void inhibitunlck(const name &actor,const uint32_t &value);
+    void inhibitunlck(const name &owner,const uint32_t &value);
 
     [[eosio::action]]
     void unlocktokens(const name &actor);
