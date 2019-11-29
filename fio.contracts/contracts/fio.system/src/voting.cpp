@@ -671,7 +671,9 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::unlockinhibt(const name &accountname){
+    //this sets the inhibit_unlocking flag in the lockedtokens table.
+    // set to 0 is false, non zero is true.
+    void system_contract::inhibitunlck(const name &accountname, const uint32_t &value){
         require_auth(FOUNDATIONACCOUNT);
 
         //get the owner, check that the specified grant is type 2, do the
@@ -681,7 +683,7 @@ namespace eosiosystem {
             if(lockiter->grant_type == 2) {
                 //update the locked table.
                 _lockedtokens.modify(lockiter, _self, [&](auto &av) {
-                    av.inhibit_unlocking = 1;
+                    av.inhibit_unlocking = value;
                 });
             }
         }
