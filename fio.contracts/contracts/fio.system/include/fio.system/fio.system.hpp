@@ -294,6 +294,9 @@ public:
     void updlocked(const name &owner,const uint64_t &amountremaining);
 
     [[eosio::action]]
+    void unlockinhibt(const name &actor);
+
+    [[eosio::action]]
     void unlocktokens(const name &actor);
 
     void regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
