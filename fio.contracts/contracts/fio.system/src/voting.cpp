@@ -678,7 +678,7 @@ namespace eosiosystem {
 
         //get the owner, check that the specified grant is type 2, do the
         //inhibit, do not do the inhibit otherwise.
-        auto lockiter = _lockedtokens.find(accountname.value);
+        auto lockiter = _lockedtokens.find(owner.value);
         if(lockiter != _lockedtokens.end()){
             if(lockiter->grant_type == 2) {
                 //update the locked table.
