@@ -671,6 +671,26 @@ namespace eosiosystem {
     }
 
 
+    //this sets the inhibit_unlocking flag in the lockedtokens table.
+    // set to 0 is false, non zero is true.
+    void system_contract::inhibitunlck(const name &owner, const uint32_t &value){
+        require_auth(FOUNDATIONACCOUNT);
+
+        //get the owner, check that the specified grant is type 2, do the
+        //inhibit, do not do the inhibit otherwise.
+        auto lockiter = _lockedtokens.find(owner.value);
+        if(lockiter != _lockedtokens.end()){
+            if(lockiter->grant_type == 2) {
+                //update the locked table.
+                _lockedtokens.modify(lockiter, _self, [&](auto &av) {
+                    av.inhibit_unlocking = value;
+                });
+            }
+        }
+
+    }
+
+
 
     void system_contract::unlock_tokens(const name &actor){
         uint32_t present_time = now();
@@ -689,12 +709,12 @@ namespace eosiosystem {
                 print(" issue time is ",lockiter->timestamp,"\n");
                 print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
                // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
-               //we kludge the time block evaluation to become one block per minute
+               //we kludge the time block evaluation to become one block per 3 minutes
                 uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 180) / 1;
                 print("--------------------DANGER------------------------------ ","\n");
                 print("--------------------DANGER------------------------------ ","\n");
                 print("--------------------DANGER------------------------------ ","\n");
-                print("------time step for unlocking is kludged to 1 min-------","\n");
+                print("------time step for unlocking is kludged to 3 min-------","\n");
                 print("--------------------DANGER------------------------------ ","\n");
                 print("--------------------DANGER------------------------------ ","\n");
                 print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
@@ -751,14 +771,14 @@ namespace eosiosystem {
                     remainingPayouts = timeElapsed90DayBlocks - numberVestingPayouts;
                     uint64_t percentperblock = 0;
                     if (lockiter->grant_type == 1) {
-                        //this logic assumes to have 3 decimal places
+                        //this logic assumes to have 3 decimal places in the specified percentage
                         percentperblock = 12375;
                     } else {
-                        //this is assumed to have 3 decimal places
+                        //this is assumed to have 3 decimal places in the specified percentage
                         percentperblock = 12275;
                     }
                     print("remaining payouts ", remainingPayouts, "\n");
-                    //this is assumed to have 3 decimal places
+                    //this is assumed to have 3 decimal places in the specified percentage
                     amountpay = (remainingPayouts * (totalgrantamount * percentperblock)) / 100000;
                     print(" amount to pay ", amountpay, "\n");
 
