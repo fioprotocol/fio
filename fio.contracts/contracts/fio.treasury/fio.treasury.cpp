@@ -365,11 +365,8 @@ public:
                              (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
                              "missing required authority of fio.address, fio.token, fio.treasury or fio.reqobt");
 
-                if (!fdtnrewards.exists()) {
-                        fdtnrewards.set(fdtnreward{amount}, _self);
-                } else {
-                        fdtnrewards.set(fdtnreward{fdtnrewards.get().rewards + amount}, _self);
-                }
+                fdtnrewards.set(fdtnrewards.exists() ? fdtnreward{fdtnrewards.get().rewards + amount} : fdtnreward{amount}, _self);
+
         }
 };     //class FIOTreasury
 
