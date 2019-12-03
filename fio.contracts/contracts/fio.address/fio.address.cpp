@@ -317,25 +317,25 @@ namespace fioio {
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 string token = tpa->token_code.c_str();
+                bool modified = false;
+                print(token);
+                tokenpubaddr temp;
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
                     if( it->token_code == token ){
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
+                        modified = true;
+                        break;
                     }
-                    if( it == fioname_iter->addresses.end()){
-                        fio_400_assert(tpa->token_code.length() <= 10, "token_code", tpa->token_code, "Invalid token code format",
-                                ErrorTokenCodeInvalid);
-                        fio_400_assert(tpa->token_code.length() > 0, "token_code", tpa->token_code, "Invalid token code format",
-                                ErrorTokenCodeInvalid);
-
-                        tokenpubaddr temp;
+                    if( !modified ){
                         temp.public_address = tpa->public_address;
                         temp.token_code = tpa->token_code;
 
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses.push_back(temp);
                         });
+                        break;
                     }
                 }
             }
