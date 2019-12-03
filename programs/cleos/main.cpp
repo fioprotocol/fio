@@ -2920,11 +2920,100 @@ int main(int argc, char **argv) {
         trx.sign(priv_key, *chain_id);
 
         if (push_trx) {
-            auto trx_result = call(push_txn_func, packed_transaction(trx, packed_transaction::none));
-            std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
-        } else {
-            std::cout << fc::json::to_pretty_string(trx) << std::endl;
-        }
+
+          vector <action> &actions = trx.actions;
+
+          if (actions[0].name.to_string() == "regdomain") {
+              auto trx_result = call(reg_domain_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "regaddress") {
+              auto trx_result = call(reg_address_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "renewdomain") {
+              auto trx_result = call(renew_domain_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "renewaddress") {
+              auto trx_result = call(renew_address_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "bpclaim") {
+              auto trx_result = call(claim_bp_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "tpidclaim") {
+              auto trx_result = call(pay_tpid_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "bundlevote") {
+              auto trx_result = call(bundle_vote_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "unregprod") {
+              auto trx_result = call(unreg_producer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "remwhitelist") {
+              auto trx_result = call(rem_whitelist_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "addwhitelist") {
+              auto trx_result = call(add_whitelist_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "setfeemult") {
+              auto trx_result = call(set_feemult_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "setfeevote") {
+              auto trx_result = call(set_feevote_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "voteproxy") {
+              auto trx_result = call(proxy_vote_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "addaddress") {
+              auto trx_result = call(add_address_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "trnsfiopubky") {
+              auto trx_result = call(token_transfer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "burnexpired") {
+              auto trx_result = call(burn_expired_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "unregproxy") {
+              auto trx_result = call(unreg_proxy_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "regproxy") {
+              auto trx_result = call(reg_proxy_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "regproducer") {
+              auto trx_result = call(reg_producer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "voteproducer") {
+              auto trx_result = call(vote_producer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "renewdomain") {
+              auto trx_result = call(renew_domain_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          else {
+              auto trx_result = call(push_txn_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+      } else {
+          std::cout << fc::json::to_pretty_string(trx) << std::endl;
+      }
     });
 
     // Push subcommand

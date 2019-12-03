@@ -84,9 +84,18 @@ namespace eosio {
                         authority auth) {
 
             require_auth(account);
-            check (permission != fioio::OWNER,
-                    "update to owner permission not permitted in FIO.");
-            //TODO this needs a fee.
+            eosio::action{
+                    permission_level{account, "active"_n},
+                    fioio::FeeContract, "mandatoryfee"_n,
+                    std::make_tuple(std::string("auth_update"), account, 4000000000)
+            }.send();
+
+
+            if (permission == fioio::ACTIVE || permission == fioio::OWNER){
+                eosio_assert((auth.keys.size() == 0) || (auth.keys.size() == 1),
+                             "update auth not permitted on owner or active unless keys is empty or has a single entry matching the account public key");
+                //todo add code to check that if there is a single auth key, the key matches the value in the account map.
+            }
 
         }
 
@@ -94,6 +103,12 @@ namespace eosio {
         void deleteauth(name account,
                         ignore<name> permission) {
             require_auth(account);
+
+            eosio::action{
+                    permission_level{account, "active"_n},
+                    fioio::FeeContract, "mandatoryfee"_n,
+                    std::make_tuple(std::string("auth_delete"), account, 4000000000)
+            }.send();
 
         }
 
@@ -104,6 +119,12 @@ namespace eosio {
                       ignore<name> requirement) {
             require_auth(account);
 
+            eosio::action{
+                    permission_level{account, "active"_n},
+                    fioio::FeeContract, "mandatoryfee"_n,
+                    std::make_tuple(std::string("auth_link"), account, 4000000000)
+            }.send();
+
         }
 
         [[eosio::action]]
@@ -111,6 +132,12 @@ namespace eosio {
                         ignore<name> code,
                         ignore<name> type) {
             require_auth(account);
+            //let them do this as much as they can for free since it decreases state size.
+        }
+
+        [[eosio::action]]
+        void canceldelay(ignore <permission_level> canceling_auth, ignore <capi_checksum256> trx_id) {
+            require_auth(_self);
         }
 
         [[eosio::action]]
@@ -130,6 +157,14 @@ namespace eosio {
             read_action_data(buffer, size);
             set_proposed_producers(buffer, size);
         }
+
+        [[eosio::action]]
+        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code) {
+            require_auth(_self);
+        }
+
+        [[eosio::action]]
+        void reqauth( name from );
 
         [[eosio::action]]
         void setparams(const eosio::blockchain_parameters &params) {

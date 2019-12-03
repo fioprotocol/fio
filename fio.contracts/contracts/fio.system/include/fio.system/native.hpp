@@ -88,6 +88,7 @@ namespace eosiosystem {
 
         using eosio::contract::contract;
 
+
         /**
          *  Called after a new account is created. This code enforces resource-limits rules
          *  for new accounts as well as new account naming conventions.
@@ -113,34 +114,65 @@ namespace eosiosystem {
                         name parent,
                         authority auth) {
             require_auth(account);
-            //if its owner or active look at the keys, the number of keys must be empty or 1
-            //the key must match what is in the accountmap table for this account. otherwise error.
-            
+            eosio::action{
+                    permission_level{account, "active"_n},
+                    fioio::FeeContract, "mandatoryfee"_n,
+                    std::make_tuple(std::string("auth_update"), account, 4000000000)
+            }.send();
 
-            // check (permission != fioio::OWNER,
-            //        "update to owner permission not permitted in FIO.");
+
+            if (permission == fioio::ACTIVE || permission == fioio::OWNER){
+                eosio_assert((auth.keys.size() == 0) || (auth.keys.size() == 1),
+                             "update auth not permitted on owner or active unless keys is empty or has a single entry matching the account public key");
+                //todo add code to check that if there is a single auth key, the key matches the value in the account map.
+            }
+
         }
 
         [[eosio::action]]
-        void deleteauth(ignore <name> account,
-                        ignore <name> permission) {}
+        void deleteauth(name account,
+                        name permission) {
+            require_auth(account);
+
+            eosio::action{
+                   permission_level{account, "active"_n},
+                   fioio::FeeContract, "mandatoryfee"_n,
+                   std::make_tuple(std::string("auth_delete"), account, 4000000000)
+            }.send();
+        }
 
         [[eosio::action]]
-        void linkauth(ignore <name> account,
+        void linkauth(name account,
                       ignore <name> code,
                       ignore <name> type,
-                      ignore <name> requirement) {}
+                      ignore <name> requirement) {
+
+            require_auth(account);
+
+            eosio::action{
+                    permission_level{account, "active"_n},
+                    fioio::FeeContract, "mandatoryfee"_n,
+                    std::make_tuple(std::string("auth_link"), account, 4000000000)
+            }.send();
+        }
 
         [[eosio::action]]
-        void unlinkauth(ignore <name> account,
+        void unlinkauth(name account,
                         ignore <name> code,
-                        ignore <name> type) {}
+                        ignore <name> type) {
+            require_auth(account);
+            //let them do this as much as they can for free since it decreases state size.
+        }
 
         [[eosio::action]]
-        void canceldelay(ignore <permission_level> canceling_auth, ignore <capi_checksum256> trx_id) {}
+        void canceldelay(ignore <permission_level> canceling_auth, ignore <capi_checksum256> trx_id) {
+            require_auth(_self);
+        }
 
         [[eosio::action]]
-        void onerror(ignore <uint128_t> sender_id, ignore <std::vector<char>> sent_trx) {}
+        void onerror(ignore <uint128_t> sender_id, ignore <std::vector<char>> sent_trx) {
+            require_auth(_self);
+        }
 
         [[eosio::action]]
         void setabi(name account, const std::vector<char> &abi);
@@ -155,6 +187,7 @@ namespace eosiosystem {
                    account == fioio::FeeContract ||
                    account == fioio::AddressContract ||
                    account == fioio::TPIDContract ||
+                   account == fioio::REQOBTACCOUNT ||
                    account == fioio::TokenContract ||
                    account == fioio::FOUNDATIONACCOUNT ||
                    account == fioio::TREASURYACCOUNT ||

@@ -53,7 +53,19 @@ namespace eosiosystem {
 
     // void system_contract::update_voting_power(const name &voter, const asset &total_update) {
    void system_contract::updatepower(const name &voter,bool updateonly) {
+
         print(" called update power.","\n");
+        check(
+                (has_auth(AddressContract) ||
+                 has_auth(TokenContract) ||
+                 has_auth(TREASURYACCOUNT) ||
+                 has_auth(REQOBTACCOUNT) ||
+                 has_auth(SYSTEMACCOUNT) ||
+                 has_auth(FeeContract) ||
+                 has_auth(REQOBTACCOUNT)
+                ),
+                "missing required authority of fio.address, fio.treasury, eosio, fio.fee, fio.token, or fio.reqobt");
+
         auto voter_itr = _voters.find(voter.value);
         if ((voter_itr == _voters.end())&& updateonly) {
             print(" could not find voter.",voter,"\n");

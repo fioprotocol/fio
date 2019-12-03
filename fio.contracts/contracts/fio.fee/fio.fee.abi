@@ -39,6 +39,14 @@
             {"name":"actor", "type":"string"}
         ]
       },{
+               "name": "mandatoryfee",
+               "base": "",
+               "fields": [
+                   {"name":"end_point", "type":"string"},
+                   {"name":"account", "type":"name"},
+                   {"name":"max_fee", "type":"int64"}
+               ]
+             },{
         "name": "updatefees",
         "base": "",
         "fields": [
@@ -98,6 +106,10 @@
          "type": "setfeemult",
          "ricardian_contract": ""
        },{
+         "name": "mandatoryfee",
+                 "type": "mandatoryfee",
+                 "ricardian_contract": ""
+               },{
          "name": "updatefees",
          "type": "updatefees",
          "ricardian_contract": ""

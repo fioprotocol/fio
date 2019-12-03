@@ -47,7 +47,7 @@ namespace fioio {
             name owner_account_name;
 
             if (owner_fio_public_key.length() == 0) {
-                bool accountExists = is_account(actor);
+                const bool accountExists = is_account(actor);
 
                 auto other = accountmap.find(actor.value);
 
@@ -66,7 +66,7 @@ namespace fioio {
 
                 eosio_assert(owner_account.length() == 12, "Length of account name should be 12");
 
-                bool accountExists = is_account(owner_account_name);
+                const bool accountExists = is_account(owner_account_name);
                 auto other = accountmap.find(owner_account_name.value);
 
                 if (other == accountmap.end()) { //the name is not in the table.
@@ -88,7 +88,7 @@ namespace fioio {
                              {_self, owner_account_name, owner_auth, owner_auth}
                             );
 
-                    uint64_t nmi = owner_account_name.value;
+                    const uint64_t nmi = owner_account_name.value;
 
                     accountmap.emplace(_self, [&](struct eosio_name &p) {
                         p.account = nmi;
@@ -124,7 +124,7 @@ namespace fioio {
         }
 
         inline void register_errors(const FioAddress &fa, bool domain) const {
-            int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
+            const int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
             string fioname = "fio_address";
             string fioerror = "Invalid FIO address";
             if (domain) {
@@ -180,9 +180,9 @@ namespace fioio {
         uint32_t fio_address_update(const name &owneractor, const name &actor, int64_t max_fee, const FioAddress &fa,
                                     const string &tpid) {
 
-            uint32_t expiration_time = 0;
-            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
+            const uint32_t expiration_time = get_now_plus_one_year();
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            const uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -197,7 +197,7 @@ namespace fioio {
                            "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
-            bool isPublic = domains_iter->is_public;
+            const bool isPublic = domains_iter->is_public;
             uint64_t domain_owner = domains_iter->account;
 
             if (!isPublic) {
@@ -206,8 +206,8 @@ namespace fioio {
                                ErrorInvalidFioNameFormat);
             }
 
-            uint32_t domain_expiration = domains_iter->expiration;
-            uint32_t present_time = now();
+            const uint32_t domain_expiration = domains_iter->expiration;
+            const uint32_t present_time = now();
             fio_400_assert(present_time <= domain_expiration, "fio_address", fa.fioaddress, "FIO Domain expired",
                            ErrorDomainExpired);
 
@@ -216,13 +216,13 @@ namespace fioio {
             fio_400_assert(fioname_iter == namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address already registered", ErrorFioNameAlreadyRegistered);
 
-            expiration_time = get_now_plus_one_year();
+
             auto key_iter = accountmap.find(actor.value);
 
             fio_400_assert(key_iter != accountmap.end(), "actor", to_string(actor.value),
                            "Actor is not bound in the account map.", ErrorActorNotInFioAccountMap);
 
-            uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
+            const uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
             print("OWNER:", actor, "...Value:", actor.value, "...Key:", key_iter->clientkey, "...hash:", ownerHash,
                   "\n");
 
@@ -288,17 +288,17 @@ namespace fioio {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
-            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            const uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
             fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
 
-            uint32_t name_expiration = fioname_iter->expiration;
-            uint32_t present_time = now();
+            const uint32_t name_expiration = fioname_iter->expiration;
+            const uint32_t present_time = now();
 
-            uint64_t account = fioname_iter->owner_account;
+            const uint64_t account = fioname_iter->owner_account;
             fio_403_assert(account == actor.value, ErrorSignature);
             fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
@@ -308,9 +308,9 @@ namespace fioio {
 
             fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
 
-            uint32_t expiration = domains_iter->expiration;
+
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
-            expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
+            const uint32_t expiration = get_time_plus_seconds(domains_iter->expiration,SECONDS30DAYS);
 
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
@@ -347,7 +347,8 @@ namespace fioio {
             }
 
             //begin new fees, bundle eligible fee logic
-            uint128_t endpoint_hash = string_to_uint128_hash("add_pub_address");
+            const uint128_t endpoint_hash = string_to_uint128_hash("add_pub_address");
+
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
@@ -355,14 +356,19 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "add_pub_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            int64_t reg_amount = fee_iter->suf_amount;
-            uint64_t fee_type = fee_iter->type;
+            const int64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint add_pub_address, expected 0",
                            ErrorNoEndpoint);
 
-            uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+            uint64_t fee_amount = 0;
+
+            if (isFIO) {
+                return fee_amount;
+            }
 
             if (bundleeligiblecountdown > 0) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
@@ -393,7 +399,7 @@ namespace fioio {
         }
 
         inline uint32_t get_time_plus_one_year(uint64_t timein) {
-            uint32_t incremented_time = timein + YEARTOSECONDS;
+            const uint32_t incremented_time = timein + YEARTOSECONDS;
             return incremented_time;
         }
 
@@ -403,8 +409,8 @@ namespace fioio {
          * incremented by secondss per year.
          */
         inline uint32_t get_now_plus_one_year() {
-            uint32_t present_time = now();
-            uint32_t incremented_time = present_time + YEARTOSECONDS;
+            const uint32_t present_time = now();
+            const uint32_t incremented_time = present_time + YEARTOSECONDS;
             return incremented_time;
         }
         /***
@@ -413,9 +419,8 @@ namespace fioio {
          * @return  the decremented now() time by nyearsago
          */
         inline uint32_t get_now_minus_years(int nyearsago) {
-            uint32_t present_time = now();
-
-            uint32_t decremented_time = present_time - (YEARTOSECONDS * nyearsago);
+            const uint32_t present_time = now();
+            const uint32_t decremented_time = present_time - (YEARTOSECONDS * nyearsago);
             return decremented_time;
         }
         /***
@@ -424,9 +429,8 @@ namespace fioio {
          * @return  the decremented now() time by nyearsago
          */
         inline uint32_t get_now_plus_years(int nyearsago) {
-            uint32_t present_time = now();
-
-            uint32_t decremented_time = present_time + (YEARTOSECONDS * nyearsago);
+            const uint32_t present_time = now();
+            const uint32_t decremented_time = present_time + (YEARTOSECONDS * nyearsago);
             return decremented_time;
         }
 
@@ -451,23 +455,23 @@ namespace fioio {
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
-            name nm = name{owner_account_name};
+            const name nm = name{owner_account_name};
 
-            uint64_t expiration_time = fio_address_update(actor, nm, max_fee, fa, tpid);
+            const uint64_t expiration_time = fio_address_update(actor, nm, max_fee, fa, tpid);
 
             struct tm timeinfo;
             fioio::convertfiotime(expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            uint128_t endpoint_hash = string_to_uint128_hash("register_fio_address");
+            const uint128_t endpoint_hash = string_to_uint128_hash("register_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            uint64_t reg_amount = fee_iter->suf_amount;
-            uint64_t fee_type = fee_iter->type;
+            const uint64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
@@ -479,7 +483,6 @@ namespace fioio {
             asset reg_fee_asset;
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
-            print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
@@ -510,23 +513,23 @@ namespace fioio {
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
-            name nm = name{owner_account_name};
+            const name nm = name{owner_account_name};
 
-            uint32_t expiration_time = fio_domain_update(fio_domain, owner_fio_public_key, actor, fa);
+            const uint32_t expiration_time = fio_domain_update(fio_domain, owner_fio_public_key, actor, fa);
 
             struct tm timeinfo;
             fioio::convertfiotime(expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            uint128_t endpoint_hash = string_to_uint128_hash("register_fio_domain");
+            const uint128_t endpoint_hash = string_to_uint128_hash("register_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            uint64_t reg_amount = fee_iter->suf_amount;
-            uint64_t fee_type = fee_iter->type;
+            const uint64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
@@ -570,8 +573,8 @@ namespace fioio {
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
-            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
-            uint32_t expiration_time;
+            const uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
+
 
             fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
@@ -582,17 +585,16 @@ namespace fioio {
             fio_400_assert(domains_iter != domainsbyname.end(), "fio_domain", fa.fioaddress,
                            "FIO domain not found", ErrorDomainNotRegistered);
 
-            expiration_time = domains_iter->expiration;
-
-            uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_domain");
+            const uint32_t expiration_time = domains_iter->expiration;
+            const uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            uint64_t reg_amount = fee_iter->suf_amount;
-            uint64_t fee_type = fee_iter->type;
+            const uint64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
@@ -605,12 +607,11 @@ namespace fioio {
 
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
-            print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
-            uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
+            const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
             struct tm timeinfo;
             fioio::convertfiotime(new_expiration_time, &timeinfo);
@@ -648,8 +649,8 @@ namespace fioio {
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
 
-            uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
-            uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            const uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             fio_400_assert(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO address",
                            ErrorInvalidFioNameFormat);
@@ -661,11 +662,10 @@ namespace fioio {
                            "FIO Domain not registered",
                            ErrorDomainNotRegistered);
 
-            uint32_t domain_expiration = domains_iter->expiration;
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
-            domain_expiration = get_time_plus_seconds(domain_expiration,SECONDS30DAYS);
+            const uint32_t domain_expiration = get_time_plus_seconds(domains_iter->expiration,SECONDS30DAYS);
 
-            uint32_t present_time = now();
+            const uint32_t present_time = now();
             fio_400_assert(present_time <= domain_expiration, "fio_address", fa.fioaddress, "FIO Domain expired",
                            ErrorDomainExpired);
 
@@ -674,11 +674,9 @@ namespace fioio {
             fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address not registered", ErrorFioNameNotRegistered);
 
-            uint64_t expiration_time = fioname_iter->expiration;
-            uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-
-
-            uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_address");
+            const uint64_t expiration_time = fioname_iter->expiration;
+            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+            const uint128_t endpoint_hash = string_to_uint128_hash("renew_fio_address");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
@@ -686,8 +684,8 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            uint64_t reg_amount = fee_iter->suf_amount;
-            uint64_t fee_type = fee_iter->type;
+            const uint64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
@@ -703,7 +701,7 @@ namespace fioio {
             print(reg_fee_asset.amount);
             processbucketrewards(tpid, reg_amount, get_self());
 
-            uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
+            const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
             struct tm timeinfo;
             fioio::convertfiotime(new_expiration_time, &timeinfo);
@@ -827,13 +825,13 @@ namespace fioio {
             std::vector<uint128_t> burnlist;
             std::vector<uint128_t> domainburnlist;
 
-            int numbertoburn = 100;
-            int windowmaxyears = 20;
+            const int numbertoburn = 100;
+            const int windowmaxyears = 20;
 
-            uint64_t nowtime = now();
+            const uint64_t nowtime = now();
 
             //this allows us to search through all of the domains.
-            uint32_t minexpiration = get_now_minus_years(windowmaxyears);
+            const uint32_t minexpiration = get_now_minus_years(windowmaxyears);
 
             //using this instead of now time will place everything in the to be burned list, for testing only.
            //comment this out because we arent testing
@@ -843,13 +841,13 @@ namespace fioio {
             auto domainiter = domainexpidx.lower_bound(minexpiration);
 
             while (domainiter != domainexpidx.end()) {
-                uint64_t expire = domainiter->expiration;
-                uint128_t domainnamehash = domainiter->domainhash;
+                const uint64_t expire = domainiter->expiration;
+                const uint128_t domainnamehash = domainiter->domainhash;
 
                 if ((expire + DOMAINWAITFORBURNDAYS) > nowtime){
                     break;
                 } else {
-                    auto domainhash = domainiter->domainhash;
+                    const auto domainhash = domainiter->domainhash;
                     auto fionamesbydomainhashidx = fionames.get_index<"bydomain"_n>();
                     auto nmiter = fionamesbydomainhashidx.lower_bound(domainhash);
                     bool processed_all_in_domain = false;
@@ -886,7 +884,7 @@ namespace fioio {
                 auto nameiter = nameexpidx.lower_bound(minexpiration);
 
                 while (nameiter != nameexpidx.end()) {
-                    uint64_t expire = nameiter->expiration;
+                    const uint64_t expire = nameiter->expiration;
                     if ((expire + ADDRESSWAITFORBURNDAYS) > nowtime){
                         break;
                     } else {
@@ -904,7 +902,7 @@ namespace fioio {
 
             //do the burning.
             for (int i = 0; i < burnlist.size(); i++) {
-                uint128_t burner = burnlist[i];
+                const uint128_t burner = burnlist[i];
                 vector <uint64_t> ids;
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
@@ -925,7 +923,7 @@ namespace fioio {
             }
 
             for (int i = 0; i < domainburnlist.size(); i++) {
-                uint128_t burner = domainburnlist[i];
+                const uint128_t burner = domainburnlist[i];
 
                 auto domainsbyname = domains.get_index<"byname"_n>();
                 auto domainsiter = domainsbyname.find(burner);
@@ -960,7 +958,7 @@ namespace fioio {
             getFioAddressStruct(fio_address, fa);
             addaddress_errors(public_addresses, fa, max_fee);
 
-            uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
+            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
                                                     tpid);
 
             nlohmann::json json = {{"status",        "OK"},
@@ -985,7 +983,7 @@ namespace fioio {
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
-            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
+            const uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
             auto domainsbyname = domains.get_index<"byname"_n>();
             auto domain_iter = domainsbyname.find(domainHash);
 
@@ -994,20 +992,24 @@ namespace fioio {
             fio_400_assert(fa.domainOnly, "fio_domain", fa.fioaddress, "Invalid FIO domain",
                            ErrorInvalidFioNameFormat);
 
-            uint64_t expiration = domain_iter->expiration;
+            const uint64_t expiration = domain_iter->expiration;
             fio_400_assert(present_time <= expiration, "fio_domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
+
+            fio_400_assert(domain_iter->account == actor.value, "fio_domain", fa.fioaddress,
+                               "actor is not domain owner.",
+                               ErrorInvalidFioNameFormat);
 
             domainsbyname.modify(domain_iter, _self, [&](struct domain &a) {
                 a.is_public = is_public;
             });
 
-            uint128_t endpoint_hash = string_to_uint128_hash("set_fio_domain_public");
+            const uint128_t endpoint_hash = string_to_uint128_hash("set_fio_domain_public");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-            uint64_t fee_type = fee_iter->type;
-            int64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
+            const int64_t reg_amount = fee_iter->suf_amount;
 
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
@@ -1017,11 +1019,10 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
-            //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
-            //or should we do as this code does and not do a transaction when the fees are 0.
+
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
-            print(reg_fee_asset.amount);
+
             fio_fees(actor, reg_fee_asset);
             process_rewards(tpid, reg_amount, get_self());
             if (reg_amount > 0) {
@@ -1050,12 +1051,8 @@ namespace fioio {
          **/
         [[eosio::action]]
         void bind2eosio(name account, const string &client_key, bool existing) {
-            // The caller of this contract must have the private key in their wallet for the FIO.SYSTEM account
-            //NOTE -- ed removed the require authorization when integrating the account management into
-            //        the smart contract layer, the fio.token contract needs to invoke this action from
-            //        the fio.token contract, this requires that either the fio.token account get the authorization
-            //        of fio.system, or that this line of code be removed. this needs more thought in the future.
-            // require_auth(name(FIO_SYSTEM));
+            eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(SYSTEMACCOUNT)),
+                         "missing required authority of fio.address,  fio.token, or eosio");
 
             auto other = accountmap.find(account.value);
             if (other != accountmap.end()) {
@@ -1074,15 +1071,15 @@ namespace fioio {
 
         void decrcounter(const string &fio_address) {
 
-            string tstr = fio_address;
-            uint128_t hashval = string_to_uint128_hash(tstr.c_str());
+            const string tstr = fio_address;
+            const uint128_t hashval = string_to_uint128_hash(tstr.c_str());
 
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(hashval);
             fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                            "FIO address not registered", ErrorFioNameAlreadyRegistered);
 
-            uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             if (bundleeligiblecountdown > 0) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {

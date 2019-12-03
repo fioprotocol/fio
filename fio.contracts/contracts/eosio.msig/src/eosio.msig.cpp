@@ -4,7 +4,7 @@
  *  approvers. approvers may approve and dis-approve of the proposed multi signature transaction. the proposer
  *  of the multi signature transaction may choose to cancel the proposal. The approvers may choose to invalidate
  *  themselves from all future required approvers for all present and future proposals.
- *  @author
+ *  @author Ed Rotthoff
  *  @modifedby
  *  @file eosio.msig.cpp
  *  @copyright Dapix
@@ -13,6 +13,7 @@
 #include <eosiolib/action.hpp>
 #include <eosiolib/permission.hpp>
 #include <eosiolib/crypto.hpp>
+#include "fio.common/fio.accounts.hpp"
 
 namespace eosio {
 
@@ -52,6 +53,13 @@ namespace eosio {
         proposals proptable(_self, _proposer.value);
         check(proptable.find(_proposal_name.value) == proptable.end(), "proposal with the same name exists");
 
+        //collect fees.
+        eosio::action{
+                permission_level{_proposer, "active"_n},
+                fioio::FeeContract, "mandatoryfee"_n,
+                std::make_tuple(std::string("msig_propose"), _proposer, 4000000000)
+        }.send();
+
         auto packed_requested = pack(_requested);
         auto res = ::check_transaction_authorization(trx_pos, size,
                                                      (const char *) 0, 0,
@@ -89,11 +97,19 @@ namespace eosio {
                            const eosio::binary_extension<eosio::checksum256> &proposal_hash) {
         require_auth(level);
 
+
         if (proposal_hash) {
             proposals proptable(_self, proposer.value);
             auto &prop = proptable.get(proposal_name.value, "proposal not found");
             assert_sha256(prop.packed_transaction.data(), prop.packed_transaction.size(), *proposal_hash);
         }
+
+        //collect fees.
+        eosio::action{
+                permission_level{level.actor, "active"_n},
+                fioio::FeeContract, "mandatoryfee"_n,
+                std::make_tuple(std::string("msig_approve"), level.actor, 4000000000)
+        }.send();
 
         approvals apptable(_self, proposer.value);
         auto apps_it = apptable.find(proposal_name.value);
@@ -129,6 +145,13 @@ namespace eosio {
      */
     void multisig::unapprove(name proposer, name proposal_name, permission_level level) {
         require_auth(level);
+
+        //collect fees.
+        eosio::action{
+                permission_level{level.actor, "active"_n},
+                fioio::FeeContract, "mandatoryfee"_n,
+                std::make_tuple(std::string("msig_unapprove"), level.actor, 4000000000)
+        }.send();
 
         approvals apptable(_self, proposer.value);
         auto apps_it = apptable.find(proposal_name.value);
@@ -171,6 +194,13 @@ namespace eosio {
             check(unpack<transaction_header>(prop.packed_transaction).expiration <
                   eosio::time_point_sec(current_time_point()), "cannot cancel until expiration");
         }
+        //collect fees.
+        eosio::action{
+                permission_level{canceler, "active"_n},
+                fioio::FeeContract, "mandatoryfee"_n,
+                std::make_tuple(std::string("msig_cancel"), canceler, 4000000000)
+        }.send();
+
         proptable.erase(prop);
 
         //remove from new table
@@ -203,6 +233,13 @@ namespace eosio {
         datastream<const char *> ds(prop.packed_transaction.data(), prop.packed_transaction.size());
         ds >> trx_header;
         check(trx_header.expiration >= eosio::time_point_sec(current_time_point()), "transaction expired");
+
+        //collect fees.
+        eosio::action{
+                permission_level{executer, "active"_n},
+                fioio::FeeContract, "mandatoryfee"_n,
+                std::make_tuple(std::string("msig_exec"), executer, 4000000000)
+        }.send();
 
         approvals apptable(_self, proposer.value);
         auto apps_it = apptable.find(proposal_name.value);
@@ -250,6 +287,12 @@ namespace eosio {
      */
     void multisig::invalidate(name account) {
         require_auth(account);
+        //collect fees.
+        eosio::action{
+                permission_level{account, "active"_n},
+                fioio::FeeContract, "mandatoryfee"_n,
+                std::make_tuple(std::string("msig_invalidate"), account, 4000000000)
+        }.send();
         invalidations inv_table(_self, _self.value);
         auto it = inv_table.find(account.value);
         if (it == inv_table.end()) {
