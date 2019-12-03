@@ -397,6 +397,56 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
+        inline void fio_fees(const name &actor, const asset &fee)  {
+            action(permission_level{actor, "active"_n},
+                   TokenContract, "transfer"_n,
+                   make_tuple(actor, TREASURYACCOUNT, fee,
+                              string("FIO API fees. Thank you."))
+            ).send();
+        }
+
+
+        [[eosio::action]]
+        void mandatoryfee(
+                const string &end_point,
+                const name &account,
+                const int64_t &max_fee
+        ) {
+            print("called mandatory fee for account ", account, " end point ",end_point,"\n");
+
+            require_auth(account);
+            //begin new fees, logic for Mandatory fees.
+            uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
+
+             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+
+            asset reg_fee_asset;
+            reg_fee_asset.symbol = symbol("FIO", 9);
+            reg_fee_asset.amount = reg_amount;
+
+            fio_fees(account, reg_fee_asset);
+            processrewardsnotpid(reg_amount, get_self());
+            //end new fees, logic for Mandatory fees.
+            print("called mandatory fee for account processing completed","\n");
+
+        }
 
         /*******
          * This action will create a new fee on the FIO protocol.
@@ -430,7 +480,7 @@ namespace fioio {
         }
     };
 
-    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)
+    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)(mandatoryfee)
     (create)
     )
 }

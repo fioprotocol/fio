@@ -340,9 +340,9 @@ public:
         [[eosio::action]]
         void bprewdupdate(const uint64_t &amount) {
 
-                eosio_assert((has_auth(AddressContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
-                             (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
-                             "missing required authority of fio.address, fio.treasury, fio.token, eosio or fio.reqobt");
+                eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+                             has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
+                             "missing required authority of fio.address, fio.treasury, fio.fee, fio.token, eosio or fio.reqobt");
 
                 bprewards.set(bprewards.exists() ? bpreward{bprewards.get().rewards + amount} : bpreward{amount}, _self);
         }
@@ -351,8 +351,8 @@ public:
         [[eosio::action]]
         void bppoolupdate(const uint64_t &amount) {
 
-                eosio_assert((has_auth(AddressContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
-                             (has_auth("fio.reqobt"_n)),
+                eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+                             has_auth(REQOBTACCOUNT)),
                              "missing required authority of fio.address, fio.treasury, fio.token, or fio.reqobt");
                 bucketrewards.set(bucketrewards.exists() ? bucketpool{bucketrewards.get().rewards + amount} : bucketpool{amount}, _self);
         }
@@ -361,9 +361,9 @@ public:
         [[eosio::action]]
         void fdtnrwdupdat(const uint64_t &amount) {
 
-                eosio_assert((has_auth(AddressContract) || has_auth(TokenContract)) || has_auth(TREASURYACCOUNT) ||
-                             (has_auth("fio.reqobt"_n)) || (has_auth("eosio"_n)),
-                             "missing required authority of fio.address, fio.token, fio.treasury or fio.reqobt");
+                eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+                             has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
+                             "missing required authority of fio.address, fio.token, fio.fee, fio.treasury or fio.reqobt");
 
                 fdtnrewards.set(fdtnrewards.exists() ? fdtnreward{fdtnrewards.get().rewards + amount} : fdtnreward{amount}, _self);
 

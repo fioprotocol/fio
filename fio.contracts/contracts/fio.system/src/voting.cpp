@@ -39,6 +39,7 @@ namespace eosiosystem {
     */
     void
     system_contract::burnaction(const uint128_t &fioaddrhash) {
+       require_auth(_self);
         //verify that this address is expired.
         //this helps to ensure bad actors cant use this action unintentionally.
         uint64_t nowtime = now();
@@ -1023,6 +1024,7 @@ namespace eosiosystem {
 
     void system_contract::crautoproxy(const name &proxy,const name &owner)
     {
+        require_auth(TPIDContract);
         print ("call to set auto proxy for voter ",owner," to proxy ",proxy,"\n");
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
