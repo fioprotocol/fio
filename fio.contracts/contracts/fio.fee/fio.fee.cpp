@@ -249,7 +249,9 @@ namespace fioio {
 
                 if (found) {
                     auto myiter = feevotes.find(idtoremove);
-                    feevotes.erase(myiter);
+                    if(myiter != feevotes.end()) {
+                        feevotes.erase(myiter);
+                    }
                 }
 
                 if (!timeviolation) {
