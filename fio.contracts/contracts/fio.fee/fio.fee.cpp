@@ -35,6 +35,73 @@ namespace fioio {
         feevotes_table feevotes;
         eosiosystem::producers_table producers;
 
+        void update_fees() {
+            print("called update fees.", "\n");
+            map<string, double> producer_fee_multipliers_map;
+
+            const bool dbgout = false;
+
+            //get the producers from the producers table, only use producers with is_active set true.
+            //for the active producers. make a map for each producer and its associated multiplier
+            // for use in performing the multiplications later,
+            auto prod_iter = producers.lower_bound(0);
+            while (prod_iter != producers.end()) {
+                if (prod_iter->is_active) {
+                    if (dbgout) {
+                        print(" found active producer", prod_iter->owner, "\n");
+                    }
+                    auto voters_iter = feevoters.find(prod_iter->owner.value);
+                    const string v1 = prod_iter->owner.to_string();
+
+                    if (voters_iter != feevoters.end()) {
+                        if (dbgout) {
+                            print(" adding producer to multiplier map", prod_iter->owner, "\n");
+                        }
+                        producer_fee_multipliers_map.insert(make_pair(v1, voters_iter->fee_multiplier));
+                    }
+                }
+                prod_iter++;
+            }
+
+            auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
+            string lastvalUsed = "";
+            uint64_t lastusedHash;
+            vector <uint64_t> feevalues;
+            //traverse all of the fee votes grouped by endpoint.
+            for (const auto &vote_item : feevotesbyendpoint) {
+                //if we have changed the endpoint name then we are in the next endpoints grouping,
+                // so compute median fee for this endpoint and then clear the list.
+                if (vote_item.end_point.compare(lastvalUsed) != 0) {
+                    compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+
+                    feevalues.clear();
+                }
+                lastvalUsed = vote_item.end_point;
+                lastusedHash = vote_item.end_point_hash;
+
+                //if the vote item block producer name is in the multiplier map, then multiply
+                //the suf amount by the multiplier and add it to the list of feevalues to be
+                //averaged
+                if (producer_fee_multipliers_map.find(vote_item.block_producer_name.to_string()) !=
+                    producer_fee_multipliers_map.end()) {
+
+                    //note -- we protect against both overflow and negative values here, an
+                    //overflow error should result computing the dresult,and we check if the
+                    //result is negative.
+                    const double dresult = producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
+                                     (double) vote_item.suf_amount;
+                    fio_403_assert(dresult > 0, ErrorInvalidMultiplier);
+
+                    const uint64_t voted_fee = (uint64_t)(dresult);
+                    feevalues.push_back(voted_fee);
+                }
+            }
+
+            //compute the median on the remaining feevalues, this remains to be
+            //processed after we have gone through the loop.
+            compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+        }
+
         /*******
         * This method will compute the median fee from the fee votes that are cast.
         *
@@ -52,13 +119,13 @@ namespace fioio {
                 sort(feevalues.begin(), feevalues.end());
                 //if the number of values is odd use the middle one.
                 if ((feevalues.size() % 2) == 1) {
-                    int useIdx = (feevalues.size() / 2);
+                    const int useIdx = (feevalues.size() / 2);
                     if (dbgout) {
                         print(" odd size is ", feevalues.size(), " using index for median ", useIdx, "\n");
                     }
                     median_fee = feevalues[useIdx];
                 } else {//even number in the list. use the middle 2
-                    int useIdx = (feevalues.size() / 2) - 1;
+                    const int useIdx = (feevalues.size() / 2) - 1;
                     if (dbgout) {
                         print(" even size is ", feevalues.size(), " using index for median ", useIdx, "\n");
                     }
@@ -126,17 +193,17 @@ namespace fioio {
                            ErrorFioNameNotReg);
 
             //check that the producer is active
-            bool is_active = prod_iter->is_active;
+            const bool is_active = prod_iter->is_active;
             fio_400_assert(is_active, "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            uint32_t nowtime = now();
+            const uint32_t nowtime = now();
 
             //check the submitted fee values.
             for (auto &feeval : fee_values) {
                 //check the endpoint exists for this fee
-                uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
+                const uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
                 if (dbgout) {
                     print("\nendPointHash: ", endPointHash, "\n");
                 }
@@ -165,7 +232,7 @@ namespace fioio {
                     if (votebyname_iter->end_point_hash == endPointHash) {
                         //check the time of the last update, remove and replace if
                         //its been longer than the time between votes
-                        uint32_t lastupdate = votebyname_iter->lastvotetimestamp;
+                        const uint32_t lastupdate = votebyname_iter->lastvotetimestamp;
 
                         //be silent if the time between votes has not yet elapsed.
                         if (lastupdate > (nowtime - TIME_BETWEEN_VOTES_SECONDS)) {
@@ -196,7 +263,7 @@ namespace fioio {
                     });
                 }
             }
-            updatefees();
+            update_fees();
 
             nlohmann::json json = {{"status", "OK"}};
             send_response(json.dump().c_str());
@@ -207,71 +274,8 @@ namespace fioio {
       */
         [[eosio::action]]
         void updatefees() {
-
-            print("called update fees.", "\n");
-            map<string, double> producer_fee_multipliers_map;
-
-            bool dbgout = false;
-
-            //get the producers from the producers table, only use producers with is_active set true.
-            //for the active producers. make a map for each producer and its associated multiplier
-            // for use in performing the multiplications later,
-            auto prod_iter = producers.lower_bound(0);
-            while (prod_iter != producers.end()) {
-                if (prod_iter->is_active) {
-                    if (dbgout) {
-                        print(" found active producer", prod_iter->owner, "\n");
-                    }
-                    auto voters_iter = feevoters.find(prod_iter->owner.value);
-                    string v1 = prod_iter->owner.to_string();
-
-                    if (voters_iter != feevoters.end()) {
-                        if (dbgout) {
-                            print(" adding producer to multiplier map", prod_iter->owner, "\n");
-                        }
-                        producer_fee_multipliers_map.insert(make_pair(v1, voters_iter->fee_multiplier));
-                    }
-                }
-                prod_iter++;
-            }
-
-            auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
-            string lastvalUsed = "";
-            uint64_t lastusedHash;
-            vector <uint64_t> feevalues;
-            //traverse all of the fee votes grouped by endpoint.
-            for (const auto &vote_item : feevotesbyendpoint) {
-                //if we have changed the endpoint name then we are in the next endpoints grouping,
-                // so compute median fee for this endpoint and then clear the list.
-                if (vote_item.end_point.compare(lastvalUsed) != 0) {
-                    compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
-
-                    feevalues.clear();
-                }
-                lastvalUsed = vote_item.end_point;
-                lastusedHash = vote_item.end_point_hash;
-
-                //if the vote item block producer name is in the multiplier map, then multiply
-                //the suf amount by the multiplier and add it to the list of feevalues to be
-                //averaged
-                if (producer_fee_multipliers_map.find(vote_item.block_producer_name.to_string()) !=
-                    producer_fee_multipliers_map.end()) {
-
-                    //note -- we protect against both overflow and negative values here, an
-                    //overflow error should result computing the dresult,and we check if the
-                    //result is negative.
-                    double dresult =  producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
-                                      (double) vote_item.suf_amount;
-                    fio_403_assert(dresult > 0, ErrorInvalidMultiplier);
-
-                    uint64_t voted_fee = (uint64_t) (dresult);
-                    feevalues.push_back(voted_fee);
-                }
-            }
-
-            //compute the median on the remaining feevalues, this remains to be
-            //processed after we have gone through the loop.
-            compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+            require_auth(SYSTEMACCOUNT);
+            update_fees();
         }
 
 
@@ -288,7 +292,7 @@ namespace fioio {
                 int64_t bundled_transactions,
                 const string &actor
         ) {
-            name aactor = name(actor.c_str());
+            const name aactor = name(actor.c_str());
             require_auth(aactor);
 
             auto prodbyowner = producers.get_index<"byowner"_n>();
@@ -298,7 +302,7 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            bool is_active = prod_iter->is_active;
+            const bool is_active = prod_iter->is_active;
             fio_400_assert(is_active, "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
@@ -307,12 +311,12 @@ namespace fioio {
                            " Must be positive",
                            ErrorFioNameNotReg);
 
-            uint32_t nowtime = now();
+            const uint32_t nowtime = now();
 
             auto voter_iter = bundlevoters.find(aactor.value);
             if (voter_iter != bundlevoters.end()) //update if it exists
             {
-                uint32_t lastupdate = voter_iter->lastvotetimestamp;
+                const uint32_t lastupdate = voter_iter->lastvotetimestamp;
                 if (lastupdate <= (nowtime - TIME_BETWEEN_VOTES_SECONDS)) {
                     bundlevoters.modify(voter_iter, _self, [&](struct bundlevoter &a) {
                         a.block_producer_name = aactor;
@@ -351,7 +355,7 @@ namespace fioio {
                 const string &actor
         ) {
 
-            name aactor = name(actor.c_str());
+            const name aactor = name(actor.c_str());
             require_auth(aactor);
 
             auto prodbyowner = producers.get_index<"byowner"_n>();
@@ -361,7 +365,7 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            bool is_active = prod_iter->is_active;
+            const bool is_active = prod_iter->is_active;
             fio_400_assert(is_active, "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
@@ -370,12 +374,12 @@ namespace fioio {
                            " Must be positive",
                            ErrorFioNameNotReg);
 
-            uint32_t nowtime = now();
+            const uint32_t nowtime = now();
 
             auto voter_iter = feevoters.find(aactor.value);
             if (voter_iter != feevoters.end())
             {
-                uint32_t lastupdate = voter_iter->lastvotetimestamp;
+                const uint32_t lastupdate = voter_iter->lastvotetimestamp;
                 if (lastupdate <= (nowtime - 120)) {
                     feevoters.modify(voter_iter, _self, [&](struct feevoter &a) {
                         a.block_producer_name = aactor;
@@ -391,7 +395,7 @@ namespace fioio {
                 });
             }
 
-            updatefees();
+            update_fees();
 
             nlohmann::json json = {{"status", "OK"}};
             send_response(json.dump().c_str());
@@ -416,17 +420,17 @@ namespace fioio {
 
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
-            uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
+            const uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
 
-             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
 
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            uint64_t reg_amount = fee_iter->suf_amount;
-            uint64_t fee_type = fee_iter->type;
+            const uint64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
 
             //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
@@ -467,8 +471,8 @@ namespace fioio {
                            " invalid suf amount",
                            ErrorFeeInvalid);
 
-            uint128_t endPointHash = string_to_uint128_hash(end_point.c_str());
-            uint64_t fee_id = fiofees.available_primary_key();
+            const uint128_t endPointHash = string_to_uint128_hash(end_point.c_str());
+            const uint64_t fee_id = fiofees.available_primary_key();
 
             fiofees.emplace(_self, [&](struct fiofee &f) {
                 f.fee_id = fee_id;
