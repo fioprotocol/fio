@@ -27,5 +27,6 @@ namespace fioio {
 
     //owner permission
     static const name OWNER = name("owner");
+    static const name ACTIVE = name("active");
 
 } // namespace fioio
