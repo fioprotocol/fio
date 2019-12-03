@@ -2212,14 +2212,12 @@ if( options.count(name) ) { \
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
             const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
-            const uint64_t chain_hash = ::eosio::string_to_uint64_t(p.token_code.c_str());
 
             dlog("fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash));
 
             //these are the results for the table searches for domain ansd fio name
             get_table_rows_result domain_result;
             get_table_rows_result fioname_result;
-            get_table_rows_result chains_result;
             get_table_rows_result name_result;
 
             get_pub_address_result result;
@@ -2287,26 +2285,12 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
             }
 
-            string my_chain = p.token_code;
-
-            //Get Chains Table
-            get_table_rows_params chain_table_row_params = get_table_rows_params{.json=true,
-                    .code=code,
-                    .scope=fio_system_scope,
-                    .table=fio_chains_table,
-                    .lower_bound=boost::lexical_cast<string>(chain_hash),
-                    .upper_bound=boost::lexical_cast<string>(chain_hash),
-                    .encode_type="dec"};
-
-            chains_result = get_table_rows_ex<key_value_index>(chain_table_row_params, abi);
-
-            FIO_400_ASSERT(!chains_result.rows.empty(), "token_code", p.token_code,
-                           "Invalid Token Code",
-                           fioio::ErrorTokenCodeInvalid);
+            for( int i = 0; i < name_result.rows[0]["addresses"].size(); i++ ){
+                if( name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code ) {
+                    result.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
+                }
+            }
             //   // Pick out chain specific key and populate result
-            uint32_t c_type = (uint32_t) chains_result.rows[0]["id"].as_uint64();
-            result.public_address = name_result.rows[0]["addresses"][static_cast<int>(c_type)].as_string();
-
             FIO_404_ASSERT(!(result.public_address == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
 
             return result;

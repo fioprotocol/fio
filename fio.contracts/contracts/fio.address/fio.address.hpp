@@ -35,7 +35,7 @@ namespace fioio {
         uint64_t expiration;
         uint64_t owner_account;
         // Chain specific keys
-        std::vector<string> addresses;
+        std::vector<tokenpubaddr> addresses;
         uint64_t bundleeligiblecountdown = 0;
 
         // primary_key is required to store structure in multi_index table
@@ -82,20 +82,6 @@ namespace fioio {
     indexed_by<"byname"_n, const_mem_fun<domain, uint128_t, &domain::by_name>>
     >
     domains_table;
-
-    struct [[eosio::action]] chainList {
-        string chainname = nullptr;
-        uint64_t id = 0;
-        uint64_t chainhash = 0;
-
-        uint64_t primary_key() const { return chainhash; }
-        uint64_t by_index() const { return id; }
-
-        EOSLIB_SERIALIZE(chainList, (chainname)(id)(chainhash)
-        )
-    };
-
-    typedef multi_index<"chains"_n, chainList> chains_table;
 
     // Maps client wallet generated public keys to EOS user account names.
     struct [[eosio::action]] eosio_name {

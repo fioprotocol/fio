@@ -18,7 +18,6 @@ namespace fioio {
 
     private:
         domains_table domains;
-        chains_table chains;
         fionames_table fionames;
         fiofee_table fiofees;
         eosio_names_table accountmap;
@@ -36,7 +35,6 @@ namespace fioio {
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         bundlevoters(FeeContract, FeeContract.value),
                                                                         accountmap(_self, _self.value),
-                                                                        chains(_self, _self.value),
                                                                         tpids(TPIDContract, TPIDContract.value),
                                                                         voters(AddressContract, AddressContract.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
@@ -229,10 +227,16 @@ namespace fioio {
                   "\n");
 
             uint64_t id = fionames.available_primary_key();
+            vector<tokenpubaddr> pubaddresses;
+            tokenpubaddr t1;
+            t1.public_address = key_iter->clientkey;
+            t1.token_code = "FIO";
+            pubaddresses.push_back(t1);
+
             fionames.emplace(_self, [&](struct fioname &a) {
                 a.id = id;
                 a.name = fa.fioaddress;
-                a.addresses = vector<string>(300, ""); // TODO: Remove prior to production
+                a.addresses = pubaddresses;
                 a.namehash = nameHash;
                 a.domain = fa.fiodomain;
                 a.domainhash = domainHash;
@@ -240,12 +244,6 @@ namespace fioio {
                 a.owner_account = actor.value;
                 a.bundleeligiblecountdown = getBundledAmount();
             });
-
-            vector<tokenpubaddr> pubaddresses;
-            tokenpubaddr t1;
-            t1.public_address = key_iter->clientkey;
-            t1.token_code = "FIO";
-            pubaddresses.push_back(t1);
 
             uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, actor,
                                                     true, tpid);
@@ -318,37 +316,42 @@ namespace fioio {
                            ErrorDomainExpired);
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
-                uint64_t chainhash = string_to_uint64_hash(tpa->token_code.c_str());
-                auto chain_iter = chains.find(chainhash);
-                auto size = distance(chains.cbegin(), chains.cend());
+                string token = tpa->token_code.c_str();
+                for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
+                    if( it->token_code == token ){
+                        namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                            a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
+                        });
+                    }
+                    if( it == fioname_iter->addresses.end()){
+                        fio_400_assert(tpa->token_code.length() <= 10, "token_code", tpa->token_code, "Invalid token code format",
+                                ErrorTokenCodeInvalid);
+                        fio_400_assert(tpa->token_code.length() > 0, "token_code", tpa->token_code, "Invalid token code format",
+                                ErrorTokenCodeInvalid);
 
-                if (chain_iter == chains.end()) {
-                    fio_400_assert(tpa->token_code.length() <= 10, "token_code", tpa->token_code, "Invalid token code format",
-                                   ErrorTokenCodeInvalid);
-                    fio_400_assert(tpa->token_code.length() > 0, "token_code", tpa->token_code, "Invalid token code format",
-                                   ErrorTokenCodeInvalid);
+                        tokenpubaddr temp;
+                        temp.public_address = tpa->public_address;
+                        temp.token_code = tpa->token_code;
 
-                    chains.emplace(_self, [&](struct chainList &a) {
-                        a.id = size;
-                        a.chainname = tpa->token_code;
-                        a.chainhash = chainhash;
-                    });
-                    chain_iter = chains.find(chainhash);
+                        namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                            a.addresses.push_back(temp);
+                        });
+                    }
                 }
+            }
 
-                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
-                    a.addresses[static_cast<size_t>((chain_iter)->by_index())] = tpa->public_address;
-                });
+            uint64_t fee_amount = 0;
+
+            if (isFIO) {
+                return fee_amount;
             }
 
             //begin new fees, bundle eligible fee logic
-
             uint128_t endpoint_hash = string_to_uint128_hash("add_pub_address");
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
             //if the fee isnt found for the endpoint, then 400 error.
-
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "add_pub_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
@@ -360,16 +363,8 @@ namespace fioio {
                            ErrorNoEndpoint);
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-            uint64_t fee_amount = 0;
-
-            if (isFIO) {
-                return fee_amount;
-            }
 
             if (bundleeligiblecountdown > 0) {
-                //fee is zero, and decrement the counter.
-                fee_amount = 0;
-
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
                 });
@@ -511,8 +506,6 @@ namespace fioio {
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
-
-
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
@@ -568,13 +561,12 @@ namespace fioio {
         [[eosio::action]]
         void
         renewdomain(const string &fio_domain, const int64_t &max_fee, const string &tpid, const name &actor) {
-
             require_auth(actor);
 
-           fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                           ErrorMaxFeeInvalid);
 
-           FioAddress fa;
+            FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
@@ -785,13 +777,15 @@ namespace fioio {
                 nameHash = string_to_uint128_hash(name.c_str());
                 auto namesbyname = fionames.get_index<"byname"_n>();
                 auto iter1 = namesbyname.find(nameHash);
+                vector<tokenpubaddr> temp;
+
                 if (iter1 == namesbyname.end()) {
                     uint64_t id = fionames.available_primary_key();
 
                     fionames.emplace(_self, [&](struct fioname &a) {
                         a.id = id;
                         a.name = name;
-                        a.addresses = vector<string>(20, ""); // TODO: Remove prior to production
+                        a.addresses = temp;
                         a.namehash = nameHash;
                         a.domain = domain;
                         a.domainhash = domainHash;
