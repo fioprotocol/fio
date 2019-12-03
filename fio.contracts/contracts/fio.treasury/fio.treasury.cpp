@@ -23,6 +23,8 @@
 #endif
 
 #define MINUTE 60
+#define YEARDAYS 365
+#define MAXBPS 42
 
 #include "fio.treasury.hpp"
 
@@ -180,15 +182,12 @@ public:
                                 }
 
                                 bpcounter++;
-                                if (bpcounter > 42) break;
+                                if (bpcounter > MAXBPS) break;
                         } // &itr : producers
 
                         //Move 1/365 of the bucketpool to the bpshare
-                        uint64_t temp = bprewards.get().rewards;
-                        uint64_t amount = static_cast<uint64_t>(bucketrewards.get().rewards / 365);
-                        bprewards.set(bpreward{temp + amount}, _self);
-                        temp = bucketrewards.get().rewards;
-                        bucketrewards.set(bucketpool{temp - amount}, _self);
+                        bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
+                        bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
 
                         //uint64_t projectedpay = bprewards.begin()->rewards;
 
@@ -208,8 +207,7 @@ public:
                                         });
 
                                 //Include the minted tokens in the reward payout
-                                temp = bprewards.get().rewards;
-                                bprewards.set(bpreward{temp + tomint}, _self);
+                                bprewards.set(bpreward{bprewards.get().rewards + tomint}, _self);
                                 //This new reward amount that has been minted will be appended to the rewards being divied up next
                         }
                         //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
@@ -218,7 +216,7 @@ public:
                         uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                         uint64_t abpcount = 21;
 
-                        if (bpcount >= 42) bpcount = 42; //limit to 42 producers in voteshares
+                        if (bpcount > MAXBPS) bpcount = MAXBPS; //limit to 42 producers in voteshares
                         if (bpcount <= 21) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
