@@ -53,7 +53,7 @@ killWallet = not dontKill
 dontBootstrap = sanityTest  # intent is to limit the scope of the sanity test to just verifying that nodes can be started
 
 WalletdName = Utils.EosWalletName
-ClientName = "cleos"
+ClientName = "clio"
 timeout = .5 * 12 * 2 + 60  # time for finalization with 1 producer + 60 seconds padding
 Utils.setIrreversibleTimeout(timeout)
 

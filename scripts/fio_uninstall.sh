@@ -3,7 +3,7 @@
 OPT_LOCATION=$HOME/opt
 
 binaries=(
-   cleos
+   clio
    eosio-abigen
    fio-launcher
    eosio-s2wasm

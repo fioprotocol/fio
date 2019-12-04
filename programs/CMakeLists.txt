@@ -1,5 +1,5 @@
 add_subdirectory(nodeos)
-add_subdirectory(cleos)
+add_subdirectory(clio)
 add_subdirectory(keosd)
 add_subdirectory(fio-launcher)
 add_subdirectory(fio-blocklog)
