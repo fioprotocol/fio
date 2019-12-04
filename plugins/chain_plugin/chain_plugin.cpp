@@ -2179,6 +2179,8 @@ if( options.count(name) ) { \
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
+                           fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
                            "Invalid Token Code",
                            fioio::ErrorTokenCodeInvalid);
