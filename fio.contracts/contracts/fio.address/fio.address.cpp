@@ -30,7 +30,8 @@ namespace fioio {
         using contract::contract;
 
         FioNameLookup(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
-                                                                        domains(_self, _self.value),
+                                                        
+        domains(_self, _self.value),
                                                                         fionames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         bundlevoters(FeeContract, FeeContract.value),
@@ -364,12 +365,7 @@ namespace fioio {
                            ErrorNoEndpoint);
 
             const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-            uint64_t fee_amount = 0;
-
-            if (isFIO) {
-                return fee_amount;
-            }
-
+        
             if (bundleeligiblecountdown > 0) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
@@ -800,7 +796,6 @@ namespace fioio {
                 }
             }
         }
-
 
         /*
          * This action will look for expired domains, then look for expired addresses, it will burn a total
