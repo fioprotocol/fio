@@ -30,8 +30,7 @@ namespace fioio {
         using contract::contract;
 
         FioNameLookup(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
-                                                        
-        domains(_self, _self.value),
+                                                                        domains(_self, _self.value),
                                                                         fionames(_self, _self.value),
                                                                         fiofees(FeeContract, FeeContract.value),
                                                                         bundlevoters(FeeContract, FeeContract.value),
@@ -224,8 +223,6 @@ namespace fioio {
                            "Actor is not bound in the account map.", ErrorActorNotInFioAccountMap);
 
             const uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
-            print("OWNER:", actor, "...Value:", actor.value, "...Key:", key_iter->clientkey, "...hash:", ownerHash,
-                  "\n");
 
             uint64_t id = fionames.available_primary_key();
             vector<tokenpubaddr> pubaddresses;
@@ -319,7 +316,6 @@ namespace fioio {
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 string token = tpa->token_code.c_str();
                 bool modified = false;
-                print(token);
                 tokenpubaddr temp;
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
                     if( it->token_code == token ){
@@ -380,7 +376,6 @@ namespace fioio {
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 reg_fee_asset.symbol = symbol("FIO", 9);
                 reg_fee_asset.amount = reg_amount;
-                print(reg_fee_asset.amount);
 
                 fio_fees(actor, reg_fee_asset);
                 process_rewards(tpid, reg_amount, get_self());
@@ -538,7 +533,6 @@ namespace fioio {
 
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
-            print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
@@ -694,7 +688,6 @@ namespace fioio {
 
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = reg_amount;
-            print(reg_fee_asset.amount);
             processbucketrewards(tpid, reg_amount, get_self());
 
             const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
@@ -791,7 +784,6 @@ namespace fioio {
                 }
 
                 if (countAdded == number_addresses_to_add) {
-                    print("created ", countAdded, " in the domain ", domain, "\n");
                     break;
                 }
             }
@@ -862,8 +854,6 @@ namespace fioio {
                     }
 
                     if (processed_all_in_domain) {
-                        //print(" adding domain to burn list ",domainiter->name," expiration ",domainiter->expiration,"\n");
-                        //print(" adding domain to domain burn list", domainnamehash, "\n");
                         domainburnlist.push_back(domainnamehash);
                     }
                     if (burnlist.size() >= numbertoburn) {
@@ -1061,7 +1051,6 @@ namespace fioio {
                     p.keyhash = string_to_uint128_hash(client_key.c_str());
                 });
             }
-            print("bind of account is done processing", "\n");
         }
 
         void decrcounter(const string &fio_address) {

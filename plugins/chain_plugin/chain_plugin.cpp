@@ -333,7 +333,6 @@ if( options.count(name) ) { \
         if (diff_us > 0) {
             auto delay_us = (config::block_interval_us - diff_us);
             genesis_timestamp += fc::microseconds(delay_us);
-            dlog("pausing ${us} microseconds to the next interval", ("us", delay_us));
         }
 
         ilog("Adjusting genesis timestamp to ${timestamp}", ("timestamp", genesis_timestamp));
@@ -690,7 +689,6 @@ if( options.count(name) ) { \
             if (options.count("fio-proxy") == 1) {
                 my->fio_config.proxy_account = options.at("fio-proxy").as<string>();
                 my->fio_config.proxy_name = chain::name(my->fio_config.proxy_account);
-                dlog ("set fio proxy ${a} ${n} ", ("a", my->fio_config.proxy_account)("n", my->fio_config.proxy_name));
             }
             {
                 int numkey = options.count("fio-proxy-key");
@@ -1096,7 +1094,6 @@ if( options.count(name) ) { \
                  "Please increase the value set for \"reversible-blocks-db-size-mb\" and restart the process!");
         }
 
-        dlog("Details: ${details}", ("details", e.to_detail_string()));
     }
 
     void chain_plugin::handle_guard_exception(const chain::guard_exception &e) const {
@@ -1820,7 +1817,6 @@ if( options.count(name) ) { \
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
 
-            dlog("Lookup using key hash: ‘${key_hash}‘", ("key_hash", account));
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_system_code,
@@ -1836,8 +1832,6 @@ if( options.count(name) ) { \
                     [](uint64_t v) -> uint64_t {
                         return v;
                     });
-
-            dlog("Lookup row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
             std::string nam;
             uint64_t namexpiration;
@@ -1885,8 +1879,6 @@ if( options.count(name) ) { \
 
               return result;
             }
-
-            dlog("Lookup row count: ‘${size}‘", ("size", domain_result.rows.size()));
 
             std::string dom;
             uint64_t domexpiration;
@@ -1998,7 +1990,6 @@ if( options.count(name) ) { \
             //read the fees table.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_fee_code);
 
-            dlog("Lookup using endpoint hash: ‘${endpoint_hash}‘", ("endpoint_hash", endpointhash));
             std::string hexvalendpointhash = "0x";
             hexvalendpointhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&endpointhash), sizeof(endpointhash)));
@@ -2017,8 +2008,6 @@ if( options.count(name) ) { \
                     name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                         return v;
                     });
-
-            dlog("Lookup for fee, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
             FIO_400_ASSERT(!table_rows_result.rows.empty(), "end_point", p.end_point, "Invalid end point",
                            fioio::ErrorNoFeesFoundForEndpoint);
@@ -2042,7 +2031,6 @@ if( options.count(name) ) { \
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
                 uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
 
-                dlog("Lookup fio name using name hash: ‘${name_hash}‘", ("name_hash", name_hash));
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
                         fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
@@ -2060,8 +2048,6 @@ if( options.count(name) ) { \
                         name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                             return v;
                         });
-
-                dlog("Lookup for fio name, row count: ‘${size}‘", ("size", names_table_rows_result.rows.size()));
 
                 fioio::FioAddress fa;
                 fioio::getFioAddressStruct(p.fio_address, fa);
@@ -2109,8 +2095,6 @@ if( options.count(name) ) { \
 
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
 
-            dlog("Lookup using woner: ‘${owner}‘", ("owner", account));
-
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_whitelst_code,
@@ -2125,8 +2109,6 @@ if( options.count(name) ) { \
                     table_row_params, abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
-
-            dlog("Lookup for whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
             FIO_400_ASSERT(!table_rows_result.rows.empty(), "fio_public_key", p.fio_public_key, "No whitelist",
                            fioio::ErrorNoFeesFoundForEndpoint);
@@ -2158,8 +2140,6 @@ if( options.count(name) ) { \
 
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_whitelst_code);
 
-            dlog("Lookup using fio_pub_key_hash: ‘${owner}‘", ("owner", fio_pub_key_hash));
-
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_whitelst_code,
@@ -2174,8 +2154,6 @@ if( options.count(name) ) { \
                     table_row_params, abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
-
-            dlog("check whitelist, row count: ‘${size}‘", ("size", table_rows_result.rows.size()));
 
             if (!table_rows_result.rows.empty()) {
                 result.in_whitelist = 1;
@@ -2195,7 +2173,6 @@ if( options.count(name) ) { \
             fioio::getFioAddressStruct(p.fio_address, fa);
             // assert if empty fio name
             int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
-            dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
 
             FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", fa.fioaddress,
                            "Invalid FIO Address",
@@ -2206,14 +2183,10 @@ if( options.count(name) ) { \
                            "Invalid Token Code",
                            fioio::ErrorTokenCodeInvalid);
 
-            dlog("fio address: ${name}, fio domain: ${domain}", ("address", fa.fioaddress)("domain", fa.fiodomain));
-
             const name code = ::eosio::string_to_name("fio.address");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
             const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
-
-            dlog("fio user name hash: ${name}, fio domain hash: ${domain}", ("name", name_hash)("domain", domain_hash));
 
             //these are the results for the table searches for domain ansd fio name
             get_table_rows_result domain_result;
@@ -2317,7 +2290,6 @@ if( options.count(name) ) { \
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_name, fa);
             int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
-            dlog("fioname: ${fn}, domain: ${fd}, error code: ${ec}", ("fn", fa.fioname)("fd", fa.fiodomain)("ec", res));
 
             FIO_400_ASSERT(res == 0, "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
@@ -2888,7 +2860,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("new_funds_request called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -2896,8 +2867,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -2943,7 +2912,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("reject_funds_request called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -2951,8 +2919,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -2998,7 +2964,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("record_obt_data called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3006,8 +2971,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3053,7 +3016,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("register_fio_address called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3061,8 +3023,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
@@ -3106,7 +3066,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("set_fio_domain_public called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3115,8 +3074,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3157,7 +3114,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("register_fio_domain called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3165,8 +3121,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
@@ -3211,7 +3165,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("add_pub_address called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3219,8 +3172,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
@@ -3264,7 +3215,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("transfer_tokens_pub_key called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3272,8 +3222,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3318,7 +3266,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("burn_expired called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3327,8 +3274,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
@@ -3372,7 +3317,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("unregister_proxy called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3381,8 +3325,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3428,7 +3370,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("register_proxy called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3437,8 +3378,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
@@ -3477,7 +3416,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("register_producer called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3486,8 +3424,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "eosio", fioio::InvalidAccountOrAction);
@@ -3526,7 +3462,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("vote_producer called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3535,8 +3470,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3576,7 +3509,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("proxy_vote called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3585,8 +3517,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3626,7 +3556,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("submit_fee_ratios called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3635,8 +3564,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3677,7 +3604,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("proxy_vote called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3686,8 +3612,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3727,7 +3651,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("add_to_whitelist called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3736,8 +3659,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3776,7 +3697,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("remove_from_whitelist called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3785,8 +3705,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3824,7 +3742,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("unregister_proxy called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3833,8 +3750,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3879,7 +3794,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("renew_domain called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3888,8 +3802,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3935,7 +3847,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("renew_address called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -3944,8 +3855,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -3991,7 +3900,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("pay_tpid_rewards called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -4000,8 +3908,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -4042,7 +3948,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("submit_bundled_transaction called");
 
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
@@ -4051,8 +3956,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
@@ -4093,7 +3996,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("claim_bp_rewards called");
 
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
@@ -4102,8 +4004,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
