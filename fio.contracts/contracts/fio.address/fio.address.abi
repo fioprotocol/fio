@@ -28,7 +28,7 @@
           "type": "name"
         },{
           "name": "addresses",
-          "type": "string[]"
+          "type": "tokenpubaddr[]"
         },{
           "name": "bundleeligiblecountdown",
           "type": "uint64"
@@ -58,20 +58,6 @@
          }
       ]
     },{
-      "name": "chainList",
-      "base": "",
-      "fields": [{
-          "name": "name",
-          "type": "string"
-        },{
-          "name": "id",
-          "type": "uint64"
-        },{
-          "name": "chainhash",
-          "type": "uint32"
-        }
-      ]
-    },{
       "name": "eosio_name",
       "base": "",
       "fields": [{
@@ -86,20 +72,6 @@
           }
       ]
      },{
-      "name": "chainpair",
-      "base": "",
-      "fields": [{
-          "name": "index",
-          "type": "uint64"
-        },{
-          "name": "chainname",
-          "type": "string"
-        },{
-          "name": "chainhash",
-          "type": "uint64"
-        }
-      ]
-    },{
       "name": "regaddress",
       "base": "",
       "fields": [{
@@ -342,16 +314,6 @@
         "string"
       ],
       "type": "domain"
-    },{
-      "name": "chains",
-      "index_type": "i64",
-      "key_names": [
-        "name"
-      ],
-      "key_types": [
-        "string"
-      ],
-      "type": "chainList"
     },{
       "name": "accountmap",
       "index_type": "i64",
