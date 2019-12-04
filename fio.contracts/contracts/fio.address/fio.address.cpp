@@ -315,7 +315,6 @@ namespace fioio {
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 string token = tpa->token_code.c_str();
-                bool modified = false;
                 int tempi = 1;
                 tokenpubaddr tempStruct;
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
@@ -323,10 +322,9 @@ namespace fioio {
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
-                        modified = true;
                         break;
                     }
-                    if( !modified && fioname_iter->addresses.size() == tempi){
+                    if( fioname_iter->addresses.size() == tempi){
                         tempStruct.public_address = tpa->public_address;
                         tempStruct.token_code = tpa->token_code;
 
