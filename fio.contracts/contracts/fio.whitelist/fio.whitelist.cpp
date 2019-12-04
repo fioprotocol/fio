@@ -54,8 +54,7 @@ namespace fioio {
             string fio_address;
         };
 
-        // @abi action
-        [[eosio::action]]
+
         void addwhitelist(string fio_public_key_hash,
                           const string &content,
                           int64_t max_fee,
@@ -173,8 +172,7 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        // @abi action
-        [[eosio::action]]
+
         void remwhitelist(string fio_public_key_hash,
                           int64_t max_fee,
                           const string &tpid,

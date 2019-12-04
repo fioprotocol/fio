@@ -11,37 +11,9 @@
                  {"name":"lookupindex_hash", "type":"uint64"},
                  {"name":"content","type":"string"}
               ]
-              },{
-                "name": "addwhitelist",
-                "base": "",
-                "fields": [
-                            {"name":"fio_public_key_hash","type":"string"},
-                            {"name":"content", "type":"string"},
-                            {"name":"max_fee","type":"int64"},
-                            {"name":"tpid","type":"string"},
-                            {"name":"actor","type":"name"}
-                          ]
-              },{
-                "name": "remwhitelist",
-                "base": "",
-                "fields": [
-                            {"name":"fio_public_key_hash","type":"string"},
-                            {"name":"max_fee","type":"int64"},
-                            {"name":"tpid","type":"string"},
-                            {"name":"actor","type":"name"}
-                           ]
               }],
     "types": [],
-    "actions": [{
-         "name": "addwhitelist",
-         "type": "addwhitelist",
-         "ricardian_contract": ""
-       },{
-          "name": "remwhitelist",
-          "type": "remwhitelist",
-          "ricardian_contract": ""
-       }
-       ],
+    "actions": [ ],
    "tables": [{
         "name": "whitelist",
         "index_type": "i64",
