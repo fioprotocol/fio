@@ -61,7 +61,7 @@ if [ -d "/usr/local/include/eosio" ] || [ -d "$HOME/opt/eosio" ] || [ $FORCED ==
             rm -rf $HOME/share/cmake-*
             rm -rf $HOME/share/aclocal/cmake*
             rm -rf $HOME/doc/cmake*
-            rm -f $HOME/bin/nodeos $HOME/bin/keosd $HOME/bin/cleos $HOME/bin/ctest $HOME/bin/*cmake* $HOME/bin/cpack
+            rm -f $HOME/bin/nodeos $HOME/bin/keosd $HOME/bin/clio $HOME/bin/ctest $HOME/bin/*cmake* $HOME/bin/cpack
             rm -rf $HOME/src/mongo*
          fi
 
@@ -77,7 +77,7 @@ if [ -d "/usr/local/include/eosio" ] || [ -d "$HOME/opt/eosio" ] || [ $FORCED ==
             rm -rf eosio 2>/dev/null
             popd &> /dev/null
             pushd bin &> /dev/null
-            rm cleos eosio-abigen eosio-applesedemo fio-launcher eosio-s2wasm eosio-wast2wasm eosiocpp keosd nodeos 2>/dev/null
+            rm clio eosio-abigen eosio-applesedemo fio-launcher eosio-s2wasm eosio-wast2wasm eosiocpp keosd nodeos 2>/dev/null
             popd &> /dev/null
             libraries=(
                libeosio_testing

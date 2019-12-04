@@ -795,9 +795,9 @@ namespace fioio {
          * and addresses.
          *   Dev note on testing
          *   to make an expired domain.
-         *   cleos -u http://localhost:8889 push action -j fio.address expdomain '{"actor":"r41zuwovtn44","domain":"expired"}' --permission r41zuwovtn44@active
+         *   clio -u http://localhost:8889 push action -j fio.address expdomain '{"actor":"r41zuwovtn44","domain":"expired"}' --permission r41zuwovtn44@active
          *   to create expired addresses under the specified domain.
-         *   cleos -u http://localhost:8889 push action -j fio.address expaddresses '{"actor":"r41zuwovtn44","domain":"expired","address_prefix":"eddieexp","number_addresses_to_add":"5"}' --permission r41zuwovtn44@active
+         *   clio -u http://localhost:8889 push action -j fio.address expaddresses '{"actor":"r41zuwovtn44","domain":"expired","address_prefix":"eddieexp","number_addresses_to_add":"5"}' --permission r41zuwovtn44@active
          *   scenarios that need tested.
          *   1) create an expired domain with fewer than 100 expired addresses within it. run the burnexpired
          *   2) create an expired domain with over 100 expired addresses within it. run the burnexpired repeatedly until all are removed.
