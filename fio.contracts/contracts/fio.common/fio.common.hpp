@@ -242,7 +242,7 @@ namespace fioio {
 
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
-                       make_tuple(bamount)
+                       make_tuple(TREASURYACCOUNT,bamount)
                 ).send();
 
                 action(
@@ -301,7 +301,7 @@ namespace fioio {
                 bamount = (uint64_t) (static_cast<double>(amount) * .65);
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
-                       make_tuple(bamount)
+                       make_tuple(TREASURYACCOUNT,bamount)
                 ).send();
 
                 action(
