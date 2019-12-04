@@ -23,12 +23,14 @@ namespace fioio {
         uint64_t lasttpidpayout;
         uint64_t payschedtimer;
         uint64_t rewardspaid;
-        uint64_t reservetokensminted;
+        uint64_t bpreservetokensminted;
+        uint64_t fdtnreservetokensminted;
 
         // Set the primary key to a constant value to store only one row
         uint64_t primary_key() const { return lasttpidpayout; }
 
-        EOSLIB_SERIALIZE(treasurystate, (lasttpidpayout)(payschedtimer)(rewardspaid)(reservetokensminted)
+        EOSLIB_SERIALIZE(treasurystate, (lasttpidpayout)(payschedtimer)(rewardspaid)
+          (bpreservetokensminted)(fdtnreservetokensminted)
         )
     };
 

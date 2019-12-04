@@ -8,18 +8,21 @@
 
 #define TESTNET
 
+
 #ifdef TESTNET
 #define REWARDMAX 100
 #define PAYSCHEDTIME 121
-#define FDTNRWDTHRESH 100
-#define MAXTOMINT 5000000000
-#define MAXRESERVE 15000000000
+#define FDTNMAXTOMINT 150000000000
+#define BPMAXTOMINT 5000000000
+#define FDTNMAXRESERVE 303000000000
+#define BPMAXRESERVE 15000000000
 #else
 #define REWARDMAX 100000000000
 #define PAYSCHEDTIME 172801
-#define FDTNRWDTHRESH 100000000000
-#define MAXTOMINT 50000000000000
-#define MAXRESERVE 50000000000000000
+#define FDTNMAXTOMINT 150000000000000
+#define BPMAXTOMINT 50000000000000
+#define FDTNMAXRESERVE 303000000000000000
+#define BPMAXRESERVE 25000000000000000
 #endif
 
 #define MINUTE 60
@@ -189,21 +192,23 @@ public:
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
 
-                        //uint64_t projectedpay = bprewards.begin()->rewards;
+                        uint64_t bptomint = BPMAXTOMINT;
+                        const uint64_t remainingreserve = BPMAXRESERVE - clockiter->bpreservetokensminted;
 
-                        uint64_t tomint = MAXTOMINT - bprewards.get().rewards;
+                        if (remainingreserve < BPMAXTOMINT){
+                            bptomint = remainingreserve;
+                        }
 
-                        // from DEV1 tests - if (bprewards.begin()->rewards < 5000000000 && clockiter->reservetokensminted < 15000000000) { // lowered values for testing
-                        if (bprewards.get().rewards < MAXTOMINT && clockiter->reservetokensminted < MAXRESERVE) {
+                        if (clockiter->bpreservetokensminted < BPMAXRESERVE) {
 
                                 //Mint new tokens up to 50,000 FIO
                                 action(permission_level{get_self(), "active"_n},
                                        TokenContract, "mintfio"_n,
-                                       make_tuple(tomint)
+                                       make_tuple(TREASURYACCOUNT,bptomint)
                                        ).send();
 
                                 clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-                                                entry.reservetokensminted += tomint;
+                                                entry.bpreservetokensminted += bptomint;
                                         });
 
                                 //Include the minted tokens in the reward payout
@@ -212,6 +217,26 @@ public:
                         }
                         //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
 
+                        uint64_t fdtntomint = FDTNMAXTOMINT;
+                        const uint64_t fdtnremainingreserve = FDTNMAXRESERVE - clockiter->fdtnreservetokensminted;
+
+                        if (fdtnremainingreserve < FDTNMAXTOMINT){
+                                fdtntomint = fdtnremainingreserve;
+                        }
+
+                        if (clockiter->fdtnreservetokensminted < FDTNMAXRESERVE) {
+
+                                //Mint new tokens up to 150,000 FIO
+                                action(permission_level{get_self(), "active"_n},
+                                       TokenContract, "mintfio"_n,
+                                       make_tuple(FOUNDATIONACCOUNT,fdtntomint)
+                                ).send();
+
+                                clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+                                    entry.fdtnreservetokensminted += fdtntomint;
+                                });
+
+                        }
                         // All bps are now in pay schedule, calculate the shares
                         uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                         uint64_t abpcount = 21;
@@ -280,19 +305,21 @@ public:
                                        make_tuple(producer)
                                        ).send();
                         }
+
+
+
                         // PAY FOUNDATION //
                         auto fdtnstate = fdtnrewards.get();
-                        if (fdtnstate.rewards > FDTNRWDTHRESH) { // 100 FIO = 100000000000 SUFs
-                                action(permission_level{get_self(), "active"_n},
-                                       TokenContract, "transfer"_n,
-                                       make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, symbol("FIO", 9)),
-                                                  string("Paying foundation from treasury."))
-                                       ).send();
+                        action(permission_level{get_self(), "active"_n},
+                                TokenContract, "transfer"_n,
+                                make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, symbol("FIO", 9)),
+                                        string("Paying foundation from treasury."))).send();
 
-                                //Clear the foundation rewards counter
-                                fdtnrewards.set(fdtnreward{0}, _self);
-                                //////////////////////////////////////
-                        }
+                        //Clear the foundation rewards counter
+                        fdtnrewards.set(fdtnreward{0}, _self);
+                        //////////////////////////////////////
+
+
                         //remove the producer from payschedule
                         voteshares.erase(bpiter);
                 } //endif now() > bpiter + 172800
