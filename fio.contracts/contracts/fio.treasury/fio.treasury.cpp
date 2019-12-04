@@ -212,7 +212,7 @@ public:
                                         });
 
                                 //Include the minted tokens in the reward payout
-                                bprewards.set(bpreward{bprewards.get().rewards + tomint}, _self);
+                                bprewards.set(bpreward{bprewards.get().rewards + bptomint}, _self);
                                 //This new reward amount that has been minted will be appended to the rewards being divied up next
                         }
                         //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay

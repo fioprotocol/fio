@@ -63,7 +63,7 @@ void token::issue(name to, asset quantity, string memo) {
         }
 }
 
-    }
+
 
     void token::mintfio(const name &to, const uint64_t &amount) {
         //can only be called by fio.treasury@active
@@ -73,7 +73,7 @@ void token::issue(name to, asset quantity, string memo) {
                 "mint fio can only transfer to foundation or treasury accounts.");
 
 
-        if (amount > 0 && amount < 100000000000000000) { //100,000,000 FIO max can be minted by this call
+        if (amount > 0 && amount < MAXFIOMINT) {
             print("\n\nMintfio called\n");
             action(permission_level{"eosio"_n, "active"_n},
                    "fio.token"_n, "issue"_n,
