@@ -236,8 +236,8 @@ void token::trnsfiopubky(const string &payee_public_key,
                          const name &actor,
                          const string &tpid) {
 
+        require_auth(actor);
         asset qty;
-
         fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
 
