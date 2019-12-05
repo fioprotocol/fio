@@ -1635,6 +1635,8 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            name account = name{account_name};
 
             uint32_t search_results = 0;
             uint32_t search_limit = p.limit;
@@ -1642,9 +1644,6 @@ if( options.count(name) ) { \
             uint32_t returnCount = 0;
             bool search_finished = false;
 
-            fioio::key_to_account(p.fio_public_key, account_name);
-
-            name account = name{account_name};
             get_obt_data_result result;
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -1690,22 +1689,37 @@ if( options.count(name) ) { \
                         .encode_type="hex",
                         .index_position ="3"};
 
-                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                get_table_rows_result payerrequests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
                             return v;
                         });
 
-                if (search_offset < requests_rows_result.rows.size() && !search_finished) {
-                    for (size_t pos = 0 + search_offset; pos < requests_rows_result.rows.size(); pos++) {
+                get_table_rows_params name_table_row_params2 = get_table_rows_params{
+                        .json=true,
+                        .code=fio_reqobt_code,
+                        .scope=fio_reqobt_scope,
+                        .table=fio_requests_lookup_table,
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehash,
+                        .encode_type="hex",
+                        .index_position ="2"};
+
+                get_table_rows_result payeerequests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
+
+                if (search_offset < payerrequests_rows_result.rows.size() && !search_finished) {
+                    for (size_t pos = 0 + search_offset; pos < payerrequests_rows_result.rows.size(); pos++) {
                         //get all the attributes of the fio request
-                        uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                        string payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
-                        string payer_address = requests_rows_result.rows[pos]["payer_fio_addr"].as_string();
-                        string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
-                        string content = requests_rows_result.rows[pos]["content"].as_string();
-                        uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
-                        string payer_fio_public_key = requests_rows_result.rows[pos]["payer_key"].as_string();
-                        string payee_fio_public_key = requests_rows_result.rows[pos]["payee_key"].as_string();
+                        uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                        string payer_hash_address = payerrequests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
+                        string payer_address = payerrequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
+                        string payee_address = payerrequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
+                        string content = payerrequests_rows_result.rows[pos]["content"].as_string();
+                        uint64_t time_stamp = payerrequests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = payerrequests_rows_result.rows[pos]["payer_key"].as_string();
+                        string payee_fio_public_key = payerrequests_rows_result.rows[pos]["payee_key"].as_string();
 
                         //query the statuses
                         //use this id and query the fioreqstss table for status updates to this fioreqid
@@ -1761,16 +1775,94 @@ if( options.count(name) ) { \
                         if (search_offset > 0) { search_offset--; }
 
                         if (returnCount == search_limit && search_limit != 0) {
-                            search_results = requests_rows_result.rows.size() - (pos + 1);
+                            search_results = payerrequests_rows_result.rows.size() - (pos + 1);
                             search_finished = true;
                             break;
                         }
                     } // Get request statuses
                 } else if (search_finished) {
-                    search_results += requests_rows_result.rows.size();
+                    search_results += payerrequests_rows_result.rows.size();
                 } else {
                     if (search_offset > 0) {
-                        search_offset -= requests_rows_result.rows.size(); //set 0
+                        search_offset -= payerrequests_rows_result.rows.size(); //set 0
+                    }
+                }
+                if (search_offset < payeerequests_rows_result.rows.size() && !search_finished) {
+                    for (size_t pos = 0 + search_offset; pos < payeerequests_rows_result.rows.size(); pos++) {
+                        //get all the attributes of the fio request
+                        uint64_t fio_request_id = payeerequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                        string payer_hash_address = payeerequests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
+                        string payer_address = payeerequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
+                        string payee_address = payeerequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
+                        string content = payeerequests_rows_result.rows[pos]["content"].as_string();
+                        uint64_t time_stamp = payeerequests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = payeerequests_rows_result.rows[pos]["payer_key"].as_string();
+                        string payee_fio_public_key = payeerequests_rows_result.rows[pos]["payee_key"].as_string();
+
+                        //query the statuses
+                        //use this id and query the fioreqstss table for status updates to this fioreqid
+                        //look up the requests for this fio name (look for matches in the tofioadd
+                        string fio_request_status_lookup_table = "fioreqstss";   // table name
+                        get_table_rows_params request_status_row_params = get_table_rows_params{
+                                .json        = true,
+                                .code        = fio_reqobt_code,
+                                .scope       = fio_reqobt_scope,
+                                .table       = fio_request_status_lookup_table,
+                                .lower_bound = boost::lexical_cast<string>(fio_request_id),
+                                .upper_bound = boost::lexical_cast<string>(fio_request_id),
+                                .key_type       = "i64",
+                                .index_position = "2"};
+                        // Do secondary key lookup
+                        get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                                request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                                    return v;
+                                });
+
+                        uint64_t statusintV;
+                        uint64_t reqid;
+
+                        if (!(request_status_rows_result.rows.empty())) {
+                            for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
+                                reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
+                                statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+
+                                if(reqid == fio_request_id){
+                                    break;
+                                }
+                            }
+
+                            if (statusintV != 2 && reqid != fio_request_id ){
+                                break;
+                            }
+                        }
+                        //convert the time_stamp to string formatted time.
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
+
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                        string status = "sent_to_blockchain";
+
+                        obt_records rr{payer_address, payee_address, payer_fio_public_key,
+                                       payee_fio_public_key, content, fio_request_id,buffer, status};
+
+                        result.obt_data_records.push_back(rr);
+                        returnCount++;
+                        if (search_offset > 0) { search_offset--; }
+
+                        if (returnCount == search_limit && search_limit != 0) {
+                            search_results = payeerequests_rows_result.rows.size() - (pos + 1);
+                            search_finished = true;
+                            break;
+                        }
+                    } // Get request statuses
+                } else if (search_finished) {
+                    search_results += payeerequests_rows_result.rows.size();
+                } else {
+                    if (search_offset > 0) {
+                        search_offset -= payeerequests_rows_result.rows.size(); //set 0
                     }
                 }
             }
