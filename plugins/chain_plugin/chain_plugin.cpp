@@ -1705,7 +1705,7 @@ if( options.count(name) ) { \
                         .index_position ="2"};
 
                 get_table_rows_result payeerequests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
-                        name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
+                        name_table_row_params2, reqobt_abi, [](uint128_t v) -> uint128_t {
                             return v;
                         });
 
