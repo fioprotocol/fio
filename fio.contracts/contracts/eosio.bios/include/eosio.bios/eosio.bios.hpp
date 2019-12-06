@@ -81,13 +81,14 @@ namespace eosio {
         void updateauth(name account,
                         name permission,
                         name parent,
-                        authority auth) {
+                        authority auth,
+                        const uint64_t &max_fee) {
 
             require_auth(account);
             eosio::action{
                     permission_level{account, "active"_n},
                     fioio::FeeContract, "mandatoryfee"_n,
-                    std::make_tuple(std::string("auth_update"), account, 4000000000)
+                    std::make_tuple(std::string("auth_update"), account, max_fee)
             }.send();
 
 
@@ -101,28 +102,30 @@ namespace eosio {
 
         [[eosio::action]]
         void deleteauth(name account,
-                        ignore<name> permission) {
+                        name permission,
+                        uint64_t max_fee) {
             require_auth(account);
 
             eosio::action{
                     permission_level{account, "active"_n},
                     fioio::FeeContract, "mandatoryfee"_n,
-                    std::make_tuple(std::string("auth_delete"), account, 4000000000)
+                    std::make_tuple(std::string("auth_delete"), account, max_fee)
             }.send();
 
         }
 
         [[eosio::action]]
         void linkauth(name account,
-                      ignore<name> code,
-                      ignore<name> type,
-                      ignore<name> requirement) {
+                      name code,
+                      name type,
+                      name requirement,
+                      uint64_t max_fee) {
             require_auth(account);
 
             eosio::action{
                     permission_level{account, "active"_n},
                     fioio::FeeContract, "mandatoryfee"_n,
-                    std::make_tuple(std::string("auth_link"), account, 4000000000)
+                    std::make_tuple(std::string("auth_link"), account, max_fee)
             }.send();
 
         }

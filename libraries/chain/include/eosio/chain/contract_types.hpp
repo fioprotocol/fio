@@ -59,6 +59,7 @@ namespace eosio {
             permission_name permission;
             permission_name parent;
             authority auth;
+            uint64_t max_fee;
 
             static account_name get_account() {
                 return config::system_account_name;
@@ -72,11 +73,12 @@ namespace eosio {
         struct deleteauth {
             deleteauth() = default;
 
-            deleteauth(const account_name &account, const permission_name &permission)
-                    : account(account), permission(permission) {}
+            deleteauth(const account_name &account, const permission_name &permission, const uint64_t &max_fee)
+                    : account(account), permission(permission),  max_fee(max_fee) {}
 
             account_name account;
             permission_name permission;
+            uint64_t max_fee;
 
             static account_name get_account() {
                 return config::system_account_name;
@@ -91,13 +93,14 @@ namespace eosio {
             linkauth() = default;
 
             linkauth(const account_name &account, const account_name &code, const action_name &type,
-                     const permission_name &requirement)
-                    : account(account), code(code), type(type), requirement(requirement) {}
+                     const permission_name &requirement, const uint64_t &max_fee)
+                    : account(account), code(code), type(type), requirement(requirement) ,max_fee(max_fee){}
 
             account_name account;
             account_name code;
             action_name type;
             permission_name requirement;
+            uint64_t max_fee;
 
             static account_name get_account() {
                 return config::system_account_name;
@@ -166,11 +169,11 @@ FC_REFLECT( eosio::chain::setcode, (account)(vmtype)(vmversion)
 FC_REFLECT( eosio::chain::setabi, (account)(abi)
 )
 FC_REFLECT( eosio::chain::updateauth, (account)(permission)(parent)
-(auth))
-FC_REFLECT( eosio::chain::deleteauth, (account)(permission)
+(auth)(max_fee))
+FC_REFLECT( eosio::chain::deleteauth, (account)(permission)(max_fee)
 )
 FC_REFLECT( eosio::chain::linkauth, (account)(code)(type)
-(requirement))
+(requirement)(max_fee))
 FC_REFLECT( eosio::chain::unlinkauth, (account)(code)
 (type))
 FC_REFLECT( eosio::chain::canceldelay, (canceling_auth)(trx_id)

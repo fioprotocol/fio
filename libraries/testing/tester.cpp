@@ -632,9 +632,10 @@ namespace eosio {
         void
         base_tester::link_authority(account_name account, account_name code, permission_name req, action_name type) {
             signed_transaction trx;
+            uint64_t fees = 4000000000;
 
             trx.actions.emplace_back(vector < permission_level > {{account, config::active_name}},
-                                     linkauth(account, code, type, req));
+                                     linkauth(account, code, type, req,fees));
             set_transaction_headers(trx);
             trx.sign(get_private_key(account, "active"), control->get_chain_id());
 
@@ -652,6 +653,7 @@ namespace eosio {
 
             push_transaction(trx);
         }
+
 
 
         void base_tester::set_authority(account_name account,
@@ -697,8 +699,9 @@ namespace eosio {
                                            const vector <private_key_type> &keys) {
             try {
                 signed_transaction trx;
+                uint64_t fees = 4000000000;
                 trx.actions.emplace_back(auths,
-                                         deleteauth(account, perm));
+                                         deleteauth(account, perm,fees));
 
                 set_transaction_headers(trx);
                 for (const auto &key: keys) {
