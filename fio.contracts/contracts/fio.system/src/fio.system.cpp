@@ -184,6 +184,26 @@ namespace eosiosystem {
         }else{
             //test cases
 
+            //locked token holder UAT testing.
+            _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                a.owner = "tly4lbwrx3jm"_n;
+                a.total_grant_amount = 1000000000000;
+                a.unlocked_period_count = 0;
+                a.grant_type = 1;
+                a.inhibit_unlocking = 0;
+                a.remaining_locked_amount = 1000000000000;
+                a.timestamp = now();
+            });
+            _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                a.owner = "o3jvcxorf4qu"_n;
+                a.total_grant_amount = 1000000000000;
+                a.unlocked_period_count = 0;
+                a.grant_type = 2;
+                a.inhibit_unlocking = 0;
+                a.remaining_locked_amount = 1000000000000;
+                a.timestamp = now();
+            });
+
             //////////////unlocking tests inits.
 
             //  grant type 1, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
@@ -221,6 +241,7 @@ namespace eosiosystem {
             // 1) grant type 2, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
             //     to the total grant.
             //     expected result   1/3 of total grant should be used as voting.
+            /*
            _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
                 a.owner = "euwdcp13zlrj"_n;
                 a.total_grant_amount = 2000000000000;
@@ -230,6 +251,7 @@ namespace eosiosystem {
                 a.remaining_locked_amount = 1900000000000;
                 a.timestamp = now();
             });
+             */
 
 
 
