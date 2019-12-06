@@ -140,6 +140,7 @@ const std::vector<const char*> genesis_intrinsics = {
    "abort",
    "eosio_assert",
    "eosio_assert_message",
+   "eosio_assert_message_code",
    "eosio_assert_code",
    "eosio_exit",
    "read_action_data",
@@ -175,7 +176,8 @@ const std::vector<const char*> genesis_intrinsics = {
    "memcpy",
    "memmove",
    "memcmp",
-   "memset"
+   "memset",
+   "send_response"
 };
 
 } } // namespace eosio::chain

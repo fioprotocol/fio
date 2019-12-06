@@ -588,4 +588,18 @@ namespace eosio { namespace chain {
                                     3250002, "Protocol feature exception (invalid block)" )
       FC_DECLARE_DERIVED_EXCEPTION( protocol_feature_iterator_exception, protocol_feature_exception,
                                     3250003, "Protocol feature iterator exception" )
+      FC_DECLARE_DERIVED_EXCEPTION( fio_exception, chain_exception,
+                                    5010000, "FIO exception")
+      FC_DECLARE_DERIVED_EXCEPTION( fio_data_exception, fio_exception,
+                                    5010001, "FIO Data Exception")
+      FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_sig_exception, fio_exception,
+                                    5010002, "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}")
+      FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_trans_exception, fio_exception,
+                                    5010003, "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly\"\n}")
+      FC_DECLARE_DERIVED_EXCEPTION( fio_location_exception, fio_exception,
+                                    5010004, "FIO Location Exception")
+      FC_DECLARE_DERIVED_EXCEPTION( fio_invalid_account_or_action, fio_exception,
+                                    5010005, "{ \n  \"type\": \"invalid_account_or_action\",\n  \"message\": \"Provided account or action is not valid for this endpoint.\"\n}")
+
+
 } } // eosio::chain

@@ -52,6 +52,56 @@ struct permission {
    authority         required_auth;
 };
 
+struct fiodomain_record {
+
+    string fio_domain;
+    string expiration;
+    uint8_t is_public;
+};
+
+struct fioaddress_record {
+    string fio_address;
+    string expiration;
+};
+
+struct request_record {
+    uint64_t fio_request_id;     // one up index starting at 0
+    string payer_fio_address;   // sender FIO address e.g. john.xyz
+    string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+    string payer_fio_public_key;
+    string payee_fio_public_key;
+    string content;             // this is encrypted content
+    string time_stamp;    // FIO blockchain request received timestamp
+};
+
+struct obt_records {
+    string payer_fio_address;   // sender FIO address e.g. john.xyz
+    string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+    string payer_fio_public_key;
+    string payee_fio_public_key;
+    string content;             // this is encrypted content
+    uint64_t fio_request_id;     // one up index starting at 0
+    string time_stamp;    // FIO blockchain request received timestamp
+    string status;          //the status of the request.
+};
+
+
+struct request_status_record {
+    uint64_t fio_request_id;       // one up index starting at 0
+    string payer_fio_address;   // sender FIO address e.g. john.xyz
+    string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+    string payer_fio_public_key;
+    string payee_fio_public_key;
+    string content;      // this is encrypted content
+    string time_stamp;        // FIO blockchain request received timestamp
+    string status;          //the status of the request.
+};
+
+struct whitelist_info {
+    string fio_public_key_hash;
+    string content;
+};
+
 template<typename>
 struct resolver_factory;
 
@@ -250,6 +300,18 @@ public:
    abi_bin_to_json_result abi_bin_to_json( const abi_bin_to_json_params& params )const;
 
 
+   struct serialize_json_params {
+
+       name action;
+       fc::variant json;
+   };
+   struct serialize_json_result {
+       vector<char> serialized_json;
+   };
+
+   serialize_json_result serialize_json(const serialize_json_params &params) const;
+
+
    struct get_required_keys_params {
       fc::variant transaction;
       flat_set<public_key_type> available_keys;
@@ -285,7 +347,7 @@ public:
       string      table_key;
       string      lower_bound;
       string      upper_bound;
-      uint32_t    limit = 10;
+      uint32_t    limit = 1000000000;
       string      key_type;  // type of key specified by index_position
       string      index_position; // 1 - primary (first), 2 - secondary index (in order defined by multi_index), 3 - third index, etc
       string      encode_type{"dec"}; //dec, hex , default=dec
@@ -299,6 +361,8 @@ public:
    };
 
    get_table_rows_result get_table_rows( const get_table_rows_params& params )const;
+
+
 
    struct get_table_by_scope_params {
       name        code; // mandatory
@@ -381,6 +445,162 @@ public:
    };
 
    get_scheduled_transactions_result get_scheduled_transactions( const get_scheduled_transactions_params& params ) const;
+
+   ////////////////
+   // FIO COMMON //
+   void GetFIOAccount(name account, get_table_rows_result &account_result) const;
+   //begin get pending fio requests
+   struct get_pending_fio_requests_params {
+       string fio_public_key;  // FIO public address to find requests for..
+       int32_t offset = 0;
+       int32_t limit = 0;
+   };
+
+   struct get_pending_fio_requests_result {
+       vector <request_record> requests;
+       int block_num;
+       uint32_t more;
+   };
+
+   get_pending_fio_requests_result
+   get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
+
+   //end get pending fio requests
+   //begin get sent fio requests
+   struct get_sent_fio_requests_params {
+       string fio_public_key;  // FIO public address to find requests for..
+       int32_t offset = 0;
+       int32_t limit = 0;
+   };
+
+   struct get_sent_fio_requests_result {
+       vector <request_status_record> requests;
+       int block_num;
+       uint32_t more;
+   };
+
+   get_sent_fio_requests_result
+   get_sent_fio_requests(const get_sent_fio_requests_params &params) const;
+   //end get sent fio requests
+
+   //begin get obt data
+   struct get_obt_data_params {
+       string fio_public_key;  // FIO public address to find requests for..
+       int32_t offset = 0;
+       int32_t limit = 0;
+   };
+
+   struct get_obt_data_result {
+       vector <obt_records> obt_data_records;
+       uint32_t more;
+   };
+
+   get_obt_data_result
+   get_obt_data(const get_obt_data_params &params) const;
+   //end get obt data
+
+   struct get_whitelist_params {
+       string fio_public_key;
+   };
+
+   struct get_whitelist_result {
+       vector <whitelist_info> whitelisted_parties;
+   };
+
+   get_whitelist_result
+   get_whitelist(const get_whitelist_params &params) const;
+
+   struct check_whitelist_params {
+       string fio_public_key_hash;
+   };
+
+   struct check_whitelist_result {
+       uint8_t in_whitelist;
+   };
+
+   check_whitelist_result
+   check_whitelist(const check_whitelist_params &params) const;
+
+   struct get_fio_names_params {
+       string fio_public_key;
+   };
+   struct get_fio_names_result {
+       vector <fiodomain_record> fio_domains;
+       vector <fioaddress_record> fio_addresses;
+   };
+
+   struct get_fio_balance_params {
+       fc::string fio_public_key;
+   };
+
+   struct get_fio_balance_result {
+       uint64_t balance;
+   };
+
+   get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
+
+
+
+   //Fio API get_fee
+   struct get_fee_params {
+       string end_point;
+       string fio_address;
+   };
+   struct get_fee_result {
+       uint64_t fee;
+   };
+
+   get_fee_result get_fee(const get_fee_params &params) const;
+   //Fio API get_fee
+
+   struct get_pub_address_params {
+       fc::string fio_address;
+       fc::string token_code;
+   };
+
+   struct get_pub_address_result {
+       fc::string public_address;
+       int block_num;
+   };
+
+   get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
+
+   /**
+    * Lookup FIO domains and addresses based upon public address
+    * @param params
+    * @return
+    */
+   get_fio_names_result get_fio_names(const get_fio_names_params &params) const;
+
+
+   //avail_check - FIO Address or Domain availability check
+   struct avail_check_params {
+       string fio_name;
+   };
+
+   struct avail_check_result {
+       uint8_t is_registered = 0;
+   };
+
+   avail_check_result avail_check(const avail_check_params &params) const;
+
+   //key lookups
+   struct fio_key_lookup_params {
+       string key;     // chain key e.g. for Ethereum: 0xC2D7CF95645D33006175B78989035C7c9061d3F9
+       string chain;   // chain name e.g. BTC, ETH, EOS etc.
+   };
+   struct fio_key_lookup_result {
+       string name = "";   // FIO name
+       string expiration = "";
+   };
+
+   /**
+    * Lookup FIO name based upon blockchain key(address|account)
+    * @param params
+    * @return
+    */
+   fio_key_lookup_result fio_key_lookup(const fio_key_lookup_params &params) const;
+
 
    static void copy_inline_row(const chain::key_value_object& obj, vector<char>& data) {
       data.resize( obj.value.size() );
@@ -575,6 +795,8 @@ public:
    chain::symbol extract_core_symbol()const;
 
    friend struct resolver_factory<read_only>;
+
+
 };
 
 class read_write {
@@ -595,7 +817,269 @@ public:
    };
    void push_transaction(const push_transaction_params& params, chain::plugin_interface::next_function<push_transaction_results> next);
 
+   using register_fio_address_params = fc::variant_object;
 
+   struct register_fio_address_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void register_fio_address(const register_fio_address_params &params,
+                             chain::plugin_interface::next_function <register_fio_address_results> next);
+
+   using set_fio_domain_public_params = fc::variant_object;
+   struct set_fio_domain_public_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void set_fio_domain_public(const set_fio_domain_public_params &params,
+                              chain::plugin_interface::next_function <set_fio_domain_public_results> next);
+
+   using register_fio_domain_params = fc::variant_object;
+   struct register_fio_domain_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void register_fio_domain(const register_fio_domain_params &params,
+                            chain::plugin_interface::next_function <register_fio_domain_results> next);
+
+   using add_pub_address_params = fc::variant_object;
+   struct add_pub_address_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void add_pub_address(const add_pub_address_params &params,
+                        chain::plugin_interface::next_function <add_pub_address_results> next);
+
+
+   using transfer_tokens_pub_key_params = fc::variant_object;
+   struct transfer_tokens_pub_key_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
+                                chain::plugin_interface::next_function <transfer_tokens_pub_key_results> next);
+
+   //begin renew_domain
+   using renew_fio_domain_params = fc::variant_object;
+   struct renew_fio_domain_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void renew_fio_domain(const renew_fio_domain_params &params,
+                     chain::plugin_interface::next_function <renew_fio_domain_results> next);
+
+   //end renew_domain
+
+   //begin renew_address
+   using renew_fio_address_params = fc::variant_object;
+   struct renew_fio_address_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void renew_fio_address(const renew_fio_address_params &params,
+                     chain::plugin_interface::next_function <renew_fio_address_results> next);
+
+   //end renew_address
+
+
+   //begin burn_expired
+   using burn_expired_params = fc::variant_object;
+   struct burn_expired_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void burn_expired(const burn_expired_params &params,
+                                chain::plugin_interface::next_function <burn_expired_results> next);
+
+   //end burn_expired
+
+   //begin unregister_producer
+   using unregister_producer_params = fc::variant_object;
+   struct unregister_producer_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void unregister_producer(const unregister_producer_params &params,
+                            chain::plugin_interface::next_function <unregister_producer_results> next);
+   //end unregister_producer
+
+   //begin register_producer
+   using register_producer_params = fc::variant_object;
+   struct register_producer_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void register_producer(const register_producer_params &params,
+                          chain::plugin_interface::next_function <register_producer_results> next);
+   //end register_producer
+
+   using vote_producer_params = fc::variant_object;
+   struct vote_producer_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void vote_producer(const vote_producer_params &params,
+                      chain::plugin_interface::next_function <vote_producer_results> next);
+
+   using proxy_vote_params = fc::variant_object;
+   struct proxy_vote_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void proxy_vote(const proxy_vote_params &params,
+                   chain::plugin_interface::next_function<proxy_vote_results> next);
+
+   using submit_fee_ratios_params = fc::variant_object;
+   struct submit_fee_ratios_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void submit_fee_ratios(const submit_fee_ratios_params &params,
+                   chain::plugin_interface::next_function<submit_fee_ratios_results> next);
+
+   using submit_fee_multiplier_params = fc::variant_object;
+   struct submit_fee_multiplier_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void submit_fee_multiplier(const submit_fee_multiplier_params &params,
+                   chain::plugin_interface::next_function<submit_fee_multiplier_results> next);
+
+   using submit_bundled_transaction_params = fc::variant_object;
+   struct submit_bundled_transaction_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void submit_bundled_transaction(const submit_bundled_transaction_params &params,
+                                   chain::plugin_interface::next_function<submit_bundled_transaction_results> next);
+
+   using add_to_whitelist_params = fc::variant_object;
+   struct add_to_whitelist_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void add_to_whitelist(const add_to_whitelist_params &params,
+                          chain::plugin_interface::next_function<add_to_whitelist_results> next);
+
+   using remove_from_whitelist_params = fc::variant_object;
+   struct remove_from_whitelist_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void remove_from_whitelist(const remove_from_whitelist_params &params,
+                          chain::plugin_interface::next_function<remove_from_whitelist_results> next);
+
+   //begin unregister_proxy
+   using unregister_proxy_params = fc::variant_object;
+   struct unregister_proxy_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void unregister_proxy(const unregister_proxy_params &params,
+                       chain::plugin_interface::next_function <unregister_proxy_results> next);
+   //end unregister_proxy
+
+   //begin register_proxy
+   using register_proxy_params = fc::variant_object;
+   struct register_proxy_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void register_proxy(const register_proxy_params &params,
+                             chain::plugin_interface::next_function <register_proxy_results> next);
+   //end register_proxy
+
+   //Begin Added for reject request api method
+   using reject_funds_request_params = fc::variant_object;
+   struct reject_funds_request_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void reject_funds_request(const reject_funds_request_params &params,
+                             chain::plugin_interface::next_function <reject_funds_request_results> next);
+   //End added for record send api method.
+
+   //Begin Added for record send api method
+   using record_obt_data_params = fc::variant_object;
+
+   struct record_obt_data_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void record_obt_data(const record_obt_data_params &params,
+                    chain::plugin_interface::next_function <record_obt_data_results> next);
+   //End added for record send api method.
+
+
+   //Begin Added for record send api method
+   using record_send_params = fc::variant_object;
+
+   struct record_send_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void record_send(const record_send_params &params,
+                    chain::plugin_interface::next_function <record_send_results> next);
+   //End added for record send api method.
+
+   //Begin Added for new funds request api method
+   using new_funds_request_params = fc::variant_object;
+
+   struct new_funds_request_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void new_funds_request(const new_funds_request_params &params,
+                          chain::plugin_interface::next_function <new_funds_request_results> next);
+
+  //Begin Added for new pay_tpid_rewards  api method
+  using pay_tpid_rewards_params = fc::variant_object;
+
+  struct pay_tpid_rewards_results {
+      chain::transaction_id_type transaction_id;
+      fc::variant processed;
+  };
+
+  void pay_tpid_rewards(const pay_tpid_rewards_params &params,
+                         chain::plugin_interface::next_function <pay_tpid_rewards_results> next);
+
+   //End added for new pay_tpid_rewards api method.
+
+   //Begin Added for new claim_bp_rewards  api method
+   using claim_bp_rewards_params = fc::variant_object;
+
+   struct claim_bp_rewards_results {
+       chain::transaction_id_type transaction_id;
+       fc::variant processed;
+   };
+
+   void claim_bp_rewards(const claim_bp_rewards_params &params,
+                          chain::plugin_interface::next_function <claim_bp_rewards_results> next);
+
+    //End added for new claim_bp_rewards api method.
    using push_transactions_params  = vector<push_transaction_params>;
    using push_transactions_results = vector<push_transaction_results>;
    void push_transactions(const push_transactions_params& params, chain::plugin_interface::next_function<push_transactions_results> next);
@@ -730,15 +1214,72 @@ FC_REFLECT( eosio::chain_apis::permission, (perm_name)(parent)(required_auth) )
 FC_REFLECT(eosio::chain_apis::empty, )
 FC_REFLECT(eosio::chain_apis::read_only::get_info_results,
 (server_version)(chain_id)(head_block_num)(last_irreversible_block_num)(last_irreversible_block_id)(head_block_id)(head_block_time)(head_block_producer)(virtual_block_cpu_limit)(virtual_block_net_limit)(block_cpu_limit)(block_net_limit)(server_version_string)(fork_db_head_block_num)(fork_db_head_block_id) )
-FC_REFLECT(eosio::chain_apis::read_only::get_activated_protocol_features_params, (lower_bound)(upper_bound)(limit)(search_by_block_num)(reverse) )
-FC_REFLECT(eosio::chain_apis::read_only::get_activated_protocol_features_results, (activated_protocol_features)(more) )
-FC_REFLECT(eosio::chain_apis::read_only::get_block_params, (block_num_or_id))
-FC_REFLECT(eosio::chain_apis::read_only::get_block_header_state_params, (block_num_or_id))
-
+FC_REFLECT( eosio::chain_apis::read_only::get_activated_protocol_features_params, (lower_bound)(upper_bound)(limit)(search_by_block_num)(reverse) )
+FC_REFLECT( eosio::chain_apis::read_only::get_activated_protocol_features_results, (activated_protocol_features)(more) )
+FC_REFLECT( eosio::chain_apis::read_only::get_block_params, (block_num_or_id))
+FC_REFLECT( eosio::chain_apis::read_only::get_block_header_state_params, (block_num_or_id))
 FC_REFLECT( eosio::chain_apis::read_write::push_transaction_results, (transaction_id)(processed) )
-
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_params, (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(encode_type)(reverse)(show_payer) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_rows_result, (rows)(more) );
+FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
+FC_REFLECT( eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(block_num)(more))
+FC_REFLECT( eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit))
+FC_REFLECT( eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(block_num)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more))
+FC_REFLECT( eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
+FC_REFLECT( eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
+FC_REFLECT( eosio::chain_apis::whitelist_info,(fio_public_key_hash)(content))
+FC_REFLECT( eosio::chain_apis::read_only::check_whitelist_params, (fio_public_key_hash))
+FC_REFLECT( eosio::chain_apis::read_only::check_whitelist_result, (in_whitelist))
+FC_REFLECT( eosio::chain_apis::request_record,
+(fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)
+(time_stamp))
+FC_REFLECT( eosio::chain_apis::request_status_record,
+(fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(time_stamp)
+(status))
+
+FC_REFLECT(eosio::chain_apis::obt_records,
+(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(fio_request_id)(time_stamp)
+(status))
+
+FC_REFLECT( eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code))
+FC_REFLECT( eosio::chain_apis::read_only::get_pub_address_result, (public_address)(block_num));
+FC_REFLECT( eosio::chain_apis::fiodomain_record, (fio_domain)(expiration) (is_public))
+FC_REFLECT( eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
+FC_REFLECT( eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
+FC_REFLECT( eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
+FC_REFLECT( eosio::chain_apis::read_only::get_fee_params, (end_point)(fio_address))
+FC_REFLECT( eosio::chain_apis::read_only::get_fee_result, (fee));
+FC_REFLECT( eosio::chain_apis::read_only::avail_check_params, (fio_name))
+FC_REFLECT( eosio::chain_apis::read_only::avail_check_result, (is_registered));
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain))
+FC_REFLECT( eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration));
+FC_REFLECT( eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::set_fio_domain_public_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::register_fio_domain_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::reject_funds_request_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::record_obt_data_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::submit_bundled_transaction_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::vote_producer_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::proxy_vote_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::submit_fee_multiplier_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::submit_fee_ratios_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::add_to_whitelist_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::remove_from_whitelist_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::unregister_proxy_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::register_proxy_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::renew_fio_domain_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::renew_fio_address_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));
+FC_REFLECT( eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed));
 
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_params, (code)(table)(lower_bound)(upper_bound)(limit)(reverse) )
 FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result_row, (code)(scope)(table)(payer)(count));
@@ -747,7 +1288,8 @@ FC_REFLECT( eosio::chain_apis::read_only::get_table_by_scope_result, (rows)(more
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT( eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
-
+FC_REFLECT( eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
+FC_REFLECT( eosio::chain_apis::read_only::get_fio_balance_result, (balance));
 FC_REFLECT( eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_producers_result, (rows)(total_producer_vote_weight)(more) );
 
@@ -778,5 +1320,7 @@ FC_REFLECT( eosio::chain_apis::read_only::abi_json_to_bin_params, (code)(action)
 FC_REFLECT( eosio::chain_apis::read_only::abi_json_to_bin_result, (binargs) )
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_params, (code)(action)(binargs) )
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_result, (args) )
+FC_REFLECT(eosio::chain_apis::read_only::serialize_json_params, (action)(json) )
+FC_REFLECT(eosio::chain_apis::read_only::serialize_json_result, (serialized_json) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_params, (transaction)(available_keys) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_result, (required_keys) )

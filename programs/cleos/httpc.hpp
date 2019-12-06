@@ -85,6 +85,27 @@ namespace eosio { namespace client { namespace http {
    const string chain_func_base = "/v1/chain";
    const string get_info_func = chain_func_base + "/get_info";
    const string push_txn_func = chain_func_base + "/push_transaction";
+   const string reg_domain_func = chain_func_base + "/register_fio_domain";
+   const string reg_address_func = chain_func_base + "/register_fio_address";
+   const string claim_bp_func = chain_func_base + "/claim_bp_rewards";
+   const string pay_tpid_func = chain_func_base + "/pay_tpid_rewards";
+   const string bundle_vote_func = chain_func_base + "/submit_bundled_transaction";
+   const string renew_address_func = chain_func_base + "/renew_fio_address";
+   const string renew_domain_func = chain_func_base + "/renew_fio_domain";
+   const string unreg_producer_func = chain_func_base + "/unregister_producer";
+   const string rem_whitelist_func = chain_func_base + "/remove_from_whitelist";
+   const string add_whitelist_func = chain_func_base + "/add_to_whitelist";
+   const string set_feemult_func = chain_func_base + "/submit_fee_multiplier";
+   const string set_feevote_func = chain_func_base + "/submit_fee_ratios";
+   const string proxy_vote_func = chain_func_base + "/proxy_vote";
+   const string add_address_func = chain_func_base + "/add_pub_address";
+   const string token_transfer_func = chain_func_base + "/transfer_tokens_pub_key";
+   const string burn_expired_func = chain_func_base + "/burn_expired";
+   const string unreg_proxy_func = chain_func_base + "/unregister_proxy";
+   const string reg_proxy_func = chain_func_base + "/register_proxy";
+   const string reg_producer_func = chain_func_base + "/register_producer";
+   const string vote_producer_func = chain_func_base + "/vote_producer";
+
    const string push_txns_func = chain_func_base + "/push_transactions";
    const string json_to_bin_func = chain_func_base + "/abi_json_to_bin";
    const string get_block_func = chain_func_base + "/get_block";

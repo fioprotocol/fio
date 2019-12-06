@@ -1,0 +1,87 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Jun 13 20:29:09 2019",
+    "version": "eosio::abi/1.1",
+    "structs": [{
+            "name": "tpid",
+            "base": "",
+            "fields": [
+                {"name":"id", "type":"uint64"},
+                {"name":"fioaddhash", "type":"uint128"},
+                {"name":"fioaddress", "type":"string"},
+                {"name":"rewards", "type":"uint64"}
+            ]
+            },{
+            "name": "bounty",
+            "base": "",
+            "fields": [
+                {"name":"tokensminted", "type":"uint64"}
+                ]
+            },{
+              "name": "updatetpid",
+              "base": "",
+                "fields": [{
+                    "name": "tpid",
+                    "type": "string"
+                },{
+                    "name": "owner",
+                    "type": "name"
+                },{
+                    "name": "amount",
+                    "type": "uint64"
+                }]
+            },{
+              "name": "rewardspaid",
+              "base": "",
+              "fields": [{
+              "name": "tpid",
+              "type": "string"
+              }]
+            },{
+              "name": "updatebounty",
+              "base": "",
+              "fields": [{
+              "name": "amount",
+              "type": "uint64"
+              }]
+              }
+          ],
+    "types": [],
+    "actions": [{
+          "name": "updatetpid",
+          "type": "updatetpid",
+          "ricardian_contract": ""
+        },{
+          "name": "rewardspaid",
+          "type": "rewardspaid",
+          "ricardian_contract": ""
+         },{
+           "name": "updatebounty",
+           "type": "updatebounty",
+           "ricardian_contract": ""
+          }],
+    "tables": [{
+        "name": "tpids",
+        "index_type": "i64",
+        "key_names": [
+          "id"
+        ],
+        "key_types": [
+           "uint64"
+        ],
+        "type": "tpid"
+        },{
+        "name": "bounties",
+        "index_type": "i64",
+        "key_names": [
+          "tokensminted"
+        ],
+        "key_types": [
+           "uint64"
+        ],
+        "type": "bounty"
+        }
+        ],
+    "ricardian_clauses": [],
+    "variants": [],
+    "abi_extensions": []
+}

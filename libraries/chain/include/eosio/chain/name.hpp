@@ -37,6 +37,35 @@ namespace eosio { namespace chain {
       return name;
    }
 
+   // Converts a string to a uint64_t using the same hashing mechanism as string_to_name without using the base32 symbols
+   static constexpr uint64_t string_to_uint64_t(const char *str) {
+
+       uint32_t len = 0;
+       while (str[len]) ++len;
+
+       uint64_t value = 0;
+       uint64_t multv = 0;
+       if (len > 0) {
+           multv = 60 / len;
+       }
+
+       for (uint32_t i = 0; i < len; ++i) {
+           uint64_t c = 0;
+           if (i < len) c = uint64_t(str[i]);
+
+           if (i < 60) {
+               c &= 0x1f;
+               c <<= 64 - multv * (i + 1);
+           } else {
+               c &= 0x0f;
+           }
+
+           value |= c;
+       }
+
+       return value;
+   }
+
 #define N(X) eosio::chain::string_to_name(#X)
 
    struct name {
@@ -44,7 +73,7 @@ namespace eosio { namespace chain {
       bool empty()const { return 0 == value; }
       bool good()const  { return !empty();   }
 
-      name( const char* str )   { set(str);           } 
+      name( const char* str )   { set(str);           }
       name( const string& str ) { set( str.c_str() ); }
 
       void set( const char* str );

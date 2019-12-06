@@ -110,6 +110,8 @@ Options:
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+#include <fio.common/keyops.hpp>
+
 #pragma pop_macro("N")
 
 #include <Inline/BasicTypes.h>
@@ -541,6 +543,16 @@ chain::action create_action(const vector<permission_level>& authorization, const
    return chain::action{authorization, code, act, variant_to_bin(code, act, args)};
 }
 
+chain::action create_bind2eosio(const string &fiopubkey, const string &new_account) {
+    fc::variant act_payload = fc::mutable_variant_object()
+            ("account", new_account.c_str())
+            ("client_key", fiopubkey.c_str())
+            ("existing", false);
+    return create_action(vector < permission_level > {{N(fio.address), "active"}}, N(fio.address), N(bind2eosio),
+                         act_payload);
+
+}
+
 chain::action create_buyram(const name& creator, const name& newaccount, const asset& quantity) {
    fc::variant act_payload = fc::mutable_variant_object()
          ("payer", creator.to_string())
@@ -653,7 +665,7 @@ authority parse_json_authority(const std::string& authorityJsonOrFile) {
 }
 
 authority parse_json_authority_or_key(const std::string& authorityJsonOrFile) {
-   if (boost::istarts_with(authorityJsonOrFile, "EOS") || boost::istarts_with(authorityJsonOrFile, "PUB_R1")) {
+   if (boost::istarts_with(authorityJsonOrFile, "FIO") || boost::istarts_with(authorityJsonOrFile, "PUB_R1")) {
       try {
          return authority(public_key_type(authorityJsonOrFile));
       } EOS_RETHROW_EXCEPTIONS(public_key_type_exception, "Invalid public key: ${public_key}", ("public_key", authorityJsonOrFile))
@@ -695,8 +707,8 @@ asset to_asset( account_name code, const string& s ) {
    return a;
 }
 
-inline asset to_asset( const string& s ) {
-   return to_asset( N(eosio.token), s );
+inline asset to_asset(const string &s) {
+    return to_asset(N(fio.token), s);
 }
 
 struct set_account_permission_subcommand {
@@ -1061,6 +1073,26 @@ struct create_account_subcommand {
             } else {
                send_actions( { create } );
             }
+
+            //Check if the account being created is a hashed_version from the public key
+            std::string hashed_name;
+            fioio::key_to_account(active_key_str, hashed_name);
+
+            if (hashed_name == account_name) {
+                try {
+                    //Check if fio.address account exists first. Cannot make call to bind2eosio without this
+                    fc::variant json;
+                    json = call(get_account_func, fc::mutable_variant_object("account_name", "fio.address"));
+                }
+                catch (boost::tuples::null_type) {
+                    std::cout << "Required fio.address account does not exist" << std::endl;
+                }
+                //Create bind2eosio action
+                auto bind = create_bind2eosio(active_key_str, hashed_name);
+                //Attach this action for bind2eosio to the transaction call for createaccount
+                send_actions({bind});
+            }
+
       });
    }
 };
@@ -1262,7 +1294,7 @@ struct list_producers_subcommand {
          for ( auto& row : result.rows )
             printf("%-13.13s %-57.57s %-59.59s %1.4f\n",
                    row["owner"].as_string().c_str(),
-                   row["producer_key"].as_string().c_str(),
+                   row["producer_fio_public_key"].as_string().c_str(),
                    row["url"].as_string().c_str(),
                    row["total_votes"].as_double() / weight);
          if ( !result.more.empty() )
@@ -2373,19 +2405,25 @@ int main( int argc, char** argv ) {
          return;
       }
 
-      auto pk    = r1 ? private_key_type::generate_r1() : private_key_type::generate();
+      auto pk = r1 ? private_key_type::generate_r1() : private_key_type::generate();
       auto privs = string(pk);
-      auto pubs  = string(pk.get_public_key());
+      auto pubs = string(pk.get_public_key());
+      string fioactor;
+      fioio::key_to_account(pubs.c_str(), fioactor);
       if (print_console) {
-         std::cout << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
-         std::cout << localized("Public key: ${key}", ("key", pubs ) ) << std::endl;
+          std::cout << localized("Private key: ${key}", ("key", privs)) << std::endl;
+          std::cout << localized("Public key: ${key}", ("key", pubs)) << std::endl;
+          std::cout << localized("FIO Public Address (actor name): ${actor}", ("actor", fioactor))
+                    << std::endl;
       } else {
-         std::cerr << localized("saving keys to ${filename}", ("filename", key_file)) << std::endl;
-         std::ofstream out( key_file.c_str() );
-         out << localized("Private key: ${key}", ("key",  privs) ) << std::endl;
-         out << localized("Public key: ${key}", ("key", pubs ) ) << std::endl;
+          std::cerr << localized("saving keys to ${filename}", ("filename", key_file)) << std::endl;
+          std::ofstream out(key_file.c_str());
+          out << localized("Private key: ${key}", ("key", privs)) << std::endl;
+          out << localized("Public key: ${key}", ("key", pubs)) << std::endl;
+          out << localized("FIO Public Address (actor name): ${actor}", ("actor", fioactor)) << std::endl;
       }
-   });
+  });
+
    create_key->add_flag( "--r1", r1, "Generate a key using the R1 curve (iPhone), instead of the K1 curve (Bitcoin)"  );
    create_key->add_option("-f,--file", key_file, localized("Name of file to write private/public key output to. (Must be set, unless \"--to-console\" is passed"));
    create_key->add_flag( "--to-console", print_console, localized("Print private/public keys to console."));
@@ -2396,6 +2434,17 @@ int main( int argc, char** argv ) {
    // convert subcommand
    auto convert = app.add_subcommand("convert", localized("Pack and unpack transactions"), false); // TODO also add converting action args based on abi from here ?
    convert->require_subcommand();
+
+   // fio account for public key
+   string fio_pub_key;
+   auto fio_account_for_key = convert->add_subcommand("fiokey_to_account",
+                                                      localized("generate an account name for the public key"));
+   fio_account_for_key->add_option("key", fio_pub_key, localized("the public key for the new account"));
+   fio_account_for_key->set_callback([&] {
+       string new_account;
+       fioio::key_to_account(fio_pub_key, new_account);
+       std::cout << new_account << std::endl;
+   });
 
    // pack transaction
    string plain_signed_transaction_json;
@@ -3061,7 +3110,7 @@ int main( int argc, char** argv ) {
    auto setActionPermission = set_action_permission_subcommand(setAction);
 
    // Transfer subcommand
-   string con = "eosio.token";
+   string con = "fio.token";
    string sender;
    string recipient;
    string amount;
@@ -3320,11 +3369,100 @@ int main( int argc, char** argv ) {
       auto priv_key = private_key_type(str_private_key);
       trx.sign(priv_key, *chain_id);
 
-      if(push_trx) {
-         auto trx_result = call(push_txn_func, packed_transaction(trx, packed_transaction::none));
-         std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+      if (push_trx) {
+
+          vector <action> &actions = trx.actions;
+
+          if (actions[0].name.to_string() == "regdomain") {
+              auto trx_result = call(reg_domain_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "regaddress") {
+              auto trx_result = call(reg_address_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "renewdomain") {
+              auto trx_result = call(renew_domain_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "renewaddress") {
+              auto trx_result = call(renew_address_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "bpclaim") {
+              auto trx_result = call(claim_bp_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "tpidclaim") {
+              auto trx_result = call(pay_tpid_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "bundlevote") {
+              auto trx_result = call(bundle_vote_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "unregprod") {
+              auto trx_result = call(unreg_producer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "remwhitelist") {
+              auto trx_result = call(rem_whitelist_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "addwhitelist") {
+              auto trx_result = call(add_whitelist_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "setfeemult") {
+              auto trx_result = call(set_feemult_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "setfeevote") {
+              auto trx_result = call(set_feevote_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "voteproxy") {
+              auto trx_result = call(proxy_vote_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "addaddress") {
+              auto trx_result = call(add_address_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "trnsfiopubky") {
+              auto trx_result = call(token_transfer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "burnexpired") {
+              auto trx_result = call(burn_expired_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "unregproxy") {
+              auto trx_result = call(unreg_proxy_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "regproxy") {
+              auto trx_result = call(reg_proxy_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "regproducer") {
+              auto trx_result = call(reg_producer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "voteproducer") {
+              auto trx_result = call(vote_producer_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          if (actions[0].name.to_string() == "renewdomain") {
+              auto trx_result = call(renew_domain_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
+          else {
+              auto trx_result = call(push_txn_func, packed_transaction(trx, packed_transaction::none));
+              std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+          }
       } else {
-         std::cout << fc::json::to_pretty_string(trx) << std::endl;
+          std::cout << fc::json::to_pretty_string(trx) << std::endl;
       }
    });
 
@@ -3867,7 +4005,7 @@ int main( int argc, char** argv ) {
    });
 
    // system subcommand
-   auto system = app.add_subcommand("system", localized("Send eosio.system contract action to the blockchain."), false);
+   auto system = app.add_subcommand("system", localized("Send fio.system contract action to the blockchain."), false);
    system->require_subcommand();
 
    auto createAccountSystem = create_account_subcommand( system, false /*simple*/ );

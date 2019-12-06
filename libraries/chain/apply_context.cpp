@@ -110,6 +110,7 @@ void apply_context::exec_one()
                }
             }
          }
+
       } FC_RETHROW_EXCEPTIONS( warn, "pending console output: ${console}", ("console", _pending_console_output) )
    } catch( const fc::exception& e ) {
       action_trace& trace = trx_context.get_action_trace( action_ordinal );
@@ -126,6 +127,7 @@ void apply_context::exec_one()
 
    r.global_sequence  = next_global_sequence();
    r.recv_sequence    = next_recv_sequence( *receiver_account );
+   r.response = _response;
 
    const account_metadata_object* first_receiver_account = nullptr;
    if( act->account == receiver ) {

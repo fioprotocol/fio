@@ -32,10 +32,10 @@ namespace eosio { namespace chain {
                      uint32_t closest_unnotified_ancestor_action_ordinal );
       action_trace(){}
 
+      fc::optional<action_receipt>    receipt;
       fc::unsigned_int                action_ordinal;
       fc::unsigned_int                creator_action_ordinal;
       fc::unsigned_int                closest_unnotified_ancestor_action_ordinal;
-      fc::optional<action_receipt>    receipt;
       action_name                     receiver;
       action                          act;
       bool                            context_free = false;
@@ -74,10 +74,9 @@ FC_REFLECT( eosio::chain::account_delta,
             (account)(delta) )
 
 FC_REFLECT( eosio::chain::action_trace,
-               (action_ordinal)(creator_action_ordinal)(closest_unnotified_ancestor_action_ordinal)(receipt)
-               (receiver)(act)(context_free)(elapsed)(console)(trx_id)(block_num)(block_time)
-               (producer_block_id)(account_ram_deltas)(except)(error_code) )
-
+               (receipt)(receiver)(act)(context_free)(elapsed)(console)(trx_id)(block_num)(block_time)
+               (producer_block_id)(account_ram_deltas)(except)(error_code) (action_ordinal)(creator_action_ordinal)(closest_unnotified_ancestor_action_ordinal) )
+               
 FC_REFLECT( eosio::chain::transaction_trace, (id)(block_num)(block_time)(producer_block_id)
                                              (receipt)(elapsed)(net_usage)(scheduled)
                                              (action_traces)(account_ram_delta)(failed_dtrx_trace)(except)(error_code) )
