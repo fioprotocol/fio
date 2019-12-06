@@ -1538,7 +1538,6 @@ if( options.count(name) ) { \
                     for (size_t pos = 0 + search_offset; pos < requests_rows_result.rows.size(); pos++) {
                         //get all the attributes of the fio request
                         uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                        string payer_hash_address = requests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
                         string payer_address = requests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                         string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
@@ -1713,7 +1712,6 @@ if( options.count(name) ) { \
                     for (size_t pos = 0 + search_offset; pos < payerrequests_rows_result.rows.size(); pos++) {
                         //get all the attributes of the fio request
                         uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                        string payer_hash_address = payerrequests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
                         string payer_address = payerrequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                         string payee_address = payerrequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = payerrequests_rows_result.rows[pos]["content"].as_string();
@@ -1791,7 +1789,6 @@ if( options.count(name) ) { \
                     for (size_t pos = 0 + search_offset; pos < payeerequests_rows_result.rows.size(); pos++) {
                         //get all the attributes of the fio request
                         uint64_t fio_request_id = payeerequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                        string payer_hash_address = payeerequests_rows_result.rows[pos]["payer_fio_address_hex_str"].as_string();
                         string payer_address = payeerequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                         string payee_address = payeerequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = payeerequests_rows_result.rows[pos]["content"].as_string();

@@ -496,6 +496,17 @@ namespace eosiosystem {
             producers_accounts.push_back(proxy_name);
         }
 
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto voter_prod_iter = votersbyowner.find(actor.value);
+
+        if (voter_prod_iter == votersbyowner.end()) {
+            uint64_t id = _voters.available_primary_key();
+            _voters.emplace(actor, [&](auto &p) {
+                p.id = id;
+                p.owner = actor;
+            });
+        }
+
         unlock_tokens(actor);
 
         update_votes(actor, proxy, producers_accounts, true);
