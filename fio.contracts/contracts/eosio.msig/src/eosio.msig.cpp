@@ -31,16 +31,19 @@ namespace eosio {
      * @param requested  this is the list of the accounts requested to approve the multi signature operation.
      * @param trx this is the list of transactions to be executed when the multi signature transaction is satisfied.
      */
-    void multisig::propose(ignore <name> proposer,
-                           ignore <name> proposal_name,
-                           ignore <std::vector<permission_level>> requested,
-                           ignore <transaction> trx) {
+    void multisig::propose(ignore<name> proposer,
+                           ignore<name> proposal_name,
+                           ignore<std::vector<permission_level>> requested,
+                           ignore<uint64_t> max_fee,
+                           ignore<transaction> trx
+                           ) {
         name _proposer;
         name _proposal_name;
         std::vector <permission_level> _requested;
+        uint64_t _maxfee;
         transaction_header _trx_header;
 
-        _ds >> _proposer >> _proposal_name >> _requested;
+        _ds >> _proposer >> _proposal_name >> _requested >> _maxfee;
 
         const char *trx_pos = _ds.pos();
         size_t size = _ds.remaining();
@@ -57,7 +60,7 @@ namespace eosio {
         eosio::action{
                 permission_level{_proposer, "active"_n},
                 fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_propose"), _proposer, 4000000000)
+                std::make_tuple(std::string("msig_propose"), _proposer, _maxfee)
         }.send();
 
         auto packed_requested = pack(_requested);
@@ -83,6 +86,7 @@ namespace eosio {
                 a.requested_approvals.push_back(approval{level, time_point{microseconds{0}}});
             }
         });
+
     }
 
     /**********
@@ -93,7 +97,7 @@ namespace eosio {
      *              ex: '{"actor": "partner22222", "permission": "active"}'
      * @param proposal_hash this is optional, the sha256 hash of the packed transaction being proposed
      */
-    void multisig::approve(name proposer, name proposal_name, permission_level level,
+    void multisig::approve(name proposer, name proposal_name, permission_level level, const uint64_t &max_fee,
                            const eosio::binary_extension<eosio::checksum256> &proposal_hash) {
         require_auth(level);
 
@@ -108,7 +112,7 @@ namespace eosio {
         eosio::action{
                 permission_level{level.actor, "active"_n},
                 fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_approve"), level.actor, 4000000000)
+                std::make_tuple(std::string("msig_approve"), level.actor, max_fee)
         }.send();
 
         approvals apptable(_self, proposer.value);
@@ -143,14 +147,14 @@ namespace eosio {
      * @param level this is the actor and permission dis-approving the multi signature operation
      *              ex: '{"actor": "partner22222", "permission": "active"}'
      */
-    void multisig::unapprove(name proposer, name proposal_name, permission_level level) {
+    void multisig::unapprove(name proposer, name proposal_name, permission_level level, const uint64_t &max_fee) {
         require_auth(level);
 
         //collect fees.
         eosio::action{
                 permission_level{level.actor, "active"_n},
                 fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_unapprove"), level.actor, 4000000000)
+                std::make_tuple(std::string("msig_unapprove"), level.actor, max_fee)
         }.send();
 
         approvals apptable(_self, proposer.value);
@@ -184,7 +188,7 @@ namespace eosio {
      *                 unless the proposal transaction is expired then the canceler may be other
      *                 than the proposer.
      */
-    void multisig::cancel(name proposer, name proposal_name, name canceler) {
+    void multisig::cancel(name proposer, name proposal_name, name canceler, const uint64_t &max_fee) {
         require_auth(canceler);
 
         proposals proptable(_self, proposer.value);
@@ -198,7 +202,7 @@ namespace eosio {
         eosio::action{
                 permission_level{canceler, "active"_n},
                 fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_cancel"), canceler, 4000000000)
+                std::make_tuple(std::string("msig_cancel"), canceler, max_fee)
         }.send();
 
         proptable.erase(prop);
@@ -224,7 +228,7 @@ namespace eosio {
      * @param proposal_name the proposal name of this multi signature transaction
      * @param executer the account name of the executor of this multi signature transaction.
      */
-    void multisig::exec(name proposer, name proposal_name, name executer) {
+    void multisig::exec(name proposer, name proposal_name, const uint64_t &max_fee, name executer) {
         require_auth(executer);
 
         proposals proptable(_self, proposer.value);
@@ -238,7 +242,7 @@ namespace eosio {
         eosio::action{
                 permission_level{executer, "active"_n},
                 fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_exec"), executer, 4000000000)
+                std::make_tuple(std::string("msig_exec"), executer, max_fee)
         }.send();
 
         approvals apptable(_self, proposer.value);
@@ -285,13 +289,13 @@ namespace eosio {
      * for thier account. this invalidates the specified account for all proposed multi signature transactions.
      * @param account the account to invalidate
      */
-    void multisig::invalidate(name account) {
+    void multisig::invalidate(name account,const uint64_t &max_fee) {
         require_auth(account);
         //collect fees.
         eosio::action{
                 permission_level{account, "active"_n},
                 fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_invalidate"), account, 4000000000)
+                std::make_tuple(std::string("msig_invalidate"), account, max_fee)
         }.send();
         invalidations inv_table(_self, _self.value);
         auto it = inv_table.find(account.value);

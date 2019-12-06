@@ -4,6 +4,7 @@
 #include <eosiolib/ignore.hpp>
 #include <eosiolib/transaction.hpp>
 
+
 namespace eosio {
 
     class [[eosio::contract("eosio.msig")]] multisig : public contract {
@@ -11,24 +12,28 @@ namespace eosio {
         using contract::contract;
 
         [[eosio::action]]
-        void propose(ignore <name> proposer, ignore <name> proposal_name,
-                     ignore <std::vector<permission_level>> requested, ignore <transaction> trx);
+        void propose(ignore<name> proposer,
+                     ignore<name> proposal_name,
+                     ignore<std::vector<permission_level>> requested,
+                     ignore<uint64_t> max_fee,
+                     ignore<transaction> trx
+        );
 
         [[eosio::action]]
-        void approve(name proposer, name proposal_name, permission_level level,
+        void approve(name proposer, name proposal_name, permission_level level, const uint64_t &max_fee,
                      const eosio::binary_extension<eosio::checksum256> &proposal_hash);
 
         [[eosio::action]]
-        void unapprove(name proposer, name proposal_name, permission_level level);
+        void unapprove(name proposer, name proposal_name, permission_level level, const uint64_t &max_fee);
 
         [[eosio::action]]
-        void cancel(name proposer, name proposal_name, name canceler);
+        void cancel(name proposer, name proposal_name, name canceler, const uint64_t &max_fee);
 
         [[eosio::action]]
-        void exec(name proposer, name proposal_name, name executer);
+        void exec(name proposer, name proposal_name, const uint64_t &max_fee, name executer);
 
         [[eosio::action]]
-        void invalidate(name account);
+        void invalidate(name account,const uint64_t &max_fee);
 
         using propose_action = eosio::action_wrapper<"propose"_n, &multisig::propose>;
         using approve_action = eosio::action_wrapper<"approve"_n, &multisig::approve>;
