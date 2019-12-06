@@ -28,6 +28,7 @@
 #define MINUTE 60
 #define YEARDAYS 365
 #define MAXBPS 42
+#define MAXACTIVEBPS 21
 
 #include "fio.treasury.hpp"
 
@@ -239,10 +240,10 @@ public:
                         }
                         // All bps are now in pay schedule, calculate the shares
                         uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
-                        uint64_t abpcount = 21;
+                        uint64_t abpcount = MAXACTIVEBPS;
 
                         if (bpcount > MAXBPS) bpcount = MAXBPS; //limit to 42 producers in voteshares
-                        if (bpcount <= 21) abpcount = bpcount;
+                        if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
                         uint64_t toactivebps = static_cast<uint64_t>(bprewardstat.rewards * .40);
@@ -291,8 +292,7 @@ public:
                                 // Reduce the producer's share of daily rewards and bucketrewards
 
                                 if (bpiter->abpayshare > 0) {
-                                        auto temp = bprewards.get().rewards;
-                                        bprewards.set(bpreward{temp - payout}, _self);
+                                        bprewards.set(bpreward{bprewards.get().rewards - payout}, _self);
                                 }
                                 //Keep track of rewards paid for reserve minting
                                 clockstate.modify(clockiter, get_self(), [&](auto &entry) {
