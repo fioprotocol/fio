@@ -121,6 +121,8 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
         auto lockiter = lockedTokensTable.find(tokenowner.value);
         if(lockiter != lockedTokensTable.end()) {
                 print(" found item in lockedtokens","\n");
+                print("amount in account is ", amount,"\n");
+                print("previous fee amount is ",feeamount,"\n");
                 print(" amount is ",amount-feeamount," remaining locked amount ",lockiter->remaining_locked_amount, "\n");
 
                 check(amount >= (lockiter->remaining_locked_amount-feeamount),"lock amount is incoherent.");
@@ -160,7 +162,7 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
 
                 } else if (isfee) {
 
-                        print("type is 2 ","\n");
+                        print("type is  ",lockiter->grant_type,"\n");
                         uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
                         print(" unlocked balance is ",unlockedbalance,"\n");
                         if (unlockedbalance >= transferamount) {
@@ -198,7 +200,7 @@ void token::transfer(name from,
                      asset quantity,
                      string memo) {
 
-        print("EDEDEDEDED calling transfer from ", from, " to ", to," quantity ", quantity,"\n");
+        print("calling transfer from ", from, " to ", to," quantity ", quantity,"\n");
         /* we permit the use of transfer from the system account to any other accounts,
          * we permit the use of transfer from the treasury account to any other accounts.
          * we permit the use of transfer from any other accounts to the treasury account.
