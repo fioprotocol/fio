@@ -817,8 +817,8 @@ namespace eosiosystem {
     }
 
     void system_contract::unlocktokens(const name &actor){
-       require_auth(TokenContract);
-       unlock_tokens(actor);
+        require_auth(TokenContract);
+        computeremaininglockedtokens(actor,true);
     }
 
     uint64_t system_contract::get_votable_balance(const name &tokenowner){
@@ -993,12 +993,11 @@ namespace eosiosystem {
         });
     }
 
+
     void system_contract::updlocked(const name &owner,const uint64_t &amountremaining)
     {
-
         print(" calling updlocked","\n");
         require_auth(TokenContract);
-
 
         auto iterlocked = _lockedtokens.find(owner.value);
         check(iterlocked != _lockedtokens.end(), "locked funds account not found.");
@@ -1009,8 +1008,9 @@ namespace eosiosystem {
         _lockedtokens.modify(iterlocked, _self, [&](auto &av) {
             av.remaining_locked_amount = amountremaining;
         });
-
     }
+
+
 
     void system_contract::setautoproxy(const name &proxy,const name &owner)
     {

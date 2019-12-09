@@ -278,6 +278,133 @@ namespace fioio {
         }
     }
 
+
+
+    //this will compute the present unlocked tokens for this user based on the
+    //unlocking schedule, it will update the lockedtokens table if the doupdate
+    //is set to true.
+    uint64_t computeremaininglockedtokens(const name &actor, bool doupdate){
+        uint32_t present_time = now();
+
+        print(" unlock_tokens for ",actor,"\n");
+
+        print(" present time is ",present_time,"\n");
+
+
+        eosiosystem::locked_tokens_table lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
+        auto lockiter = lockedTokensTable.find(actor.value);
+        if(lockiter != lockedTokensTable.end()){
+            if(lockiter->inhibit_unlocking && (lockiter->grant_type == 2)){
+                return lockiter->remaining_locked_amount;
+            }
+            if (lockiter->unlocked_period_count < 9)  {
+                print(" issue time is ",lockiter->timestamp,"\n");
+                print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
+                // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
+                //we kludge the time block evaluation to become one block per 3 minutes
+                uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 180) / 1;
+                print("--------------------DANGER------------------------------ ","\n");
+                print("--------------------DANGER------------------------------ ","\n");
+                print("--------------------DANGER------------------------------ ","\n");
+                print("------time step for unlocking is kludged to 3 min-------","\n");
+                print("--------------------DANGER------------------------------ ","\n");
+                print("--------------------DANGER------------------------------ ","\n");
+                print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
+                uint32_t numberVestingPayouts = lockiter->unlocked_period_count;
+                print(" number payouts so far ",numberVestingPayouts,"\n");
+                uint32_t remainingPayouts = 0;
+
+                uint64_t newlockedamount = lockiter->remaining_locked_amount;
+                print(" locked amount ",newlockedamount,"\n");
+
+                uint64_t totalgrantamount = lockiter->total_grant_amount;
+                print(" total grant amount ",totalgrantamount,"\n");
+
+                uint64_t amountpay = 0;
+
+                uint64_t addone = 0;
+
+                if (timeElapsed90DayBlocks > 8){
+                    timeElapsed90DayBlocks = 8;
+                }
+
+                bool didsomething = false;
+
+                //do the day zero unlocking, this is the first unlocking.
+                if(numberVestingPayouts == 0) {
+                    if (lockiter->grant_type == 1) {
+                        //pay out 1% for type 1
+                        amountpay = totalgrantamount / 100;
+                        print(" amount to pay type 1 ",amountpay,"\n");
+
+                    } else if (lockiter->grant_type == 2) {
+                        //pay out 2% for type 2
+                        amountpay = (totalgrantamount/100)*2;
+                        print(" amount to pay type 2 ",amountpay,"\n");
+                    }else{
+                        check(false,"unknown grant type");
+                    }
+                    if (newlockedamount > amountpay) {
+                        newlockedamount -= amountpay;
+                    }else {
+                        newlockedamount = 0;
+                    }
+                    print(" recomputed locked amount ",newlockedamount,"\n");
+                    addone = 1;
+                    didsomething = true;
+                }
+
+                //this accounts for the first unlocking period being the day 0 unlocking period.
+                if (numberVestingPayouts >0){
+                    numberVestingPayouts--;
+                }
+
+                if (timeElapsed90DayBlocks > numberVestingPayouts) {
+                    remainingPayouts = timeElapsed90DayBlocks - numberVestingPayouts;
+                    uint64_t percentperblock = 0;
+                    if (lockiter->grant_type == 1) {
+                        //this logic assumes to have 3 decimal places in the specified percentage
+                        percentperblock = 12375;
+                    } else {
+                        //this is assumed to have 3 decimal places in the specified percentage
+                        percentperblock = 12275;
+                    }
+                    print("remaining payouts ", remainingPayouts, "\n");
+                    //this is assumed to have 3 decimal places in the specified percentage
+                    amountpay = (remainingPayouts * (totalgrantamount * percentperblock)) / 100000;
+                    print(" amount to pay ", amountpay, "\n");
+
+                    if (newlockedamount > amountpay) {
+                        newlockedamount -= amountpay;
+                    } else {
+                        newlockedamount = 0;
+                    }
+                    print(" recomputed locked amount ", newlockedamount, "\n");
+                    didsomething = true;
+                }
+
+                if(didsomething && doupdate) {
+                    //update the locked table.
+                    lockedTokensTable.modify(lockiter, SYSTEMACCOUNT, [&](auto &av) {
+                        av.remaining_locked_amount = newlockedamount;
+                        av.unlocked_period_count += remainingPayouts + addone;
+                    });
+                }
+
+                return newlockedamount;
+
+            }else{
+                return lockiter->remaining_locked_amount;
+            }
+        }
+        return 0;
+    }
+
+
+
+
+
+
     void processbucketrewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
         action(
