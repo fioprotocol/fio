@@ -109,7 +109,7 @@ namespace eosio {
 
         void sub_balance(name owner, asset value);
         void add_balance(name owner, asset value, name ram_payer);
-        bool can_transfer(const name &tokenowner,const uint64_t &transferamount, const bool &isfee);
+        bool can_transfer(const name &tokenowner,const uint64_t &feeamount,const uint64_t &transferamount, const bool &isfee);
 
     public:
 
@@ -125,6 +125,7 @@ namespace eosio {
             string public_key;
             bool existing;
         };
+
 
         static constexpr symbol FIOSYMBOL = symbol("FIO", 9);
         static constexpr name FIOISSUER = name("eosio"_n);

@@ -107,7 +107,7 @@ void token::retire(asset quantity, string memo) {
         sub_balance(FIOISSUER, quantity);
 }
 
-bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
+bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const uint64_t &transferamount,
                          const bool &isfee){
         print(" calling can transfer ",tokenowner,"\n");
         //get fio balance for this account,
@@ -121,12 +121,14 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
         auto lockiter = lockedTokensTable.find(tokenowner.value);
         if(lockiter != lockedTokensTable.end()) {
                 print(" found item in lockedtokens","\n");
-                check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
+                print(" amount is ",amount-feeamount," remaining locked amount ",lockiter->remaining_locked_amount, "\n");
+
+                check(amount >= (lockiter->remaining_locked_amount-feeamount),"lock amount is incoherent.");
 
                 uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
                 if(
                         //if lock type 1 always subtract remaining locked amount from balance
-                        (lockiter->grant_type == 1) ||
+                        ((lockiter->grant_type == 1) && !isfee) ||
                         //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
                         ((lockiter->grant_type == 2)&&
                          ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
@@ -134,11 +136,15 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
                         ((lockiter->grant_type == 2)&&  !isfee)
                         ) {
                         print(" type is ",lockiter->grant_type,"\n");
+                        //recompute the remaining locked amount based on vesting.
+                        uint64_t unlockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;
+                        print ("new unlocked token amount is ",unlockedTokenAmount,"\n");
                         //subtract the lock amount from the balance
-                        if (lockiter->remaining_locked_amount < amount) {
-                                print(" transferrable balance is being recomputed -- subtracting locked amount ",lockiter->remaining_locked_amount,
+                        if (unlockedTokenAmount < amount) {
+
+                                print(" transferrable balance is being recomputed -- subtracting locked amount ",unlockedTokenAmount,
                                       " from balance ", amount, " for account ", tokenowner,"\n");
-                                amount -= lockiter->remaining_locked_amount;
+                                amount -= unlockedTokenAmount;
                                 print(" resulting amount is  ",amount,
                                       " transferamount is ", transferamount,"\n");
                                 if (amount >= transferamount) {
@@ -152,7 +158,7 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
                                 return false;
                         }
 
-                } else if ((lockiter->grant_type == 2) && isfee) {
+                } else if (isfee) {
 
                         print("type is 2 ","\n");
                         uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
@@ -168,10 +174,12 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
                                 print(" new unlocked amount is ", new_remaining_unlocked_amount,
                                       "\n");
 
+
                                 INLINE_ACTION_SENDER(eosiosystem::system_contract, updlocked)
                                         ("eosio"_n, {{_self, "active"_n}},
                                         {tokenowner, new_remaining_unlocked_amount}
                                         );
+
                                 print(" transfer is approved ","\n");
                                 return true;
                         }
@@ -190,6 +198,7 @@ void token::transfer(name from,
                      asset quantity,
                      string memo) {
 
+        print("EDEDEDEDED calling transfer from ", from, " to ", to," quantity ", quantity,"\n");
         /* we permit the use of transfer from the system account to any other accounts,
          * we permit the use of transfer from the treasury account to any other accounts.
          * we permit the use of transfer from any other accounts to the treasury account.
@@ -215,7 +224,7 @@ void token::transfer(name from,
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
         //we need to check the from, check for locked amount remaining
-        check(can_transfer(from, quantity.amount,true),"insufficient unlocked funds for transfer.");
+        check(can_transfer(from,0, quantity.amount,true),"insufficient unlocked funds for transfer.");
 
 
 
@@ -339,8 +348,9 @@ void token::trnsfiopubky(const string &payee_public_key,
                 {actor}
                 );
 
+
         //we need to check the from, check for locked amount remaining
-        check(can_transfer(actor, qty.amount,false),"insufficient unlocked funds for transfer.");
+        check(can_transfer(actor,reg_amount, qty.amount,false),"insufficient unlocked funds for transfer.");
 
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
@@ -356,6 +366,7 @@ void token::trnsfiopubky(const string &payee_public_key,
                         {new_account_name, true}
                         );
         }
+
 
         nlohmann::json json = {{"status",        "OK"},
                 {"fee_collected", reg_amount}};

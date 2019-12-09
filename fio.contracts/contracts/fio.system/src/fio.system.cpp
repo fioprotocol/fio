@@ -227,16 +227,17 @@ namespace eosiosystem {
             //     to the total grant.
             //     expected result   1/3 of total grant should be used as voting.
             //  set now kludge in unlock_tokens to be (181*SECONDSPERDAY);
-           /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+             _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
                   a.owner = "euwdcp13zlrj"_n;
                   a.total_grant_amount = 2000000000000;
                   a.unlocked_period_count = 1;
                   a.grant_type = 1;
                   a.inhibit_unlocking = 0;
-                  a.remaining_locked_amount = 1888000000000;
+                  a.remaining_locked_amount = 2000000000000;
+                  a.timestamp = now();
 
               });
-              */
+
 
             // 1) grant type 2, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
             //     to the total grant.
@@ -388,8 +389,9 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         // delegate_bandwidth.cpp
         (updatepower)
         // voting.cpp
-        (regproducer)(regiproducer)(unregprod)(voteproducer)(voteproxy)(inhibitunlck)(updlocked)(unlocktokens)(setautoproxy)(crautoproxy)(
-        unregproxy)(regiproxy)(regproxy)
+        (regproducer)(regiproducer)(unregprod)(voteproducer)(voteproxy)(inhibitunlck)
+        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)
+        (unregproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)
         (resetclaim)
