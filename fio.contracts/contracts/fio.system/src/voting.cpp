@@ -507,7 +507,7 @@ namespace eosiosystem {
             });
         }
 
-        computeremaininglockedtokens(actor,true);
+        eosio::token::computeremaininglockedtokens(actor,true);
 
         update_votes(actor, proxy, producers_accounts, true);
 
@@ -639,7 +639,7 @@ namespace eosiosystem {
             });
         }
 
-        computeremaininglockedtokens(actor,true);
+        eosio::token::computeremaininglockedtokens(actor,true);
 
         update_votes(actor, proxy_name, producers, true);
 
@@ -705,7 +705,7 @@ namespace eosiosystem {
 
     void system_contract::unlocktokens(const name &actor){
         require_auth(TokenContract);
-        computeremaininglockedtokens(actor,true);
+        eosio::token::computeremaininglockedtokens(actor,true);
     }
 
     uint64_t system_contract::get_votable_balance(const name &tokenowner){
@@ -725,7 +725,7 @@ namespace eosiosystem {
         if(lockiter != _lockedtokens.end()){
             print(" found locked token holder ",tokenowner,"\n");
             print(" locked amount remaining is  ",lockiter->remaining_locked_amount,"\n");
-           // check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
+            check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
             //if lock type 1 always subtract remaining locked amount from balance
             if (lockiter->grant_type == 1) {
                 print(" grant type is 1  ","\n");
