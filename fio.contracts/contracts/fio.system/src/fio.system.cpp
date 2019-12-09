@@ -190,7 +190,7 @@ namespace eosiosystem {
                 a.total_grant_amount = 1000000000000;
                 a.unlocked_period_count = 0;
                 a.grant_type = 1;
-                a.inhibit_unlocking = 0;
+                a.inhibit_unlocking = 1;
                 a.remaining_locked_amount = 1000000000000;
                 a.timestamp = now();
             });
@@ -199,7 +199,7 @@ namespace eosiosystem {
                 a.total_grant_amount = 1000000000000;
                 a.unlocked_period_count = 0;
                 a.grant_type = 2;
-                a.inhibit_unlocking = 0;
+                a.inhibit_unlocking = 1;
                 a.remaining_locked_amount = 1000000000000;
                 a.timestamp = now();
             });
@@ -232,7 +232,7 @@ namespace eosiosystem {
                   a.total_grant_amount = 2000000000000;
                   a.unlocked_period_count = 1;
                   a.grant_type = 1;
-                  a.inhibit_unlocking = 0;
+                  a.inhibit_unlocking = 1;
                   a.remaining_locked_amount = 2000000000000;
                   a.timestamp = now();
 
