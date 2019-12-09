@@ -153,11 +153,11 @@ namespace eosio {
                     print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
                     // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
                     //we kludge the time block evaluation to become one block per 3 minutes
-                    uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 180) / 1;
+                    uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 60) / 1;
                     print("--------------------DANGER------------------------------ ","\n");
                     print("--------------------DANGER------------------------------ ","\n");
                     print("--------------------DANGER------------------------------ ","\n");
-                    print("------time step for unlocking is kludged to 3 min-------","\n");
+                    print("------time step for unlocking is kludged to 1 min-------","\n");
                     print("--------------------DANGER------------------------------ ","\n");
                     print("--------------------DANGER------------------------------ ","\n");
                     print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
