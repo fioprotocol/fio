@@ -384,11 +384,14 @@ namespace fioio {
                 }
 
                 if(didsomething && doupdate) {
+                    print(" updating recomputed locked amount into table ", newlockedamount, "\n");
                     //update the locked table.
                     lockedTokensTable.modify(lockiter, SYSTEMACCOUNT, [&](auto &av) {
                         av.remaining_locked_amount = newlockedamount;
                         av.unlocked_period_count += remainingPayouts + addone;
                     });
+                }else {
+                    print(" NOT updating recomputed locked amount into table ", newlockedamount, "\n");
                 }
 
                 return newlockedamount;
