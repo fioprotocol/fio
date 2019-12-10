@@ -139,9 +139,6 @@ namespace eosio {
 
             print(" unlock_tokens for ",actor,"\n");
 
-            print(" present time is ",present_time,"\n");
-
-
             eosiosystem::locked_tokens_table lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
             auto lockiter = lockedTokensTable.find(actor.value);
             if(lockiter != lockedTokensTable.end()){
@@ -243,7 +240,8 @@ namespace eosio {
                         uint64_t amount = my_balance.amount;
 
                         if (newlockedamount > amount){
-                            print(" WARNING computed amount ",newlockedamount," is more than amount in account ",amount, "resetting of remaining locked amount to ", amount, "\n");
+                            print(" WARNING computed amount ",newlockedamount," is more than amount in account ",amount," \n ",
+                                    " Transaction processing order can cause this, this amount is being re-aligned, resetting remaining locked amount to ", amount, "\n");
                             newlockedamount = amount;
                         }
                         //update the locked table.

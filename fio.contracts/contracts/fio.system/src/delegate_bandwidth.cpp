@@ -53,8 +53,6 @@ namespace eosiosystem {
 
     // void system_contract::update_voting_power(const name &voter, const asset &total_update) {
    void system_contract::updatepower(const name &voter,bool updateonly) {
-
-        print(" called update power.","\n");
         check(
                 (has_auth(AddressContract) ||
                  has_auth(TokenContract) ||
@@ -68,7 +66,6 @@ namespace eosiosystem {
 
         auto voter_itr = _voters.find(voter.value);
         if ((voter_itr == _voters.end())&& updateonly) {
-            print(" could not find voter.",voter,"\n");
             //its not there so return.
             return;
         }
