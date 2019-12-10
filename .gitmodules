@@ -11,7 +11,7 @@
 	url = https://github.com/eosio/berkeley-softfloat-3
 [submodule "libraries/fc"]
 	path = libraries/fc
-	url = https://github.com/EOSIO/fc
+	url = https://github.com/fioprotocol/fc
 [submodule "libraries/wabt"]
 	path = libraries/wabt
 	url = https://github.com/EOSIO/wabt
