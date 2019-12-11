@@ -82,6 +82,7 @@ namespace fioio {
     constexpr auto ErrorContentLimit = ident | httpDataError | 144; //     constexpr auto ErrorInvalidAmount = ident | httpDataError | 143; // Invalid amount value
     constexpr auto ErrorPagingInvalid = ident | httpDataError | 145; //Invalid FIO Public Key (400)
     constexpr auto ErrorInvalidNumberAddresses = ident | httpDataError | 146;   // Invalid number of addresses
+    constexpr auto ErrorInsufficientUnlockedFunds = ident | httpDataError | 147;   // not enough unlocked funds
 
 
     /**
