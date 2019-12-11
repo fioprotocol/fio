@@ -671,19 +671,19 @@ chain::action create_setcode(const name &account, const bytes &code) {
 }
 
 chain::action
-create_updateauth(const name &account, const name &permission, const name &parent, const authority &auth) {
+create_updateauth(const name &account, const name &permission, const name &parent, const authority &auth, const uint64_t max_fee) {
     return action{get_account_permissions(tx_permission, {account, config::active_name}),
-                  updateauth{account, permission, parent, auth}};
+                  updateauth{account, permission, parent, auth, max_fee}};
 }
 
-chain::action create_deleteauth(const name &account, const name &permission) {
+chain::action create_deleteauth(const name &account, const name &permission, const uint64_t max_fee) {
     return action{get_account_permissions(tx_permission, {account, config::active_name}),
-                  deleteauth{account, permission}};
+                  deleteauth{account, permission, max_fee}};
 }
 
-chain::action create_linkauth(const name &account, const name &code, const name &type, const name &requirement) {
+chain::action create_linkauth(const name &account, const name &code, const name &type, const name &requirement, uint64_t max_fee) {
     return action{get_account_permissions(tx_permission, {account, config::active_name}),
-                  linkauth{account, code, type, requirement}};
+                  linkauth{account, code, type, requirement, max_fee}};
 }
 
 chain::action create_unlinkauth(const name &account, const name &code, const name &type) {
@@ -753,6 +753,7 @@ struct set_account_permission_subcommand {
     name account;
     name permission;
     string authority_json_or_file;
+    uint64_t max_fee;
     name parent;
     bool add_code;
     bool remove_code;
@@ -766,6 +767,8 @@ struct set_account_permission_subcommand {
                                 localized("The permission name to set/delete an authority for"))->required();
         permissions->add_option("authority", authority_json_or_file, localized(
                 "[delete] NULL, [create/update] public key, JSON string or filename defining the authority, [code] contract name"));
+        permissions->add_option("max_fee", max_fee, localized(
+                " maximum fee to pay in smallest units of FIO (SUFs)"));
         permissions->add_option("parent", parent, localized(
                 "[create] The permission name of this parents permission, defaults to 'active'"));
         permissions->add_flag("--add-code", add_code,
@@ -788,7 +791,7 @@ struct set_account_permission_subcommand {
             bool need_auth = add_code || remove_code;
 
             if (!need_auth && boost::iequals(authority_json_or_file, "null")) {
-                send_actions({create_deleteauth(account, permission)});
+                send_actions({create_deleteauth(account, permission, max_fee)});
                 return;
             }
 
@@ -862,7 +865,7 @@ struct set_account_permission_subcommand {
                                 // remove code permission, if authority becomes empty by the removal of code permission, delete permission
                                 auth.accounts.erase(itr2);
                                 if (auth.keys.empty() && auth.accounts.empty() && auth.waits.empty()) {
-                                    send_actions({create_deleteauth(account, permission)});
+                                    send_actions({create_deleteauth(account, permission, max_fee)});
                                     return;
                                 }
                             } else {
@@ -895,7 +898,7 @@ struct set_account_permission_subcommand {
                 auth = parse_json_authority_or_key(authority_json_or_file);
             }
 
-            send_actions({create_updateauth(account, permission, parent, auth)});
+            send_actions({create_updateauth(account, permission, parent, auth, max_fee)});
         });
     }
 };
@@ -905,6 +908,7 @@ struct set_action_permission_subcommand {
     string codeStr;
     string typeStr;
     string requirementStr;
+    uint64_t max_fee;
 
     set_action_permission_subcommand(CLI::App *actionRoot) {
         auto permissions = actionRoot->add_subcommand("permission",
@@ -916,6 +920,8 @@ struct set_action_permission_subcommand {
         permissions->add_option("type", typeStr, localized("the type of the action"))->required();
         permissions->add_option("requirement", requirementStr, localized(
                 "[delete] NULL, [set/update] The permission name require for executing the given action"))->required();
+        permissions->add_option("max_fee", max_fee, localized(
+                "this is the maximum desired fee in smallest units of FIO (SUFs)"))->required();
 
         add_standard_transaction_options(permissions, "account@active");
 
@@ -929,7 +935,8 @@ struct set_action_permission_subcommand {
                 send_actions({create_unlinkauth(account, code, type)});
             } else {
                 name requirement = name(requirementStr);
-                send_actions({create_linkauth(account, code, type, requirement)});
+                uint64_t maxfee = max_fee;
+                send_actions({create_linkauth(account, code, type, requirement, max_fee)});
             }
         });
     }
@@ -3810,7 +3817,9 @@ int main(int argc, char **argv) {
     string proposed_transaction;
     string proposed_contract;
     string proposed_action;
+    uint64_t max_fee;
     string proposer;
+
     unsigned int proposal_expiration_hours = 24;
     CLI::callback_t parse_expiration_hours = [&](CLI::results_t res) -> bool {
         unsigned int value_s;
@@ -3834,6 +3843,8 @@ int main(int argc, char **argv) {
     propose_action->add_option("action", proposed_action, localized("action of deferred transaction"))->required();
     propose_action->add_option("data", proposed_transaction,
                                localized("The JSON string or filename defining the action to propose"))->required();
+    propose_action->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
     propose_action->add_option("proposer", proposer, localized("Account proposing the transaction"));
     propose_action->add_option("proposal_expiration", parse_expiration_hours,
                                localized("Proposal expiration interval in hours"));
@@ -3898,6 +3909,7 @@ int main(int argc, char **argv) {
                 ("proposer", proposer)
                 ("proposal_name", proposal_name)
                 ("requested", requested_perm_var)
+                ("max_fee",max_fee)
                 ("trx", trx_var);
 
         send_actions({chain::action{accountPermissions, "eosio.msig", "propose",
@@ -3910,6 +3922,8 @@ int main(int argc, char **argv) {
     propose_trx->add_option("proposal_name", proposal_name, localized("proposal name (string)"))->required();
     propose_trx->add_option("requested_permissions", requested_perm,
                             localized("The JSON string or filename defining requested permissions"))->required();
+    propose_trx->add_option("max_fee", max_fee,
+                            localized("The max desired fee in smallest units of FIO (SUFs)"))->required();
     propose_trx->add_option("transaction", trx_to_push,
                             localized("The JSON string or filename defining the transaction to push"))->required();
     propose_trx->add_option("proposer", proposer, localized("Account proposing the transaction"));
@@ -3944,6 +3958,7 @@ int main(int argc, char **argv) {
                 ("proposer", proposer)
                 ("proposal_name", proposal_name)
                 ("requested", requested_perm_var)
+                ("max_fee",max_fee)
                 ("trx", trx_var);
 
         send_actions({chain::action{accountPermissions, "eosio.msig", "propose",
@@ -4160,7 +4175,8 @@ int main(int argc, char **argv) {
         auto args = fc::mutable_variant_object()
                 ("proposer", proposer)
                 ("proposal_name", proposal_name)
-                ("level", perm_var);
+                ("level", perm_var)
+                ("max_fee", max_fee);
 
         if (proposal_hash.size()) {
             args("proposal_hash", proposal_hash);
@@ -4178,6 +4194,8 @@ int main(int argc, char **argv) {
     approve->add_option("proposal_name", proposal_name, localized("proposal name (string)"))->required();
     approve->add_option("permissions", perm,
                         localized("The JSON string of filename defining approving permissions"))->required();
+    approve->add_option("max_fee", max_fee,
+                        localized("The max acceptable fee amount in smallest units of FIO (SUFs)"))->required();
     approve->add_option("proposal_hash", proposal_hash, localized(
             "Hash of proposed transaction (i.e. transaction ID) to optionally enforce as a condition of the approval"));
     approve->set_callback([&] { approve_or_unapprove("approve"); });
@@ -4189,6 +4207,8 @@ int main(int argc, char **argv) {
     unapprove->add_option("proposal_name", proposal_name, localized("proposal name (string)"))->required();
     unapprove->add_option("permissions", perm,
                           localized("The JSON string of filename defining approving permissions"))->required();
+    approve->add_option("max_fee", max_fee,
+                        localized("The max acceptable fee amount in smallest units of FIO (SUFs)"))->required();
     unapprove->set_callback([&] { approve_or_unapprove("unapprove"); });
 
     // multisig invalidate
@@ -4241,6 +4261,7 @@ int main(int argc, char **argv) {
     add_standard_transaction_options(exec, "executer@active");
     exec->add_option("proposer", proposer, localized("proposer name (string)"))->required();
     exec->add_option("proposal_name", proposal_name, localized("proposal name (string)"))->required();
+    exec->add_option("max_fee",max_fee, localized("max acceptable fee in smallest amount of FIO (SUFs)"))->required();
     exec->add_option("executer", executer, localized("account paying for execution (string)"));
     exec->set_callback([&] {
                            auto accountPermissions = get_account_permissions(tx_permission);
@@ -4259,6 +4280,7 @@ int main(int argc, char **argv) {
                            auto args = fc::mutable_variant_object()
                                    ("proposer", proposer)
                                    ("proposal_name", proposal_name)
+                                   ("max_fee",max_fee)
                                    ("executer", executer);
 
                            send_actions({chain::action{accountPermissions, "eosio.msig", "exec",
