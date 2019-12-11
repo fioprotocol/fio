@@ -278,6 +278,8 @@ namespace fioio {
         }
     }
 
+
+
     void processbucketrewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
         action(

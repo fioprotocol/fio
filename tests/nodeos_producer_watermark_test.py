@@ -170,7 +170,7 @@ killEosInstances=not dontKill
 killWallet=not dontKill
 
 WalletdName=Utils.EosWalletName
-ClientName="cleos"
+ClientName="clio"
 
 try:
     assert(totalNodes == 3)

@@ -74,7 +74,6 @@ void token::issue(name to, asset quantity, string memo) {
 
 
         if (amount > 0 && amount < MAXFIOMINT) {
-            print("\n\nMintfio called\n");
             action(permission_level{"eosio"_n, "active"_n},
                    "fio.token"_n, "issue"_n,
                    make_tuple(to, asset(amount, symbol("FIO", 9)),
@@ -107,9 +106,9 @@ void token::retire(asset quantity, string memo) {
         sub_balance(FIOISSUER, quantity);
 }
 
-bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
+bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const uint64_t &transferamount,
                          const bool &isfee){
-        print(" calling can transfer ",tokenowner,"\n");
+
         //get fio balance for this account,
         uint32_t present_time = now();
         symbol sym_name = symbol("FIO", 9);
@@ -120,64 +119,43 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &transferamount,
         //based on grant type.
         auto lockiter = lockedTokensTable.find(tokenowner.value);
         if(lockiter != lockedTokensTable.end()) {
-                print(" found item in lockedtokens","\n");
-                check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
+                check(amount >= (lockiter->remaining_locked_amount-feeamount),"lock amount is incoherent.");
 
                 uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
                 if(
                         //if lock type 1 always subtract remaining locked amount from balance
-                        (lockiter->grant_type == 1) ||
+                        ((lockiter->grant_type == 1) && !isfee) ||
                         //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
                         ((lockiter->grant_type == 2)&&
                          ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
                         //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
                         ((lockiter->grant_type == 2)&&  !isfee)
                         ) {
-                        print(" type is ",lockiter->grant_type,"\n");
+                        //recompute the remaining locked amount based on vesting.
+                        uint64_t unlockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;
                         //subtract the lock amount from the balance
-                        if (lockiter->remaining_locked_amount < amount) {
-                                print(" transferrable balance is being recomputed -- subtracting locked amount ",lockiter->remaining_locked_amount,
-                                      " from balance ", amount, " for account ", tokenowner,"\n");
-                                amount -= lockiter->remaining_locked_amount;
-                                print(" resulting amount is  ",amount,
-                                      " transferamount is ", transferamount,"\n");
-                                if (amount >= transferamount) {
-                                        print(" transfer approved","\n");
-                                } else{
-                                        print(" transfer NOT approved","\n");
-                                }
+                        if (unlockedTokenAmount < amount) {
+                                amount -= unlockedTokenAmount;
                                 return (amount >= transferamount);
                         } else {
-                                print(" transfer NOT approved, remaining locked amount >= amount","\n");
                                 return false;
                         }
 
-                } else if ((lockiter->grant_type == 2) && isfee) {
-
-                        print("type is 2 ","\n");
+                } else if (isfee) {
                         uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
-                        print(" unlocked balance is ",unlockedbalance,"\n");
                         if (unlockedbalance >= transferamount) {
-                                print(" unlocked amount in account greater than transfer, transfer is ok. ","\n");
                                 return true;
                         }else {
-
-                                print(" unlocked amount is less than transfer. ","\n");
                                 uint64_t new_remaining_unlocked_amount =
                                         lockiter->remaining_locked_amount - (transferamount - unlockedbalance);
-                                print(" new unlocked amount is ", new_remaining_unlocked_amount,
-                                      "\n");
-
                                 INLINE_ACTION_SENDER(eosiosystem::system_contract, updlocked)
                                         ("eosio"_n, {{_self, "active"_n}},
                                         {tokenowner, new_remaining_unlocked_amount}
                                         );
-                                print(" transfer is approved ","\n");
                                 return true;
                         }
                 }
         }else{
-                print(" transfer is approved, account is not locked token holder ","\n");
                 return true;
         }
         //avoid compile warning.
@@ -215,9 +193,7 @@ void token::transfer(name from,
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
         //we need to check the from, check for locked amount remaining
-        check(can_transfer(from, quantity.amount,true),"insufficient unlocked funds for transfer.");
-
-
+        check(can_transfer(from,0, quantity.amount,true),"insufficient unlocked funds for transfer.");
 
         auto payer = has_auth(to) ? to : from;
 
@@ -230,7 +206,6 @@ void token::transfer(name from,
 inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
                 // check for funds is implicitly done as part of the funds transfer.
-                print("Collecting FIO API fees: ", fee);
                 transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
         } else {
                 print("Payments currently disabled.");
@@ -333,14 +308,14 @@ void token::trnsfiopubky(const string &payee_public_key,
                 require_recipient(new_account_name);
         }
 
-        print(" calling unlock tokens from token account","\n");
         INLINE_ACTION_SENDER(eosiosystem::system_contract, unlocktokens)
                 ("eosio"_n, {{_self, "active"_n}},
                 {actor}
                 );
 
+
         //we need to check the from, check for locked amount remaining
-        check(can_transfer(actor, qty.amount,false),"insufficient unlocked funds for transfer.");
+        check(can_transfer(actor,reg_amount, qty.amount,false),"insufficient unlocked funds for transfer.");
 
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
@@ -356,6 +331,7 @@ void token::trnsfiopubky(const string &payee_public_key,
                         {new_account_name, true}
                         );
         }
+
 
         nlohmann::json json = {{"status",        "OK"},
                 {"fee_collected", reg_amount}};

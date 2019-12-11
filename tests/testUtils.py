@@ -19,7 +19,7 @@ class Utils:
     Debug=False
     FNull = open(os.devnull, 'w')
 
-    EosClientPath="programs/cleos/cleos"
+    EosClientPath="programs/clio/clio"
     MiscEosClientArgs="--no-auto-keosd"
 
     EosWalletName="keosd"

@@ -233,7 +233,6 @@ namespace eosiosystem {
         asset reg_fee_asset;
         reg_fee_asset.symbol = symbol("FIO", 9);
         reg_fee_asset.amount = reg_amount;
-        print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
         processrewardsnotpid(reg_amount, get_self());
@@ -314,7 +313,6 @@ namespace eosiosystem {
         asset reg_fee_asset;
         reg_fee_asset.symbol = symbol("FIO", 9);
         reg_fee_asset.amount = reg_amount;
-        print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
         processrewardsnotpid(reg_amount, get_self());
@@ -507,7 +505,7 @@ namespace eosiosystem {
             });
         }
 
-        unlock_tokens(actor);
+        eosio::token::computeremaininglockedtokens(actor,true);
 
         update_votes(actor, proxy, producers_accounts, true);
 
@@ -534,11 +532,9 @@ namespace eosiosystem {
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
-            //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
-            //or should we do as this code does and not do a transaction when the fees are 0.
+
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = fee_amount;
-            print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
             processrewardsnotpid(fee_amount, get_self());
@@ -639,7 +635,7 @@ namespace eosiosystem {
             });
         }
 
-        unlock_tokens(actor);
+        eosio::token::computeremaininglockedtokens(actor,true);
 
         update_votes(actor, proxy_name, producers, true);
 
@@ -666,11 +662,8 @@ namespace eosiosystem {
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
-            //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
-            //or should we do as this code does and not do a transaction when the fees are 0.
             reg_fee_asset.symbol = symbol("FIO", 9);
             reg_fee_asset.amount = fee_amount;
-            print(reg_fee_asset.amount);
 
             fio_fees(actor, reg_fee_asset);
             processrewardsnotpid(fee_amount, get_self());
@@ -703,161 +696,39 @@ namespace eosiosystem {
     }
 
 
-
-    void system_contract::unlock_tokens(const name &actor){
-        uint32_t present_time = now();
-
-        print(" unlock_tokens for ",actor,"\n");
-
-        print(" present time is ",present_time,"\n");
-
-
-        auto lockiter = _lockedtokens.find(actor.value);
-        if(lockiter != _lockedtokens.end()){
-            if(lockiter->inhibit_unlocking && (lockiter->grant_type == 2)){
-                return;
-            }
-            if (lockiter->unlocked_period_count < 9)  {
-                print(" issue time is ",lockiter->timestamp,"\n");
-                print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
-               // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
-               //we kludge the time block evaluation to become one block per 3 minutes
-                uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 180) / 1;
-                print("--------------------DANGER------------------------------ ","\n");
-                print("--------------------DANGER------------------------------ ","\n");
-                print("--------------------DANGER------------------------------ ","\n");
-                print("------time step for unlocking is kludged to 3 min-------","\n");
-                print("--------------------DANGER------------------------------ ","\n");
-                print("--------------------DANGER------------------------------ ","\n");
-                print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
-                uint32_t numberVestingPayouts = lockiter->unlocked_period_count;
-                print(" number payouts so far ",numberVestingPayouts,"\n");
-                uint32_t remainingPayouts = 0;
-
-                uint64_t newlockedamount = lockiter->remaining_locked_amount;
-                print(" locked amount ",newlockedamount,"\n");
-
-                uint64_t totalgrantamount = lockiter->total_grant_amount;
-                print(" total grant amount ",totalgrantamount,"\n");
-
-                uint64_t amountpay = 0;
-
-                uint64_t addone = 0;
-
-                if (timeElapsed90DayBlocks > 8){
-                    timeElapsed90DayBlocks = 8;
-                }
-
-                bool didsomething = false;
-
-                //do the day zero unlocking, this is the first unlocking.
-                if(numberVestingPayouts == 0) {
-                    if (lockiter->grant_type == 1) {
-                        //pay out 1% for type 1
-                        amountpay = totalgrantamount / 100;
-                        print(" amount to pay type 1 ",amountpay,"\n");
-
-                    } else if (lockiter->grant_type == 2) {
-                        //pay out 2% for type 2
-                        amountpay = (totalgrantamount/100)*2;
-                        print(" amount to pay type 2 ",amountpay,"\n");
-                    }else{
-                        check(false,"unknown grant type");
-                    }
-                    if (newlockedamount > amountpay) {
-                        newlockedamount -= amountpay;
-                    }else {
-                        newlockedamount = 0;
-                    }
-                    print(" recomputed locked amount ",newlockedamount,"\n");
-                    addone = 1;
-                    didsomething = true;
-                }
-
-                //this accounts for the first unlocking period being the day 0 unlocking period.
-                if (numberVestingPayouts >0){
-                    numberVestingPayouts--;
-                }
-
-                if (timeElapsed90DayBlocks > numberVestingPayouts) {
-                    remainingPayouts = timeElapsed90DayBlocks - numberVestingPayouts;
-                    uint64_t percentperblock = 0;
-                    if (lockiter->grant_type == 1) {
-                        //this logic assumes to have 3 decimal places in the specified percentage
-                        percentperblock = 12375;
-                    } else {
-                        //this is assumed to have 3 decimal places in the specified percentage
-                        percentperblock = 12275;
-                    }
-                    print("remaining payouts ", remainingPayouts, "\n");
-                    //this is assumed to have 3 decimal places in the specified percentage
-                    amountpay = (remainingPayouts * (totalgrantamount * percentperblock)) / 100000;
-                    print(" amount to pay ", amountpay, "\n");
-
-                    if (newlockedamount > amountpay) {
-                        newlockedamount -= amountpay;
-                    } else {
-                        newlockedamount = 0;
-                    }
-                    print(" recomputed locked amount ", newlockedamount, "\n");
-                    didsomething = true;
-                }
-
-                if(didsomething) {
-                    //update the locked table.
-                    _lockedtokens.modify(lockiter, _self, [&](auto &av) {
-                        av.remaining_locked_amount = newlockedamount;
-                        av.unlocked_period_count += remainingPayouts + addone;
-                    });
-                }
-
-            }
-        }
-
-    }
-
     void system_contract::unlocktokens(const name &actor){
-       require_auth(TokenContract);
-       unlock_tokens(actor);
+        require_auth(TokenContract);
+        eosio::token::computeremaininglockedtokens(actor,true);
     }
 
     uint64_t system_contract::get_votable_balance(const name &tokenowner){
 
-        print("call get votable balance for account ",tokenowner,"\n");
         //get fio balance for this account,
         uint32_t present_time = now();
         symbol sym_name = symbol("FIO", 9);
         const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, sym_name.code() );
         uint64_t amount = my_balance.amount;
 
-        print(" present time is ",present_time,"\n");
-        print(" amount in account is ",amount,"\n");
         //see if the user is in the lockedtokens table, if so recompute the balance
         //based on grant type.
         auto lockiter = _lockedtokens.find(tokenowner.value);
         if(lockiter != _lockedtokens.end()){
-            print(" found locked token holder ",tokenowner,"\n");
-            print(" locked amount remaining is  ",lockiter->remaining_locked_amount,"\n");
             check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
             //if lock type 1 always subtract remaining locked amount from balance
             if (lockiter->grant_type == 1) {
-                print(" grant type is 1  ","\n");
                 double percent = 1.0 - (double)((double)lockiter->remaining_locked_amount / (double)lockiter->total_grant_amount);
                 if (percent <= .3){
                     double onethirdgrant = (double)lockiter->total_grant_amount * .3;
                     //amount is lesser of account amount and 1/3 of the total grant
                     double damount = (double)amount;
                     if (onethirdgrant <= damount){
-                        print(" votable balance is 1/3 total grant  ","\n");
                         amount = onethirdgrant;
                     }else{
                         amount = damount;
-                        print(" votable balance is amount in account  ","\n");
                     }
 
                 }else{
                     //amount is all the available tokens in the account.
-                    print(" votable balance is amount in account because .3 threshold not met  ","\n");
                     return amount;
                 }
             }
@@ -866,20 +737,14 @@ namespace eosiosystem {
            if ((lockiter->grant_type == 2)&&
              ((present_time > issueplus210)&&lockiter->inhibit_unlocking)
             ){
-               print(" grant type is 2 and over the 210 days  ","\n");
                 //subtract the lock amount from the balance
                 if (lockiter->remaining_locked_amount < amount) {
-
-                    print(" voting weight reduced -- subtracting locked amount ",lockiter->remaining_locked_amount,
-                          " from balance ", amount, " for account ", tokenowner,"\n");
                     amount -= lockiter->remaining_locked_amount;
                 } else {
                     amount = 0;
                 }
             }
         }
-
-        print(" votable amount is  ",amount,"\n");
         return amount;
     }
 
@@ -888,8 +753,6 @@ namespace eosiosystem {
             const name &proxy,
             const std::vector <name> &producers,
             const bool &voting) {
-
-        print("called update votes. voter name ","\n");
         //validate input
         if (proxy) {
             check(producers.size() == 0, "cannot vote for producers and proxy at same time");
@@ -993,24 +856,21 @@ namespace eosiosystem {
         });
     }
 
+
     void system_contract::updlocked(const name &owner,const uint64_t &amountremaining)
     {
-
-        print(" calling updlocked","\n");
         require_auth(TokenContract);
-
 
         auto iterlocked = _lockedtokens.find(owner.value);
         check(iterlocked != _lockedtokens.end(), "locked funds account not found.");
-        print(" remaining before ",iterlocked->remaining_locked_amount,
-                " remaining after ",amountremaining,"\n");
         check(iterlocked->remaining_locked_amount >= amountremaining,"locked funds remaining amount cannot increase.");
 
         _lockedtokens.modify(iterlocked, _self, [&](auto &av) {
             av.remaining_locked_amount = amountremaining;
         });
-
     }
+
+
 
     void system_contract::setautoproxy(const name &proxy,const name &owner)
     {
@@ -1036,7 +896,6 @@ namespace eosiosystem {
     void system_contract::crautoproxy(const name &proxy,const name &owner)
     {
         require_auth(TPIDContract);
-        print ("call to set auto proxy for voter ",owner," to proxy ",proxy,"\n");
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
@@ -1055,17 +914,12 @@ namespace eosiosystem {
                     p.is_auto_proxy = true;
                     p.proxy = proxy;
                 });
-                print("new proxy has been set to tpid ", proxy, "\n");
             } else if (itervoter->is_auto_proxy && itervoter->proxy != proxy) {
                 votersbyowner.modify(itervoter, _self, [&](struct voter_info &a) {
                     a.proxy = proxy;
                 });
-                print("auto proxy was updated to be tpid ",proxy,"\n");
             }
-        }else{
-            print("could not find the tpid ",proxy, " in the voters table or this voter is not a proxy","\n");
         }
-
     }
 
     void system_contract::unregproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee) {
@@ -1129,7 +983,6 @@ namespace eosiosystem {
         asset reg_fee_asset;
         reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
-        print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
         processrewardsnotpid(reg_amount, get_self());
@@ -1157,7 +1010,6 @@ namespace eosiosystem {
         auto fioname_iter = namesbyname.find(nameHash);
         fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                        "FIO Address not registered", ErrorFioNameNotReg);
-
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -1229,8 +1081,6 @@ namespace eosiosystem {
     void system_contract::regiproxy(const name &proxy, const string &fio_address, const bool &isproxy) {
 
        require_auth(proxy);
-
-       print ("called regiproxy with proxy ",proxy, " isproxy ", isproxy,"\n");
 
         auto votersbyowner = _voters.get_index<"byowner"_n>();
         auto pitr = votersbyowner.find(proxy.value);

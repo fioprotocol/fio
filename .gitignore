@@ -46,11 +46,11 @@ libraries/wasm-jit/Source/Programs/Disassemble
 libraries/wasm-jit/Source/Programs/Test
 libraries/wasm-jit/Source/Programs/wavm
 
-programs/cleos/cleos
+programs/clio/clio
 programs/js_operation_serializer/js_operation_serializer
 programs/data-dir
 programs/eosio-abigen/eosio-abigen
-programs/cleos/config.hpp
+programs/clio/config.hpp
 programs/eosio-applesedemo/eosio-applesedemo
 programs/eosio-launcher/config.hpp
 programs/eosio-launcher/eosio-launcher

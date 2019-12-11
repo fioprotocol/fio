@@ -134,7 +134,7 @@ killEosInstances=not dontKill
 killWallet=not dontKill
 
 WalletdName=Utils.EosWalletName
-ClientName="cleos"
+ClientName="clio"
 
 try:
     TestHelper.printSystemInfo("BEGIN")
