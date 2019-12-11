@@ -193,8 +193,9 @@ void token::transfer(name from,
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
         //we need to check the from, check for locked amount remaining
-        check(can_transfer(from,0, quantity.amount,true),"insufficient unlocked funds for transfer.");
-
+        fio_400_assert(can_transfer(from,0, quantity.amount,true), "from", to_string(from.value),
+                       "insufficient unlocked funds for transfer.",
+                       ErrorInsufficientUnlockedFunds);
         auto payer = has_auth(to) ? to : from;
 
         sub_balance(from, quantity);
@@ -313,10 +314,10 @@ void token::trnsfiopubky(const string &payee_public_key,
                 {actor}
                 );
 
-
-        //we need to check the from, check for locked amount remaining
-        check(can_transfer(actor,reg_amount, qty.amount,false),"insufficient unlocked funds for transfer.");
-
+        fio_400_assert(can_transfer(actor,reg_amount, qty.amount,false), "actor", to_string(actor.value),
+                       "insufficient unlocked funds for transfer.",
+                       ErrorInsufficientUnlockedFunds);
+        
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
 

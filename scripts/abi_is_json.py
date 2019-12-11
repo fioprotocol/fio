@@ -3,6 +3,7 @@
 import json
 import sys
 
+
 def json_validator(data):
     try:
         json.loads(data)
@@ -11,11 +12,13 @@ def json_validator(data):
         print("invalid json: %s" % error)
         return False
 
+
 def test_json_validator(abi_name):
-    abi_file = open(abi_name,'r')
+    abi_file = open(abi_name, 'r')
     abi_text = abi_file.read()
     abi_file.close()
     return json_validator(abi_text)
+
 
 if __name__ == "__main__":
     for filename in sys.argv[1:]:

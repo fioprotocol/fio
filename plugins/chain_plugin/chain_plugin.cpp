@@ -1577,10 +1577,10 @@ if( options.count(name) ) { \
         const uint16_t FIOPUBLICKEYLENGTH = 53;
 
         /***
-               * get pending fio requests.
-               * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
-               * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
-               */
+        * get pending fio requests.
+        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+        * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+        */
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
 
@@ -2761,6 +2761,7 @@ if( options.count(name) ) { \
         /*****************End of FIO API******************************/
         /*************************************************************/
 
+
         read_only::get_table_rows_result read_only::get_table_rows(const read_only::get_table_rows_params &p) const {
             const abi_def abi = eosio::chain_apis::get_abi(db, p.code);
 #pragma GCC diagnostic push
@@ -3311,61 +3312,6 @@ if( options.count(name) ) { \
         }
 
 /***
-* record_send - This api method will invoke the fio.request.obt smart contract for recordsend. this api method is
-* intended to add the json passed into this method to the block log so that it can be scraped as necessary.
-* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
-* @return result, result.processed (fc::variant) json blob meeting the api specification.
-*/
-        void read_write::record_send(const record_send_params &params,
-                                     chain::plugin_interface::next_function<record_send_results> next) {
-            try {
-                auto pretty_input = std::make_shared<packed_transaction>();
-                auto resolver = make_resolver(this, abi_serializer_max_time);
-                transaction_metadata_ptr ptrx;
-                dlog("record_send called");
-                try {
-                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
-                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
-
-                transaction trx = pretty_input->get_transaction();
-                vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
-                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
-                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::InvalidAccountOrAction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "recordsend", fioio::InvalidAccountOrAction);
-
-                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
-                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
-                    if (result.contains<fc::exception_ptr>()) {
-                        next(result.get<fc::exception_ptr>());
-                    } else {
-                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                        try {
-                            fc::variant output;
-                            try {
-                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
-                            } catch (chain::abi_exception &) {
-                                output = *trx_trace_ptr;
-                            }
-
-                            const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::record_send_results{id, output});
-                        } CATCH_AND_CALL(next);
-                    }
-                });
-
-
-            } catch (boost::interprocess::bad_alloc &) {
-                chain_plugin::handle_db_exhaustion();
-            } CATCH_AND_CALL(next);
-        }
-
-/***
 * record_obt_data - This api method will invoke the fio.request.obt smart contract for recordobt. this api method is
 * intended to add the json passed into this method to the block log so that it can be scraped as necessary.
 * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
@@ -3416,7 +3362,6 @@ if( options.count(name) ) { \
                 chain_plugin::handle_db_exhaustion();
             } CATCH_AND_CALL(next);
         }
-
 
 /***
 * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively

@@ -5,58 +5,58 @@
 
 #include <string>
 
-namespace IR
-{
-	struct Module;
-	struct FunctionDef;
+namespace IR {
+    struct Module;
+    struct FunctionDef;
 
-	struct ValidationException
-	{
-		std::string message;
-		ValidationException(std::string&& inMessage): message(inMessage) {}
-	};
+    struct ValidationException {
+        std::string message;
 
-	struct CodeValidationStreamImpl;
+        ValidationException(std::string &&inMessage) : message(inMessage) {}
+    };
 
-	struct CodeValidationStream
-	{
-		IR_API CodeValidationStream(const Module& module,const FunctionDef& function);
-		IR_API ~CodeValidationStream();
-		
-		IR_API void finish();
+    struct CodeValidationStreamImpl;
 
-		#define VISIT_OPCODE(_,name,nameString,Imm,...) IR_API void name(Imm imm = {});
-		ENUM_OPERATORS(VISIT_OPCODE)
-		#undef VISIT_OPCODE
+    struct CodeValidationStream {
+        IR_API CodeValidationStream(const Module &module, const FunctionDef &function);
 
-	private:
-		CodeValidationStreamImpl* impl;
-	};
+        IR_API ~CodeValidationStream();
 
-	template<typename InnerStream>
-	struct CodeValidationProxyStream
-	{
-		CodeValidationProxyStream(const Module& module,const FunctionDef& function,InnerStream& inInnerStream)
-		: codeValidationStream(module,function)
-		, innerStream(inInnerStream)
-		{}
-		
-		void finishValidation() { codeValidationStream.finish(); }
+        IR_API void finish();
 
-		#define VISIT_OPCODE(_,name,nameString,Imm,...) \
-			void name(Imm imm = {}) \
-			{ \
-				codeValidationStream.name(imm); \
-				innerStream.name(imm); \
-			}
-		ENUM_OPERATORS(VISIT_OPCODE)
-		#undef VISIT_OPCODE
+#define VISIT_OPCODE(_, name, nameString, Imm, ...) IR_API void name(Imm imm = {});
 
-	private:
+        ENUM_OPERATORS(VISIT_OPCODE)
 
-		CodeValidationStream codeValidationStream;
-		InnerStream& innerStream;
-	};
+#undef VISIT_OPCODE
 
-	IR_API void validateDefinitions(const IR::Module& module);
+    private:
+        CodeValidationStreamImpl *impl;
+    };
+
+    template<typename InnerStream>
+    struct CodeValidationProxyStream {
+        CodeValidationProxyStream(const Module &module, const FunctionDef &function, InnerStream &inInnerStream)
+                : codeValidationStream(module, function), innerStream(inInnerStream) {}
+
+        void finishValidation() { codeValidationStream.finish(); }
+
+#define VISIT_OPCODE(_, name, nameString, Imm, ...) \
+            void name(Imm imm = {}) \
+            { \
+                codeValidationStream.name(imm); \
+                innerStream.name(imm); \
+            }
+
+        ENUM_OPERATORS(VISIT_OPCODE)
+
+#undef VISIT_OPCODE
+
+    private:
+
+        CodeValidationStream codeValidationStream;
+        InnerStream &innerStream;
+    };
+
+    IR_API void validateDefinitions(const IR::Module &module);
 }

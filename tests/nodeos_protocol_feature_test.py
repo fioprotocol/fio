@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
 
-from testUtils import Utils
+import signal
 from Cluster import Cluster, PFSetupPolicy
+from Node import Node
 from TestHelper import TestHelper
 from WalletMgr import WalletMgr
-from Node import Node
-
-import signal
-import json
-from os.path import join
-from datetime import datetime
+from testUtils import Utils
 
 # Parse command line arguments
-args = TestHelper.parse_args({"-v","--clean-run","--dump-error-details","--leave-running","--keep-logs"})
+args = TestHelper.parse_args({"-v", "--clean-run", "--dump-error-details", "--leave-running", "--keep-logs"})
 Utils.Debug = args.v
-killAll=args.clean_run
-dumpErrorDetails=args.dump_error_details
-dontKill=args.leave_running
-killEosInstances=not dontKill
-killWallet=not dontKill
-keepLogs=args.keep_logs
+killAll = args.clean_run
+dumpErrorDetails = args.dump_error_details
+dontKill = args.leave_running
+killEosInstances = not dontKill
+killWallet = not dontKill
+keepLogs = args.keep_logs
+
 
 # The following test case will test the Protocol Feature JSON reader of the blockchain
 
@@ -29,8 +26,9 @@ def restartNode(node: Node, nodeId, chainArg=None, addOrSwapFlags=None):
     isRelaunchSuccess = node.relaunch(nodeId, chainArg, addOrSwapFlags=addOrSwapFlags, timeout=5, cachePopen=True)
     assert isRelaunchSuccess, "Fail to relaunch"
 
-walletMgr=WalletMgr(True)
-cluster=Cluster(walletd=True)
+
+walletMgr = WalletMgr(True)
+cluster = Cluster(walletd=True)
 cluster.setWalletMgr(walletMgr)
 
 # List to contain the test result message
@@ -54,15 +52,17 @@ try:
     restartNode(biosNode, "bios")
 
     supportedProtocolFeatureDict = biosNode.getSupportedProtocolFeatureDict()
-    preactivateFeatureSubjectiveRestrictions = supportedProtocolFeatureDict["PREACTIVATE_FEATURE"]["subjective_restrictions"]
+    preactivateFeatureSubjectiveRestrictions = supportedProtocolFeatureDict["PREACTIVATE_FEATURE"][
+        "subjective_restrictions"]
 
     # Ensure that the PREACTIVATE_FEATURE subjective restrictions match the value written in the JSON
-    assert preactivateFeatureSubjectiveRestrictions == newSubjectiveRestrictions,\
+    assert preactivateFeatureSubjectiveRestrictions == newSubjectiveRestrictions, \
         "PREACTIVATE_FEATURE subjective restrictions are not updated according to the JSON"
 
     testSuccessful = True
 finally:
-    TestHelper.shutdown(cluster, walletMgr, testSuccessful, killEosInstances, killWallet, keepLogs, killAll, dumpErrorDetails)
+    TestHelper.shutdown(cluster, walletMgr, testSuccessful, killEosInstances, killWallet, keepLogs, killAll,
+                        dumpErrorDetails)
 
 exitCode = 0 if testSuccessful else 1
 exit(exitCode)

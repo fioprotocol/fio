@@ -1,33 +1,31 @@
 #!/usr/bin/env python3
 
-from testUtils import Utils
+import os
+import signal
+import time
 from Cluster import Cluster, PFSetupPolicy
+from Node import Node
 from TestHelper import TestHelper
 from WalletMgr import WalletMgr
-from Node import Node
-
-import signal
-import json
-import time
-import os
-from os.path import join, exists
-from datetime import datetime
+from os.path import exists
+from testUtils import Utils
 
 # Parse command line arguments
-args = TestHelper.parse_args({"-v","--clean-run","--dump-error-details","--leave-running",
+args = TestHelper.parse_args({"-v", "--clean-run", "--dump-error-details", "--leave-running",
                               "--keep-logs", "--alternate-version-labels-file"})
-Utils.Debug=args.v
-killAll=args.clean_run
-dumpErrorDetails=args.dump_error_details
-dontKill=args.leave_running
-killEosInstances=not dontKill
-killWallet=not dontKill
-keepLogs=args.keep_logs
-alternateVersionLabelsFile=args.alternate_version_labels_file
+Utils.Debug = args.v
+killAll = args.clean_run
+dumpErrorDetails = args.dump_error_details
+dontKill = args.leave_running
+killEosInstances = not dontKill
+killWallet = not dontKill
+keepLogs = args.keep_logs
+alternateVersionLabelsFile = args.alternate_version_labels_file
 
-walletMgr=WalletMgr(True)
-cluster=Cluster(walletd=True)
+walletMgr = WalletMgr(True)
+cluster = Cluster(walletd=True)
 cluster.setWalletMgr(walletMgr)
+
 
 def restartNode(node: Node, nodeId, chainArg=None, addOrSwapFlags=None, nodeosPath=None):
     if not node.killed:
@@ -36,6 +34,7 @@ def restartNode(node: Node, nodeId, chainArg=None, addOrSwapFlags=None, nodeosPa
                                       timeout=5, cachePopen=True, nodeosPath=nodeosPath)
     assert isRelaunchSuccess, "Fail to relaunch"
 
+
 def shouldNodeContainPreactivateFeature(node):
     preactivateFeatureDigest = node.getSupportedProtocolFeatureDict()["PREACTIVATE_FEATURE"]["feature_digest"]
     assert preactivateFeatureDigest
@@ -43,16 +42,20 @@ def shouldNodeContainPreactivateFeature(node):
     activatedProtocolFeatures = blockHeaderState["activated_protocol_features"]["protocol_features"]
     return preactivateFeatureDigest in activatedProtocolFeatures
 
+
 def waitUntilBeginningOfProdTurn(node, producerName, timeout=30, sleepTime=0.4):
     def isDesiredProdTurn():
         headBlockNum = node.getHeadBlockNum()
-        res =  node.getBlock(headBlockNum)["producer"] == producerName and \
-               node.getBlock(headBlockNum-1)["producer"] != producerName
+        res = node.getBlock(headBlockNum)["producer"] == producerName and \
+              node.getBlock(headBlockNum - 1)["producer"] != producerName
         return res
+
     Utils.waitForBool(isDesiredProdTurn, timeout, sleepTime)
 
+
 def waitForOneRound():
-    time.sleep(24) # We have 4 producers for this test
+    time.sleep(24)  # We have 4 producers for this test
+
 
 def setValidityOfActTimeSubjRestriction(node, nodeId, codename, valid):
     invalidActTimeSubjRestriction = {
@@ -65,10 +68,13 @@ def setValidityOfActTimeSubjRestriction(node, nodeId, codename, valid):
     node.modifyBuiltinPFSubjRestrictions(nodeId, codename, actTimeSubjRestriction)
     restartNode(node, nodeId)
 
+
 def waitUntilBlockBecomeIrr(node, blockNum, timeout=60):
     def hasBlockBecomeIrr():
         return node.getIrreversibleBlockNum() >= blockNum
+
     return Utils.waitForBool(hasBlockBecomeIrr, timeout)
+
 
 # List to contain the test result message
 testSuccessful = False
@@ -98,24 +104,28 @@ try:
     oldNode = cluster.getNode(oldNodeId)
     allNodes = [*newNodes, oldNode]
 
+
     def pauseBlockProductions():
         for node in allNodes:
             if not node.killed: node.processCurlCmd("producer", "pause", "")
+
 
     def resumeBlockProductions():
         for node in allNodes:
             if not node.killed: node.processCurlCmd("producer", "resume", "")
 
-    def shouldNodesBeInSync(nodes:[Node]):
+
+    def shouldNodesBeInSync(nodes: [Node]):
         # Pause all block production to ensure the head is not moving
         pauseBlockProductions()
-        time.sleep(1) # Wait for some time to ensure all blocks are propagated
+        time.sleep(1)  # Wait for some time to ensure all blocks are propagated
         headBlockIds = []
         for node in nodes:
             headBlockId = node.getInfo()["head_block_id"]
             headBlockIds.append(headBlockId)
         resumeBlockProductions()
         return len(set(headBlockIds)) == 1
+
 
     # Before everything starts, all nodes (new version and old version) should be in sync
     assert shouldNodesBeInSync(allNodes), "Nodes are not in sync before preactivation"
@@ -135,7 +145,7 @@ try:
     newNodes[0].activatePreactivateFeature()
     assert shouldNodeContainPreactivateFeature(newNodes[0]), "1st node should contain PREACTIVATE FEATURE"
     assert not (shouldNodeContainPreactivateFeature(newNodes[1]) or shouldNodeContainPreactivateFeature(newNodes[2])), \
-           "2nd and 3rd node should not contain PREACTIVATE FEATURE"
+        "2nd and 3rd node should not contain PREACTIVATE FEATURE"
     assert shouldNodesBeInSync([newNodes[1], newNodes[2], oldNode]), "2nd, 3rd and 4th node should be in sync"
     assert not shouldNodesBeInSync(allNodes), "1st node should be out of sync with the rest nodes"
 
@@ -158,16 +168,18 @@ try:
 
     assert shouldNodesBeInSync(newNodes), "New nodes should be in sync"
     assert not shouldNodesBeInSync(allNodes), "Nodes should not be in sync after preactivation"
-    for node in newNodes: assert shouldNodeContainPreactivateFeature(node), "New node should contain PREACTIVATE_FEATURE"
+    for node in newNodes: assert shouldNodeContainPreactivateFeature(
+        node), "New node should contain PREACTIVATE_FEATURE"
 
-    activatedBlockNum = newNodes[0].getHeadBlockNum() # The PREACTIVATE_FEATURE should have been activated before or at this block num
+    activatedBlockNum = newNodes[
+        0].getHeadBlockNum()  # The PREACTIVATE_FEATURE should have been activated before or at this block num
     assert waitUntilBlockBecomeIrr(newNodes[0], activatedBlockNum), \
-           "1st node LIB should be able to advance past the block that contains PREACTIVATE_FEATURE"
+        "1st node LIB should be able to advance past the block that contains PREACTIVATE_FEATURE"
     assert newNodes[1].getIrreversibleBlockNum() >= activatedBlockNum and \
            newNodes[2].getIrreversibleBlockNum() >= activatedBlockNum, \
-           "2nd and 3rd node LIB should also be able to advance past the block that contains PREACTIVATE_FEATURE"
+        "2nd and 3rd node LIB should also be able to advance past the block that contains PREACTIVATE_FEATURE"
     assert oldNode.getIrreversibleBlockNum() <= libBeforePreactivation, \
-           "4th node LIB should stuck on LIB before PREACTIVATE_FEATURE is activated"
+        "4th node LIB should stuck on LIB before PREACTIVATE_FEATURE is activated"
 
     # Restart old node with newest version
     # Before we are migrating to new version, use --export-reversible-blocks as the old version
@@ -178,18 +190,20 @@ try:
     oldNode.kill(signal.SIGTERM)
     # Note, for the following relaunch, these will fail to relaunch immediately (expected behavior of export/import), so the chainArg will not replace the old cmd
     oldNode.relaunch(oldNodeId, chainArg="--export-reversible-blocks {}".format(portableRevBlkPath), timeout=1)
-    oldNode.relaunch(oldNodeId, chainArg="--import-reversible-blocks {}".format(portableRevBlkPath), timeout=1, nodeosPath="programs/nodeos/nodeos")
+    oldNode.relaunch(oldNodeId, chainArg="--import-reversible-blocks {}".format(portableRevBlkPath), timeout=1,
+                     nodeosPath="programs/nodeos/nodeos")
     os.remove(portableRevBlkPath)
 
     restartNode(oldNode, oldNodeId, chainArg="--replay", nodeosPath="programs/nodeos/nodeos")
-    time.sleep(2) # Give some time to replay
+    time.sleep(2)  # Give some time to replay
 
     assert shouldNodesBeInSync(allNodes), "All nodes should be in sync"
     assert shouldNodeContainPreactivateFeature(oldNode), "4th node should contain PREACTIVATE_FEATURE"
 
     testSuccessful = True
 finally:
-    TestHelper.shutdown(cluster, walletMgr, testSuccessful, killEosInstances, killWallet, keepLogs, killAll, dumpErrorDetails)
+    TestHelper.shutdown(cluster, walletMgr, testSuccessful, killEosInstances, killWallet, keepLogs, killAll,
+                        dumpErrorDetails)
 
 exitCode = 0 if testSuccessful else 1
 exit(exitCode)

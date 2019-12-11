@@ -1,49 +1,44 @@
 #!/usr/bin/env python3
 
-from core_symbol import CORE_SYMBOL
-from Cluster import Cluster
-from WalletMgr import WalletMgr
-from Node import Node
-from TestHelper import TestHelper
-from testUtils import Utils
-import testUtils
 import time
+from Cluster import Cluster
+from TestHelper import TestHelper
+from WalletMgr import WalletMgr
+from core_symbol import CORE_SYMBOL
+from testUtils import Utils
 
-import decimal
-import math
-import re
+Print = Utils.Print
+errorExit = Utils.errorExit
 
-Print=Utils.Print
-errorExit=Utils.errorExit
 
 class NamedAccounts:
 
     def __init__(self, cluster, numAccounts):
         Print("NamedAccounts %d" % (numAccounts))
-        self.numAccounts=numAccounts
-        self.accounts=cluster.createAccountKeys(numAccounts)
+        self.numAccounts = numAccounts
+        self.accounts = cluster.createAccountKeys(numAccounts)
         if self.accounts is None:
             errorExit("FAILURE - create keys")
         accountNum = 0
         for account in self.accounts:
             Print("NamedAccounts Name for %d" % (accountNum))
-            account.name=self.setName(accountNum)
-            accountNum+=1
+            account.name = self.setName(accountNum)
+            accountNum += 1
 
     def setName(self, num):
-        retStr="test"
-        digits=[]
-        maxDigitVal=5
-        maxDigits=8
-        temp=num
+        retStr = "test"
+        digits = []
+        maxDigitVal = 5
+        maxDigits = 8
+        temp = num
         while len(digits) < maxDigits:
-            digit=(num % maxDigitVal)+1
-            num=int(num/maxDigitVal)
+            digit = (num % maxDigitVal) + 1
+            num = int(num / maxDigitVal)
             digits.append(digit)
 
         digits.reverse()
         for digit in digits:
-            retStr=retStr+str(digit)
+            retStr = retStr + str(digit)
 
         Print("NamedAccounts Name for %d is %s" % (temp, retStr))
         return retStr
@@ -55,23 +50,24 @@ class NamedAccounts:
 # --keep-logs <Don't delete var/lib/node_* folders upon test completion>
 ###############################################################
 
-args = TestHelper.parse_args({"--dump-error-details","--keep-logs","-v","--leave-running","--clean-run","--wallet-port"})
-Utils.Debug=args.v
-totalNodes=4
-cluster=Cluster(walletd=True)
-dumpErrorDetails=args.dump_error_details
-keepLogs=args.keep_logs
-dontKill=args.leave_running
-killAll=args.clean_run
-walletPort=args.wallet_port
+args = TestHelper.parse_args(
+    {"--dump-error-details", "--keep-logs", "-v", "--leave-running", "--clean-run", "--wallet-port"})
+Utils.Debug = args.v
+totalNodes = 4
+cluster = Cluster(walletd=True)
+dumpErrorDetails = args.dump_error_details
+keepLogs = args.keep_logs
+dontKill = args.leave_running
+killAll = args.clean_run
+walletPort = args.wallet_port
 
-walletMgr=WalletMgr(True, port=walletPort)
-testSuccessful=False
-killEosInstances=not dontKill
-killWallet=not dontKill
+walletMgr = WalletMgr(True, port=walletPort)
+testSuccessful = False
+killEosInstances = not dontKill
+killWallet = not dontKill
 
-WalletdName=Utils.EosWalletName
-ClientName="clio"
+WalletdName = Utils.EosWalletName
+ClientName = "clio"
 
 try:
     TestHelper.printSystemInfo("BEGIN")
@@ -80,12 +76,13 @@ try:
     cluster.killall(allInstances=killAll)
     cluster.cleanup()
     Print("Stand up cluster")
-    minRAMFlag="--chain-state-db-guard-size-mb"
-    minRAMValue=1002
-    maxRAMFlag="--chain-state-db-size-mb"
-    maxRAMValue=1010
-    extraNodeosArgs=" %s %d %s %d " % (minRAMFlag, minRAMValue, maxRAMFlag, maxRAMValue)
-    if cluster.launch(onlyBios=False, pnodes=totalNodes, totalNodes=totalNodes, totalProducers=totalNodes, extraNodeosArgs=extraNodeosArgs, useBiosBootFile=False) is False:
+    minRAMFlag = "--chain-state-db-guard-size-mb"
+    minRAMValue = 1002
+    maxRAMFlag = "--chain-state-db-size-mb"
+    maxRAMValue = 1010
+    extraNodeosArgs = " %s %d %s %d " % (minRAMFlag, minRAMValue, maxRAMFlag, maxRAMValue)
+    if cluster.launch(onlyBios=False, pnodes=totalNodes, totalNodes=totalNodes, totalProducers=totalNodes,
+                      extraNodeosArgs=extraNodeosArgs, useBiosBootFile=False) is False:
         Utils.cmdError("launcher")
         errorExit("Failed to stand up eos cluster.")
 
@@ -93,25 +90,24 @@ try:
     cluster.validateAccounts(None)
 
     Print("creating accounts")
-    namedAccounts=NamedAccounts(cluster,10)
-    accounts=namedAccounts.accounts
+    namedAccounts = NamedAccounts(cluster, 10)
+    accounts = namedAccounts.accounts
 
-    testWalletName="test"
+    testWalletName = "test"
 
     Print("Creating wallet \"%s\"." % (testWalletName))
-    testWallet=walletMgr.create(testWalletName, [cluster.eosioAccount])
+    testWallet = walletMgr.create(testWalletName, [cluster.eosioAccount])
 
     for _, account in cluster.defProducerAccounts.items():
         walletMgr.importKey(account, testWallet, ignoreDupKeyWarning=True)
 
     Print("Wallet \"%s\" password=%s." % (testWalletName, testWallet.password.encode("utf-8")))
 
-    nodes=[]
+    nodes = []
     nodes.append(cluster.getNode(0))
     nodes.append(cluster.getNode(1))
     nodes.append(cluster.getNode(2))
     nodes.append(cluster.getNode(3))
-
 
     for account in accounts:
         walletMgr.importKey(account, testWallet)
@@ -119,107 +115,113 @@ try:
     # create accounts via eosio as otherwise a bid is needed
     for account in accounts:
         Print("Create new account %s via %s" % (account.name, cluster.eosioAccount.name))
-        trans=nodes[0].createInitializeAccount(account, cluster.eosioAccount, stakedDeposit=500000, waitForTransBlock=False, stakeNet=50000, stakeCPU=50000, buyRAM=50000, exitOnError=True)
-        transferAmount="70000000.0000 {0}".format(CORE_SYMBOL)
+        trans = nodes[0].createInitializeAccount(account, cluster.eosioAccount, stakedDeposit=500000,
+                                                 waitForTransBlock=False, stakeNet=50000, stakeCPU=50000, buyRAM=50000,
+                                                 exitOnError=True)
+        transferAmount = "70000000.0000 {0}".format(CORE_SYMBOL)
         Print("Transfer funds %s from account %s to %s" % (transferAmount, cluster.eosioAccount.name, account.name))
         nodes[0].transferFunds(cluster.eosioAccount, account, transferAmount, "test transfer")
-        trans=nodes[0].delegatebw(account, 1000000.0000, 68000000.0000, waitForTransBlock=True, exitOnError=True)
+        trans = nodes[0].delegatebw(account, 1000000.0000, 68000000.0000, waitForTransBlock=True, exitOnError=True)
 
-    contractAccount=cluster.createAccountKeys(1)[0]
-    contractAccount.name="contracttest"
+    contractAccount = cluster.createAccountKeys(1)[0]
+    contractAccount.name = "contracttest"
     walletMgr.importKey(contractAccount, testWallet)
     Print("Create new account %s via %s" % (contractAccount.name, cluster.eosioAccount.name))
-    trans=nodes[0].createInitializeAccount(contractAccount, cluster.eosioAccount, stakedDeposit=500000, waitForTransBlock=False, stakeNet=50000, stakeCPU=50000, buyRAM=50000, exitOnError=True)
-    transferAmount="90000000.0000 {0}".format(CORE_SYMBOL)
+    trans = nodes[0].createInitializeAccount(contractAccount, cluster.eosioAccount, stakedDeposit=500000,
+                                             waitForTransBlock=False, stakeNet=50000, stakeCPU=50000, buyRAM=50000,
+                                             exitOnError=True)
+    transferAmount = "90000000.0000 {0}".format(CORE_SYMBOL)
     Print("Transfer funds %s from account %s to %s" % (transferAmount, cluster.eosioAccount.name, contractAccount.name))
     nodes[0].transferFunds(cluster.eosioAccount, contractAccount, transferAmount, "test transfer")
-    trans=nodes[0].delegatebw(contractAccount, 1000000.0000, 88000000.0000, waitForTransBlock=True, exitOnError=True)
+    trans = nodes[0].delegatebw(contractAccount, 1000000.0000, 88000000.0000, waitForTransBlock=True, exitOnError=True)
 
-    contractDir="unittests/test-contracts/integration_test"
-    wasmFile="integration_test.wasm"
-    abiFile="integration_test.abi"
+    contractDir = "unittests/test-contracts/integration_test"
+    wasmFile = "integration_test.wasm"
+    abiFile = "integration_test.abi"
     Print("Publish contract")
-    trans=nodes[0].publishContract(contractAccount.name, contractDir, wasmFile, abiFile, waitForTransBlock=True)
+    trans = nodes[0].publishContract(contractAccount.name, contractDir, wasmFile, abiFile, waitForTransBlock=True)
     if trans is None:
         Utils.cmdError("%s set contract %s" % (ClientName, contractAccount.name))
         errorExit("Failed to publish contract.")
 
-    contract=contractAccount.name
+    contract = contractAccount.name
     Print("push create action to %s contract" % (contract))
-    action="store"
-    numAmount=5000
-    keepProcessing=True
-    count=0
+    action = "store"
+    numAmount = 5000
+    keepProcessing = True
+    count = 0
     while keepProcessing:
-        numAmount+=1
-        timeOutCount=0
+        numAmount += 1
+        timeOutCount = 0
         for fromIndex in range(namedAccounts.numAccounts):
-            count+=1
-            toIndex=fromIndex+1
-            if toIndex==namedAccounts.numAccounts:
-                toIndex=0
-            fromAccount=accounts[fromIndex]
-            toAccount=accounts[toIndex]
-            data="{\"from\":\"%s\",\"to\":\"%s\",\"num\":%d}" % (fromAccount.name, toAccount.name, numAmount)
-            opts="--permission %s@active --permission %s@active --expiration 90" % (contract, fromAccount.name)
+            count += 1
+            toIndex = fromIndex + 1
+            if toIndex == namedAccounts.numAccounts:
+                toIndex = 0
+            fromAccount = accounts[fromIndex]
+            toAccount = accounts[toIndex]
+            data = "{\"from\":\"%s\",\"to\":\"%s\",\"num\":%d}" % (fromAccount.name, toAccount.name, numAmount)
+            opts = "--permission %s@active --permission %s@active --expiration 90" % (contract, fromAccount.name)
             try:
-                trans=nodes[0].pushMessage(contract, action, data, opts)
+                trans = nodes[0].pushMessage(contract, action, data, opts)
                 if trans is None or not trans[0]:
-                    timeOutCount+=1
-                    if timeOutCount>=3:
-                       Print("Failed to push create action to eosio contract for %d consecutive times, looks like nodeos already exited." % (timeOutCount))
-                       keepProcessing=False
-                       break
+                    timeOutCount += 1
+                    if timeOutCount >= 3:
+                        Print(
+                            "Failed to push create action to eosio contract for %d consecutive times, looks like nodeos already exited." % (
+                                timeOutCount))
+                        keepProcessing = False
+                        break
                     Print("Failed to push create action to eosio contract. sleep for 60 seconds")
                     time.sleep(60)
                 else:
-                    timeOutCount=0
+                    timeOutCount = 0
                 time.sleep(1)
             except TypeError as ex:
-                keepProcessing=False
+                keepProcessing = False
                 break
 
-    #spread the actions to all accounts, to use each accounts tps bandwidth
-    fromIndexStart=fromIndex+1 if fromIndex+1<namedAccounts.numAccounts else 0
+    # spread the actions to all accounts, to use each accounts tps bandwidth
+    fromIndexStart = fromIndex + 1 if fromIndex + 1 < namedAccounts.numAccounts else 0
 
     if count < 5 or count > 15:
-        strMsg="little" if count < 15 else "much"
+        strMsg = "little" if count < 15 else "much"
         Utils.cmdError("Was able to send %d store actions which was too %s" % (count, strMsg))
         errorExit("Incorrect number of store actions sent")
 
     # Make sure all the nodes are shutdown (may take a little while for this to happen, so making multiple passes)
-    allDone=False
-    count=0
+    allDone = False
+    count = 0
     while not allDone:
-        allDone=True
+        allDone = True
         for node in nodes:
             if node.verifyAlive():
-                allDone=False
+                allDone = False
         if not allDone:
             time.sleep(5)
-        count+=1
-        if count>5:
+        count += 1
+        if count > 5:
             Utils.cmdError("All Nodes should have died")
             errorExit("Failure - All Nodes should have died")
 
     Print("relaunch nodes with new capacity")
-    addOrSwapFlags={}
-    numNodes=len(nodes)
-    maxRAMValue+=2
-    currentMinimumMaxRAM=maxRAMValue
-    enabledStaleProduction=False
+    addOrSwapFlags = {}
+    numNodes = len(nodes)
+    maxRAMValue += 2
+    currentMinimumMaxRAM = maxRAMValue
+    enabledStaleProduction = False
     for i in range(numNodes):
-        addOrSwapFlags[maxRAMFlag]=str(maxRAMValue)
-        #addOrSwapFlags["--max-irreversible-block-age"]=str(-1)
-        nodeIndex=numNodes-i-1
+        addOrSwapFlags[maxRAMFlag] = str(maxRAMValue)
+        # addOrSwapFlags["--max-irreversible-block-age"]=str(-1)
+        nodeIndex = numNodes - i - 1
         if not enabledStaleProduction:
-            addOrSwapFlags["--enable-stale-production"]=""   # just enable stale production for the first node
-            enabledStaleProduction=True
+            addOrSwapFlags["--enable-stale-production"] = ""  # just enable stale production for the first node
+            enabledStaleProduction = True
         if not nodes[nodeIndex].relaunch(nodeIndex, "", newChain=False, addOrSwapFlags=addOrSwapFlags):
             Utils.cmdError("Failed to restart node0 with new capacity %s" % (maxRAMValue))
             errorExit("Failure - Node should have restarted")
-        addOrSwapFlags={}
-        maxRAMValue=currentMinimumMaxRAM+30
+        addOrSwapFlags = {}
+        maxRAMValue = currentMinimumMaxRAM + 30
 
     time.sleep(20)
     for i in range(numNodes):
@@ -230,26 +232,26 @@ try:
     # get all the nodes to get info, so reported status (on error) reflects their current state
     Print("push more actions to %s contract" % (contract))
     cluster.getInfos()
-    action="store"
-    keepProcessing=True
-    count=0
+    action = "store"
+    keepProcessing = True
+    count = 0
     while keepProcessing and count < 40:
         Print("Send %s" % (action))
-        numAmount+=1
+        numAmount += 1
         for fromIndexOffset in range(namedAccounts.numAccounts):
-            count+=1
-            fromIndex=fromIndexStart+fromIndexOffset
-            if fromIndex>=namedAccounts.numAccounts:
-                fromIndex-=namedAccounts.numAccounts 
-            toIndex=fromIndex+1
-            if toIndex==namedAccounts.numAccounts:
-                toIndex=0
-            fromAccount=accounts[fromIndex]
-            toAccount=accounts[toIndex]
-            data="{\"from\":\"%s\",\"to\":\"%s\",\"num\":%d}" % (fromAccount.name, toAccount.name, numAmount)
-            opts="--permission %s@active --permission %s@active --expiration 90" % (contract, fromAccount.name)
+            count += 1
+            fromIndex = fromIndexStart + fromIndexOffset
+            if fromIndex >= namedAccounts.numAccounts:
+                fromIndex -= namedAccounts.numAccounts
+            toIndex = fromIndex + 1
+            if toIndex == namedAccounts.numAccounts:
+                toIndex = 0
+            fromAccount = accounts[fromIndex]
+            toAccount = accounts[toIndex]
+            data = "{\"from\":\"%s\",\"to\":\"%s\",\"num\":%d}" % (fromAccount.name, toAccount.name, numAmount)
+            opts = "--permission %s@active --permission %s@active --expiration 90" % (contract, fromAccount.name)
             try:
-                trans=nodes[0].pushMessage(contract, action, data, opts)
+                trans = nodes[0].pushMessage(contract, action, data, opts)
                 if trans is None or not trans[0]:
                     Print("Failed to push create action to eosio contract. sleep for 60 seconds")
                     time.sleep(60)
@@ -257,34 +259,34 @@ try:
             except TypeError as ex:
                 Print("Failed to send %s" % (action))
 
-            if not nodes[len(nodes)-1].verifyAlive():
-                keepProcessing=False
+            if not nodes[len(nodes) - 1].verifyAlive():
+                keepProcessing = False
                 break
 
     if keepProcessing:
-        Utils.cmdError("node[%d] never shutdown" % (numNodes-1))
+        Utils.cmdError("node[%d] never shutdown" % (numNodes - 1))
         errorExit("Failure - Node should be shutdown")
 
     for i in range(numNodes):
         # only the last node should be dead
-        if not nodes[i].verifyAlive() and i<numNodes-1:
+        if not nodes[i].verifyAlive() and i < numNodes - 1:
             Utils.cmdError("Node %d should be alive" % (i))
             errorExit("Failure - Node should be alive")
 
     Print("relaunch node with even more capacity")
-    addOrSwapFlags={}
+    addOrSwapFlags = {}
 
     time.sleep(10)
-    maxRAMValue=currentMinimumMaxRAM+5
-    currentMinimumMaxRAM=maxRAMValue
-    addOrSwapFlags[maxRAMFlag]=str(maxRAMValue)
-    if not nodes[len(nodes)-1].relaunch(nodeIndex, "", newChain=False, addOrSwapFlags=addOrSwapFlags):
-        Utils.cmdError("Failed to restart node %d with new capacity %s" % (numNodes-1, maxRAMValue))
+    maxRAMValue = currentMinimumMaxRAM + 5
+    currentMinimumMaxRAM = maxRAMValue
+    addOrSwapFlags[maxRAMFlag] = str(maxRAMValue)
+    if not nodes[len(nodes) - 1].relaunch(nodeIndex, "", newChain=False, addOrSwapFlags=addOrSwapFlags):
+        Utils.cmdError("Failed to restart node %d with new capacity %s" % (numNodes - 1, maxRAMValue))
         errorExit("Failure - Node should have restarted")
-    addOrSwapFlags={}
+    addOrSwapFlags = {}
 
     time.sleep(10)
-    allDone=True
+    allDone = True
     for node in nodes:
         if not node.verifyAlive():
             Utils.cmdError("All Nodes should be alive")
@@ -292,24 +294,24 @@ try:
 
     time.sleep(20)
     Print("Send 1 more action to every node")
-    numAmount+=1
+    numAmount += 1
     for fromIndexOffset in range(namedAccounts.numAccounts):
         # just sending one node to each
-        if fromIndexOffset>=len(nodes):
-           break
-        fromIndex=fromIndexStart+fromIndexOffset
-        if fromIndex>=namedAccounts.numAccounts:
-            fromIndex-=namedAccounts.numAccounts 
-        toIndex=fromIndex+1
-        if toIndex==namedAccounts.numAccounts:
-            toIndex=0
-        fromAccount=accounts[fromIndex]
-        toAccount=accounts[toIndex]
-        node=nodes[fromIndexOffset]
-        data="{\"from\":\"%s\",\"to\":\"%s\",\"num\":%d}" % (fromAccount.name, toAccount.name, numAmount)
-        opts="--permission %s@active --permission %s@active --expiration 90" % (contract, fromAccount.name)
+        if fromIndexOffset >= len(nodes):
+            break
+        fromIndex = fromIndexStart + fromIndexOffset
+        if fromIndex >= namedAccounts.numAccounts:
+            fromIndex -= namedAccounts.numAccounts
+        toIndex = fromIndex + 1
+        if toIndex == namedAccounts.numAccounts:
+            toIndex = 0
+        fromAccount = accounts[fromIndex]
+        toAccount = accounts[toIndex]
+        node = nodes[fromIndexOffset]
+        data = "{\"from\":\"%s\",\"to\":\"%s\",\"num\":%d}" % (fromAccount.name, toAccount.name, numAmount)
+        opts = "--permission %s@active --permission %s@active --expiration 90" % (contract, fromAccount.name)
         try:
-            trans=nodes[0].pushMessage(contract, action, data, opts)
+            trans = nodes[0].pushMessage(contract, action, data, opts)
             if trans is None or not trans[0]:
                 Print("Failed to push create action to eosio contract. sleep for 60 seconds")
                 time.sleep(60)
@@ -321,14 +323,15 @@ try:
 
     time.sleep(10)
     Print("Check nodes are alive")
-    allDone=True
+    allDone = True
     for node in nodes:
         if not node.verifyAlive():
             Utils.cmdError("All Nodes should be alive")
             errorExit("Failure - All Nodes should be alive")
 
-    testSuccessful=True
+    testSuccessful = True
 finally:
-    TestHelper.shutdown(cluster, walletMgr, testSuccessful=testSuccessful, killEosInstances=killEosInstances, killWallet=killWallet, keepLogs=keepLogs, cleanRun=killAll, dumpErrorDetails=dumpErrorDetails)
+    TestHelper.shutdown(cluster, walletMgr, testSuccessful=testSuccessful, killEosInstances=killEosInstances,
+                        killWallet=killWallet, keepLogs=keepLogs, cleanRun=killAll, dumpErrorDetails=dumpErrorDetails)
 
 exit(0)

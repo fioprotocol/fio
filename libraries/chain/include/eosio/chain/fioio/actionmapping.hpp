@@ -17,14 +17,14 @@ namespace fioio {
     using namespace std;
 
     //map<string, string> ctType;
-    vector <string> eosioActions;
-    vector <string> fioAddressActions;
-    vector <string> fioFinanceActions;
-    vector <string> fioFeeActions;
-    vector <string> fioRequestObtActions;
-    vector <string> whitelistActions;
-    vector <string> fioTokenActions;
-    vector <string> fioTreasuryActions;
+    vector<string> eosioActions;
+    vector<string> fioAddressActions;
+    vector<string> fioFinanceActions;
+    vector<string> fioFeeActions;
+    vector<string> fioRequestObtActions;
+    vector<string> whitelistActions;
+    vector<string> fioTokenActions;
+    vector<string> fioTreasuryActions;
 
     static void Set_map(void) {
         //eosio actions
