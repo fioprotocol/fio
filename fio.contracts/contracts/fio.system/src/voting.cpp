@@ -506,6 +506,7 @@ namespace eosiosystem {
         }
 
         eosio::token::computeremaininglockedtokens(actor,true);
+        sort(producers_accounts.begin(),producers_accounts.end());
 
         update_votes(actor, proxy, producers_accounts, true);
 
