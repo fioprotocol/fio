@@ -714,6 +714,7 @@ namespace fioio {
          * expired.
          */
         void expdomain(const name &actor, const string &domain) {
+            require_auth(TokenContract);
             uint128_t domainHash = string_to_uint128_hash(domain.c_str());
             uint64_t expiration_time = get_now_minus_years(5);
 
@@ -734,12 +735,13 @@ namespace fioio {
 
         /*
          * TESTING ONLY this action should be removed for main net launch!!!
-         * This action will add the specified number of expired addresses to the specified domain using the
          * specified address prefix, values will also be added into the keynames table using the address prefix.
          */
         [[eosio::action]]
         void expaddresses(const name &actor, const string &domain, const string &address_prefix,
                           const uint64_t &number_addresses_to_add) {
+
+            require_auth(TokenContract);
 
             uint128_t nameHash;
             uint64_t domainHash = string_to_uint128_hash(domain.c_str());
