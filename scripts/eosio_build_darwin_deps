@@ -10,3 +10,4 @@ python@2,/usr/local/opt/python2
 doxygen,/usr/local/bin/doxygen
 libusb,/usr/local/lib/libusb-1.0.0.dylib
 openssl,/usr/local/opt/openssl/lib/libssl.a
+llvm@4,/usr/local/opt/llvm@4
