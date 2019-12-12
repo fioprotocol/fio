@@ -714,6 +714,7 @@ namespace fioio {
          * expired.
          */
         void expdomain(const name &actor, const string &domain) {
+            require_auth(TokenContract);
             uint128_t domainHash = string_to_uint128_hash(domain.c_str());
             uint64_t expiration_time = get_now_minus_years(5);
 
@@ -740,6 +741,8 @@ namespace fioio {
         [[eosio::action]]
         void expaddresses(const name &actor, const string &domain, const string &address_prefix,
                           const uint64_t &number_addresses_to_add) {
+
+            require_auth(TokenContract);
 
             uint128_t nameHash;
             uint64_t domainHash = string_to_uint128_hash(domain.c_str());
