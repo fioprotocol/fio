@@ -735,6 +735,7 @@ namespace fioio {
 
         /*
          * TESTING ONLY this action should be removed for main net launch!!!
+         * This action will add the specified number of expired addresses to the specified domain using the
          * specified address prefix, values will also be added into the keynames table using the address prefix.
          */
         [[eosio::action]]
