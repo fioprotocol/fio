@@ -7,15 +7,15 @@ if [[ -z "${NAME}" ]]; then
         # Obtain OS NAME, and VERSION
         . /etc/os-release
     elif [[ $ARCH == "Darwin" ]]; then export NAME=$(sw_vers -productName)
-    else echo " ${COLOR_RED}- EOSIO is not supported for your Architecture!${COLOR_NC}" && exit 1
+    else echo " ${COLOR_RED}- FIO is not supported for your Architecture!${COLOR_NC}" && exit 1
     fi
 fi
 
 # Setup yum and apt variables
 if [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]]; then
-    if ! YUM=$( command -v yum 2>/dev/null ); then echo "${COLOR_RED}YUM must be installed to compile EOSIO${COLOR_NC}" && exit 1; fi
+    if ! YUM=$( command -v yum 2>/dev/null ); then echo "${COLOR_RED}YUM must be installed to compile FIO${COLOR_NC}" && exit 1; fi
 elif [[ $NAME == "Ubuntu" ]]; then
-    if ! APTGET=$( command -v apt-get 2>/dev/null ); then echo "${COLOR_RED}APT-GET must be installed to compile EOSIO${COLOR_NC}" && exit 1; fi
+    if ! APTGET=$( command -v apt-get 2>/dev/null ); then echo "${COLOR_RED}APT-GET must be installed to compile FIO${COLOR_NC}" && exit 1; fi
 fi
 
 # Obtain dependency versions; Must come first in the script
@@ -62,7 +62,7 @@ function setup() {
 function ensure-which() {
   if ! which ls &>/dev/null; then
     while true; do
-      [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}EOSIO compiler checks require the 'which' package: Would you like for us to install it? (y/n)?${COLOR_NC}" && read -p " " PROCEED
+      [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}FIO compiler checks require the 'which' package: Would you like for us to install it? (y/n)?${COLOR_NC}" && read -p " " PROCEED
       echo ""
       case $PROCEED in
           "" ) echo "What would you like to do?";;
@@ -77,7 +77,7 @@ function ensure-which() {
 # Prompt user for installation directory.
 function install-directory-prompt() {
     if [[ -z $INSTALL_LOCATION ]]; then
-        echo "No installation location was specified. Please provide the location where EOSIO is installed."
+        echo "No installation location was specified. Please provide the location where FIO is installed."
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to use the default location? ${EOSIO_INSTALL_DIR}? (y/n)${COLOR_NC}" && read -p " " PROCEED
             echo ""
@@ -99,12 +99,12 @@ function install-directory-prompt() {
         export EOSIO_INSTALL_DIR="$INSTALL_LOCATION"
     fi
     . ./scripts/.build_vars
-    echo "EOSIO will be installed to: ${EOSIO_INSTALL_DIR}"
+    echo "FIO will be installed to: ${EOSIO_INSTALL_DIR}"
 }
 
 function previous-install-prompt() {
   if [[ -d $EOSIO_INSTALL_DIR ]]; then
-    echo "EOSIO has already been installed into ${EOSIO_INSTALL_DIR}... It's suggested that you eosio_uninstall.sh before re-running this script."
+    echo "FIO has already been installed into ${EOSIO_INSTALL_DIR}... It's suggested that you fio_uninstall.sh before re-running this script."
     while true; do
       [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to proceed anyway? (y/n)${COLOR_NC}" && read -p " " PROCEED
       echo ""
@@ -119,14 +119,15 @@ function previous-install-prompt() {
 }
 
 function resources() {
-    echo "${COLOR_CYAN}EOSIO website:${COLOR_NC} https://eos.io"
-    echo "${COLOR_CYAN}EOSIO Telegram channel:${COLOR_NC} https://t.me/EOSProject"
-    echo "${COLOR_CYAN}EOSIO resources:${COLOR_NC} https://eos.io/resources/"
-    echo "${COLOR_CYAN}EOSIO Stack Exchange:${COLOR_NC} https://eosio.stackexchange.com"
+    echo "${COLOR_CYAN}For more information:"
+    echo "${COLOR_CYAN}FIO website: https://fio.foundation"
+    echo "${COLOR_CYAN}FIO resources: https://developers.fioprotocol.io"
+    echo "${COLOR_CYAN}FIO Telegram channel:${COLOR_NC} https://t.me/joinFIO"
+    echo "${COLOR_CYAN}FIO Discord:${COLOR_NC} https://discordapp.com/invite/pHBmJCc"
 }
 
 function print_supported_linux_distros_and_exit() {
-   echo "On Linux the EOSIO build script only supports Amazon, Centos, and Ubuntu."
+   echo "On Linux the FIO build script only supports Amazon, Centos, and Ubuntu."
    echo "Please install on a supported version of one of these Linux distributions."
    echo "https://aws.amazon.com/amazon-linux-ami/"
    echo "https://www.centos.org/"

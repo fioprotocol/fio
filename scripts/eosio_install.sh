@@ -2,8 +2,8 @@
 set -eo pipefail
 VERSION=2.1
 ##########################################################################
-# This is the EOSIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/EOSIO/eos
+# This is the FIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/fioprotocol/fio
 #
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
@@ -29,14 +29,14 @@ VERSION=2.1
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/EOSIO/eos/blob/master/LICENSE.txt
+# https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
 # Ensure we're in the repo root and not inside of scripts
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 # Load eosio specific helper functions
-. ./scripts/helpers/eosio.sh
+. ./scripts/helpers/fio_helper.sh
 
 [[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
@@ -48,20 +48,22 @@ execute make install
 execute cd ..
 
 printf "\n${COLOR_RED}      ___           ___           ___                       ___\n"
-printf "     /  /\\         /  /\\         /  /\\        ___          /  /\\ \n"
-printf "    /  /:/_       /  /::\\       /  /:/_      /  /\\        /  /::\\ \n"
-printf "   /  /:/ /\\     /  /:/\\:\\     /  /:/ /\\    /  /:/       /  /:/\\:\\ \n"
-printf "  /  /:/ /:/_   /  /:/  \\:\\   /  /:/ /::\\  /__/::\\      /  /:/  \\:\\ \n"
-printf " /__/:/ /:/ /\\ /__/:/ \\__\\:\\ /__/:/ /:/\\:\\ \\__\\/\\:\\__  /__/:/ \\__\\:\\ \n"
-printf " \\  \\:\\/:/ /:/ \\  \\:\\ /  /:/ \\  \\:\\/:/~/:/    \\  \\:\\/\\ \\  \\:\\ /  /:/ \n"
-printf "  \\  \\::/ /:/   \\  \\:\\  /:/   \\  \\::/ /:/      \\__\\::/  \\  \\:\\  /:/ \n"
-printf "   \\  \\:\\/:/     \\  \\:\\/:/     \\__\\/ /:/       /__/:/    \\  \\:\\/:/ \n"
-printf "    \\  \\::/       \\  \\::/        /__/:/        \\__\\/      \\  \\::/ \n"
-printf "     \\__\\/         \\__\\/         \\__\\/                     \\__\\/ \n\n${COLOR_NC}"
+printf "\n${bldred}\n"
+printf "      ___                       ___                 \n"
+printf "     /\\__\\                     /\\  \\            \n"
+printf "    /:/ _/_       ___         /::\\  \\             \n"
+printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
+printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
+printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
+printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
+printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
+printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
+printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
+printf "     \\/__/         \\/__/       \\/__/             \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${COLOR_NC}"
 
 printf "==============================================================================================\\n"
 printf "${COLOR_GREEN}EOSIO has been installed into ${CACHED_INSTALL_PATH}/bin${COLOR_NC}"
 printf "\\n${COLOR_YELLOW}Uninstall with: ${SCRIPT_DIR}/eosio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 resources
-

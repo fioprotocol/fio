@@ -2,8 +2,8 @@
 set -eo pipefail
 SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD image)
 ##########################################################################
-# This is the EOSIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/EOSIO/eos
+# This is the FIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/fioprotocol/fio
 #
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
@@ -29,7 +29,7 @@ SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD imag
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/EOSIO/eos/blob/master/LICENSE
+# https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
 function usage() {
@@ -38,7 +38,7 @@ function usage() {
   -o TYPE     Build <Debug|Release|RelWithDebInfo|MinSizeRel> (default: Release)
   -s NAME     Core Symbol Name <1-7 characters> (default: SYS)
   -b DIR      Use pre-built boost in DIR
-  -i DIR      Directory to use for installing dependencies & EOSIO (default: $HOME)
+  -i DIR      Directory to use for installing dependencies & FIO (default: $HOME)
   -y          Noninteractive mode (answers yes to every prompt)
   -c          Enable Code Coverage
   -d          Generate Doxygen
@@ -116,11 +116,11 @@ export CURRENT_WORKING_DIR=$(pwd) # relative path support
 # Ensure we're in the repo root and not inside of scripts
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
-# Load eosio specific helper functions
-. ./scripts/helpers/eosio.sh
+# Load FIO specific helper functions
+. ./scripts/helpers/fio_helper.sh
 
 $VERBOSE && echo "Build Script Version: ${SCRIPT_VERSION}"
-echo "EOSIO Version: ${EOSIO_VERSION_FULL}"
+echo "FIO Version: ${EOSIO_VERSION_FULL}"
 echo "$( date -u )"
 echo "User: ${CURRENT_USER}"
 # echo "git head id: %s" "$( cat .git/refs/heads/master )"
@@ -228,17 +228,22 @@ execute cd $REPO_ROOT 1>/dev/null
 
 TIME_END=$(( $(date -u +%s) - $TIME_BEGIN ))
 
-echo " _______  _______  _______ _________ _______"
-echo "(  ____ \(  ___  )(  ____   __   __ (  ___  )"
-echo "| (    \/| (   ) || (    \/   ) (   | (   ) |"
-echo "| (__    | |   | || (_____    | |   | |   | |"
-echo "|  __)   | |   | |(_____  )   | |   | |   | |"
-echo "| (      | |   | |      ) |   | |   | |   | |"
-echo "| (____/\| (___) |/\____) |___) (___| (___) |"
-echo "(_______/(_______)\_______)\_______/(_______)"
-echo "=============================================${COLOR_NC}"
+printf "${bldred}\n"
+printf "      ___                       ___                 \n"
+printf "     /\\__\\                     /\\  \\            \n"
+printf "    /:/ _/_       ___         /::\\  \\             \n"
+printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
+printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
+printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
+printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
+printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
+printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
+printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
+printf "     \\/__/         \\/__/       \\/__/             \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
 
-echo "${COLOR_GREEN}EOSIO has been successfully built. $(($TIME_END/3600)):$(($TIME_END%3600/60)):$(($TIME_END%60))"
+printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
+printf "==============================================================================================\\n${bldred}"
 echo "${COLOR_GREEN}You can now install using: ${SCRIPT_DIR}/eosio_install.sh${COLOR_NC}"
 echo "${COLOR_YELLOW}Uninstall with: ${SCRIPT_DIR}/eosio_uninstall.sh${COLOR_NC}"
 

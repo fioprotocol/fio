@@ -15,7 +15,7 @@ endif ()
 
 include(ExternalProject)
 
-find_package(eosio.cdt)
+find_package(fio.cdt)
 
 message(STATUS "Building eosio.contracts v${VERSION_FULL}")
 

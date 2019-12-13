@@ -53,7 +53,7 @@ export CURRENT_WORKING_DIR=$(pwd) # relative path support
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 # Load bash script helper functions
-. ./scripts/helpers/eosio.sh
+. ./scripts/helpers/fio_helper.sh
 
 # Support relative paths : https://github.com/EOSIO/eos/issues/7560
 ( [[ ! -z $INSTALL_LOCATION ]] && [[ ! $INSTALL_LOCATION =~ ^\/ ]] ) && export INSTALL_LOCATION="${CURRENT_WORKING_DIR}/$INSTALL_LOCATION"
@@ -81,7 +81,7 @@ if [[ ! -d "${EOSIO_INSTALL_DIR}" ]]; then
    echo "[EOSIO installation ${COLOR_YELLOW}NOT${COLOR_NC} found in ${EOSIO_INSTALL_DIR}]"
 else
    # As of 1.8.0, we're using a versioned directories under home: https://github.com/EOSIO/eos/issues/6940
-   echo "[EOSIO installation found: ${EOSIO_INSTALL_DIR}]" && INSTALL_PATHS+=("${EOSIO_INSTALL_DIR}") # EOSIO_INSTALL_DIR set in .environment
+   echo "[FIO installation found: ${EOSIO_INSTALL_DIR}]" && INSTALL_PATHS+=("${EOSIO_INSTALL_DIR}") # EOSIO_INSTALL_DIR set in .environment
    while true; do
       [[ $NONINTERACTIVE == false ]] && read -p "Do you wish to remove the installation in ${EOSIO_INSTALL_DIR}? (y/n) " PROCEED
       case $PROCEED in
@@ -98,9 +98,9 @@ else
             for INSTALL_PATH in ${INSTALL_PATHS[@]}; do
                execute rm -rf $INSTALL_PATH
             done
-            echo " - EOSIO Removal Complete"
+            echo " - FIO Removal Complete"
             break;;
-         1 | false | [Nn]* ) echo " - Cancelled EOSIO Removal!"; exit 1;;
+         1 | false | [Nn]* ) echo " - Cancelled FIO Removal!"; exit 1;;
          * ) echo "Please type 'y' for yes or 'n' for no.";;
       esac
    done
