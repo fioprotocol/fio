@@ -303,7 +303,6 @@ function ensure-llvm() {
     fi
 }
 
-
 function build-clang() {
     if $BUILD_CLANG; then
         echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
