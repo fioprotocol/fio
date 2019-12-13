@@ -727,6 +727,7 @@ namespace fioio {
                     d.id = id;
                     d.name = domain;
                     d.domainhash = domainHash;
+                    d.is_public = 1;
                     d.expiration = expiration_time;
                     d.account = actor.value;
                 });
