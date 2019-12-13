@@ -22,7 +22,7 @@ if [[ -d /opt/rh/devtoolset-8 ]]; then
 	echo " - ${COLOR_GREEN}Centos devtoolset-8 successfully enabled!${COLOR_NC}"
 fi
 # Ensure packages exist
-ensure-yum-packages "${REPO_ROOT}/scripts/eosio_build_centos7_deps"
+ensure-yum-packages "${REPO_ROOT}/scripts/helpers/build_centos7_deps"
 export PYTHON3PATH="/opt/rh/rh-python36"
 if $DRYRUN || [ -d $PYTHON3PATH ]; then
 	echo "${COLOR_CYAN}[Enabling python36]${COLOR_NC}"
@@ -51,7 +51,7 @@ if $INSTALL_MONGO; then
 		&& mv $SRC_DIR/mongodb-linux-x86_64-amazon-$MONGODB_VERSION $MONGODB_ROOT \
 		&& touch $MONGODB_LOG_DIR/mongod.log \
 		&& rm -f mongodb-linux-x86_64-amazon-$MONGODB_VERSION.tgz \
-		&& cp -f $REPO_ROOT/scripts/mongod.conf $MONGODB_CONF \
+		&& cp -f $REPO_ROOT/scripts/helpers/mongod.conf $MONGODB_CONF \
 		&& mkdir -p $MONGODB_DATA_DIR \
 		&& rm -rf $MONGODB_LINK_DIR \
 		&& rm -rf $BIN_DIR/mongod \

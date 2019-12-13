@@ -78,7 +78,7 @@ fi
 export EOSIO_INSTALL_DIR=${INSTALL_LOCATION:-$EOSIO_INSTALL_DIR}
 
 if [[ ! -d "${EOSIO_INSTALL_DIR}" ]]; then
-   echo "[EOSIO installation ${COLOR_YELLOW}NOT${COLOR_NC} found in ${EOSIO_INSTALL_DIR}]"
+   echo "[FIO installation ${COLOR_YELLOW}NOT${COLOR_NC} found in ${EOSIO_INSTALL_DIR}]"
 else
    # As of 1.8.0, we're using a versioned directories under home: https://github.com/EOSIO/eos/issues/6940
    echo "[FIO installation found: ${EOSIO_INSTALL_DIR}]" && INSTALL_PATHS+=("${EOSIO_INSTALL_DIR}") # EOSIO_INSTALL_DIR set in .environment
@@ -106,9 +106,9 @@ else
    done
 fi
 
-echo "[Removing EOSIO Dependencies]"
+echo "[Removing FIO Dependencies]"
 if [[ $ARCH == "Darwin" ]]; then
-   for package in $(cat scripts/eosio_build_darwin_deps | cut -d, -f1 2>/dev/null); do
+   for package in $(cat scripts/helpers/build_darwin_deps | cut -d, -f1 2>/dev/null); do
       while true; do
          [[ $NONINTERACTIVE == false ]] && read -p "Do you wish to uninstall and unlink all brew installed ${package} versions? (y/n) " DEP_PROCEED
          case $DEP_PROCEED in

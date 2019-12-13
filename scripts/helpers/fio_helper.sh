@@ -19,7 +19,7 @@ elif [[ $NAME == "Ubuntu" ]]; then
 fi
 
 # Obtain dependency versions; Must come first in the script
-. ./scripts/.environment
+. ./scripts/helpers/.environment
 # Load general helpers
 . ./scripts/helpers/general.sh
 
@@ -98,7 +98,7 @@ function install-directory-prompt() {
         [[ ! $INSTALL_LOCATION =~ ^\/ ]] && export INSTALL_LOCATION="${CURRENT_WORKING_DIR}/$INSTALL_LOCATION"
         export EOSIO_INSTALL_DIR="$INSTALL_LOCATION"
     fi
-    . ./scripts/.build_vars
+    . ./scripts/helpers/.build_vars
     echo "FIO will be installed to: ${EOSIO_INSTALL_DIR}"
 }
 
@@ -319,7 +319,7 @@ function build-clang() {
             && cd polly && git checkout $PINNED_COMPILER_POLLY_COMMIT && cd ../ \
             && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/clang.git clang && cd clang \
             && git checkout $PINNED_COMPILER_CLANG_COMMIT \
-            && patch -p2 < \"$REPO_ROOT/scripts/clang-devtoolset8-support.patch\" \
+            && patch -p2 < \"$REPO_ROOT/scripts/helpers/clang-devtoolset8-support.patch\" \
             && cd tools && mkdir extra && cd extra \
             && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/clang-tools-extra.git \
             && cd clang-tools-extra && git checkout $PINNED_COMPILER_CLANG_TOOLS_EXTRA_COMMIT && cd .. \

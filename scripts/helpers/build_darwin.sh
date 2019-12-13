@@ -32,7 +32,7 @@ fi
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
-ensure-brew-packages "${REPO_ROOT}/scripts/eosio_build_darwin_deps"
+ensure-brew-packages "${REPO_ROOT}/scripts/helpers/build_darwin_deps"
 [[ -z "${CMAKE}" ]] && export CMAKE="/usr/local/bin/cmake"
 # CLANG Installation
 build-clang
@@ -50,7 +50,7 @@ if $INSTALL_MONGO; then
 		&& mv $SRC_DIR/mongodb-osx-x86_64-$MONGODB_VERSION $MONGODB_ROOT \
 		&& touch $MONGODB_LOG_DIR/mongod.log \
 		&& rm -f mongodb-osx-ssl-x86_64-$MONGODB_VERSION.tgz \
-		&& cp -f $REPO_ROOT/scripts/mongod.conf $MONGODB_CONF \
+		&& cp -f $REPO_ROOT/scripts/helpers/mongod.conf $MONGODB_CONF \
 		&& mkdir -p $MONGODB_DATA_DIR \
 		&& rm -rf $MONGODB_LINK_DIR \
 		&& rm -rf $BIN_DIR/mongod \

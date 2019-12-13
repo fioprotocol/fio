@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-set -eo pipefail
-VERSION=2.1
+#!/bin/bash
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
 # This file was downloaded from https://github.com/fioprotocol/fio
@@ -8,19 +6,19 @@ VERSION=2.1
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
 # After June 1, 2018 this software is available under the following terms:
-#
+# 
 # The MIT License
-#
+# 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-#
+# 
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-#
+# 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,25 +27,60 @@ VERSION=2.1
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/fioprotocol/fio/blob/master/LICENSE
+# https://github.com/fioprotocol/fio/blob/master/LICENSE.txt
 ##########################################################################
 
-# Ensure we're in the repo root and not inside of scripts
-cd $( dirname "${BASH_SOURCE[0]}" )/..
+if [ "$(id -u)" -ne 0 ]; then
+        printf "\n\tFIO install requires sudo. Please run sudo ./fio_install.sh\n\n"
+        exit -1
+fi
 
-# Load eosio specific helper functions
-. ./scripts/helpers/fio_helper.sh
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT="${SCRIPT_DIR}/.."
+BUILD_DIR="${REPO_ROOT}/build"
 
-[[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
+OPT_LOCATION=$HOME/opt
+BIN_LOCATION=$HOME/bin
+LIB_LOCATION=$HOME/lib
+mkdir -p $LIB_LOCATION
 
-[[ ! -f ${BUILD_DIR}/CMakeCache.txt ]] && printf "${COLOR_RED}Please run ${SCRIPT_DIR}/eosio_build.sh first!${COLOR_NC}" && exit 1
-echo "${COLOR_CYAN}====================================================================================="
-echo "========================== ${COLOR_WHITE}Starting EOSIO Installation${COLOR_CYAN} ==============================${COLOR_NC}"
-execute cd $BUILD_DIR
-execute make install
-execute cd ..
+CMAKE_BUILD_TYPE=Release
+TIME_BEGIN=$( date -u +%s )
+INSTALL_PREFIX=$OPT_LOCATION/fio
+VERSION=1.2
 
-printf "\n${COLOR_RED}      ___           ___           ___                       ___\n"
+txtbld=$(tput bold)
+bldred=${txtbld}$(tput setaf 1)
+txtrst=$(tput sgr0)
+
+if [ ! -d $BUILD_DIR ]; then
+   printf "\\nError, fio_build.sh has not ran.  Please run ./fio_build.sh first!\\n\\n"
+   exit -1
+fi
+
+if ! pushd "${BUILD_DIR}" &> /dev/null;then
+   printf "Unable to enter build directory %s.\\n Exiting now.\\n" "${BUILD_DIR}"
+   exit 1;
+fi
+
+if ! make install; then
+   printf "\\nMAKE installing FIO has exited with the above error.\\n\\n"
+   exit -1
+fi
+popd &> /dev/null
+
+if hash eosio-cpp 2>/dev/null; then
+    echo $'Restart Detected\n\n'
+else
+    cd ../../
+    git clone https://github.com/dapixio/cdt
+    sleep 2s
+    cd cdt
+    git submodule update --init --recursive
+    ./build.sh
+    sudo ./install.sh
+fi
+
 printf "\n${bldred}\n"
 printf "      ___                       ___                 \n"
 printf "     /\\__\\                     /\\  \\            \n"
@@ -60,10 +93,14 @@ printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
 printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
 printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
 printf "     \\/__/         \\/__/       \\/__/             \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${COLOR_NC}"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
 
 printf "==============================================================================================\\n"
-printf "${COLOR_GREEN}EOSIO has been installed into ${CACHED_INSTALL_PATH}/bin${COLOR_NC}"
-printf "\\n${COLOR_YELLOW}Uninstall with: ${SCRIPT_DIR}/eosio_uninstall.sh${COLOR_NC}\\n"
+printf "FIO has been installed into ${OPT_LOCATION}/eosio/bin!\\n"
+printf "If you need to, you can fully uninstall using fio_uninstall.sh && full_uninstaller.sh.\\n"
 printf "==============================================================================================\\n\\n"
-resources
+
+printf "For more information:\\n"
+printf "FIO website: https://fio.foundation\\n"
+printf "FIO wiki: https://github.com/fioprotocol/fio/wiki\\n"
+printf "FIO wiki: https://github.com/fioprotocol/fio/wiki\\n\\n\\n"
