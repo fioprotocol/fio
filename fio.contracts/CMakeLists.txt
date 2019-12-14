@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(eosio_contracts)
+project(fio_contracts)
 
-set(VERSION_MAJOR 1)
+set(VERSION_MAJOR 0)
 set(VERSION_MINOR 6)
-set(VERSION_PATCH 0)
+set(VERSION_PATCH 1)
 #set(VERSION_SUFFIX rc3)
 
 if (VERSION_SUFFIX)
@@ -14,16 +14,15 @@ else ()
 endif ()
 
 include(ExternalProject)
+find_package(eosio.cdt)
 
-find_package(fio.cdt)
-
-message(STATUS "Building eosio.contracts v${VERSION_FULL}")
+message(STATUS "Building fio.contracts v${VERSION_FULL}")
 
 set(EOSIO_CDT_VERSION_MIN "1.5")
 set(EOSIO_CDT_VERSION_SOFT_MAX "1.5")
 #set(EOSIO_CDT_VERSION_HARD_MAX "")
 
-### Check the version of eosio.cdt
+### Check the version of fio.cdt
 set(VERSION_MATCH_ERROR_MSG "")
 EOSIO_CHECK_VERSION(VERSION_OUTPUT "${EOSIO_CDT_VERSION}"
         "${EOSIO_CDT_VERSION_MIN}"
@@ -31,11 +30,11 @@ EOSIO_CHECK_VERSION(VERSION_OUTPUT "${EOSIO_CDT_VERSION}"
         "${EOSIO_CDT_VERSION_HARD_MAX}"
         VERSION_MATCH_ERROR_MSG)
 if (VERSION_OUTPUT STREQUAL "MATCH")
-   message(STATUS "Using eosio.cdt version ${EOSIO_CDT_VERSION}")
+   message(STATUS "Using fio.cdt version ${EOSIO_CDT_VERSION}")
 elseif (VERSION_OUTPUT STREQUAL "WARN")
-   message(WARNING "Using eosio.cdt version ${EOSIO_CDT_VERSION} even though it exceeds the maximum supported version of ${EOSIO_CDT_VERSION_SOFT_MAX}; continuing with configuration, however build may fail.\nIt is recommended to use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
+   message(WARNING "Using fio.cdt version ${EOSIO_CDT_VERSION} even though it exceeds the maximum supported version of ${EOSIO_CDT_VERSION_SOFT_MAX}; continuing with configuration, however build may fail.\nIt is recommended to use fio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
 else () # INVALID OR MISMATCH
-   message(FATAL_ERROR "Found eosio.cdt version ${EOSIO_CDT_VERSION} but it does not satisfy version requirements: ${VERSION_MATCH_ERROR_MSG}\nPlease use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
+   message(FATAL_ERROR "Found fio.cdt version ${EOSIO_CDT_VERSION} but it does not satisfy version requirements: ${VERSION_MATCH_ERROR_MSG}\nPlease use fio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
 endif (VERSION_OUTPUT STREQUAL "MATCH")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -49,7 +48,7 @@ ExternalProject_Add(
         contracts_project
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/contracts
         BINARY_DIR ${CMAKE_BINARY_DIR}/contracts
-        CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${EOSIO_CDT_ROOT}/lib/cmake/eosio.cdt/EosioWasmToolchain.cmake
+        CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${EOSIO_CDT_ROOT}/lib/cmake/fio.cdt/EosioWasmToolchain.cmake
         UPDATE_COMMAND ""
         PATCH_COMMAND ""
         TEST_COMMAND ""

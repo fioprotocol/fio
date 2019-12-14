@@ -579,8 +579,6 @@ launcher_def::set_options(bpo::options_description &cfg) {
              "enable gelf logging appender in logging configuration file")
             ("gelf-endpoint", bpo::value<string>(&gelf_endpoint)->default_value("10.160.11.21:12201"),
              "hostname:port or ip:port of GELF endpoint")
-            ("template", bpo::value<string>(&start_temp)->default_value("testnet.template"),
-             "the startup script template")
             ("script", bpo::value<string>(&start_script)->default_value("bios_boot.sh"),
              "the generated startup script name")
             ("max-block-cpu-usage", bpo::value<uint32_t>(),

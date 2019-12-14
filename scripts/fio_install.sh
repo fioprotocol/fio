@@ -47,6 +47,18 @@ execute cd $BUILD_DIR
 execute make install
 execute cd ..
 
+if hash eosio-cpp 2>/dev/null; then
+    echo $'Restart Detected\n\n'
+else
+    cd ../../
+    git clone https://github.com/dapixio/cdt
+    sleep 2s
+    cd cdt
+    git submodule update --init --recursive
+    ./build.sh
+    sudo ./install.sh
+fi
+
 printf "\n${COLOR_RED}      ___           ___           ___                       ___\n"
 printf "\n${bldred}\n"
 printf "      ___                       ___                 \n"
