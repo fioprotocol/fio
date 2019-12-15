@@ -41,6 +41,44 @@
          }
       ]
     },{
+            "name": "recordobt_info",
+            "base": "",
+            "fields": [{
+                "name": "id",
+                "type": "uint64"
+              },{
+                "name": "payer_fio_address_hash",
+                "type": "uint128"
+              },{
+                "name": "payee_fio_address_hash",
+                "type": "uint128"
+              },{
+                "name": "payer_fio_address_hex_str",
+                "type": "string"
+              },{
+                "name": "payee_fio_address_hex_str",
+                "type": "string"
+              },{
+                "name": "content",
+                "type": "string"
+              },{
+                "name": "time_stamp",
+                "type": "uint64"
+              },{
+                "name": "payer_fio_address",
+                "type": "string"
+              },{
+                "name": "payee_fio_address",
+                "type": "string"
+               },{
+                "name": "payer_key",
+                "type": "string"
+               },{
+                "name": "payee_key",
+                "type": "string"
+               }
+            ]
+          },{
       "name": "fioreqsts",
       "base": "",
       "fields": [{
@@ -153,6 +191,16 @@
       ],
       "type": "fioreqctxt"
     },{
+            "name": "recordobts",
+            "index_type": "i64",
+            "key_names": [
+              "id"
+            ],
+            "key_types": [
+              "uint64"
+            ],
+            "type": "recordobt_info"
+          },{
       "name": "fioreqstss",
       "index_type": "i64",
       "key_names": [
