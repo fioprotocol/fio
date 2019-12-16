@@ -244,14 +244,14 @@ namespace fioio {
 
                 recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
-                    obtinf.payer_fio_address_hashed = fromHash;
-                    obtinf.payee_fio_address_hashed = toHash;
+                    obtinf.payer_fio_address = fromHash;
+                    obtinf.payee_fio_address = toHash;
                     obtinf.payer_fio_address_hex_str = fromHashStr;
                     obtinf.payee_fio_address_hex_str = toHashStr;
                     obtinf.content = content;
                     obtinf.time_stamp = currentTime;
-                    obtinf.payer_fio_address = payer_fio_address;
-                    obtinf.payee_fio_address = payee_fio_address;
+                    obtinf.payer_fio_addr = payer_fio_address;
+                    obtinf.payee_fio_addr = payee_fio_address;
                     obtinf.payee_key = payee_key;
                     obtinf.payer_key = payer_key;
                 });

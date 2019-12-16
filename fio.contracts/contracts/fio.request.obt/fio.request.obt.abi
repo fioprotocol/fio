@@ -47,10 +47,10 @@
                 "name": "id",
                 "type": "uint64"
               },{
-                "name": "payer_fio_address_hash",
+                "name": "payer_fio_address",
                 "type": "uint128"
               },{
-                "name": "payee_fio_address_hash",
+                "name": "payee_fio_address",
                 "type": "uint128"
               },{
                 "name": "payer_fio_address_hex_str",
