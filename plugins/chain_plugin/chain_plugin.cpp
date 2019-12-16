@@ -1763,7 +1763,6 @@ if( options.count(name) ) { \
                     if(id_req){
                         uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                     }
-                    uint64_t fio_request_id = payerrequests_rows_result.rows[pos][id_req].as_uint64();
                     string payer_address = payerrequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                     string payee_address = payerrequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                     string content = payerrequests_rows_result.rows[pos]["content"].as_string();
