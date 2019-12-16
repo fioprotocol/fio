@@ -1805,7 +1805,8 @@ if( options.count(name) ) { \
                             if (statusintV != 2 && reqid != fio_request_id ){
                                 break;
                             }
-                        }
+                        } else {
+                            break;
                     } else {
                         fio_request_id = 0;
                     }
