@@ -1772,9 +1772,10 @@ if( options.count(name) ) { \
                     //look up the requests for this fio name (look for matches in the tofioadd
                     uint64_t statusintV;
                     uint64_t reqid;
+                    uint64_t fio_request_id;
 
                     if(id_req){
-                        uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                        fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                         string fio_request_status_lookup_table = "fioreqstss";   // table name
                         get_table_rows_params request_status_row_params = get_table_rows_params{
                                 .json        = true,
