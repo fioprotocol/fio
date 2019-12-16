@@ -1738,13 +1738,13 @@ if( options.count(name) ) { \
                         });
 
                 obt_data_search(search_limit, result, reqobt_abi,
-                                payerrequests_rows_result, search_results, search_offset, returnCount, search_finished, "fio_request_id");
+                                payerrequests_rows_result, search_results, search_offset, returnCount, search_finished, true);
                 obt_data_search(search_limit, result, reqobt_abi,
-                                payeerequests_rows_result, search_results, search_offset, returnCount, search_finished, "fio_request_id");
+                                payeerequests_rows_result, search_results, search_offset, returnCount, search_finished, true);
                 obt_data_search(search_limit, result, reqobt_abi,
-                                payeerequests_obt_rows_result, search_results, search_offset, returnCount, search_finished, "id");
+                                payeerequests_obt_rows_result, search_results, search_offset, returnCount, search_finished, false);
                 obt_data_search(search_limit, result, reqobt_abi,
-                                payerrequests_obt_rows_result, search_results, search_offset, returnCount, search_finished, "id");
+                                payerrequests_obt_rows_result, search_results, search_offset, returnCount, search_finished, false);
             }
 
             FIO_404_ASSERT(!(result.obt_data_records.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
@@ -1756,11 +1756,14 @@ if( options.count(name) ) { \
                                         const abi_def &reqobt_abi,
                                         const read_only::get_table_rows_result &payerrequests_rows_result,
                                         uint32_t &search_results, uint32_t &search_offset, uint32_t &returnCount,
-                                        bool &search_finished, const string id_req) const {
+                                        bool &search_finished, const bool id_req) const {
             if (search_offset < payerrequests_rows_result.rows.size() && !search_finished) {
                 for (size_t pos = 0 + search_offset; pos < payerrequests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = payerrequests_rows_result.rows[pos][N(id_req)].as_uint64();
+                    if(id_req){
+                        uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                    }
+                    uint64_t fio_request_id = payerrequests_rows_result.rows[pos][id_req].as_uint64();
                     string payer_address = payerrequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                     string payee_address = payerrequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                     string content = payerrequests_rows_result.rows[pos]["content"].as_string();
@@ -1774,7 +1777,7 @@ if( options.count(name) ) { \
                     uint64_t statusintV;
                     uint64_t reqid;
 
-                    if( id_req == "fio_request_id"){
+                    if(id_req){
                         string fio_request_status_lookup_table = "fioreqstss";   // table name
                         get_table_rows_params request_status_row_params = get_table_rows_params{
                                 .json        = true,
