@@ -1760,9 +1760,6 @@ if( options.count(name) ) { \
             if (search_offset < payerrequests_rows_result.rows.size() && !search_finished) {
                 for (size_t pos = 0 + search_offset; pos < payerrequests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
-                    if(id_req){
-                        uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                    }
                     string payer_address = payerrequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
                     string payee_address = payerrequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                     string content = payerrequests_rows_result.rows[pos]["content"].as_string();
@@ -1777,6 +1774,7 @@ if( options.count(name) ) { \
                     uint64_t reqid;
 
                     if(id_req){
+                        uint64_t fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
                         string fio_request_status_lookup_table = "fioreqstss";   // table name
                         get_table_rows_params request_status_row_params = get_table_rows_params{
                                 .json        = true,
