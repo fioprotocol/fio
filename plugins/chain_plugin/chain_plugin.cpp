@@ -1806,7 +1806,7 @@ if( options.count(name) ) { \
                             }
                         }
                     } else {
-                        reqid = 0;
+                        fio_request_id = 0;
                     }
 
                     //convert the time_stamp to string formatted time.
