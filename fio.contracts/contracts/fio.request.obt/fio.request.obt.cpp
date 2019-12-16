@@ -232,29 +232,30 @@ namespace fioio {
                     fr.metadata = "";
                     fr.time_stamp = currentTime;
                 });
+            } else {
+
+                const uint64_t id = recordObtTable.available_primary_key();
+                const uint64_t currentTime = now();
+                const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
+                const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
+                const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
+                const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
+
+
+                recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
+                    obtinf.id = id;
+                    obtinf.payer_fio_address_hashed = fromHash;
+                    obtinf.payee_fio_address_hashed = toHash;
+                    obtinf.payer_fio_address_hex_str = fromHashStr;
+                    obtinf.payee_fio_address_hex_str = toHashStr;
+                    obtinf.content = content;
+                    obtinf.time_stamp = currentTime;
+                    obtinf.payer_fio_address = payer_fio_address;
+                    obtinf.payee_fio_address = payee_fio_address;
+                    obtinf.payee_key = payee_key;
+                    obtinf.payer_key = payer_key;
+                });
             }
-
-            const uint64_t id = recordObtTable.available_primary_key();
-            const uint64_t currentTime = now();
-            const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
-            const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
-            const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
-            const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
-
-
-            recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
-                obtinf.id = id;
-                obtinf.payer_fio_address_hashed = fromHash;
-                obtinf.payee_fio_address_hashed = toHash;
-                obtinf.payer_fio_address_hex_str = fromHashStr;
-                obtinf.payee_fio_address_hex_str = toHashStr;
-                obtinf.content = content;
-                obtinf.time_stamp = currentTime;
-                obtinf.payer_fio_address = payer_fio_address;
-                obtinf.payee_fio_address = payee_fio_address;
-                obtinf.payee_key = payee_key;
-                obtinf.payer_key = payer_key;
-            });
 
 
             nlohmann::json json = {{"status",        "sent_to_blockchain"},
