@@ -81,8 +81,8 @@ namespace fioio {
         uint128_t by_payer() const { return payee_fio_address; }
 
         EOSLIB_SERIALIZE(recordobt_info,
-        (id)(payer_fio_address_hashed)(payee_fio_address_hashed)(payer_fio_address_hex_str)(payee_fio_address_hex_str)
-        (content)(time_stamp)(payer_fio_address)(payee_fio_address)(payer_key)(payee_key)
+        (id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)
+        (content)(time_stamp)(payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)
         )
     };
 
