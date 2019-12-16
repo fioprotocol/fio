@@ -253,7 +253,7 @@ printf "\\n"
 
 # We install llvm into /usr/local/opt using brew install llvm@4
 printf "Checking LLVM 4 support...\\n"
-if [ ! -d $LLVM_ROOT ]; then
+if [ ! -d /usr/local/Cellar/llvm@4 ]; then
 	cd /usr/local/Cellar
 	wget https://bin.fioprotocol.io/build-tools/llvm4-mac.tbz
   tar jxf llvm4-mac.tbz
