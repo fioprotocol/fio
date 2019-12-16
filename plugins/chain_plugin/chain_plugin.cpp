@@ -1807,6 +1807,7 @@ if( options.count(name) ) { \
                             }
                         } else {
                             break;
+                        }
                     } else {
                         fio_request_id = 0;
                     }
