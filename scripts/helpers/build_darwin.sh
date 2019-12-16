@@ -30,7 +30,7 @@ if [ ! -d /usr/local/Frameworks ]; then
 fi
 
 echo "${COLOR_CYAN}[Checking LLVM 4 support]${COLOR_NC}"
-if [ ! -d $LLVM_ROOT ]; then
+if [ ! -d /usr/local/Cellar/llvm@4 ]; then
   execute bash -c "cd /usr/local/Cellar && \
 	curl -OL https://bin.fioprotocol.io/build-tools/llvm4-mac.tbz \
   && tar jxf llvm4-mac.tbz \
