@@ -808,7 +808,7 @@ namespace eosio {
 
             void obt_data_search(uint32_t search_limit, get_obt_data_result &result, const abi_def &reqobt_abi,
                                  const get_table_rows_result &payerrequests_rows_result, uint32_t &search_results,
-                                 uint32_t &search_offset, uint32_t &returnCount, bool &search_finished, const string id_req) const;
+                                 uint32_t &search_offset, uint32_t &returnCount, bool &search_finished, const bool id_req) const;
         };
 
         class read_write {
