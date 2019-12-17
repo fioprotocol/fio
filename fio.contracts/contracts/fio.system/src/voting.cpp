@@ -875,6 +875,7 @@ namespace eosiosystem {
 
     void system_contract::setautoproxy(const name &proxy,const name &owner)
     {
+        require_auth(owner);
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.

@@ -142,6 +142,8 @@ namespace eosiosystem {
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
 
+        require_auth(acnt);
+
         check(( acnt == fioio::MSIGACCOUNT ||
                 acnt == fioio::WHITELISTACCOUNT ||
                 acnt == fioio::WRAPACCOUNT ||
