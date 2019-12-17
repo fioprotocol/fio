@@ -1,7 +1,7 @@
 /**
  *  @file
  *  @copyright defined in fio/LICENSE
- *  @defgroup eosclienttool EOSIO Command Line Client Reference
+ *  @defgroup eosclienttool FIO Command Line Client Reference
  *  @brief Tool for sending transactions and querying state from @ref nodeos
  *  @ingroup eosclienttool
  */
@@ -17,7 +17,7 @@
    clio contains documentation for all of its commands. For a list of all commands known to clio, simply run it with no arguments:
 ```
 $ ./clio
-Command Line Interface to EOSIO Client
+Command Line Interface to FIO Client
 Usage: programs/clio/clio [OPTIONS] SUBCOMMAND
 
 Options:
@@ -2535,7 +2535,7 @@ int main(int argc, char **argv) {
     context = eosio::client::http::create_http_context();
     wallet_url = default_wallet_url;
 
-    CLI::App app{"Command Line Interface to EOSIO Client"};
+    CLI::App app{"Command Line Interface to FIO Client"};
     app.require_subcommand();
     app.add_option("-H,--host", obsoleted_option_host_port,
                    localized("the host where ${n} is running", ("n", node_executable_name)))->group("hidden");

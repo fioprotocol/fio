@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.5 )
-message(STATUS "Setting up Eosio Tester @VERSION_FULL@ at @EOS_ROOT_DIR@")
+message(STATUS "Setting up FIO Tester @VERSION_FULL@ at @EOS_ROOT_DIR@")
 
 SET(CMAKE_INSTALL_RPATH "${HOME}/lib;${HOME}/lib64")
 

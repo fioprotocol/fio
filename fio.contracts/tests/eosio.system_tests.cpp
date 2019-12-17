@@ -11629,7 +11629,7 @@ transfer( N(eosio), N(alice1111111), core_sym::from_string("1.0000")
 auto error_msg = stake(N(alice1111111), N(eosio), core_sym::from_string("0.0000"), core_sym::from_string("1.0000"));
 auto semicolon_pos = error_msg.find(';');
 
-BOOST_REQUIRE_EQUAL( error("account eosio has insufficient ram"),
+BOOST_REQUIRE_EQUAL( error("account fio has insufficient ram"),
         error_msg
 .substr(0, semicolon_pos));
 
@@ -11728,7 +11728,7 @@ transfer( N(eosio), N(alice1111111), core_sym::from_string("1020.0000")
 auto error_msg = stake(N(alice1111111), N(eosio), core_sym::from_string("10.0000"), core_sym::from_string("10.0000"));
 auto semicolon_pos = error_msg.find(';');
 
-BOOST_REQUIRE_EQUAL( error("account eosio has insufficient ram"),
+BOOST_REQUIRE_EQUAL( error("account fio has insufficient ram"),
         error_msg
 .substr(0, semicolon_pos));
 

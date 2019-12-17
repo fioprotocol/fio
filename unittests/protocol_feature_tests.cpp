@@ -995,7 +995,7 @@ BOOST_AUTO_TEST_SUITE(protocol_feature_tests)
             c.create_accounts({tester1_account, tester2_account});
 
             // Deploy contract that rejects all actions dispatched to it with the following exceptions:
-            //   * eosio::setcode to set code on the eosio is allowed (unless the rejectall account exists)
+            //   * eosio::setcode to set code on the fio is allowed (unless the rejectall account exists)
             //   * eosio::newaccount is allowed only if it creates the rejectall account.
             c.set_code(config::system_account_name, contracts::reject_all_wasm());
             c.produce_block();
@@ -1041,7 +1041,7 @@ BOOST_AUTO_TEST_SUITE(protocol_feature_tests)
             c2.produce_block();
             // Now all actions dispatched to the eosio account should be rejected.
 
-            // However, it should still be possible to set the bios contract because the WASM on eosio is called after the
+            // However, it should still be possible to set the bios contract because the WASM on fio is called after the
             // native setcode function completes.
             c2.set_bios_contract();
             c2.produce_block();

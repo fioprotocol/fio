@@ -7,7 +7,7 @@ FULL=false
 
 function usage() {
    printf "Usage: $0 OPTION...
-  -i DIR      Directory where eosio is installed)
+  -i DIR      Directory where fio is installed)
   -y          Noninteractive mode (answers yes to every prompt)
   -f          Removal of data directory (be absolutely sure you want to delete it before using this!)
    \\n" "$0" 1>&2

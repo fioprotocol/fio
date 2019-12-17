@@ -196,7 +196,7 @@ namespace eosio {
         };
 
         /**
-         *  Important notes on using chainbase objects in EOSIO code:
+         *  Important notes on using chainbase objects in FIO code:
          *
          *  There are several constraints that need to be followed when using chainbase objects.
          *  Some of these constraints are due to the requirements imposed by the chainbase library,

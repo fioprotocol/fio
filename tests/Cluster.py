@@ -1286,7 +1286,7 @@ class Cluster(object):
             return None
 
         expectedAmount = "1000000000.0000 {0}".format(CORE_SYMBOL)
-        Utils.Print("Verify eosio issue, Expected: %s" % (expectedAmount))
+        Utils.Print("Verify fio issue, Expected: %s" % (expectedAmount))
         actualAmount = biosNode.getAccountEosBalanceStr(eosioAccount.name)
         if expectedAmount != actualAmount:
             Utils.Print("ERROR: Issue verification failed. Excepted %s, actual: %s" %
