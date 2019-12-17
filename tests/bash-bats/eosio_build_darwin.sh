@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 load helpers/general
 
-export SCRIPT_LOCATION="scripts/eosio_build.sh"
+export SCRIPT_LOCATION="scripts/fio_build.sh"
 export TEST_LABEL="[eosio_build_darwin]"
 
 [[ $ARCH == "Darwin" ]] || exit 0 # Exit 0 is required for pipeline
@@ -38,5 +38,5 @@ export TEST_LABEL="[eosio_build_darwin]"
     [[ ! -z $(echo "${output}" | grep /NEWPATH.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
     [[ ! -z $(echo "${output}" | grep " --with-iostreams --with-date_time") ]] || exit # BOOST
-    [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "FIO has been successfully built") ]] || exit
 }
