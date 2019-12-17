@@ -459,11 +459,6 @@ namespace eosio {
             // FIO COMMON //
             void GetFIOAccount(name account, get_table_rows_result &account_result) const;
 
-            void obt_data_search(uint32_t search_limit, get_obt_data_result &result, const abi_def &reqobt_abi,
-                                 const get_table_rows_result &table_rows_result, uint32_t &search_results,
-                                 uint32_t &search_offset, uint32_t &returnCount, bool &search_finished,
-                                 const bool id_req) const;
-
             //begin get pending fio requests
             struct get_pending_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
@@ -553,7 +548,11 @@ namespace eosio {
             };
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
-
+            
+            void obt_data_search(uint32_t search_limit, get_obt_data_result &result, const abi_def &reqobt_abi,
+                                 const get_table_rows_result &table_rows_result, uint32_t &search_results,
+                                 uint32_t &search_offset, uint32_t &returnCount, bool &search_finished,
+                                 const bool id_req) const;
 
             //Fio API get_fee
             struct get_fee_params {
