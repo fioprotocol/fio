@@ -106,6 +106,8 @@ namespace eosiosystem {
                                          ignore <authority> active) {
 
 
+        require_auth(creator);
+        
         check((creator == SYSTEMACCOUNT || creator == TokenContract ||
                  creator == AddressContract), "new account is not permitted");
         
