@@ -224,7 +224,7 @@ namespace fioio {
                 permission_level{actor, "active"_n},
                 TREASURYACCOUNT,
                 "fdtnrwdupdat"_n,
-                std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
+                std::make_tuple((uint64_t)(static_cast<double>(amount) * .05))
         ).send();
         fionames_table fionames(AddressContract, AddressContract.value);
         uint128_t fioaddhash = string_to_uint128_hash(tpid.c_str());
@@ -265,7 +265,7 @@ namespace fioio {
                     permission_level{actor, "active"_n},
                     TREASURYACCOUNT,
                     "bprewdupdate"_n,
-                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .88))
+                    std::make_tuple((uint64_t)(static_cast<double>(amount) * .85))
             ).send();
 
         } else {
@@ -273,7 +273,7 @@ namespace fioio {
                     permission_level{actor, "active"_n},
                     TREASURYACCOUNT,
                     "bprewdupdate"_n,
-                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .98))
+                    std::make_tuple((uint64_t)(static_cast<double>(amount) * .95))
             ).send();
         }
     }
@@ -286,7 +286,7 @@ namespace fioio {
                 permission_level{actor, "active"_n},
                 TREASURYACCOUNT,
                 "fdtnrwdupdat"_n,
-                std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
+                std::make_tuple((uint64_t)(static_cast<double>(amount) * .05))
         ).send();
 
         fionames_table fionames(AddressContract, AddressContract.value);
@@ -327,7 +327,7 @@ namespace fioio {
                     permission_level{actor, "active"_n},
                     TREASURYACCOUNT,
                     "bppoolupdate"_n,
-                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .88))
+                    std::make_tuple((uint64_t)(static_cast<double>(amount) * .85))
             ).send();
         } else {
 
@@ -335,28 +335,28 @@ namespace fioio {
                     permission_level{actor, "active"_n},
                     TREASURYACCOUNT,
                     "bppoolupdate"_n,
-                    std::make_tuple((uint64_t) (static_cast<double>(amount) * .98))
+                    std::make_tuple((uint64_t)(static_cast<double>(amount) * .95))
             ).send();
         }
     }
 
     //Precondition: this method should only be called by register_producer, vote_producer, unregister_producer, register_proxy, unregister_proxy, vote_proxy
     // after transaction fees have been defined
-    //Postcondition: the foundation has been rewarded 2% of the transaction fee and top 21/active block producers rewarded 98% of the transaction fee
+    //Postcondition: the foundation has been rewarded 5% of the transaction fee and top 21/active block producers rewarded 95% of the transaction fee
     void processrewardsnotpid(const uint64_t &amount, const name &actor) {
 
         action(
                 permission_level{actor, "active"_n},
                 TREASURYACCOUNT,
                 "bprewdupdate"_n,
-                std::make_tuple((uint64_t) (static_cast<double>(amount) * .98))
+                std::make_tuple((uint64_t)(static_cast<double>(amount) * .95))
         ).send();
 
         action(
                 permission_level{actor, "active"_n},
                 TREASURYACCOUNT,
                 "fdtnrwdupdat"_n,
-                std::make_tuple((uint64_t) (static_cast<double>(amount) * .02))
+                std::make_tuple((uint64_t)(static_cast<double>(amount) * .05))
         ).send();
     }
 

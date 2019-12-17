@@ -30,6 +30,7 @@ namespace fioio {
         fiofee_table fiofees;
         config appConfig;
         tpids_table tpids;
+        recordobt_table recordObtTable;
 
         struct decrementcounter {
             string fio_address;
@@ -68,7 +69,8 @@ namespace fioio {
                   domains(AddressContract, AddressContract.value),
                   fiofees(FeeContract, FeeContract.value),
                   clientkeys(AddressContract, AddressContract.value),
-                  tpids(AddressContract, AddressContract.value) {
+                  tpids(AddressContract, AddressContract.value),
+                  recordObtTable(_self, _self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -138,11 +140,15 @@ namespace fioio {
                            ErrorDomainNotRegistered);
             uint32_t domexp = iterdom->expiration;
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
-            domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
+            domexp = get_time_plus_seconds(domexp, SECONDS30DAYS);
 
 
             fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
+
+            auto account_iter = clientkeys.find(account);
+            string payer_key = account_iter->clientkey; // Index 0 is FIO
+
 
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
@@ -154,6 +160,10 @@ namespace fioio {
 
             print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
+
+            account = fioname_iter->owner_account;
+            account_iter = clientkeys.find(account);
+            string payee_key = account_iter->clientkey;
 
             //begin fees, bundle eligible fee logic
             uint128_t endpoint_hash = string_to_uint128_hash("record_obt_data");
@@ -219,10 +229,34 @@ namespace fioio {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
                     fr.status = static_cast<int64_t >(trxstatus::sent_to_blockchain);
-                    fr.metadata = "";
+                    fr.metadata = content;
                     fr.time_stamp = currentTime;
                 });
+            } else {
+
+                const uint64_t id = recordObtTable.available_primary_key();
+                const uint64_t currentTime = now();
+                const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
+                const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
+                const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
+                const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
+
+
+                recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
+                    obtinf.id = id;
+                    obtinf.payer_fio_address = fromHash;
+                    obtinf.payee_fio_address = toHash;
+                    obtinf.payer_fio_address_hex_str = fromHashStr;
+                    obtinf.payee_fio_address_hex_str = toHashStr;
+                    obtinf.content = content;
+                    obtinf.time_stamp = currentTime;
+                    obtinf.payer_fio_addr = payer_fio_address;
+                    obtinf.payee_fio_addr = payee_fio_address;
+                    obtinf.payee_key = payee_key;
+                    obtinf.payer_key = payer_key;
+                });
             }
+
 
             nlohmann::json json = {{"status",        "sent_to_blockchain"},
                                    {"fee_collected", fee_amount}};

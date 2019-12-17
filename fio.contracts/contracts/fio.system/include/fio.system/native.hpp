@@ -183,6 +183,7 @@ namespace eosiosystem {
         [[eosio::action]]
         void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code) {
 
+            require_auth(account);
 
             eosio::check((account == fioio::MSIGACCOUNT ||
                    account == fioio::WHITELISTACCOUNT ||

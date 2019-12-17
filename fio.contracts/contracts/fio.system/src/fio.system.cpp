@@ -106,9 +106,11 @@ namespace eosiosystem {
                                          ignore <authority> active) {
 
 
+        require_auth(creator);
+
         check((creator == SYSTEMACCOUNT || creator == TokenContract ||
-                 creator == AddressContract), "new account is not permitted");
-        
+               creator == AddressContract), "new account is not permitted");
+
         if (creator != _self) {
             uint64_t tmp = newact.value >> 4;
             bool has_dot = false;
@@ -142,15 +144,17 @@ namespace eosiosystem {
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
 
-        check(( acnt == fioio::MSIGACCOUNT ||
-                acnt == fioio::WHITELISTACCOUNT ||
-                acnt == fioio::WRAPACCOUNT ||
-                acnt == fioio::FeeContract ||
-                acnt == fioio::AddressContract ||
-                acnt == fioio::TPIDContract ||
-                acnt == fioio::REQOBTACCOUNT ||
-                acnt == fioio::TokenContract ||
-                acnt == fioio::FOUNDATIONACCOUNT ||
+        require_auth(acnt);
+
+        check((acnt == fioio::MSIGACCOUNT ||
+               acnt == fioio::WHITELISTACCOUNT ||
+               acnt == fioio::WRAPACCOUNT ||
+               acnt == fioio::FeeContract ||
+               acnt == fioio::AddressContract ||
+               acnt == fioio::TPIDContract ||
+               acnt == fioio::REQOBTACCOUNT ||
+               acnt == fioio::TokenContract ||
+               acnt == fioio::FOUNDATIONACCOUNT ||
                 acnt == fioio::TREASURYACCOUNT ||
                 acnt == fioio::SYSTEMACCOUNT), "setabi is not permitted");
 
