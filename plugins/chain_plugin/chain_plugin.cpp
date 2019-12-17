@@ -1757,8 +1757,8 @@ if( options.count(name) ) { \
                                         const read_only::get_table_rows_result &table_rows_result,
                                         uint32_t &search_results, uint32_t &search_offset, uint32_t &returnCount,
                                         bool &search_finished, const bool id_req) const {
-            if (search_offset < payerrequests_rows_result.rows.size() && !search_finished) {
-                for (size_t pos = 0 + search_offset; pos < payerrequests_rows_result.rows.size(); pos++) {
+            if (search_offset < table_rows_result.rows.size() && !search_finished) {
+                for (size_t pos = 0 + search_offset; pos < table_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
                     string payer_address = table_rows_result.rows[pos]["payer_fio_addr"].as_string();
                     string payee_address = table_rows_result.rows[pos]["payee_fio_addr"].as_string();
@@ -1772,6 +1772,7 @@ if( options.count(name) ) { \
                     uint64_t statusintV;
                     uint64_t reqid;
                     uint64_t fio_request_id;
+                    string content;
 
                     if(id_req){
                         fio_request_id = table_rows_result.rows[pos]["fio_request_id"].as_uint64();
@@ -1795,7 +1796,7 @@ if( options.count(name) ) { \
                             for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
                                 reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
                                 statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
-                                string content = request_status_rows_result.rows[pos]["metadata"].as_string();
+                                content = request_status_rows_result.rows[pos]["metadata"].as_string();
 
                                 if(reqid == fio_request_id){
                                     break;
@@ -1809,7 +1810,7 @@ if( options.count(name) ) { \
                             break;
                         }
                     } else {
-                        string content = table_rows_result.rows[pos]["content"].as_string();
+                        content = table_rows_result.rows[pos]["content"].as_string();
                         fio_request_id = NULL;
                     }
 
