@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE.txt
+ *  @copyright defined in fio/LICENSE.txt
  */
 
 #include <eosio/chain/thread_utils.hpp>

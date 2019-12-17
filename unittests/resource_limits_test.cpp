@@ -1,6 +1,6 @@
 /**
  *  @file api_tests.cpp
- *  @copyright defined in eos/LICENSE.txt
+ *  @copyright defined in fio/LICENSE.txt
  */
 #include <algorithm>
 

@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include "get_sender_test.hpp"
 #include <eosio/transaction.hpp>

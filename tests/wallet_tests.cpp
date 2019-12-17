@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include <eosio/chain/genesis_state.hpp>
 #include <eosio/wallet_plugin/wallet.hpp>

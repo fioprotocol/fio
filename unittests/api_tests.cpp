@@ -1,6 +1,6 @@
 /**
  *  @file api_tests.cpp
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include <algorithm>
 #include <random>

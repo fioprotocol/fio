@@ -1,4 +1,4 @@
-// copyright defined in abieos/LICENSE.txt
+// copyright defined in abifio/LICENSE.txt
 #pragma once
 
 #include <algorithm>

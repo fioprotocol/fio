@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include <eosio/history_api_plugin/history_api_plugin.hpp>
 #include <eosio/chain/exceptions.hpp>

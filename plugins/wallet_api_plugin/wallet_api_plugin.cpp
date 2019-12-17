@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include <eosio/wallet_api_plugin/wallet_api_plugin.hpp>
 #include <eosio/wallet_plugin/wallet_manager.hpp>

@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include <eosio/producer_plugin/producer_plugin.hpp>
 #include <eosio/chain/plugin_interface.hpp>

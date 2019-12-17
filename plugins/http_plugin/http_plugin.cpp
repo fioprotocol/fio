@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  */
 #include <eosio/http_plugin/http_plugin.hpp>
 #include <eosio/http_plugin/local_endpoint.hpp>

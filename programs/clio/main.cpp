@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE
+ *  @copyright defined in fio/LICENSE
  *  @defgroup eosclienttool EOSIO Command Line Client Reference
  *  @brief Tool for sending transactions and querying state from @ref nodeos
  *  @ingroup eosclienttool

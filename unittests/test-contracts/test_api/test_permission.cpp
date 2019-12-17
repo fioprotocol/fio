@@ -1,6 +1,6 @@
 /**
  * @file action_test.cpp
- * @copyright defined in eos/LICENSE
+ * @copyright defined in fio/LICENSE
  */
 #include <limits>
 
