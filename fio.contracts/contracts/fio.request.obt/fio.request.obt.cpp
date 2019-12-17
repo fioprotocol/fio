@@ -229,7 +229,7 @@ namespace fioio {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
                     fr.status = static_cast<int64_t >(trxstatus::sent_to_blockchain);
-                    fr.metadata = "";
+                    fr.metadata = content;
                     fr.time_stamp = currentTime;
                 });
             } else {
