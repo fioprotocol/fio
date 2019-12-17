@@ -889,6 +889,9 @@ namespace fioio {
                 }
             }
 
+            fio_400_assert(((burnlist.size() > 0) && (domainburnlist.size() >0)), "burnexpired", "burnexpired",
+                           "No work.", ErrorNoWork);
+
             //do the burning.
             for (int i = 0; i < burnlist.size(); i++) {
                 const uint128_t burner = burnlist[i];

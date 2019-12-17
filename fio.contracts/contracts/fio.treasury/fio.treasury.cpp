@@ -77,43 +77,47 @@ public:
 
                 auto clockiter = clockstate.begin();
 
+
                 //This contract should only be able to iterate throughout the entire tpids table to
                 //to check for rewards once every x blocks.
-                if (now() > clockiter->lasttpidpayout + MINUTE) {
-                        for (const auto &itr : tpids) {
-                                if (itr.rewards >= REWARDMAX) { //100 FIO (100,000,000,000 SUF)
-                                        auto namesbyname = fionames.get_index<"byname"_n>();
-                                        auto itrfio = namesbyname.find(string_to_uint128_hash(itr.fioaddress.c_str()));
+                fio_400_assert(now() > clockiter->lasttpidpayout + MINUTE, "tpidclaim", "tpidclaim",
+                               "No work.", ErrorNoWork);
 
-                                        // If the fioaddress exists (address could have been burned)
-                                        if (itrfio != namesbyname.end()) {
-                                                action(permission_level{get_self(), "active"_n},
-                                                       TokenContract, "transfer"_n,
-                                                       make_tuple(TREASURYACCOUNT, name(itrfio->owner_account),
-                                                                  asset(itr.rewards, symbol("FIO", 9)),
-                                                                  string("Paying TPID from treasury."))
-                                                       ).send();
-                                        } else { //Allocate to BP buckets instead
-                                                bprewards.set(bpreward{bprewards.get().rewards + itr.rewards}, _self);
-                                        }
+                for (const auto &itr : tpids) {
+                        if (itr.rewards >= REWARDMAX) { //100 FIO (100,000,000,000 SUF)
+                                auto namesbyname = fionames.get_index<"byname"_n>();
+                                auto itrfio = namesbyname.find(string_to_uint128_hash(itr.fioaddress.c_str()));
+
+                                // If the fioaddress exists (address could have been burned)
+                                if (itrfio != namesbyname.end()) {
                                         action(permission_level{get_self(), "active"_n},
-                                               "fio.tpid"_n, "rewardspaid"_n,
-                                               make_tuple(itr.fioaddress)
-                                               ).send();
-                                } // endif itr.rewards >=
-
-                                tpids_paid++;
-                                if (tpids_paid >= 100) break; //only paying 100 tpids
-                        } // for (const auto &itr : tpids)
-
-                        //update the clock but only if there has been a tpid paid out.
-                        if (tpids_paid > 0) {
+                                               TokenContract, "transfer"_n,
+                                               make_tuple(TREASURYACCOUNT, name(itrfio->owner_account),
+                                                          asset(itr.rewards, symbol("FIO", 9)),
+                                                          string("Paying TPID from treasury."))
+                                        ).send();
+                                } else { //Allocate to BP buckets instead
+                                        bprewards.set(bpreward{bprewards.get().rewards + itr.rewards}, _self);
+                                }
                                 action(permission_level{get_self(), "active"_n},
-                                       get_self(), "updateclock"_n,
-                                       make_tuple()
-                                       ).send();
-                        }
-                } //end if lasttpidpayout < now() 60
+                                       "fio.tpid"_n, "rewardspaid"_n,
+                                       make_tuple(itr.fioaddress)
+                                ).send();
+                        } // endif itr.rewards >=
+
+                        tpids_paid++;
+                        if (tpids_paid >= 100) break; //only paying 100 tpids
+                } // for (const auto &itr : tpids)
+
+                fio_400_assert(tpids_paid > 0, "tpidclaim", "tpidclaim","No work.", ErrorNoWork);
+
+                //update the clock but only if there has been a tpid paid out.
+                action(permission_level{get_self(), "active"_n},
+                       get_self(), "updateclock"_n,
+                       make_tuple()
+                ).send();
+
+
 
                 nlohmann::json json = {{"status",     "OK"},
                         {"tpids_paid", tpids_paid}};
