@@ -1754,18 +1754,17 @@ if( options.count(name) ) { \
 
         void read_only::obt_data_search(uint32_t search_limit, read_only::get_obt_data_result &result,
                                         const abi_def &reqobt_abi,
-                                        const read_only::get_table_rows_result &payerrequests_rows_result,
+                                        const read_only::get_table_rows_result &table_rows_result,
                                         uint32_t &search_results, uint32_t &search_offset, uint32_t &returnCount,
                                         bool &search_finished, const bool id_req) const {
             if (search_offset < payerrequests_rows_result.rows.size() && !search_finished) {
                 for (size_t pos = 0 + search_offset; pos < payerrequests_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
-                    string payer_address = payerrequests_rows_result.rows[pos]["payer_fio_addr"].as_string();
-                    string payee_address = payerrequests_rows_result.rows[pos]["payee_fio_addr"].as_string();
-                    string content = payerrequests_rows_result.rows[pos]["content"].as_string();
-                    uint64_t time_stamp = payerrequests_rows_result.rows[pos]["time_stamp"].as_uint64();
-                    string payer_fio_public_key = payerrequests_rows_result.rows[pos]["payer_key"].as_string();
-                    string payee_fio_public_key = payerrequests_rows_result.rows[pos]["payee_key"].as_string();
+                    string payer_address = table_rows_result.rows[pos]["payer_fio_addr"].as_string();
+                    string payee_address = table_rows_result.rows[pos]["payee_fio_addr"].as_string();
+                    uint64_t time_stamp = table_rows_result.rows[pos]["time_stamp"].as_uint64();
+                    string payer_fio_public_key = table_rows_result.rows[pos]["payer_key"].as_string();
+                    string payee_fio_public_key = table_rows_result.rows[pos]["payee_key"].as_string();
 
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
@@ -1775,7 +1774,7 @@ if( options.count(name) ) { \
                     uint64_t fio_request_id;
 
                     if(id_req){
-                        fio_request_id = payerrequests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                        fio_request_id = table_rows_result.rows[pos]["fio_request_id"].as_uint64();
                         string fio_request_status_lookup_table = "fioreqstss";   // table name
                         get_table_rows_params request_status_row_params = get_table_rows_params{
                                 .json        = true,
@@ -1796,6 +1795,7 @@ if( options.count(name) ) { \
                             for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
                                 reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
                                 statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+                                string content = request_status_rows_result.rows[pos]["metadata"].as_string();
 
                                 if(reqid == fio_request_id){
                                     break;
@@ -1809,7 +1809,8 @@ if( options.count(name) ) { \
                             break;
                         }
                     } else {
-                        fio_request_id = 0;
+                        string content = table_rows_result.rows[pos]["content"].as_string();
+                        fio_request_id = NULL;
                     }
 
                     //convert the time_stamp to string formatted time.
@@ -1830,16 +1831,16 @@ if( options.count(name) ) { \
                     if (search_offset > 0) { search_offset--; }
 
                     if (returnCount == search_limit && search_limit != 0) {
-                        search_results = payerrequests_rows_result.rows.size() - (pos + 1);
+                        search_results = table_rows_result.rows.size() - (pos + 1);
                         search_finished = true;
                         break;
                     }
                 } // Get request statuses
             } else if (search_finished) {
-                search_results += payerrequests_rows_result.rows.size();
+                search_results += table_rows_result.rows.size();
             } else {
                 if (search_offset > 0) {
-                    search_offset -= payerrequests_rows_result.rows.size(); //set 0
+                    search_offset -= table_rows_result.rows.size(); //set 0
                 }
             }
         }
