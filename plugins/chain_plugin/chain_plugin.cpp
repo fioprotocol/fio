@@ -1743,10 +1743,6 @@ if( options.count(name) ) { \
                             return v;
                         });
 
-                search_results =
-                        payerrequests_obt_rows_result.rows.size() + payeerequests_obt_rows_result.rows.size() +
-                        payeerequests_rows_result.rows.size() + payerrequests_rows_result.rows.size();
-
                 obt_data_search(search_limit, result, reqobt_abi,
                                 payerrequests_rows_result, search_results, search_offset, returnCount, search_finished,
                                 true);
@@ -1779,14 +1775,14 @@ if( options.count(name) ) { \
                     uint64_t time_stamp = table_rows_result.rows[pos]["time_stamp"].as_uint64();
                     string payer_fio_public_key = table_rows_result.rows[pos]["payer_key"].as_string();
                     string payee_fio_public_key = table_rows_result.rows[pos]["payee_key"].as_string();
-                    string content = table_rows_result.rows[pos]["content"].as_string();
 
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
-                    uint64_t statusintV = 5;
+                    uint64_t statusintV;
                     uint64_t reqid;
-                    uint64_t fio_request_id = 0;
+                    uint64_t fio_request_id;
+                    string content;
 
                     if (id_req) {
                         fio_request_id = table_rows_result.rows[pos]["fio_request_id"].as_uint64();
@@ -1809,19 +1805,23 @@ if( options.count(name) ) { \
                         if (!(request_status_rows_result.rows.empty())) {
                             for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
                                 reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
+                                statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+                                content = request_status_rows_result.rows[pos]["metadata"].as_string();
 
                                 if (reqid == fio_request_id) {
-                                    statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
-                                    content = request_status_rows_result.rows[pos]["metadata"].as_string();
                                     break;
                                 }
                             }
+
                             if (statusintV != 2 && reqid != fio_request_id) {
                                 break;
                             }
                         } else {
                             break;
                         }
+                    } else {
+                        content = table_rows_result.rows[pos]["content"].as_string();
+                        fio_request_id = NULL;
                     }
 
                     //convert the time_stamp to string formatted time.
@@ -1842,11 +1842,13 @@ if( options.count(name) ) { \
                     if (search_offset > 0) { search_offset--; }
 
                     if (returnCount == search_limit && search_limit != 0) {
-                        search_results -= (pos + 1);
+                        search_results = table_rows_result.rows.size() - (pos + 1);
                         search_finished = true;
                         break;
                     }
                 } // Get request statuses
+            } else if (search_finished) {
+                search_results += table_rows_result.rows.size();
             } else {
                 if (search_offset > 0) {
                     search_offset -= table_rows_result.rows.size(); //set 0
