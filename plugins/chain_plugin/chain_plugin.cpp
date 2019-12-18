@@ -1816,8 +1816,6 @@ if( options.count(name) ) { \
                             if (statusintV != 2 && reqid != fio_request_id) {
                                 break;
                             }
-                        } else {
-                            break;
                         }
                     } else {
                         content = table_rows_result.rows[pos]["content"].as_string();
