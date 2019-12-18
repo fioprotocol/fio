@@ -1847,8 +1847,6 @@ if( options.count(name) ) { \
                         break;
                     }
                 } // Get request statuses
-            } else if (search_finished) {
-                search_results += table_rows_result.rows.size();
             } else {
                 if (search_offset > 0) {
                     search_offset -= table_rows_result.rows.size(); //set 0
