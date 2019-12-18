@@ -1821,7 +1821,7 @@ if( options.count(name) ) { \
                         }
                     } else {
                         content = table_rows_result.rows[pos]["content"].as_string();
-                        fio_request_id = NULL;
+                        fio_request_id = 0;
                     }
 
                     //convert the time_stamp to string formatted time.
