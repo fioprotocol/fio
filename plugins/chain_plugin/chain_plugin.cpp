@@ -1581,7 +1581,6 @@ if( options.count(name) ) { \
                                         status = "sent_to_blockchain";
                                     }
                                     break; //exit the loop after finding the first.
-
                                 }
                             }
                         }
@@ -1795,10 +1794,10 @@ if( options.count(name) ) { \
                         if (!(request_status_rows_result.rows.empty())) {
                             for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
                                 reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
-                                statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
-                                content = request_status_rows_result.rows[pos]["metadata"].as_string();
 
                                 if(reqid == fio_request_id){
+                                    statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+                                    content = request_status_rows_result.rows[pos]["metadata"].as_string();
                                     break;
                                 }
                             }
