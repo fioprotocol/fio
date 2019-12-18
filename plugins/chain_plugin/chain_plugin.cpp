@@ -1781,7 +1781,7 @@ if( options.count(name) ) { \
                     //look up the requests for this fio name (look for matches in the tofioadd
                     uint64_t statusintV;
                     uint64_t reqid;
-                    uint64_t fio_request_id;
+                    uint64_t fio_request_id = 0;
                     string content;
 
                     if (id_req) {
@@ -1819,7 +1819,6 @@ if( options.count(name) ) { \
                         }
                     } else {
                         content = table_rows_result.rows[pos]["content"].as_string();
-                        fio_request_id = 0;
                     }
 
                     //convert the time_stamp to string formatted time.
