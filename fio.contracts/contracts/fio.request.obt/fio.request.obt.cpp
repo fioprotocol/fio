@@ -217,7 +217,6 @@ namespace fioio {
             if (fio_request_id.length() > 0) {
                 uint64_t currentTime = current_time();
                 uint64_t requestId;
-
                 requestId = std::atoi(fio_request_id.c_str());
 
                 auto fioreqctx_iter = fiorequestContextsTable.find(requestId);

@@ -1764,14 +1764,14 @@ if( options.count(name) ) { \
                     uint64_t time_stamp = table_rows_result.rows[pos]["time_stamp"].as_uint64();
                     string payer_fio_public_key = table_rows_result.rows[pos]["payer_key"].as_string();
                     string payee_fio_public_key = table_rows_result.rows[pos]["payee_key"].as_string();
+                    string content = table_rows_result.rows[pos]["content"].as_string();
 
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
-                    uint64_t statusintV;
+                    uint64_t statusintV = 5;
                     uint64_t reqid;
-                    uint64_t fio_request_id;
-                    string content;
+                    uint64_t fio_request_id = 0;
 
                     if(id_req){
                         fio_request_id = table_rows_result.rows[pos]["fio_request_id"].as_uint64();
@@ -1784,7 +1784,7 @@ if( options.count(name) ) { \
                                 .lower_bound = boost::lexical_cast<string>(fio_request_id),
                                 .upper_bound = boost::lexical_cast<string>(fio_request_id),
                                 .key_type       = "i64",
-                                .index_position = "2"};
+                                .index_position = "1"};
                         // Do secondary key lookup
                         get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                                 request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
@@ -1801,16 +1801,12 @@ if( options.count(name) ) { \
                                     break;
                                 }
                             }
-
                             if (statusintV != 2 && reqid != fio_request_id ){
                                 break;
                             }
                         } else {
                             break;
                         }
-                    } else {
-                        content = table_rows_result.rows[pos]["content"].as_string();
-                        fio_request_id = 0;
                     }
 
                     //convert the time_stamp to string formatted time.
