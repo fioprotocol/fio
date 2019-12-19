@@ -214,11 +214,9 @@ namespace fioio {
             }
             //end fees, bundle eligible fee logic
 
-
             if (fio_request_id.length() > 0) {
                 uint64_t currentTime = current_time();
                 uint64_t requestId;
-
                 requestId = std::atoi(fio_request_id.c_str());
 
                 auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
@@ -233,14 +231,12 @@ namespace fioio {
                     fr.time_stamp = currentTime;
                 });
             } else {
-
                 const uint64_t id = recordObtTable.available_primary_key();
                 const uint64_t currentTime = now();
                 const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
                 const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
                 const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
                 const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
-
 
                 recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
@@ -256,7 +252,6 @@ namespace fioio {
                     obtinf.payer_key = payer_key;
                 });
             }
-
 
             nlohmann::json json = {{"status",        "sent_to_blockchain"},
                                    {"fee_collected", fee_amount}};
@@ -555,7 +550,6 @@ namespace fioio {
                 fr.metadata = "";
                 fr.time_stamp = currentTime;
             });
-
 
             nlohmann::json json = {{"status",        "request_rejected"},
                                    {"fee_collected", fee_amount}};

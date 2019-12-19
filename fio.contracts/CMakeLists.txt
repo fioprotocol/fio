@@ -31,7 +31,7 @@ EOSIO_CHECK_VERSION(VERSION_OUTPUT "${EOSIO_CDT_VERSION}"
         "${EOSIO_CDT_VERSION_HARD_MAX}"
         VERSION_MATCH_ERROR_MSG)
 if (VERSION_OUTPUT STREQUAL "MATCH")
-    message(STATUS "Using eosio.cdt version ${EOSIO_CDT_VERSION}")
+   message(STATUS "Using eosio.cdt version ${EOSIO_CDT_VERSION}")
 elseif (VERSION_OUTPUT STREQUAL "WARN")
     message(WARNING "Using eosio.cdt version ${EOSIO_CDT_VERSION} even though it exceeds the maximum supported version of ${EOSIO_CDT_VERSION_SOFT_MAX}; continuing with configuration, however build may fail.\nIt is recommended to use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
 else () # INVALID OR MISMATCH

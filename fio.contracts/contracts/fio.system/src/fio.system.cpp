@@ -155,8 +155,8 @@ namespace eosiosystem {
                acnt == fioio::REQOBTACCOUNT ||
                acnt == fioio::TokenContract ||
                acnt == fioio::FOUNDATIONACCOUNT ||
-                acnt == fioio::TREASURYACCOUNT ||
-                acnt == fioio::SYSTEMACCOUNT), "setabi is not permitted");
+               acnt == fioio::TREASURYACCOUNT ||
+               acnt == fioio::SYSTEMACCOUNT), "setabi is not permitted");
 
 
         eosio::multi_index<"abihash"_n, abi_hash> table(_self, _self.value);
