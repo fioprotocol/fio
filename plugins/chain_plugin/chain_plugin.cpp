@@ -1767,6 +1767,9 @@ if( options.count(name) ) { \
                                         const read_only::get_table_rows_result &table_rows_result,
                                         uint32_t &search_results, uint32_t &search_offset, uint32_t &returnCount,
                                         bool &search_finished, const bool id_req) const {
+            uint64_t statusintV;
+            uint64_t reqid;
+
             if (search_offset < table_rows_result.rows.size() && !search_finished) {
                 for (size_t pos = 0 + search_offset; pos < table_rows_result.rows.size(); pos++) {
                     //get all the attributes of the fio request
@@ -1775,14 +1778,11 @@ if( options.count(name) ) { \
                     uint64_t time_stamp = table_rows_result.rows[pos]["time_stamp"].as_uint64();
                     string payer_fio_public_key = table_rows_result.rows[pos]["payer_key"].as_string();
                     string payee_fio_public_key = table_rows_result.rows[pos]["payee_key"].as_string();
-
+                    string content = table_rows_result.rows[pos]["content"].as_string();
                     //query the statuses
                     //use this id and query the fioreqstss table for status updates to this fioreqid
                     //look up the requests for this fio name (look for matches in the tofioadd
-                    uint64_t statusintV;
-                    uint64_t reqid;
                     uint64_t fio_request_id = 0;
-                    string content;
 
                     if (id_req) {
                         fio_request_id = table_rows_result.rows[pos]["fio_request_id"].as_uint64();
@@ -1795,7 +1795,7 @@ if( options.count(name) ) { \
                                 .lower_bound = boost::lexical_cast<string>(fio_request_id),
                                 .upper_bound = boost::lexical_cast<string>(fio_request_id),
                                 .key_type       = "i64",
-                                .index_position = "1"};
+                                .index_position = "2"};
                         // Do secondary key lookup
                         get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                                 request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
@@ -1806,42 +1806,36 @@ if( options.count(name) ) { \
                             for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
                                 reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
                                 statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
-                                content = request_status_rows_result.rows[pos]["metadata"].as_string();
-
+                                content = request_status_rows_result.rows[rw]["metadata"].as_string();
                                 if (reqid == fio_request_id) {
                                     break;
                                 }
                             }
-
-                            if (statusintV != 2 && reqid != fio_request_id) {
-                                break;
-                            }
                         }
-                    } else {
-                        content = table_rows_result.rows[pos]["content"].as_string();
                     }
-
                     //convert the time_stamp to string formatted time.
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
+                    if ((statusintV == 2 && reqid == fio_request_id) || !id_req) {
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
 
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
-                    string status = "sent_to_blockchain";
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                        string status = "sent_to_blockchain";
 
-                    obt_records rr{payer_address, payee_address, payer_fio_public_key,
-                                   payee_fio_public_key, content, fio_request_id, buffer, status};
+                        obt_records rr{payer_address, payee_address, payer_fio_public_key,
+                                       payee_fio_public_key, content, fio_request_id, buffer, status};
 
-                    result.obt_data_records.push_back(rr);
-                    returnCount++;
-                    if (search_offset > 0) { search_offset--; }
+                        result.obt_data_records.push_back(rr);
+                        returnCount++;
+                        if (search_offset > 0) { search_offset--; }
 
-                    if (returnCount == search_limit && search_limit != 0) {
-                        search_results = table_rows_result.rows.size() - (pos + 1);
-                        search_finished = true;
-                        break;
+                        if (returnCount == search_limit && search_limit != 0) {
+                            search_results = table_rows_result.rows.size() - (pos + 1);
+                            search_finished = true;
+                            break;
+                        }
                     }
                 } // Get request statuses
             } else if (search_finished) {
