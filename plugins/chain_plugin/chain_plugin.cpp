@@ -2071,7 +2071,7 @@ if( options.count(name) ) { \
                     //look up the requests for this fio name (look for matches in the tofioadd
                     uint64_t statusintV;
                     uint64_t reqid;
-                    uint64_t fio_request_id;
+                    uint64_t fio_request_id = 0;
                     string content;
 
                     if (id_req) {
@@ -2085,7 +2085,7 @@ if( options.count(name) ) { \
                                 .lower_bound = boost::lexical_cast<string>(fio_request_id),
                                 .upper_bound = boost::lexical_cast<string>(fio_request_id),
                                 .key_type       = "i64",
-                                .index_position = "2"};
+                                .index_position = "1"};
                         // Do secondary key lookup
                         get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                                 request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
@@ -2106,12 +2106,9 @@ if( options.count(name) ) { \
                             if (statusintV != 2 && reqid != fio_request_id) {
                                 break;
                             }
-                        } else {
-                            break;
                         }
                     } else {
                         content = table_rows_result.rows[pos]["content"].as_string();
-                        fio_request_id = NULL;
                     }
 
                     //convert the time_stamp to string formatted time.
