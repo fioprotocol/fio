@@ -52,7 +52,7 @@ namespace eosiosystem {
     typedef eosio::multi_index<"userres"_n, user_resources> user_resources_table;
 
     // void system_contract::update_voting_power(const name &voter, const asset &total_update) {
-   void system_contract::updatepower(const name &voter,bool updateonly) {
+    void system_contract::updatepower(const name &voter, bool updateonly) {
         check(
                 (has_auth(AddressContract) ||
                  has_auth(TokenContract) ||
@@ -65,11 +65,11 @@ namespace eosiosystem {
                 "missing required authority of fio.address, fio.treasury, eosio, fio.fee, fio.token, or fio.reqobt");
 
         auto voter_itr = _voters.find(voter.value);
-        if ((voter_itr == _voters.end())&& updateonly) {
+        if ((voter_itr == _voters.end()) && updateonly) {
             //its not there so return.
             return;
         }
-        if ((voter_itr == _voters.end())&& !updateonly) {
+        if ((voter_itr == _voters.end()) && !updateonly) {
             voter_itr = _voters.emplace(voter, [&](auto &v) {
                 v.owner = voter;
             });

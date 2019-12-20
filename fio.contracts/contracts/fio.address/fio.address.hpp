@@ -35,14 +35,18 @@ namespace fioio {
         uint64_t expiration;
         uint64_t owner_account;
         // Chain specific keys
-        std::vector<tokenpubaddr> addresses;
+        std::vector <tokenpubaddr> addresses;
         uint64_t bundleeligiblecountdown = 0;
 
         // primary_key is required to store structure in multi_index table
         uint64_t primary_key() const { return id; }
+
         uint128_t by_name() const { return namehash; }
+
         uint128_t by_domain() const { return domainhash; }
+
         uint64_t by_expiration() const { return expiration; }
+
         uint64_t by_owner() const { return owner_account; }
 
         EOSLIB_SERIALIZE(fioname, (id)(name)(namehash)(domain)(domainhash)(expiration)(owner_account)(addresses)(
@@ -68,8 +72,11 @@ namespace fioio {
         uint64_t account;
 
         uint64_t primary_key() const { return id; }
+
         uint64_t by_account() const { return account; }
+
         uint64_t by_expiration() const { return expiration; }
+
         uint128_t by_name() const { return domainhash; }
 
         EOSLIB_SERIALIZE(domain, (id)(name)(domainhash)(is_public)(expiration)(account)
@@ -91,6 +98,7 @@ namespace fioio {
         uint128_t keyhash = 0;
 
         uint64_t primary_key() const { return account; }
+
         uint128_t by_keyhash() const { return keyhash; }
 
         EOSLIB_SERIALIZE(eosio_name, (account)(clientkey)(keyhash)

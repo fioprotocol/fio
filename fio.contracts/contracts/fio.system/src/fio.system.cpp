@@ -24,11 +24,11 @@ namespace eosiosystem {
               _global(_self, _self.value),
               _global2(_self, _self.value),
               _global3(_self, _self.value),
-              _lockedtokens(_self,_self.value),
+              _lockedtokens(_self, _self.value),
               _fionames(AddressContract, AddressContract.value),
               _domains(AddressContract, AddressContract.value),
               _accountmap(AddressContract, AddressContract.value),
-              _fiofees(FeeContract, FeeContract.value){
+              _fiofees(FeeContract, FeeContract.value) {
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
         _gstate2 = _global2.exists() ? _global2.get() : eosio_global_state2{};
         _gstate3 = _global3.exists() ? _global3.get() : eosio_global_state3{};
@@ -127,19 +127,19 @@ namespace eosiosystem {
             }
         }
 
-       //in the FIO protocol we want all of our accounts to be created with unlimited
-       //CPU NET and RAM. to do this we need our accounts to NOT have entrees in the
-       //resources table. our accounts will all be unlimited CPU NET and RAM for the
-       //foreseeable future of the FIO protocol.
-       // user_resources_table userres(_self, newact.value);
+        //in the FIO protocol we want all of our accounts to be created with unlimited
+        //CPU NET and RAM. to do this we need our accounts to NOT have entrees in the
+        //resources table. our accounts will all be unlimited CPU NET and RAM for the
+        //foreseeable future of the FIO protocol.
+        // user_resources_table userres(_self, newact.value);
 
-       // userres.emplace(newact, [&](auto &res) {
-       //     res.owner = newact;
-           // res.net_weight = asset(0, system_contract::get_core_symbol());
-           // res.cpu_weight = asset(0, system_contract::get_core_symbol());
-       // });
+        // userres.emplace(newact, [&](auto &res) {
+        //     res.owner = newact;
+        // res.net_weight = asset(0, system_contract::get_core_symbol());
+        // res.cpu_weight = asset(0, system_contract::get_core_symbol());
+        // });
 
-       // set_resource_limits(newact.value, 0, 0, 0);
+        // set_resource_limits(newact.value, 0, 0, 0);
     }
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
@@ -181,11 +181,11 @@ namespace eosiosystem {
     //use this action to initialize the locked token holders table for the FIO protocol.
     void eosiosystem::system_contract::initlocked() {
         require_auth(_self);
-        auto size = std::distance(_lockedtokens.cbegin(),_lockedtokens.cend());
-        if(size > 0){
+        auto size = std::distance(_lockedtokens.cbegin(), _lockedtokens.cend());
+        if (size > 0) {
             //we disallow updates to the table once its initialized.
             return;
-        }else{
+        } else {
             //test cases
 
             //locked token holder UAT testing.
@@ -215,32 +215,32 @@ namespace eosiosystem {
             //     expected result   1/3 of total grant should be used as voting.
             // //  set now kludge in unlock_tokens to be (0*SECONDSPERDAY);
             // or set now kludge to 800 * SECONDSPERDAY
-         /*  _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-                a.owner = "euwdcp13zlrj"_n;
-                a.total_grant_amount = 2000000000000;
-                a.unlocked_period_count = 2;
-                a.grant_type = 1;
-                a.inhibit_unlocking = 0;
-                a.remaining_locked_amount = 1632500000000;
+            /*  _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                   a.owner = "euwdcp13zlrj"_n;
+                   a.total_grant_amount = 2000000000000;
+                   a.unlocked_period_count = 2;
+                   a.grant_type = 1;
+                   a.inhibit_unlocking = 0;
+                   a.remaining_locked_amount = 1632500000000;
 
-            });
-            */
+               });
+               */
 
 
             //  grant type 1, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
             //     to the total grant.
             //     expected result   1/3 of total grant should be used as voting.
             //  set now kludge in unlock_tokens to be (181*SECONDSPERDAY);
-             _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-                  a.owner = "euwdcp13zlrj"_n;
-                  a.total_grant_amount = 2000000000000;
-                  a.unlocked_period_count = 1;
-                  a.grant_type = 1;
-                  a.inhibit_unlocking = 1;
-                  a.remaining_locked_amount = 2000000000000;
-                  a.timestamp = now();
+            _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                a.owner = "euwdcp13zlrj"_n;
+                a.total_grant_amount = 2000000000000;
+                a.unlocked_period_count = 1;
+                a.grant_type = 1;
+                a.inhibit_unlocking = 1;
+                a.remaining_locked_amount = 2000000000000;
+                a.timestamp = now();
 
-              });
+            });
 
 
             // 1) grant type 2, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
@@ -263,16 +263,16 @@ namespace eosiosystem {
             // 1) grant type 2, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
             //     to the total grant.
             //     expected result   1/3 of total grant should be used as voting.
-          /*    _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-                  a.owner = "euwdcp13zlrj"_n;
-                  a.total_grant_amount = 2000000000000;
-                  a.unlocked_period_count = 1;
-                  a.grant_type = 2;
-                  a.inhibit_unlocking = 0;
-                  a.remaining_locked_amount = 1860000000000;
+            /*    _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                    a.owner = "euwdcp13zlrj"_n;
+                    a.total_grant_amount = 2000000000000;
+                    a.unlocked_period_count = 1;
+                    a.grant_type = 2;
+                    a.inhibit_unlocking = 0;
+                    a.remaining_locked_amount = 1860000000000;
 
-              });
-              */
+                });
+                */
 
 
 
@@ -282,16 +282,16 @@ namespace eosiosystem {
             // 1) grant type 1, total grant  equals amount in account, and remaining_locked_amount is 'close' in value
             //     to the total grant.
             //     expected result   1/3 of total grant should be used as voting.
-           /* _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-                a.owner = "euwdcp13zlrj"_n;
-                a.total_grant_amount = 2000000000000;
-                a.unlocked_period_count = 0;
-                a.grant_type = 1;
-                a.inhibit_unlocking = 0;
-                a.remaining_locked_amount = 1900000000000;
+            /* _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                 a.owner = "euwdcp13zlrj"_n;
+                 a.total_grant_amount = 2000000000000;
+                 a.unlocked_period_count = 0;
+                 a.grant_type = 1;
+                 a.inhibit_unlocking = 0;
+                 a.remaining_locked_amount = 1900000000000;
 
-            });
-            */
+             });
+             */
 
 
 
@@ -299,80 +299,80 @@ namespace eosiosystem {
             // 2) grant type 1, total grant equals amount in account, and remaining_locked_amount is small compared
             //     to the total grant.
             //    expected result, the amount in the account is the voting weight.
-          /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-               a.owner = "euwdcp13zlrj"_n;
-               a.total_grant_amount = 2000000000000;
-               a.unlocked_period_count = 0;
-               a.grant_type = 1;
-               a.inhibit_unlocking = 0;
-               a.remaining_locked_amount = 5000000000;
+            /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                 a.owner = "euwdcp13zlrj"_n;
+                 a.total_grant_amount = 2000000000000;
+                 a.unlocked_period_count = 0;
+                 a.grant_type = 1;
+                 a.inhibit_unlocking = 0;
+                 a.remaining_locked_amount = 5000000000;
 
 
-           });*/
+             });*/
 
 
             // 3) grant type is 2, the grant amount equals the amount in the account, the remaining_locked_amount
             //     is close in value to the grant amount, the 210 day limit is not yet occuring,
             //       the flag for inhibit unlocking is 0.
             //    expected result, the voting weight is the amount in the account.
-          /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-              a.owner = "euwdcp13zlrj"_n;
-              a.total_grant_amount = 2000000000000;
-              a.unlocked_period_count = 0;
-              a.grant_type = 2;
-              a.inhibit_unlocking = 0;
-              a.remaining_locked_amount = 1900000000000;
+            /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                a.owner = "euwdcp13zlrj"_n;
+                a.total_grant_amount = 2000000000000;
+                a.unlocked_period_count = 0;
+                a.grant_type = 2;
+                a.inhibit_unlocking = 0;
+                a.remaining_locked_amount = 1900000000000;
 
-          });
-           */
+            });
+             */
 
 
             // 4) grant type is 2, the grant amount equals the amount in the account,he remaining_locked_amount
             //      is close in value to the grant amount, the 210 day limit is not yet occuring,
             //       the flag for inhibit unlocking is 1.
             //    expected result, the voting weight is the amount in the account.
-          /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-              a.owner = "euwdcp13zlrj"_n;
-              a.total_grant_amount = 2000000000000;
-              a.unlocked_period_count = 0;
-              a.grant_type = 2;
-              a.inhibit_unlocking = 1;
-              a.remaining_locked_amount = 1900000000000;
+            /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                a.owner = "euwdcp13zlrj"_n;
+                a.total_grant_amount = 2000000000000;
+                a.unlocked_period_count = 0;
+                a.grant_type = 2;
+                a.inhibit_unlocking = 1;
+                a.remaining_locked_amount = 1900000000000;
 
-          });
-           */
+            });
+             */
 
 
             // 5) grant type is 2, the grant amount equals the amount in the account, the 210 day limit has occurred
             //       the flag for inhibit unlocking is 0.
             //    expected result, the voting weight is the amount in the account.
-          /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-             a.owner = "euwdcp13zlrj"_n;
-             a.total_grant_amount = 2000000000000;
-             a.unlocked_period_count = 0;
-             a.grant_type = 2;
-             a.inhibit_unlocking = 0;
-             a.remaining_locked_amount = 1900000000000;
-             //also uncomment the testing kludge for FIOLAUNCHPLUS210DAYS in fio.common.hpp
-             });
-             */
+            /*   _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+               a.owner = "euwdcp13zlrj"_n;
+               a.total_grant_amount = 2000000000000;
+               a.unlocked_period_count = 0;
+               a.grant_type = 2;
+               a.inhibit_unlocking = 0;
+               a.remaining_locked_amount = 1900000000000;
+               //also uncomment the testing kludge for FIOLAUNCHPLUS210DAYS in fio.common.hpp
+               });
+               */
 
 
 
             // 6) grant type is 2, the grant amount equals the amount in the account, the 210 day limit has occurred
             //       the flag for inhibit unlocking is 1.
             //    expected result, the voting weight is the amount in the account - remaining locked amount.
-           /*  _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
-                       a.owner = "euwdcp13zlrj"_n;
-                       a.total_grant_amount = 2000000000000;
-                       a.unlocked_period_count = 0;
-                       a.grant_type = 2;
-                       a.inhibit_unlocking = 1;
-                       a.remaining_locked_amount = 1900000000000;
-                       //also uncomment the testing kludge for FIOLAUNCHPLUS210DAYS in fio.common.hpp
-                   });
-                   */
-           
+            /*  _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+                        a.owner = "euwdcp13zlrj"_n;
+                        a.total_grant_amount = 2000000000000;
+                        a.unlocked_period_count = 0;
+                        a.grant_type = 2;
+                        a.inhibit_unlocking = 1;
+                        a.remaining_locked_amount = 1900000000000;
+                        //also uncomment the testing kludge for FIOLAUNCHPLUS210DAYS in fio.common.hpp
+                    });
+                    */
+
 
 
 
@@ -398,5 +398,5 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         (unregproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)
-        (resetclaim)
+(resetclaim)
 )

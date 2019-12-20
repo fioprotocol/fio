@@ -12,11 +12,11 @@ namespace eosio {
         using contract::contract;
 
         [[eosio::action]]
-        void propose(ignore<name> proposer,
-                     ignore<name> proposal_name,
-                     ignore<std::vector<permission_level>> requested,
-                     ignore<uint64_t> max_fee,
-                     ignore<transaction> trx
+        void propose(ignore <name> proposer,
+                     ignore <name> proposal_name,
+                     ignore <std::vector<permission_level>> requested,
+                     ignore <uint64_t> max_fee,
+                     ignore <transaction> trx
         );
 
         [[eosio::action]]
@@ -33,7 +33,7 @@ namespace eosio {
         void exec(name proposer, name proposal_name, const uint64_t &max_fee, name executer);
 
         [[eosio::action]]
-        void invalidate(name account,const uint64_t &max_fee);
+        void invalidate(name account, const uint64_t &max_fee);
 
         using propose_action = eosio::action_wrapper<"propose"_n, &multisig::propose>;
         using approve_action = eosio::action_wrapper<"approve"_n, &multisig::approve>;

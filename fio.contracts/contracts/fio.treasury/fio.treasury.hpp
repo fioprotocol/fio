@@ -30,7 +30,7 @@ namespace fioio {
         uint64_t primary_key() const { return lasttpidpayout; }
 
         EOSLIB_SERIALIZE(treasurystate, (lasttpidpayout)(payschedtimer)(rewardspaid)
-          (bpreservetokensminted)(fdtnreservetokensminted)
+                (bpreservetokensminted)(fdtnreservetokensminted)
         )
     };
 

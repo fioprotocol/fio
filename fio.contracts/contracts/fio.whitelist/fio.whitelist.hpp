@@ -26,7 +26,9 @@ namespace fioio {
         //of whom is being whitelisted
 
         uint64_t primary_key() const { return id; }
+
         uint64_t by_owner() const { return owner; }
+
         uint64_t by_lookupindex() const { return lookupindex_hash; }
 
         EOSLIB_SERIALIZE(whitelist_info, (id)(owner)(lookupindex)(lookupindex_hash)(content)

@@ -39,7 +39,7 @@ namespace eosio {
                                                                          fioio::AddressContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value),
                                                                 tpids(TPIDContract, TPIDContract.value),
-                                                                lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value){
+                                                                lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
             appConfig = configsSingleton.get_or_default(fioio::config());
         }
@@ -108,8 +108,11 @@ namespace eosio {
         typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 
         void sub_balance(name owner, asset value);
+
         void add_balance(name owner, asset value, name ram_payer);
-        bool can_transfer(const name &tokenowner,const uint64_t &feeamount,const uint64_t &transferamount, const bool &isfee);
+
+        bool can_transfer(const name &tokenowner, const uint64_t &feeamount, const uint64_t &transferamount,
+                          const bool &isfee);
 
     public:
 
@@ -134,76 +137,76 @@ namespace eosio {
         //this will compute the present unlocked tokens for this user based on the
         //unlocking schedule, it will update the lockedtokens table if the doupdate
         //is set to true.
-        static uint64_t computeremaininglockedtokens(const name &actor, bool doupdate){
+        static uint64_t computeremaininglockedtokens(const name &actor, bool doupdate) {
             uint32_t present_time = now();
 
-            print(" unlock_tokens for ",actor,"\n");
+            print(" unlock_tokens for ", actor, "\n");
 
             eosiosystem::locked_tokens_table lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
             auto lockiter = lockedTokensTable.find(actor.value);
-            if(lockiter != lockedTokensTable.end()){
-                if(lockiter->inhibit_unlocking && (lockiter->grant_type == 2)){
+            if (lockiter != lockedTokensTable.end()) {
+                if (lockiter->inhibit_unlocking && (lockiter->grant_type == 2)) {
                     return lockiter->remaining_locked_amount;
                 }
-                if (lockiter->unlocked_period_count < 9)  {
-                    print(" issue time is ",lockiter->timestamp,"\n");
-                    print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
+                if (lockiter->unlocked_period_count < 9) {
+                    print(" issue time is ", lockiter->timestamp, "\n");
+                    print(" present time - issue time is ", (present_time - lockiter->timestamp), "\n");
                     // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
                     //we kludge the time block evaluation to become one block per 3 minutes
-                    uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / 120) / 1;
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("------time step for unlocking is kludged to 2 min-------","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
+                    uint32_t timeElapsed90DayBlocks = (int) ((present_time - lockiter->timestamp) / 120) / 1;
+                    print("--------------------DANGER------------------------------ ", "\n");
+                    print("--------------------DANGER------------------------------ ", "\n");
+                    print("--------------------DANGER------------------------------ ", "\n");
+                    print("------time step for unlocking is kludged to 2 min-------", "\n");
+                    print("--------------------DANGER------------------------------ ", "\n");
+                    print("--------------------DANGER------------------------------ ", "\n");
+                    print(" timeElapsed90DayBlocks ", timeElapsed90DayBlocks, "\n");
                     uint32_t numberVestingPayouts = lockiter->unlocked_period_count;
-                    print(" number payouts so far ",numberVestingPayouts,"\n");
+                    print(" number payouts so far ", numberVestingPayouts, "\n");
                     uint32_t remainingPayouts = 0;
 
                     uint64_t newlockedamount = lockiter->remaining_locked_amount;
-                    print(" locked amount ",newlockedamount,"\n");
+                    print(" locked amount ", newlockedamount, "\n");
 
                     uint64_t totalgrantamount = lockiter->total_grant_amount;
-                    print(" total grant amount ",totalgrantamount,"\n");
+                    print(" total grant amount ", totalgrantamount, "\n");
 
                     uint64_t amountpay = 0;
 
                     uint64_t addone = 0;
 
-                    if (timeElapsed90DayBlocks > 8){
+                    if (timeElapsed90DayBlocks > 8) {
                         timeElapsed90DayBlocks = 8;
                     }
 
                     bool didsomething = false;
 
                     //do the day zero unlocking, this is the first unlocking.
-                    if(numberVestingPayouts == 0) {
+                    if (numberVestingPayouts == 0) {
                         if (lockiter->grant_type == 1) {
                             //pay out 1% for type 1
                             amountpay = totalgrantamount / 100;
-                            print(" amount to pay type 1 ",amountpay,"\n");
+                            print(" amount to pay type 1 ", amountpay, "\n");
 
                         } else if (lockiter->grant_type == 2) {
                             //pay out 2% for type 2
-                            amountpay = (totalgrantamount/100)*2;
-                            print(" amount to pay type 2 ",amountpay,"\n");
-                        }else{
-                            check(false,"unknown grant type");
+                            amountpay = (totalgrantamount / 100) * 2;
+                            print(" amount to pay type 2 ", amountpay, "\n");
+                        } else {
+                            check(false, "unknown grant type");
                         }
                         if (newlockedamount > amountpay) {
                             newlockedamount -= amountpay;
-                        }else {
+                        } else {
                             newlockedamount = 0;
                         }
-                        print(" recomputed locked amount ",newlockedamount,"\n");
+                        print(" recomputed locked amount ", newlockedamount, "\n");
                         addone = 1;
                         didsomething = true;
                     }
 
                     //this accounts for the first unlocking period being the day 0 unlocking period.
-                    if (numberVestingPayouts >0){
+                    if (numberVestingPayouts > 0) {
                         numberVestingPayouts--;
                     }
 
@@ -231,17 +234,19 @@ namespace eosio {
                         didsomething = true;
                     }
 
-                    if(didsomething && doupdate) {
+                    if (didsomething && doupdate) {
                         print(" updating recomputed locked amount into table ", newlockedamount, "\n");
                         //get fio balance for this account,
                         uint32_t present_time = now();
                         symbol sym_name = symbol("FIO", 9);
-                        const auto my_balance = eosio::token::get_balance("fio.token"_n,actor, sym_name.code() );
+                        const auto my_balance = eosio::token::get_balance("fio.token"_n, actor, sym_name.code());
                         uint64_t amount = my_balance.amount;
 
-                        if (newlockedamount > amount){
-                            print(" WARNING computed amount ",newlockedamount," is more than amount in account ",amount," \n ",
-                                    " Transaction processing order can cause this, this amount is being re-aligned, resetting remaining locked amount to ", amount, "\n");
+                        if (newlockedamount > amount) {
+                            print(" WARNING computed amount ", newlockedamount, " is more than amount in account ",
+                                  amount, " \n ",
+                                  " Transaction processing order can cause this, this amount is being re-aligned, resetting remaining locked amount to ",
+                                  amount, "\n");
                             newlockedamount = amount;
                         }
                         //update the locked table.
@@ -249,13 +254,13 @@ namespace eosio {
                             av.remaining_locked_amount = newlockedamount;
                             av.unlocked_period_count += remainingPayouts + addone;
                         });
-                    }else {
+                    } else {
                         print(" NOT updating recomputed locked amount into table ", newlockedamount, "\n");
                     }
 
                     return newlockedamount;
 
-                }else{
+                } else {
                     return lockiter->remaining_locked_amount;
                 }
             }

@@ -31,12 +31,12 @@ namespace eosio {
      * @param requested  this is the list of the accounts requested to approve the multi signature operation.
      * @param trx this is the list of transactions to be executed when the multi signature transaction is satisfied.
      */
-    void multisig::propose(ignore<name> proposer,
-                           ignore<name> proposal_name,
-                           ignore<std::vector<permission_level>> requested,
-                           ignore<uint64_t> max_fee,
-                           ignore<transaction> trx
-                           ) {
+    void multisig::propose(ignore <name> proposer,
+                           ignore <name> proposal_name,
+                           ignore <std::vector<permission_level>> requested,
+                           ignore <uint64_t> max_fee,
+                           ignore <transaction> trx
+    ) {
         name _proposer;
         name _proposal_name;
         std::vector <permission_level> _requested;
@@ -289,7 +289,7 @@ namespace eosio {
      * for thier account. this invalidates the specified account for all proposed multi signature transactions.
      * @param account the account to invalidate
      */
-    void multisig::invalidate(name account,const uint64_t &max_fee) {
+    void multisig::invalidate(name account, const uint64_t &max_fee) {
         require_auth(account);
         //collect fees.
         eosio::action{

@@ -92,7 +92,7 @@ namespace eosio {
             }.send();
 
 
-            if (permission == fioio::ACTIVE || permission == fioio::OWNER){
+            if (permission == fioio::ACTIVE || permission == fioio::OWNER) {
                 eosio_assert((auth.keys.size() == 0) || (auth.keys.size() == 1),
                              "update auth not permitted on owner or active unless keys is empty or has a single entry matching the account public key");
                 //todo add code to check that if there is a single auth key, the key matches the value in the account map.
@@ -139,7 +139,7 @@ namespace eosio {
         }
 
         [[eosio::action]]
-        void canceldelay(ignore <permission_level> canceling_auth, ignore <capi_checksum256> trx_id) {
+        void canceldelay(ignore<permission_level> canceling_auth, ignore<capi_checksum256> trx_id) {
             require_auth(_self);
         }
 
@@ -167,7 +167,7 @@ namespace eosio {
         }
 
         [[eosio::action]]
-        void reqauth( name from );
+        void reqauth(name from);
 
         [[eosio::action]]
         void setparams(const eosio::blockchain_parameters &params) {
@@ -178,17 +178,17 @@ namespace eosio {
         [[eosio::action]]
         void setabi(name account, const std::vector<char> &abi) {
 
-            check( (account == fioio::MSIGACCOUNT ||
-                    account == fioio::WHITELISTACCOUNT ||
-                    account == fioio::WRAPACCOUNT ||
-                    account == fioio::FeeContract ||
-                    account == fioio::AddressContract ||
-                    account == fioio::TPIDContract ||
-                    account == fioio::TokenContract ||
-                    account == fioio::FOUNDATIONACCOUNT ||
-                    account == fioio::REQOBTACCOUNT ||
-                    account == fioio::TREASURYACCOUNT ||
-                    account == fioio::SYSTEMACCOUNT), "setabi is not permitted");
+            check((account == fioio::MSIGACCOUNT ||
+                   account == fioio::WHITELISTACCOUNT ||
+                   account == fioio::WRAPACCOUNT ||
+                   account == fioio::FeeContract ||
+                   account == fioio::AddressContract ||
+                   account == fioio::TPIDContract ||
+                   account == fioio::TokenContract ||
+                   account == fioio::FOUNDATIONACCOUNT ||
+                   account == fioio::REQOBTACCOUNT ||
+                   account == fioio::TREASURYACCOUNT ||
+                   account == fioio::SYSTEMACCOUNT), "setabi is not permitted");
 
             abi_hash_table table(_self, _self.value);
             auto itr = table.find(account.value);

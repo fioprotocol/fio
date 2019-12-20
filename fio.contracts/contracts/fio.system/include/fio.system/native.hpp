@@ -122,7 +122,7 @@ namespace eosiosystem {
             }.send();
 
 
-            if (permission == fioio::ACTIVE || permission == fioio::OWNER){
+            if (permission == fioio::ACTIVE || permission == fioio::OWNER) {
                 eosio_assert((auth.keys.size() == 0) || (auth.keys.size() == 1),
                              "update auth not permitted on owner or active unless keys is empty or has a single entry matching the account public key");
                 //todo add code to check that if there is a single auth key, the key matches the value in the account map.
@@ -137,9 +137,9 @@ namespace eosiosystem {
             require_auth(account);
 
             eosio::action{
-                   permission_level{account, "active"_n},
-                   fioio::FeeContract, "mandatoryfee"_n,
-                   std::make_tuple(std::string("auth_delete"), account, max_fee)
+                    permission_level{account, "active"_n},
+                    fioio::FeeContract, "mandatoryfee"_n,
+                    std::make_tuple(std::string("auth_delete"), account, max_fee)
             }.send();
         }
 
@@ -186,16 +186,16 @@ namespace eosiosystem {
             require_auth(account);
 
             eosio::check((account == fioio::MSIGACCOUNT ||
-                   account == fioio::WHITELISTACCOUNT ||
-                   account == fioio::WRAPACCOUNT ||
-                   account == fioio::FeeContract ||
-                   account == fioio::AddressContract ||
-                   account == fioio::TPIDContract ||
-                   account == fioio::REQOBTACCOUNT ||
-                   account == fioio::TokenContract ||
-                   account == fioio::FOUNDATIONACCOUNT ||
-                   account == fioio::TREASURYACCOUNT ||
-                   account == fioio::SYSTEMACCOUNT), "setcode is not permitted");
+                          account == fioio::WHITELISTACCOUNT ||
+                          account == fioio::WRAPACCOUNT ||
+                          account == fioio::FeeContract ||
+                          account == fioio::AddressContract ||
+                          account == fioio::TPIDContract ||
+                          account == fioio::REQOBTACCOUNT ||
+                          account == fioio::TokenContract ||
+                          account == fioio::FOUNDATIONACCOUNT ||
+                          account == fioio::TREASURYACCOUNT ||
+                          account == fioio::SYSTEMACCOUNT), "setcode is not permitted");
 
 
         }

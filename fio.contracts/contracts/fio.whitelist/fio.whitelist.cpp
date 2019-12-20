@@ -143,7 +143,8 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
+                               "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
@@ -252,7 +253,8 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
+                               "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,

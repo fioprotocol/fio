@@ -39,9 +39,9 @@ namespace fioio {
 
     struct authority {
         uint32_t threshold;
-        vector<eosiosystem::key_weight> keys;
-        vector<eosiosystem::permission_level_weight> accounts;
-        vector<wait_weight> waits;
+        vector <eosiosystem::key_weight> keys;
+        vector <eosiosystem::permission_level_weight> accounts;
+        vector <wait_weight> waits;
     };
 
     struct newaccount {

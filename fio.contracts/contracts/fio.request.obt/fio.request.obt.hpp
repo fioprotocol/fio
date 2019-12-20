@@ -46,7 +46,9 @@ namespace fioio {
         string payee_key = nullptr;
 
         uint64_t primary_key() const { return fio_request_id; }
+
         uint128_t by_receiver() const { return payer_fio_address; }
+
         uint128_t by_originator() const { return payee_fio_address; }
 
         EOSLIB_SERIALIZE(fioreqctxt,
@@ -77,7 +79,9 @@ namespace fioio {
         string payee_key = nullptr;
 
         uint64_t primary_key() const { return id; }
+
         uint128_t by_payee() const { return payer_fio_address; }
+
         uint128_t by_payer() const { return payee_fio_address; }
 
         EOSLIB_SERIALIZE(recordobt_info,
@@ -103,6 +107,7 @@ namespace fioio {
         uint64_t time_stamp;
 
         uint64_t primary_key() const { return id; }
+
         uint64_t by_fioreqid() const { return fio_request_id; }
 
         EOSLIB_SERIALIZE(fioreqsts, (id)(fio_request_id)(status)(metadata)(time_stamp)

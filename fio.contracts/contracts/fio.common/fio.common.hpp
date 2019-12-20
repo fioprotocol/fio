@@ -53,13 +53,12 @@
 #endif
 
 
-
 namespace fioio {
 
     using namespace eosio;
     using namespace std;
 
-    typedef long long  int64;
+    typedef long long int64;
 
     struct config {
         name tokencontr; // owner of the token contract
@@ -129,14 +128,14 @@ namespace fioio {
 
         eosio::checksum160 tmp;
         uint128_t retval = 0;
-        uint8_t *bp = (uint8_t *) &tmp;
+        uint8_t *bp = (uint8_t * ) & tmp;
         uint32_t len = 0;
 
         while (str[len]) ++len;
 
         tmp = eosio::sha1(str, len);
 
-        bp = (uint8_t *) &tmp;
+        bp = (uint8_t * ) & tmp;
         memcpy(&retval, bp, sizeof(retval));
 
         return retval;
@@ -238,11 +237,11 @@ namespace fioio {
             uint64_t bamount = 0;
 
             if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                bamount = (uint64_t)(static_cast<double>(amount) * .65);
 
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
-                       make_tuple(TREASURYACCOUNT,bamount)
+                       make_tuple(TREASURYACCOUNT, bamount)
                 ).send();
 
                 action(
@@ -279,7 +278,6 @@ namespace fioio {
     }
 
 
-
     void processbucketrewards(const string &tpid, const uint64_t &amount, const name &actor) {
 
         action(
@@ -300,10 +298,10 @@ namespace fioio {
             uint64_t bamount = 0;
 
             if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                bamount = (uint64_t)(static_cast<double>(amount) * .65);
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
-                       make_tuple(TREASURYACCOUNT,bamount)
+                       make_tuple(TREASURYACCOUNT, bamount)
                 ).send();
 
                 action(
