@@ -1398,7 +1398,7 @@ struct list_producers_subcommand {
             for (auto &row : result.rows)
                 printf("%-13.13s %-57.57s %-59.59s %1.4f\n",
                        row["owner"].as_string().c_str(),
-                       row["producer_fio_public_key"].as_string().c_str(),
+                       row["producer_public_key"].as_string().c_str(),
                        row["url"].as_string().c_str(),
                        row["total_votes"].as_double() / weight);
             if (!result.more.empty())
