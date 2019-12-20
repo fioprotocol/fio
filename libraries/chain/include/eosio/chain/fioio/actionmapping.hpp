@@ -59,7 +59,7 @@ namespace fioio {
         fioFinanceActions.push_back("requestfunds");
 
         //fio.request.obt actions
-        fioRequestObtActions.push_back("recordsend");
+        fioRequestObtActions.push_back("recordobt");
         fioRequestObtActions.push_back("rejectfndreq");
         fioRequestObtActions.push_back("newfundsreq");
     }
