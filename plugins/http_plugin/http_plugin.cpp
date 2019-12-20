@@ -671,7 +671,7 @@ namespace eosio {
                                   error_results::error_info(e, verbose_http_errors)};
             message = fc::json::to_string(results);
         }
-        cb(rescode, message);
+        cb(rescode, fc::json::from_string(message, fc::json::legacy_parser));
     }
 
     void http_plugin::handle_exception(const char *api_name, const char *call_name, const string &body,
@@ -691,23 +691,24 @@ namespace eosio {
                 cb(404, e.what());
             } catch (chain::unknown_block_exception &e) {
                 error_results results{400, "Unknown Block", error_results::error_info(e, verbose_http_errors)};
-                cb(400, fc::json::to_string(results));
+                cb(400, fc::variant(results));
             } catch (chain::unsatisfied_authorization &e) {
                 error_results results{401, "UnAuthorized", error_results::error_info(e, verbose_http_errors)};
-                cb(401, fc::json::to_string(results));
+                cb(401, fc::variant(results));
             } catch (chain::tx_duplicate &e) {
                 error_results results{409, "Conflict", error_results::error_info(e, verbose_http_errors)};
-                cb(409, fc::json::to_string(results));
+                cb(409, fc::variant(results));
             } catch (fc::eof_exception &e) {
                 error_results results{422, "Unprocessable Entity", error_results::error_info(e, verbose_http_errors)};
-                cb(422, fc::json::to_string(results));
+                cb(422, fc::variant(results));
                 elog("Unable to parse arguments to ${api}.${call}", ("api", api_name)("call", call_name));
                 dlog("Bad arguments: ${args}", ("args", body));
             } catch (fc::exception &e) {
                 if (fioio::is_fio_error(e.code())) {
                     auto rescode = fioio::get_http_result(e.code());
                     elog("got FIO error code ${f}", ("f", rescode));
-                    cb(rescode, e.what());
+
+                    cb(rescode, fc::json::from_string(e.what(),fc::json::legacy_parser));
                 } else {
 
                     //  error_results results{500, "Internal Service Error",
@@ -725,7 +726,7 @@ namespace eosio {
                 error_results results{500, "Internal Service Error",
                                       error_results::error_info(fc::exception(FC_LOG_MESSAGE(error, e.what())),
                                                                 verbose_http_errors)};
-                cb(500, fc::json::to_string(results));
+                cb(500, fc::variant(results)); //fc::json::to_string(results));
                 elog("STD Exception encountered while processing ${api}.${call}",
                      ("api", api_name)("call", call_name));
                 dlog("Exception Details: ${e}", ("e", e.what()));
@@ -734,7 +735,7 @@ namespace eosio {
                                       error_results::error_info(
                                               fc::exception(FC_LOG_MESSAGE(error, "Unknown Exception")),
                                               verbose_http_errors)};
-                cb(500, fc::json::to_string(results));
+                cb(500, fc::variant(results)); //json::to_string(results));
                 elog("Unknown Exception encountered while processing ${api}.${call}",
                      ("api", api_name)("call", call_name));
             }
