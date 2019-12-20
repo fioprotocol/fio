@@ -76,6 +76,6 @@ printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${COLOR_NC}"
 
 printf "==============================================================================================\\n"
 printf "${COLOR_GREEN}FIO has been installed into ${CACHED_INSTALL_PATH}/bin${COLOR_NC}"
-printf "\\n${COLOR_YELLOW}Uninstall with: ${SCRIPT_DIR}/fio_uninstall.sh${COLOR_NC}\\n"
+printf "\\n${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 resources
