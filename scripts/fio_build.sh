@@ -240,7 +240,6 @@ printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
 printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
 printf "     \\/__/         \\/__/       \\/__/             \n"
 printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
-Command Line Interface to FIO Client
 printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
 printf "==============================================================================================\\n${bldred}"
 echo "${COLOR_GREEN}You can now install using: ${REPO_ROOT}/scripts/fio_install.sh${COLOR_NC}"
