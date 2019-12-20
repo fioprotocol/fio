@@ -417,7 +417,7 @@ namespace eosio {
             fc::variant get_currency_stats(const get_currency_stats_params &params) const;
 
             struct get_producers_params {
-                bool json = false;
+                bool json = true;
                 string lower_bound;
                 uint32_t limit = 50;
             };
