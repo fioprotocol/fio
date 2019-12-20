@@ -2923,11 +2923,17 @@ if( options.count(name) ) { \
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
             const auto table_type = get_table_type(abi, N(producers));
             const abi_serializer abis{abi, abi_serializer_max_time};
+
             EOS_ASSERT(table_type == KEYi64, chain::contract_table_query_exception,
                        "Invalid table type ${type} for table producers", ("type", table_type));
 
             const auto &d = db.db();
             const auto lower = name{p.lower_bound};
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+            //FIO_400_ASSERT(!fioio::isStringInt(p.lower_bound), "lower_bound", p.lower_bound, "Invalid lower bound",
+            //               fioio::ErrorPagingInvalid);
 
             static const uint8_t secondary_index_num = 0;
             const auto *const table_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
@@ -2959,17 +2965,17 @@ if( options.count(name) ) { \
             }();
 
             for (; it != secondary_index_by_secondary.end() && it->t_id == secondary_table_id->id; ++it) {
-                if (result.rows.size() >= p.limit || fc::time_point::now() > stopTime) {
+                if (result.producers.size() >= p.limit || fc::time_point::now() > stopTime) {
                     result.more = name{it->primary_key}.to_string();
                     break;
                 }
                 copy_inline_row(*kv_index.find(boost::make_tuple(table_id->id, it->primary_key)), data);
                 if (p.json)
-                    result.rows.emplace_back(
+                    result.producers.emplace_back(
                             abis.binary_to_variant(abis.get_table_type(N(producers)), data, abi_serializer_max_time,
                                                    shorten_abi_errors));
                 else
-                    result.rows.emplace_back(fc::variant(data));
+                    result.producers.emplace_back(fc::variant(data));
             }
 
             result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time,
@@ -2980,12 +2986,12 @@ if( options.count(name) ) { \
 
             for (auto p : db.active_producers().producers) {
                 fc::variant row = fc::mutable_variant_object()
-                        ("owner", p.producer_name)
+                        ("fio_address", p.producer_name)
                         ("producer_key", p.block_signing_key)
                         ("url", "")
                         ("total_votes", 0.0f);
 
-                result.rows.push_back(row);
+                result.producers.push_back(row);
             }
 
             return result;
