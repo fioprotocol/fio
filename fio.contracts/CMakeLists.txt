@@ -8,9 +8,9 @@ set(VERSION_PATCH 0)
 #set(VERSION_SUFFIX rc3)
 
 if (VERSION_SUFFIX)
-    set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_SUFFIX}")
+   set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_SUFFIX}")
 else ()
-    set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+   set(VERSION_FULL "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 endif ()
 
 include(ExternalProject)
@@ -31,18 +31,18 @@ EOSIO_CHECK_VERSION(VERSION_OUTPUT "${EOSIO_CDT_VERSION}"
         "${EOSIO_CDT_VERSION_HARD_MAX}"
         VERSION_MATCH_ERROR_MSG)
 if (VERSION_OUTPUT STREQUAL "MATCH")
-    message(STATUS "Using eosio.cdt version ${EOSIO_CDT_VERSION}")
+   message(STATUS "Using eosio.cdt version ${EOSIO_CDT_VERSION}")
 elseif (VERSION_OUTPUT STREQUAL "WARN")
-    message(WARNING "Using eosio.cdt version ${EOSIO_CDT_VERSION} even though it exceeds the maximum supported version of ${EOSIO_CDT_VERSION_SOFT_MAX}; continuing with configuration, however build may fail.\nIt is recommended to use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
+   message(WARNING "Using eosio.cdt version ${EOSIO_CDT_VERSION} even though it exceeds the maximum supported version of ${EOSIO_CDT_VERSION_SOFT_MAX}; continuing with configuration, however build may fail.\nIt is recommended to use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
 else () # INVALID OR MISMATCH
-    message(FATAL_ERROR "Found eosio.cdt version ${EOSIO_CDT_VERSION} but it does not satisfy version requirements: ${VERSION_MATCH_ERROR_MSG}\nPlease use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
+   message(FATAL_ERROR "Found eosio.cdt version ${EOSIO_CDT_VERSION} but it does not satisfy version requirements: ${VERSION_MATCH_ERROR_MSG}\nPlease use eosio.cdt version ${EOSIO_CDT_VERSION_SOFT_MAX}.x")
 endif (VERSION_OUTPUT STREQUAL "MATCH")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(TEST_BUILD_TYPE "Debug")
-    set(CMAKE_BUILD_TYPE "Release")
+   set(TEST_BUILD_TYPE "Debug")
+   set(CMAKE_BUILD_TYPE "Release")
 else ()
-    set(TEST_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+   set(TEST_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 endif ()
 
 ExternalProject_Add(
@@ -58,16 +58,16 @@ ExternalProject_Add(
 )
 
 if (APPLE)
-    set(OPENSSL_ROOT "/usr/local/opt/openssl")
+   set(OPENSSL_ROOT "/usr/local/opt/openssl")
 elseif (UNIX)
-    set(OPENSSL_ROOT "/usr/include/openssl")
+   set(OPENSSL_ROOT "/usr/include/openssl")
 endif ()
 set(SECP256K1_ROOT "/usr/local")
 
 if (APPLE)
-    set(OPENSSL_ROOT "/usr/local/opt/openssl")
+   set(OPENSSL_ROOT "/usr/local/opt/openssl")
 elseif (UNIX)
-    set(OPENSSL_ROOT "/usr/include/openssl")
+   set(OPENSSL_ROOT "/usr/include/openssl")
 endif ()
 set(SECP256K1_ROOT "/usr/local")
 

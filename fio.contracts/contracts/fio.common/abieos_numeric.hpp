@@ -29,8 +29,8 @@ namespace abieos {
 
 
     template<size_t size>
-    std::array <uint8_t, size> base58_to_binary(std::string_view s) {
-        std::array <uint8_t, size> result{{0}};
+    std::array<uint8_t, size> base58_to_binary(std::string_view s) {
+        std::array<uint8_t, size> result{{0}};
         for (auto &src_digit : s) {
             int carry = get_base58_map()[src_digit];
             if (carry < 0)

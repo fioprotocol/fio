@@ -24,7 +24,7 @@ namespace fioio {
 
     struct feevalue {
         string end_point; //this is the name of the endpoint, which is by convention the same as the
-        //url to which the signed transaction is sent.
+                          //url to which the signed transaction is sent.
         uint64_t value;   //this it the value of the fee in FIO SUFs (Smallest unit of FIO).
 
         EOSLIB_SERIALIZE( feevalue, (end_point)(value))
@@ -43,9 +43,7 @@ namespace fioio {
         uint64_t suf_amount;
 
         uint64_t primary_key() const { return fee_id; }
-
         uint128_t by_endpoint() const { return end_point_hash; }
-
         uint64_t by_type() const { return type; }
 
         EOSLIB_SERIALIZE(fiofee, (fee_id)(end_point)(end_point_hash)(type)(suf_amount)
@@ -103,9 +101,7 @@ namespace fioio {
         uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return id; }
-
         uint64_t by_endpoint() const { return end_point_hash; }
-
         uint64_t by_bpname() const { return block_producer_name.value; }
 
         EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)(lastvotetimestamp)

@@ -36,7 +36,8 @@ namespace fioio {
             string fio_address;
         };
 
-        int64_t stoi(const char *s) {
+        int64_t stoi(const char *s)
+        {
             int64_t i;
             i = 0;
             while (*s >= '0' && *s <= '9') {
@@ -69,24 +70,24 @@ namespace fioio {
                   fiofees(FeeContract, FeeContract.value),
                   clientkeys(AddressContract, AddressContract.value),
                   tpids(AddressContract, AddressContract.value),
-                  recordObtTable(_self, _self.value) {
+                  recordObtTable(_self,_self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
 
 
-        /*******
-         * This action will record the send of funds from one FIO address to another, either
-         * in response to a request for funds or as a result of a direct send of funds from
-         * one user to another
-         * @param fio_request_id   This is the one up id of the fio request
-         * @param payer_fio_address The payer of the request
-         * @param payee_fio_address  The payee (recieve of funds) of the request.
-         * @param content  this is the encrypted blob of content containing details of the request.
-         * @param max_fee  this is maximum fee the user is willing to pay as a result of this transaction.
-         * @param actor  this is the actor (the account which has signed this transaction)
-         * @param tpid  this is the tpid for the owner of the domain (this is optional)
-         */
+         /*******
+          * This action will record the send of funds from one FIO address to another, either
+          * in response to a request for funds or as a result of a direct send of funds from
+          * one user to another
+          * @param fio_request_id   This is the one up id of the fio request
+          * @param payer_fio_address The payer of the request
+          * @param payee_fio_address  The payee (recieve of funds) of the request.
+          * @param content  this is the encrypted blob of content containing details of the request.
+          * @param max_fee  this is maximum fee the user is willing to pay as a result of this transaction.
+          * @param actor  this is the actor (the account which has signed this transaction)
+          * @param tpid  this is the tpid for the owner of the domain (this is optional)
+          */
         // @abi action
         [[eosio::action]]
         void recordobt(
@@ -139,7 +140,7 @@ namespace fioio {
                            ErrorDomainNotRegistered);
             uint32_t domexp = iterdom->expiration;
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
-            domexp = get_time_plus_seconds(domexp, SECONDS30DAYS);
+            domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
 
 
             fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
@@ -177,8 +178,7 @@ namespace fioio {
             uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
-                           "record_obt_data unexpected fee type for endpoint record_obt_data, expected 1",
-                           ErrorNoEndpoint);
+                           "record_obt_data unexpected fee type for endpoint record_obt_data, expected 1", ErrorNoEndpoint);
 
             uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
             uint64_t fee_amount = 0;
@@ -195,8 +195,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
-                               "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset = asset();
@@ -260,15 +259,15 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        /*********
-         * This action will record a request for funds into the FIO protocol.
-         * @param payer_fio_address this is the fio address of the payer of the request for funds.
-         * @param payee_fio_address this is the requestor of the funds (or the payee) for this request for funds.
-         * @param content  this is the blob of encrypted data associated with this request for funds.
-         * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay for this tx.
-         * @param actor this is the string representation of the fio account that has signed this transaction
-         * @param tpid
-         */
+       /*********
+        * This action will record a request for funds into the FIO protocol.
+        * @param payer_fio_address this is the fio address of the payer of the request for funds.
+        * @param payee_fio_address this is the requestor of the funds (or the payee) for this request for funds.
+        * @param content  this is the blob of encrypted data associated with this request for funds.
+        * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay for this tx.
+        * @param actor this is the string representation of the fio account that has signed this transaction
+        * @param tpid
+        */
         // @abi action
         [[eosio::action]]
         void newfundsreq(
@@ -337,7 +336,7 @@ namespace fioio {
                            ErrorDomainNotRegistered);
 
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
-            const uint64_t domexp = get_time_plus_seconds(iterdom->expiration, SECONDS30DAYS);
+            const uint64_t domexp = get_time_plus_seconds(iterdom->expiration,SECONDS30DAYS);
 
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
@@ -375,8 +374,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
-                               "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset = asset();
@@ -423,15 +421,15 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        /********
-         * this action will add a rejection status to the request for funds with the specified request id.
-         * the input fiorequest id will be verified to ensure there is a request in the contexts table matching this id
-         * before the status record is added to the index tables.
-         * @param fio_request_id this is the id of the request in the fio request contexts table.
-         * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay.
-         * @param actor  this is the string representation of the FIO account that is associated with the signer of this tx.
-         * @param tpid  this is the fio address of the domain owner associated with this request.
-         */
+         /********
+          * this action will add a rejection status to the request for funds with the specified request id.
+          * the input fiorequest id will be verified to ensure there is a request in the contexts table matching this id
+          * before the status record is added to the index tables.
+          * @param fio_request_id this is the id of the request in the fio request contexts table.
+          * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay.
+          * @param actor  this is the string representation of the FIO account that is associated with the signer of this tx.
+          * @param tpid  this is the fio address of the domain owner associated with this request.
+          */
         // @abi action
         [[eosio::action]]
         void rejectfndreq(
@@ -450,7 +448,7 @@ namespace fioio {
             fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
 
-            const uint64_t currentTime = current_time();
+           const uint64_t currentTime = current_time();
             uint64_t requestId;
 
             requestId = std::atoi(fio_request_id.c_str());
@@ -484,7 +482,7 @@ namespace fioio {
                            ErrorDomainNotRegistered);
 
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
-            const uint64_t domexp = get_time_plus_seconds(iterdom->expiration, SECONDS30DAYS);
+            const uint64_t domexp = get_time_plus_seconds(iterdom->expiration,SECONDS30DAYS);
 
             fio_400_assert(present_time <= domexp, "payer_fio_address", payerFioAddress,
                            "FIO Domain expired", ErrorFioNameExpired);
@@ -525,7 +523,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (uint64_t) fee_amount, "max_fee", to_string(max_fee),
+                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee),
                                "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 

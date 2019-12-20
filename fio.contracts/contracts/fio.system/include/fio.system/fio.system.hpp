@@ -83,7 +83,7 @@ struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_st
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
     EOSLIB_SERIALIZE_DERIVED( eosio_global_state, eosio::blockchain_parameters,
-    (last_producer_schedule_update)(last_pervote_bucket_fill)
+            (last_producer_schedule_update)(last_pervote_bucket_fill)
             (pervote_bucket)(perblock_bucket)(total_unpaid_blocks)(total_voted_fio)(thresh_voted_fio_time)
             (last_producer_schedule_size)(total_producer_vote_weight)(last_name_close)
     )
@@ -94,12 +94,11 @@ struct [[eosio::table("global"), eosio::contract("fio.system")]] eosio_global_st
  */
 struct [[eosio::table("global2"), eosio::contract("fio.system")]] eosio_global_state2 {
     eosio_global_state2() {}
-
     block_timestamp last_block_num; /* deprecated */
     double total_producer_votepay_share = 0;
     uint8_t revision = 0; ///< used to track version updates in the future.
 
-    EOSLIB_SERIALIZE( eosio_global_state2, (last_block_num)
+    EOSLIB_SERIALIZE( eosio_global_state2,(last_block_num)
             (total_producer_votepay_share)(revision)
     )
 };
@@ -130,12 +129,12 @@ struct [[eosio::table, eosio::contract("fio.system")]] locked_token_holder_info 
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
     EOSLIB_SERIALIZE( locked_token_holder_info, (owner)(total_grant_amount)
-            (unlocked_period_count)(grant_type)(inhibit_unlocking)(remaining_locked_amount)(timestamp)
+    (unlocked_period_count)(grant_type)(inhibit_unlocking)(remaining_locked_amount)(timestamp)
     )
 };
 
 typedef eosio::multi_index<"lockedtokens"_n, locked_token_holder_info>
-        locked_tokens_table;
+locked_tokens_table;
 //end locked token holders table.
 
 
@@ -144,9 +143,9 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     uint64_t id;
     name owner;
     string fio_address;  //this is the fio address to be used for bundled fee collection
-    //for tx that are fee type bundled, just use the one fio address
-    //you want to have pay for the bundled fee transactions associated
-    //with this producer.
+                         //for tx that are fee type bundled, just use the one fio address
+                         //you want to have pay for the bundled fee transactions associated
+                         //with this producer.
     uint128_t addresshash;
 
     double total_votes = 0;
@@ -159,10 +158,8 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     uint16_t location = 0;
 
     uint64_t primary_key() const { return id; }
-
-    uint64_t by_owner() const { return owner.value; }
-
-    uint128_t by_address() const { return addresshash; }
+    uint64_t by_owner() const{return owner.value;}
+    uint128_t by_address() const{return addresshash;}
 
     double by_votes() const { return is_active ? -total_votes : total_votes; }
 
@@ -174,16 +171,15 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( producer_info, (id)(owner)(fio_address)(addresshash)(total_votes)(producer_public_key)(is_active)(
-            url)
+    EOSLIB_SERIALIZE( producer_info, (id)(owner)(fio_address)(addresshash)(total_votes)(producer_public_key)(is_active)(url)
             (unpaid_blocks)(last_claim_time)(location)
     )
 };
 
 typedef eosio::multi_index<"producers"_n, producer_info,
         indexed_by<"prototalvote"_n, const_mem_fun < producer_info, double, &producer_info::by_votes> >,
-indexed_by<"byaddress"_n, const_mem_fun<producer_info, uint128_t, &producer_info::by_address> >,
-indexed_by<"byowner"_n, const_mem_fun<producer_info, uint64_t, &producer_info::by_owner> >
+        indexed_by<"byaddress"_n, const_mem_fun < producer_info, uint128_t, &producer_info::by_address> >,
+        indexed_by<"byowner"_n, const_mem_fun < producer_info, uint64_t, &producer_info::by_owner> >
 
 >
 producers_table;
@@ -216,23 +212,19 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     uint32_t reserved2 = 0;
     eosio::asset reserved3;
 
-    uint64_t primary_key() const { return id; }
-
-    uint128_t by_address() const { return addresshash; }
-
+    uint64_t primary_key() const{return id;}
+    uint128_t by_address() const {return addresshash;}
     uint64_t by_owner() const { return owner.value; }
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
-    EOSLIB_SERIALIZE( voter_info, (id)(fioaddress)(addresshash)(owner)(proxy)(producers)(last_vote_weight)(
-            proxied_vote_weight)(is_proxy)(is_auto_proxy)(reserved2)(reserved3)
+    EOSLIB_SERIALIZE( voter_info, (id)(fioaddress)(addresshash)(owner)(proxy)(producers)(last_vote_weight)(proxied_vote_weight)(is_proxy)(is_auto_proxy)(reserved2)(reserved3)
     )
 };
 
 typedef eosio::multi_index<"voters"_n, voter_info,
-        indexed_by<"byaddress"_n, const_mem_fun < voter_info, uint128_t, &voter_info::by_address>>,
+indexed_by<"byaddress"_n, const_mem_fun<voter_info, uint128_t, &voter_info::by_address>>,
 indexed_by<"byowner"_n, const_mem_fun<voter_info, uint64_t, &voter_info::by_owner>>
->
-voters_table;
+> voters_table;
 
 
 
@@ -245,13 +237,14 @@ typedef eosio::singleton<"global3"_n, eosio_global_state3> global_state3_singlet
 static constexpr uint32_t seconds_per_day = 24 * 3600;
 
 
+
 class [[eosio::contract("fio.system")]] system_contract : public native {
 
 private:
     voters_table _voters;
     producers_table _producers;
     locked_tokens_table _lockedtokens;
-    //MAS-522 eliminate producers2 producers_table2 _producers2;
+   //MAS-522 eliminate producers2 producers_table2 _producers2;
     global_state_singleton _global;
     global_state2_singleton _global2;
     global_state3_singleton _global3;
@@ -274,7 +267,7 @@ public:
     static constexpr eosio::name names_account{"eosio.names"_n};
     static constexpr eosio::name saving_account{"eosio.saving"_n};
     static constexpr eosio::name null_account{"eosio.null"_n};
-    static constexpr symbol ramcore_symbol = symbol(symbol_code("FIO"), 9);
+    static constexpr symbol ramcore_symbol = symbol(symbol_code("FIO"),9);
 
     system_contract(name s, name code, datastream<const char *> ds);
 
@@ -298,35 +291,30 @@ public:
     void burnaction(const uint128_t &fioaddrhash);
 
     [[eosio::action]]
-    void updlocked(const name &owner, const uint64_t &amountremaining);
+    void updlocked(const name &owner,const uint64_t &amountremaining);
 
     [[eosio::action]]
-    void inhibitunlck(const name &owner, const uint32_t &value);
+    void inhibitunlck(const name &owner,const uint32_t &value);
 
     [[eosio::action]]
     void unlocktokens(const name &actor);
 
-    void
-    regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
-                 const string &fio_address);
+    void regiproducer(const name &producer, const string &producer_key, const std::string &url, const uint16_t &location,
+                      const string &fio_address);
 
     [[eosio::action]]
-    void
-    regproducer(const string &fio_address, const string &fio_pub_key, const std::string &url, const uint16_t &location,
-                const name &actor,
-                const int64_t &max_fee);
+    void regproducer(const string &fio_address, const string &fio_pub_key, const std::string &url, const uint16_t &location, const name &actor,
+                     const int64_t &max_fee);
 
     [[eosio::action]]
     void unregprod(const string &fio_address, const name &actor, const int64_t &max_fee);
-
 /*
     [[eosio::action]]
     void vproducer(const name &voter, const name &proxy, const std::vector<name> &producers); //server call
     */
 
     [[eosio::action]]
-    void voteproducer(const std::vector <string> &producers, const string &fio_address, const name &actor,
-                      const int64_t &max_fee);
+    void voteproducer(const std::vector<string> &producers, const string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
     void updatepower(const name &voter, bool updateonly);
@@ -335,10 +323,10 @@ public:
     void voteproxy(const string &proxy, const string &fio_address, const name &actor, const int64_t &max_fee);
 
     [[eosio::action]]
-    void setautoproxy(const name &proxy, const name &owner);
+    void setautoproxy(const name &proxy,const name &owner);
 
     [[eosio::action]]
-    void crautoproxy(const name &proxy, const name &owner);
+    void crautoproxy(const name &proxy,const name &owner);
 
     [[eosio::action]]
     void unregproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee);
@@ -368,7 +356,7 @@ public:
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
     using regiproducer_action = eosio::action_wrapper<"regiproducer"_n, &system_contract::regiproducer>;
     using unregprod_action = eosio::action_wrapper<"unregprod"_n, &system_contract::unregprod>;
-    // using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
+   // using vproducer_action = eosio::action_wrapper<"vproducer"_n, &system_contract::vproducer>;
     using voteproducer_action = eosio::action_wrapper<"voteproducer"_n, &system_contract::voteproducer>;
     using voteproxy_action = eosio::action_wrapper<"voteproxy"_n, &system_contract::voteproxy>;
     using regproxy_action = eosio::action_wrapper<"regproxy"_n, &system_contract::regproxy>;

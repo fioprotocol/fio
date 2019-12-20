@@ -31,28 +31,29 @@ namespace eosiosystem {
     using eosio::singleton;
     using eosio::transaction;
 
-    /*******
-     * this action will do the required work in the system tables that is necessary
-     * before performing the burning of a fio address, the voters and producers
-     * table must be cleaned up appropriately for the specified address
-     * @param fioaddrhash  this is the hash of the fio address being considered for burning.
-     */
+   /*******
+    * this action will do the required work in the system tables that is necessary
+    * before performing the burning of a fio address, the voters and producers
+    * table must be cleaned up appropriately for the specified address
+    * @param fioaddrhash  this is the hash of the fio address being considered for burning.
+    */
     void
     system_contract::burnaction(const uint128_t &fioaddrhash) {
-        require_auth(_self);
+       require_auth(_self);
         //verify that this address is expired.
         //this helps to ensure bad actors cant use this action unintentionally.
         uint64_t nowtime = now();
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto nameiter = namesbyname.find(fioaddrhash);
-        check(nameiter != namesbyname.end(), "unexpected error verifying expired address");
+        check(nameiter != namesbyname.end(),"unexpected error verifying expired address");
 
         uint64_t expire = nameiter->expiration;
 
-        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime) {
+        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime){
             auto prodbyaddress = _producers.get_index<"byaddress"_n>();
             auto prod = prodbyaddress.find(fioaddrhash);
-            if (prod != prodbyaddress.end()) {
+            if (prod != prodbyaddress.end())
+            {
                 prodbyaddress.modify(prod, _self, [&](producer_info &info) {
                     info.fio_address = "";
                     info.addresshash = 0;
@@ -62,15 +63,18 @@ namespace eosiosystem {
             }
             auto votersbyaddress = _voters.get_index<"byaddress"_n>();
             auto voters = votersbyaddress.find(fioaddrhash);
-            if (voters != votersbyaddress.end()) {
+            if (voters != votersbyaddress.end())
+            {
                 //be absolutely certain to only delete the record we are interested in.
-                if (voters->addresshash == fioaddrhash) {
+                if (voters->addresshash == fioaddrhash)
+                {
                     votersbyaddress.erase(voters);
                 }
 
             }
         }
     }
+
 
 
     /**
@@ -132,12 +136,12 @@ namespace eosiosystem {
     static constexpr eosio::name token_account{"fio.token"_n};
     static constexpr eosio::name treasury_account{"fio.treasury"_n};
 
-    inline void fio_fees(const name &actor, const asset &fee) {
-        action(permission_level{actor, "active"_n},
-               token_account, "transfer"_n,
-               make_tuple(actor, treasury_account, fee,
-                          string("FIO API fees. Thank you."))
-        ).send();
+    inline void fio_fees(const name &actor, const asset &fee)  {
+            action(permission_level{actor, "active"_n},
+                   token_account, "transfer"_n,
+                   make_tuple(actor, treasury_account, fee,
+                              string("FIO API fees. Thank you."))
+            ).send();
     }
 
     /******
@@ -167,7 +171,7 @@ namespace eosiosystem {
                        ErrorMaxFeeInvalid);
         fio_400_assert(fioio::isLocationValid(location), "location", to_string(location), "Invalid location",
                        ErrorMaxFeeInvalid);
-        fio_400_assert(isPubKeyValid(fio_pub_key), "fio_pub_key", fio_pub_key,
+        fio_400_assert(isPubKeyValid(fio_pub_key),"fio_pub_key", fio_pub_key,
                        "Invalid FIO Public Key",
                        ErrorPubKeyValid);
 
@@ -198,7 +202,7 @@ namespace eosiosystem {
         uint32_t expiration = domains_iter->expiration;
 
         //add 30 days to the domain expiration, this call will work until 30 days past expire.
-        expiration = get_time_plus_seconds(expiration, SECONDS30DAYS);
+        expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
 
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
@@ -223,7 +227,7 @@ namespace eosiosystem {
                        "register_producer unexpected fee type for endpoint register_producer, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= (int64_t) reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -303,7 +307,7 @@ namespace eosiosystem {
                        "register_producer unexpected fee type for endpoint register_producer, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= (int64_t) reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
@@ -320,9 +324,8 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    bool sort_producers_by_location(std::pair <eosio::producer_key, uint16_t> a,
-                                    std::pair <eosio::producer_key, uint16_t> b) {
-        return (a.second < b.second);
+    bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
+              return (a.second < b.second);
     }
 
     void system_contract::update_elected_producers(block_timestamp block_time) {
@@ -348,7 +351,7 @@ namespace eosiosystem {
         ///the location should be considered as a scheduled order of producers, they should
         /// set the location so that traversing locations gives most proximal producer locations
         /// to help address latency.
-        std::sort(top_producers.begin(), top_producers.end(), sort_producers_by_location);
+        std::sort( top_producers.begin(), top_producers.end(), sort_producers_by_location );
 
         std::vector <eosio::producer_key> producers;
 
@@ -413,7 +416,7 @@ namespace eosiosystem {
      *
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
-
+    
     struct decrementcounter {
         string fio_address;
     };
@@ -425,15 +428,13 @@ namespace eosiosystem {
     }
      ****/
 
-    void
-    system_contract::voteproducer(const std::vector <string> &producers, const string &fio_address, const name &actor,
-                                  const int64_t &max_fee) {
+    void system_contract::voteproducer(const std::vector<string> &producers, const string &fio_address, const name &actor, const int64_t &max_fee) {
         require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
         name proxy;
-        std::vector <name> producers_accounts;
+        std::vector<name> producers_accounts;
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
 
@@ -504,8 +505,8 @@ namespace eosiosystem {
             });
         }
 
-        eosio::token::computeremaininglockedtokens(actor, true);
-        sort(producers_accounts.begin(), producers_accounts.end());
+        eosio::token::computeremaininglockedtokens(actor,true);
+        sort(producers_accounts.begin(),producers_accounts.end());
 
         update_votes(actor, proxy, producers_accounts, true);
 
@@ -546,8 +547,7 @@ namespace eosiosystem {
         send_response(json.dump().c_str());
     }
 
-    void system_contract::voteproxy(const string &proxy, const string &fio_address, const name &actor,
-                                    const int64_t &max_fee) {
+    void system_contract::voteproxy(const string &proxy, const string &fio_address, const name &actor, const int64_t &max_fee) {
         require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
@@ -604,7 +604,7 @@ namespace eosiosystem {
         uint32_t expiration = domains_iter->expiration;
 
         //add 30 days to the domain expiration, this call will work until 30 days past expire.
-        expiration = get_time_plus_seconds(expiration, SECONDS30DAYS);
+        expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
 
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
@@ -623,7 +623,7 @@ namespace eosiosystem {
                        "This address is not a proxy", AddressNotProxy);
 
 
-        std::vector <name> producers{}; // Empty
+        std::vector<name> producers{}; // Empty
 
 
         voter_proxy_iter = votersbyowner.find(actor.value);
@@ -636,7 +636,7 @@ namespace eosiosystem {
             });
         }
 
-        eosio::token::computeremaininglockedtokens(actor, true);
+        eosio::token::computeremaininglockedtokens(actor,true);
 
         update_votes(actor, proxy_name, producers, true);
 
@@ -679,14 +679,14 @@ namespace eosiosystem {
 
     //this sets the inhibit_unlocking flag in the lockedtokens table.
     // set to 0 is false, non zero is true.
-    void system_contract::inhibitunlck(const name &owner, const uint32_t &value) {
+    void system_contract::inhibitunlck(const name &owner, const uint32_t &value){
         require_auth(FOUNDATIONACCOUNT);
 
         //get the owner, check that the specified grant is type 2, do the
         //inhibit, do not do the inhibit otherwise.
         auto lockiter = _lockedtokens.find(owner.value);
-        if (lockiter != _lockedtokens.end()) {
-            if (lockiter->grant_type == 2) {
+        if(lockiter != _lockedtokens.end()){
+            if(lockiter->grant_type == 2) {
                 //update the locked table.
                 _lockedtokens.modify(lockiter, _self, [&](auto &av) {
                     av.inhibit_unlocking = value;
@@ -697,48 +697,47 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::unlocktokens(const name &actor) {
+    void system_contract::unlocktokens(const name &actor){
         require_auth(TokenContract);
-        eosio::token::computeremaininglockedtokens(actor, true);
+        eosio::token::computeremaininglockedtokens(actor,true);
     }
 
-    uint64_t system_contract::get_votable_balance(const name &tokenowner) {
+    uint64_t system_contract::get_votable_balance(const name &tokenowner){
 
         //get fio balance for this account,
         uint32_t present_time = now();
         symbol sym_name = symbol("FIO", 9);
-        const auto my_balance = eosio::token::get_balance("fio.token"_n, tokenowner, sym_name.code());
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, sym_name.code() );
         uint64_t amount = my_balance.amount;
 
         //see if the user is in the lockedtokens table, if so recompute the balance
         //based on grant type.
         auto lockiter = _lockedtokens.find(tokenowner.value);
-        if (lockiter != _lockedtokens.end()) {
-            check(amount >= lockiter->remaining_locked_amount, "lock amount is incoherent.");
+        if(lockiter != _lockedtokens.end()){
+            check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
             //if lock type 1 always subtract remaining locked amount from balance
             if (lockiter->grant_type == 1) {
-                double percent = 1.0 - (double) ((double) lockiter->remaining_locked_amount /
-                                                 (double) lockiter->total_grant_amount);
-                if (percent <= .3) {
-                    double onethirdgrant = (double) lockiter->total_grant_amount * .3;
+                double percent = 1.0 - (double)((double)lockiter->remaining_locked_amount / (double)lockiter->total_grant_amount);
+                if (percent <= .3){
+                    double onethirdgrant = (double)lockiter->total_grant_amount * .3;
                     //amount is lesser of account amount and 1/3 of the total grant
-                    double damount = (double) amount;
-                    if (onethirdgrant <= damount) {
+                    double damount = (double)amount;
+                    if (onethirdgrant <= damount){
                         amount = onethirdgrant;
-                    } else {
+                    }else{
                         amount = damount;
                     }
 
-                } else {
+                }else{
                     //amount is all the available tokens in the account.
                     return amount;
                 }
             }
-            uint32_t issueplus210 = lockiter->timestamp + (210 * SECONDSPERDAY);
+            uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
             //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
-            if ((lockiter->grant_type == 2) &&
-                ((present_time > issueplus210) && lockiter->inhibit_unlocking)
-                    ) {
+           if ((lockiter->grant_type == 2)&&
+             ((present_time > issueplus210)&&lockiter->inhibit_unlocking)
+            ){
                 //subtract the lock amount from the balance
                 if (lockiter->remaining_locked_amount < amount) {
                     amount -= lockiter->remaining_locked_amount;
@@ -774,14 +773,14 @@ namespace eosiosystem {
         uint64_t amount = get_votable_balance(voter->owner);
 
         //on the first vote we update the total voted fio.
-        if (voter->last_vote_weight <= 0.0) {
+        if( voter->last_vote_weight <= 0.0 ) {
             _gstate.total_voted_fio += amount;
-            if (_gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point()) {
+            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
                 _gstate.thresh_voted_fio_time = current_time_point();
             }
         }
 
-        auto new_vote_weight = (double) amount;
+        auto new_vote_weight = (double)amount;
         if (voter->is_proxy) {
             new_vote_weight += voter->proxied_vote_weight;
         }
@@ -844,7 +843,7 @@ namespace eosiosystem {
                     //check( p.total_votes >= 0, "something bad happened" );
                 });
             } else {
-                check(!pd.second.second, "Invalid or duplicated producers"); //data corruption
+                check(!pd.second.second , "Invalid or duplicated producers"); //data corruption
             }
 
         }
@@ -859,12 +858,13 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::updlocked(const name &owner, const uint64_t &amountremaining) {
+    void system_contract::updlocked(const name &owner,const uint64_t &amountremaining)
+    {
         require_auth(TokenContract);
 
         auto iterlocked = _lockedtokens.find(owner.value);
         check(iterlocked != _lockedtokens.end(), "locked funds account not found.");
-        check(iterlocked->remaining_locked_amount >= amountremaining, "locked funds remaining amount cannot increase.");
+        check(iterlocked->remaining_locked_amount >= amountremaining,"locked funds remaining amount cannot increase.");
 
         _lockedtokens.modify(iterlocked, _self, [&](auto &av) {
             av.remaining_locked_amount = amountremaining;
@@ -872,7 +872,9 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::setautoproxy(const name &proxy, const name &owner) {
+
+    void system_contract::setautoproxy(const name &proxy,const name &owner)
+    {
         require_auth(owner);
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
@@ -880,7 +882,7 @@ namespace eosiosystem {
         auto votersbyowner = _voters.get_index<"byowner"_n>();
         auto itervi = votersbyowner.find(proxy.value);
         check(itervi != votersbyowner.end(), "specified proxy not found.");
-        check(itervi->is_proxy == true, "specified proxy is not registered as a proxy");
+        check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
 
         itervi = votersbyowner.find(owner.value);
@@ -893,7 +895,8 @@ namespace eosiosystem {
     }
 
 
-    void system_contract::crautoproxy(const name &proxy, const name &owner) {
+    void system_contract::crautoproxy(const name &proxy,const name &owner)
+    {
         require_auth(TPIDContract);
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
@@ -902,7 +905,7 @@ namespace eosiosystem {
         auto itervi = votersbyowner.find(proxy.value);
 
         if (itervi != votersbyowner.end() &&
-            itervi->is_proxy) {
+           itervi->is_proxy) {
 
             auto itervoter = votersbyowner.find(owner.value);
             if (itervoter == votersbyowner.end()) {
@@ -922,7 +925,7 @@ namespace eosiosystem {
     }
 
     void system_contract::unregproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee) {
-        require_auth(actor);
+       require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
@@ -957,7 +960,7 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        regiproxy(actor, fio_address, false);
+        regiproxy(actor,fio_address,false);
 
         //begin new fees, logic for Mandatory fees.
         uint128_t endpoint_hash = string_to_uint128_hash("unregister_proxy");
@@ -976,11 +979,11 @@ namespace eosiosystem {
                        "unregister_proxy unexpected fee type for endpoint unregister_proxy, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= (int64_t) reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
-        reg_fee_asset.symbol = symbol("FIO", 9);
+        reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
 
         fio_fees(actor, reg_fee_asset);
@@ -994,7 +997,7 @@ namespace eosiosystem {
 
 
     void system_contract::regproxy(const std::string &fio_address, const name &actor, const int64_t &max_fee) {
-        require_auth(actor);
+       require_auth(actor);
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
@@ -1027,12 +1030,12 @@ namespace eosiosystem {
         uint32_t expiration = domains_iter->expiration;
 
         //add 30 days to the domain expiration, this call will work until 30 days past expire.
-        expiration = get_time_plus_seconds(expiration, SECONDS30DAYS);
+        expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
 
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        regiproxy(actor, fio_address, true);
+        regiproxy(actor,fio_address,true);
 
         //begin new fees, logic for Mandatory fees.
         uint128_t endpoint_hash = string_to_uint128_hash("register_proxy");
@@ -1051,11 +1054,11 @@ namespace eosiosystem {
                        "register_proxy unexpected fee type for endpoint register_proxy, expected 0",
                        ErrorNoEndpoint);
 
-        fio_400_assert(max_fee >= (int64_t) reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+        fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
         asset reg_fee_asset;
-        reg_fee_asset.symbol = symbol("FIO", 9);
+        reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
         print(reg_fee_asset.amount);
 
@@ -1079,7 +1082,7 @@ namespace eosiosystem {
      */
     void system_contract::regiproxy(const name &proxy, const string &fio_address, const bool &isproxy) {
 
-        require_auth(proxy);
+       require_auth(proxy);
 
         auto votersbyowner = _voters.get_index<"byowner"_n>();
         auto pitr = votersbyowner.find(proxy.value);
@@ -1087,7 +1090,7 @@ namespace eosiosystem {
         if (pitr != votersbyowner.end()) {
 
             //if the values are equal and isproxy, then show this error.
-            fio_400_assert((isproxy != pitr->is_proxy) || !isproxy, "fio_address", fio_address,
+            fio_400_assert((isproxy != pitr->is_proxy)|| !isproxy, "fio_address", fio_address,
                            "Already registered as proxy. ", ErrorPubAddressExist);
             //check(!isproxy || !pitr->proxy, "account that uses a proxy is not allowed to become a proxy");
             if (isproxy && !pitr->proxy) {
@@ -1095,21 +1098,21 @@ namespace eosiosystem {
                     p.is_proxy = isproxy;
                     p.is_auto_proxy = false;
                 });
-            } else if (!isproxy) { //this is how we undo/clear a proxy
+            }else if (!isproxy) { //this is how we undo/clear a proxy
                 name nm;
                 votersbyowner.modify(pitr, same_payer, [&](auto &p) {
                     p.is_proxy = isproxy;
                     p.is_auto_proxy = false;
                     p.proxy = nm; //set to a null state, an uninitialized name,
-                    //we need to be sure this returns true on (!proxy) so other logic
-                    //areas work correctly.
+                                  //we need to be sure this returns true on (!proxy) so other logic
+                                  //areas work correctly.
                 });
             }
             propagate_weight_change(*pitr);
-        } else if (isproxy) {  //only do the emplace if isproxy is true,
-            //it makes no sense to emplace a voter record when isproxy is false,
-            // this means making a voting record with no votes, and not a proxy,
-            //and not having a proxy, its kind of a null vote, so dont emplace unless isproxy is true.
+        } else if (isproxy){  //only do the emplace if isproxy is true,
+                              //it makes no sense to emplace a voter record when isproxy is false,
+                              // this means making a voting record with no votes, and not a proxy,
+                              //and not having a proxy, its kind of a null vote, so dont emplace unless isproxy is true.
 
             uint64_t id = _voters.available_primary_key();
             uint128_t addresshash = string_to_uint128_hash(fio_address.c_str());
@@ -1129,7 +1132,7 @@ namespace eosiosystem {
         //changed to get_unlocked_balance() Ed 11/25/2019
         uint64_t amount = get_votable_balance(voter.owner);
         //instead of staked we use the voters current FIO balance MAS-522 eliminate stake from voting.
-        auto new_weight = (double) amount;
+        auto new_weight = (double)amount;
         if (voter.is_proxy) {
             new_weight += voter.proxied_vote_weight;
         }
@@ -1140,11 +1143,11 @@ namespace eosiosystem {
             if (voter.proxy) {
 
                 auto pitr = votersbyowner.find(voter.proxy.value);
-                check(pitr != votersbyowner.end(), "proxy not found");
+                check(pitr != votersbyowner.end(),"proxy not found");
 
                 votersbyowner.modify(pitr, same_payer, [&](auto &p) {
-                                         p.proxied_vote_weight += new_weight - voter.last_vote_weight;
-                                     }
+                                   p.proxied_vote_weight += new_weight - voter.last_vote_weight;
+                               }
                 );
                 propagate_weight_change(*pitr);
             } else {
@@ -1154,7 +1157,7 @@ namespace eosiosystem {
                 double total_inactive_vpay_share = 0;
                 for (auto acnt : voter.producers) {
                     auto prodbyowner = _producers.get_index<"byowner"_n>();
-                    auto prod = prodbyowner.find(acnt.value);
+                    auto prod =  prodbyowner.find(acnt.value);
                     check(prod != prodbyowner.end(), "producer not found"); //data corruption
                     const double init_total_votes = prod->total_votes;
                     prodbyowner.modify(prod, same_payer, [&](auto &p) {
@@ -1167,19 +1170,19 @@ namespace eosiosystem {
             }
         }
         auto pitr = votersbyowner.find(voter.owner.value);
-        check(pitr != votersbyowner.end(), "voter not found");
+        check(pitr != votersbyowner.end(),"voter not found");
 
         //on the first vote we update the total voted fio.
-        if (pitr->last_vote_weight <= 0.0) {
+        if( pitr->last_vote_weight <= 0.0 ) {
             _gstate.total_voted_fio += new_weight;
-            if (_gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point()) {
+            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
                 _gstate.thresh_voted_fio_time = current_time_point();
             }
         }
 
         votersbyowner.modify(pitr, same_payer, [&](auto &v) {
-                                 v.last_vote_weight = new_weight;
-                             }
+                           v.last_vote_weight = new_weight;
+                       }
         );
     }
 

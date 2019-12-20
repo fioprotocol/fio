@@ -14,7 +14,7 @@ using namespace fioio;
 
 namespace eosio {
 
-    void token::create(asset maximum_supply) {
+void token::create(asset maximum_supply) {
         require_auth(_self);
 
         const auto sym = maximum_supply.symbol;
@@ -27,12 +27,12 @@ namespace eosio {
         check(statstable.find(sym.code().raw()) == statstable.end(), "token with symbol already exists");
 
         statstable.emplace(_self, [&](auto &s) {
-            s.supply.symbol = maximum_supply.symbol;
-            s.max_supply = maximum_supply;
-        });
-    }
+                        s.supply.symbol = maximum_supply.symbol;
+                        s.max_supply = maximum_supply;
+                });
+}
 
-    void token::issue(name to, asset quantity, string memo) {
+void token::issue(name to, asset quantity, string memo) {
         const auto sym = quantity.symbol;
         check(sym.is_valid(), "invalid symbol name");
         check(memo.size() <= 256, "memo has more than 256 bytes");
@@ -51,17 +51,18 @@ namespace eosio {
         check(quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
 
         statstable.modify(st, same_payer, [&](auto &s) {
-            s.supply += quantity;
-        });
+                        s.supply += quantity;
+                });
 
         add_balance(FIOISSUER, quantity, FIOISSUER);
 
         if (to != FIOISSUER) {
-            SEND_INLINE_ACTION(*this, transfer, {{FIOISSUER, "active"_n}},
-                               {FIOISSUER, to, quantity, memo}
-            );
+                SEND_INLINE_ACTION(*this, transfer, {{FIOISSUER, "active"_n}},
+                                   {FIOISSUER, to, quantity, memo}
+                                   );
         }
-    }
+}
+
 
 
     void token::mintfio(const name &to, const uint64_t &amount) {
@@ -69,7 +70,7 @@ namespace eosio {
         require_auth(TREASURYACCOUNT);
 
         check((to == TREASURYACCOUNT || to == FOUNDATIONACCOUNT),
-              "mint fio can only transfer to foundation or treasury accounts.");
+                "mint fio can only transfer to foundation or treasury accounts.");
 
 
         if (amount > 0 && amount < MAXFIOMINT) {
@@ -79,9 +80,9 @@ namespace eosio {
                               string("New tokens produced from reserves"))
             ).send();
         }
-    }
+}
 
-    void token::retire(asset quantity, string memo) {
+void token::retire(asset quantity, string memo) {
         const symbol sym = quantity.symbol;
         check(sym.is_valid(), "invalid symbol name");
         check(memo.size() <= 256, "memo has more than 256 bytes");
@@ -99,80 +100,80 @@ namespace eosio {
         check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
 
         statstable.modify(st, same_payer, [&](auto &s) {
-            s.supply -= quantity;
-        });
+                        s.supply -= quantity;
+                });
 
         sub_balance(FIOISSUER, quantity);
-    }
+}
 
-    bool token::can_transfer(const name &tokenowner, const uint64_t &feeamount, const uint64_t &transferamount,
-                             const bool &isfee) {
+bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const uint64_t &transferamount,
+                         const bool &isfee){
 
         //get fio balance for this account,
         uint32_t present_time = now();
         symbol sym_name = symbol("FIO", 9);
-        const auto my_balance = eosio::token::get_balance("fio.token"_n, tokenowner, sym_name.code());
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, sym_name.code() );
         uint64_t amount = my_balance.amount;
 
         //see if the user is in the lockedtokens table, if so recompute the balance
         //based on grant type.
         auto lockiter = lockedTokensTable.find(tokenowner.value);
-        if (lockiter != lockedTokensTable.end()) {
-            check(amount >= (lockiter->remaining_locked_amount - feeamount), "lock amount is incoherent.");
+        if(lockiter != lockedTokensTable.end()) {
+                check(amount >= (lockiter->remaining_locked_amount-feeamount),"lock amount is incoherent.");
 
-            uint32_t issueplus210 = lockiter->timestamp + (210 * SECONDSPERDAY);
-            if (
-                //if lock type 1 always subtract remaining locked amount from balance
-                    ((lockiter->grant_type == 1) && !isfee) ||
-                    //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
-                    ((lockiter->grant_type == 2) &&
-                     ((present_time > issueplus210) && lockiter->inhibit_unlocking)) ||
-                    //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
-                    ((lockiter->grant_type == 2) && !isfee)
-                    ) {
-                //recompute the remaining locked amount based on vesting.
-                uint64_t unlockedTokenAmount = computeremaininglockedtokens(tokenowner, false) - feeamount;
-                //subtract the lock amount from the balance
-                if (unlockedTokenAmount < amount) {
-                    amount -= unlockedTokenAmount;
-                    return (amount >= transferamount);
-                } else {
-                    return false;
-                }
+                uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
+                if(
+                        //if lock type 1 always subtract remaining locked amount from balance
+                        ((lockiter->grant_type == 1) && !isfee) ||
+                        //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
+                        ((lockiter->grant_type == 2)&&
+                         ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
+                        //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
+                        ((lockiter->grant_type == 2)&&  !isfee)
+                        ) {
+                        //recompute the remaining locked amount based on vesting.
+                        uint64_t unlockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;
+                        //subtract the lock amount from the balance
+                        if (unlockedTokenAmount < amount) {
+                                amount -= unlockedTokenAmount;
+                                return (amount >= transferamount);
+                        } else {
+                                return false;
+                        }
 
-            } else if (isfee) {
-                uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
-                if (unlockedbalance >= transferamount) {
-                    return true;
-                } else {
-                    uint64_t new_remaining_unlocked_amount =
-                            lockiter->remaining_locked_amount - (transferamount - unlockedbalance);
-                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updlocked)
-                            ("eosio"_n, {{_self, "active"_n}},
-                             {tokenowner, new_remaining_unlocked_amount}
-                            );
-                    return true;
+                } else if (isfee) {
+                        uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
+                        if (unlockedbalance >= transferamount) {
+                                return true;
+                        }else {
+                                uint64_t new_remaining_unlocked_amount =
+                                        lockiter->remaining_locked_amount - (transferamount - unlockedbalance);
+                                INLINE_ACTION_SENDER(eosiosystem::system_contract, updlocked)
+                                        ("eosio"_n, {{_self, "active"_n}},
+                                        {tokenowner, new_remaining_unlocked_amount}
+                                        );
+                                return true;
+                        }
                 }
-            }
-        } else {
-            return true;
+        }else{
+                return true;
         }
         //avoid compile warning.
         return true;
 
-    }
+}
 
-    void token::transfer(name from,
-                         name to,
-                         asset quantity,
-                         string memo) {
+void token::transfer(name from,
+                     name to,
+                     asset quantity,
+                     string memo) {
 
         /* we permit the use of transfer from the system account to any other accounts,
          * we permit the use of transfer from the treasury account to any other accounts.
          * we permit the use of transfer from any other accounts to the treasury account.
          */
         if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
-            check(to == TREASURYACCOUNT, "transfer not allowed");
+                check(to == TREASURYACCOUNT, "transfer not allowed");
         }
 
 
@@ -192,30 +193,31 @@ namespace eosio {
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
         //we need to check the from, check for locked amount remaining
-        fio_400_assert(can_transfer(from, 0, quantity.amount, true), "from", to_string(from.value),
+        fio_400_assert(can_transfer(from,0, quantity.amount,true), "from", to_string(from.value),
                        "insufficient unlocked funds for transfer.",
                        ErrorInsufficientUnlockedFunds);
         auto payer = has_auth(to) ? to : from;
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
-    }
+}
 
 
-    inline void token::fio_fees(const name &actor, const asset &fee) {
+
+inline void token::fio_fees(const name &actor, const asset &fee) {
         if (appConfig.pmtson) {
-            // check for funds is implicitly done as part of the funds transfer.
-            transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
+                // check for funds is implicitly done as part of the funds transfer.
+                transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
         } else {
-            print("Payments currently disabled.");
+                print("Payments currently disabled.");
         }
-    }
+}
 
-    void token::trnsfiopubky(const string &payee_public_key,
-                             const int64_t &amount,
-                             const int64_t &max_fee,
-                             const name &actor,
-                             const string &tpid) {
+void token::trnsfiopubky(const string &payee_public_key,
+                         const int64_t &amount,
+                         const int64_t &max_fee,
+                         const name &actor,
+                         const string &tpid) {
 
         require_auth(actor);
         asset qty;
@@ -260,85 +262,85 @@ namespace eosio {
         auto other = eosionames.find(new_account_name.value);
 
         if (other == eosionames.end()) { //the name is not in the table.
-            fio_400_assert(!accountExists, "payee_account", payee_account,
-                           "Account exists on FIO chain but is not bound in eosionames",
-                           ErrorPubAddressExist);
+                fio_400_assert(!accountExists, "payee_account", payee_account,
+                               "Account exists on FIO chain but is not bound in eosionames",
+                               ErrorPubAddressExist);
 
-            const auto owner_pubkey = abieos::string_to_public_key(payee_public_key);
+                const auto owner_pubkey = abieos::string_to_public_key(payee_public_key);
 
-            eosiosystem::key_weight pubkey_weight = {
-                    .key = owner_pubkey,
-                    .weight = 1,
-            };
+                eosiosystem::key_weight pubkey_weight = {
+                        .key = owner_pubkey,
+                        .weight = 1,
+                };
 
-            const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
+                const auto owner_auth = authority{1, {pubkey_weight}, {}, {}};
 
-            INLINE_ACTION_SENDER(call::eosio, newaccount)
-                    ("eosio"_n, {{_self, "active"_n}},
-                     {_self, new_account_name, owner_auth, owner_auth}
-                    );
+                INLINE_ACTION_SENDER(call::eosio, newaccount)
+                        ("eosio"_n, {{_self, "active"_n}},
+                        {_self, new_account_name, owner_auth, owner_auth}
+                        );
 
-            action{
-                    permission_level{_self, "active"_n},
-                    AddressContract,
-                    "bind2eosio"_n,
-                    bind2eosio{
-                            .accountName = new_account_name,
-                            .public_key = payee_public_key,
-                            .existing = accountExists
-                    }
-            }.send();
+                action{
+                        permission_level{_self, "active"_n},
+                        AddressContract,
+                        "bind2eosio"_n,
+                        bind2eosio{
+                                .accountName = new_account_name,
+                                .public_key = payee_public_key,
+                                .existing = accountExists
+                        }
+                }.send();
 
         } else {
-            fio_400_assert(accountExists, "payee_account", payee_account,
-                           "Account does not exist on FIO chain but is bound in eosionames",
-                           ErrorPubAddressExist);
+                fio_400_assert(accountExists, "payee_account", payee_account,
+                               "Account does not exist on FIO chain but is bound in eosionames",
+                               ErrorPubAddressExist);
 
-            eosio_assert_message_code(payee_public_key == other->clientkey, "FIO account already bound",
-                                      fioio::ErrorPubAddressExist);
+                eosio_assert_message_code(payee_public_key == other->clientkey, "FIO account already bound",
+                                          fioio::ErrorPubAddressExist);
         }
 
-        fio_fees(actor, asset{(int64_t) reg_amount, symbol("FIO", 9)});
+        fio_fees(actor, asset{(int64_t)reg_amount, symbol("FIO", 9)});
         process_rewards(tpid, reg_amount, get_self());
 
         require_recipient(actor);
 
         if (accountExists) {
-            require_recipient(new_account_name);
+                require_recipient(new_account_name);
         }
 
         INLINE_ACTION_SENDER(eosiosystem::system_contract, unlocktokens)
                 ("eosio"_n, {{_self, "active"_n}},
-                 {actor}
+                {actor}
                 );
 
-        fio_400_assert(can_transfer(actor, reg_amount, qty.amount, false), "actor", to_string(actor.value),
+        fio_400_assert(can_transfer(actor,reg_amount, qty.amount,false), "actor", to_string(actor.value),
                        "insufficient unlocked funds for transfer.",
                        ErrorInsufficientUnlockedFunds);
-
+        
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
 
         INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
                 ("eosio"_n, {{_self, "active"_n}},
-                 {actor, true}
+                {actor, true}
                 );
 
         if (accountExists) {
-            INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
-                    ("eosio"_n, {{_self, "active"_n}},
-                     {new_account_name, true}
-                    );
+                INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                        ("eosio"_n, {{_self, "active"_n}},
+                        {new_account_name, true}
+                        );
         }
 
 
         nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", reg_amount}};
+                {"fee_collected", reg_amount}};
 
         send_response(json.dump().c_str());
-    }
+}
 
-    void token::sub_balance(name owner, asset value) {
+void token::sub_balance(name owner, asset value) {
         accounts from_acnts(_self, owner.value);
         const auto &from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
 
@@ -346,24 +348,24 @@ namespace eosio {
                        "Insufficient balance", ErrorLowFunds);
 
         from_acnts.modify(from, owner, [&](auto &a) {
-            a.balance -= value;
-        });
-    }
+                        a.balance -= value;
+                });
+}
 
-    void token::add_balance(name owner, asset value, name ram_payer) {
+void token::add_balance(name owner, asset value, name ram_payer) {
         accounts to_acnts(_self, owner.value);
         auto to = to_acnts.find(value.symbol.code().raw());
         if (to == to_acnts.end()) {
-            to_acnts.emplace(ram_payer, [&](auto &a) {
-                a.balance = value;
-            });
+                to_acnts.emplace(ram_payer, [&](auto &a) {
+                                a.balance = value;
+                        });
         } else {
-            to_acnts.modify(to, same_payer, [&](auto &a) {
-                a.balance += value;
-            });
+                to_acnts.modify(to, same_payer, [&](auto &a) {
+                                a.balance += value;
+                        });
         }
-    }
+}
 } /// namespace eosio
 
 EOSIO_DISPATCH( eosio::token, (create)(issue)(mintfio)(transfer)(trnsfiopubky)
-(retire))
+                (retire))

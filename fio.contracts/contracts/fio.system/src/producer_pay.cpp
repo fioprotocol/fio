@@ -27,7 +27,7 @@ namespace eosiosystem {
         _gstate2.last_block_num = timestamp;
 
         /** until voting activated fio crosses this threshold no new rewards are paid */
-        if (_gstate.total_voted_fio < MINVOTEDFIO) {
+        if( _gstate.total_voted_fio < MINVOTEDFIO ){
             return;
         }
 
@@ -56,13 +56,13 @@ namespace eosiosystem {
     using namespace eosio;
 
     void system_contract::resetclaim(const name producer) {
-        require_auth(get_self());
+      require_auth(get_self());
         const auto &prod = _producers.get(producer.value);
-        // Reset producer claim info
-        _producers.modify(prod, get_self(), [&](auto &p) {
-            p.last_claim_time = time_point{microseconds{static_cast<int64_t>( current_time())}};
-            p.unpaid_blocks = 0;
-        });
+           // Reset producer claim info
+           _producers.modify(prod, get_self(), [&](auto &p) {
+               p.last_claim_time = time_point {microseconds{static_cast<int64_t>( current_time())}};
+               p.unpaid_blocks = 0;
+           });
 
 
     }

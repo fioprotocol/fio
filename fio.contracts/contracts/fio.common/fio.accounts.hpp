@@ -9,6 +9,7 @@
 #pragma once
 
 
+
 namespace fioio {
     using eosio::name;
 

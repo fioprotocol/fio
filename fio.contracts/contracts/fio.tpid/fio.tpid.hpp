@@ -26,7 +26,6 @@ namespace fioio {
         uint64_t rewards;
 
         uint64_t primary_key() const { return id; }
-
         uint128_t by_name() const { return fioaddhash; }
 
         EOSLIB_SERIALIZE(tpid, (id)(fioaddhash)(fioaddress)(rewards)

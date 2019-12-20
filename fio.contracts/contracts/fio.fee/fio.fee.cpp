@@ -89,7 +89,7 @@ namespace fioio {
                     //overflow error should result computing the dresult,and we check if the
                     //result is negative.
                     const double dresult = producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
-                                           (double) vote_item.suf_amount;
+                                     (double) vote_item.suf_amount;
                     fio_403_assert(dresult > 0, ErrorInvalidMultiplier);
 
                     const uint64_t voted_fee = (uint64_t)(dresult);
@@ -149,6 +149,8 @@ namespace fioio {
                 }
             }
         }
+
+
 
 
     public:
@@ -220,7 +222,8 @@ namespace fioio {
                 uint64_t idtoremove;
                 bool found = false;
                 bool timeviolation = false;
-                while (votebyname_iter != feevotesbybpname.end()) {
+                while (votebyname_iter != feevotesbybpname.end())
+                {
                     if (votebyname_iter->block_producer_name.value != aactor.value) {
                         //if the bp name changes we have exited the items of interest, so quit.
                         break;
@@ -246,7 +249,7 @@ namespace fioio {
 
                 if (found) {
                     auto myiter = feevotes.find(idtoremove);
-                    if (myiter != feevotes.end()) {
+                    if(myiter != feevotes.end()) {
                         feevotes.erase(myiter);
                     }
                 }
@@ -279,12 +282,12 @@ namespace fioio {
 
 
 
-        /********
-         * This action allows block producers to vote for the number of transactions that will be permitted
-         * for free in the FIO bundled transaction model.
-         * @param bundled_transactions the number of bundled transactions per FIO user.
-         * @param actor the block producer actor that is presently voting, the signer of this tx.
-         */
+       /********
+        * This action allows block producers to vote for the number of transactions that will be permitted
+        * for free in the FIO bundled transaction model.
+        * @param bundled_transactions the number of bundled transactions per FIO user.
+        * @param actor the block producer actor that is presently voting, the signer of this tx.
+        */
         // @abi action
         [[eosio::action]]
         void bundlevote(
@@ -376,7 +379,8 @@ namespace fioio {
             const uint32_t nowtime = now();
 
             auto voter_iter = feevoters.find(aactor.value);
-            if (voter_iter != feevoters.end()) {
+            if (voter_iter != feevoters.end())
+            {
                 const uint32_t lastupdate = voter_iter->lastvotetimestamp;
                 if (lastupdate <= (nowtime - 120)) {
                     feevoters.modify(voter_iter, _self, [&](struct feevoter &a) {
@@ -399,7 +403,7 @@ namespace fioio {
             send_response(json.dump().c_str());
         }
 
-        inline void fio_fees(const name &actor, const asset &fee) {
+        inline void fio_fees(const name &actor, const asset &fee)  {
             action(permission_level{actor, "active"_n},
                    TokenContract, "transfer"_n,
                    make_tuple(actor, TREASURYACCOUNT, fee,
@@ -414,7 +418,7 @@ namespace fioio {
                 const name &account,
                 const int64_t &max_fee
         ) {
-            print("called mandatory fee for account ", account, " end point ", end_point, "\n");
+            print("called mandatory fee for account ", account, " end point ",end_point,"\n");
 
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
@@ -435,8 +439,7 @@ namespace fioio {
                            "register_producer unexpected fee type for endpoint register_producer, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= (int64_t) reg_amount, "max_fee", to_string(max_fee),
-                           "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
 
@@ -447,7 +450,7 @@ namespace fioio {
             fio_fees(account, reg_fee_asset);
             processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
-            print("called mandatory fee for account processing completed", "\n");
+            print("called mandatory fee for account processing completed","\n");
 
         }
 
