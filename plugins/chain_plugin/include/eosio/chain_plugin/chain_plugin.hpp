@@ -423,7 +423,7 @@ namespace eosio {
             };
 
             struct get_producers_result {
-                vector<fc::variant> rows; ///< one row per item, either encoded as hex string or JSON object
+                vector<fc::variant> producers; ///< one row per item, either encoded as hex string or JSON object
                 double total_producer_vote_weight;
                 string more; ///< fill lower_bound with this value to fetch more rows
             };
