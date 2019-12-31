@@ -13,7 +13,6 @@
 #include <fio.address/fio.address.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
-#include <fio.common/json.hpp>
 #include <fio.common/fioerror.hpp>
 #include <fio.tpid/fio.tpid.hpp>
 
@@ -253,10 +252,10 @@ namespace fioio {
                 });
             }
 
-            nlohmann::json json = {{"status",        "sent_to_blockchain"},
-                                   {"fee_collected", fee_amount}};
+            const string response_string = string("{\"status\": \"sent_to_blockchain\",\"fee_collected\":") +
+                                     to_string(fee_amount) + string("}");
 
-            send_response(json.dump().c_str());
+            send_response(response_string.c_str());
         }
 
        /*********
@@ -414,11 +413,10 @@ namespace fioio {
                 frc.payer_key = payer_key;
             });
 
-            nlohmann::json json = {{"fio_request_id", id},
-                                   {"status",         "requested"},
-                                   {"fee_collected",  fee_amount}};
+           const string response_string = string("{\"fio_request_id\":") + to_string(id) + string(",\"status\":\"requested\"") +
+                                    string(",\"fee_collected\":") + to_string(fee_amount) + string("}");
 
-            send_response(json.dump().c_str());
+           send_response(response_string.c_str());
         }
 
          /********
@@ -551,9 +549,10 @@ namespace fioio {
                 fr.time_stamp = currentTime;
             });
 
-            nlohmann::json json = {{"status",        "request_rejected"},
-                                   {"fee_collected", fee_amount}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"request_rejected\",\"fee_collected\":") +
+                                     to_string(fee_amount) + string("}");
+
+            send_response(response_string.c_str());
         }
     };
 

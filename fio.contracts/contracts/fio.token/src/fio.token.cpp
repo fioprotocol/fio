@@ -317,7 +317,7 @@ void token::trnsfiopubky(const string &payee_public_key,
         fio_400_assert(can_transfer(actor,reg_amount, qty.amount,false), "actor", to_string(actor.value),
                        "insufficient unlocked funds for transfer.",
                        ErrorInsufficientUnlockedFunds);
-        
+
         sub_balance(actor, qty);
         add_balance(new_account_name, qty, actor);
 
@@ -334,10 +334,10 @@ void token::trnsfiopubky(const string &payee_public_key,
         }
 
 
-        nlohmann::json json = {{"status",        "OK"},
-                {"fee_collected", reg_amount}};
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(reg_amount) + string("}");
 
-        send_response(json.dump().c_str());
+        send_response(response_string.c_str());
 }
 
 void token::sub_balance(name owner, asset value) {
