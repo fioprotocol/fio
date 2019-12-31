@@ -279,7 +279,8 @@ public:
 
     //this action inits the locked token holder table.
     [[eosio::action]]
-    void initlocked();
+    void addlocked(const name &owner, const int64_t amount,
+                    const int16_t locktype);
 
     [[eosio::action]]
     void onblock(ignore <block_header> header);

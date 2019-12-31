@@ -118,10 +118,10 @@ public:
                 ).send();
 
 
+                const string response_string = string("{\"status\": \"OK\",\"tpids_paid\":") +
+                                         to_string(tpids_paid) + string("}");
+                send_response(response_string.c_str());
 
-                nlohmann::json json = {{"status",     "OK"},
-                        {"tpids_paid", tpids_paid}};
-                send_response(json.dump().c_str());
         } //tpid_claim
 
         // @abi action
@@ -328,10 +328,9 @@ public:
                         voteshares.erase(bpiter);
                 } //endif now() > bpiter + 172800
 
-                nlohmann::json json = {{"status", "OK"},
-                        {"amount", payout}};
-
-                send_response(json.dump().c_str());
+                const string response_string = string("{\"status\": \"OK\",\"amount\":") +
+                                         to_string(payout) + string("}");
+                send_response(response_string.c_str());
 
         } //bpclaim
 

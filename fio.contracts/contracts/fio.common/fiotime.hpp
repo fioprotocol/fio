@@ -113,6 +113,10 @@ namespace fioio {
         if (tm->tm_mon >= 12) {
             tm->tm_mon -= 12;
             tm->tm_year++;
+
+            if(tm->tm_mon == 00){ // some unknown but that makes the 12th month 00.
+                tm->tm_mon = 12;
+            }
         }
         tm->tm_mday = remdays + 1;
         tm->tm_wday = wday;

@@ -167,9 +167,9 @@ namespace fioio {
             }
             //end new fees, bundle eligible fee logic
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"fee_collected", fee_amount}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                     to_string(fee_amount) + string("}");
+            send_response(response_string.c_str());
         }
 
 
@@ -276,9 +276,9 @@ namespace fioio {
             }
             //end new fees, bundle eligible fee logic
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"fee_collected", fee_amount}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                     to_string(fee_amount) + string("}");
+            send_response(response_string.c_str());
         }
     };
 

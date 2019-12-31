@@ -238,9 +238,10 @@ namespace eosiosystem {
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
-        nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", reg_amount}};
-        send_response(json.dump().c_str());
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(reg_amount) + string("}");
+
+        send_response(response_string.c_str());
     }
 
     void system_contract::unregprod(
@@ -319,9 +320,10 @@ namespace eosiosystem {
 
         //end new fees, logic for Mandatory fees.
 
-        nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", reg_amount}};
-        send_response(json.dump().c_str());
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(reg_amount) + string("}");
+
+        send_response(response_string.c_str());
     }
 
     bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
@@ -416,7 +418,7 @@ namespace eosiosystem {
      *
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
-    
+
     struct decrementcounter {
         string fio_address;
     };
@@ -542,9 +544,10 @@ namespace eosiosystem {
             //end new fees, logic for Mandatory fees.
         }
 
-        nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", fee_amount}};
-        send_response(json.dump().c_str());
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(fee_amount) + string("}");
+
+        send_response(response_string.c_str());
     }
 
     void system_contract::voteproxy(const string &proxy, const string &fio_address, const name &actor, const int64_t &max_fee) {
@@ -671,9 +674,10 @@ namespace eosiosystem {
             //end new fees, logic for Mandatory fees.
         }
 
-        nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", fee_amount}};
-        send_response(json.dump().c_str());
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(fee_amount) + string("}");
+
+        send_response(response_string.c_str());
     }
 
 
@@ -990,9 +994,10 @@ namespace eosiosystem {
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
-        nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", reg_amount}};
-        send_response(json.dump().c_str());
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(reg_amount) + string("}");
+
+        send_response(response_string.c_str());
     }
 
 
@@ -1066,9 +1071,10 @@ namespace eosiosystem {
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
-        nlohmann::json json = {{"status",        "OK"},
-                               {"fee_collected", reg_amount}};
-        send_response(json.dump().c_str());
+        const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                 to_string(reg_amount) + string("}");
+
+        send_response(response_string.c_str());
     }
 
 

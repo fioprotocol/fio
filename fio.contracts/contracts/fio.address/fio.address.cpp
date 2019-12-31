@@ -361,7 +361,7 @@ namespace fioio {
                            ErrorNoEndpoint);
 
             const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-        
+
             if (bundleeligiblecountdown > 0) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
@@ -390,8 +390,7 @@ namespace fioio {
         }
 
         inline uint32_t get_time_plus_one_year(uint64_t timein) {
-            const uint32_t incremented_time = timein + YEARTOSECONDS;
-            return incremented_time;
+            return timein + YEARTOSECONDS;
         }
 
         /***
@@ -400,9 +399,7 @@ namespace fioio {
          * incremented by secondss per year.
          */
         inline uint32_t get_now_plus_one_year() {
-            const uint32_t present_time = now();
-            const uint32_t incremented_time = present_time + YEARTOSECONDS;
-            return incremented_time;
+            return now() + YEARTOSECONDS;
         }
         /***
          * This method will decrement the now time by the specified number of years.
@@ -410,9 +407,7 @@ namespace fioio {
          * @return  the decremented now() time by nyearsago
          */
         inline uint32_t get_now_minus_years(int nyearsago) {
-            const uint32_t present_time = now();
-            const uint32_t decremented_time = present_time - (YEARTOSECONDS * nyearsago);
-            return decremented_time;
+            return now() - (YEARTOSECONDS * nyearsago);
         }
         /***
          * This method will increment the now time by the specified number of years.
@@ -420,9 +415,8 @@ namespace fioio {
          * @return  the decremented now() time by nyearsago
          */
         inline uint32_t get_now_plus_years(int nyearsago) {
-            const uint32_t present_time = now();
-            const uint32_t decremented_time = present_time + (YEARTOSECONDS * nyearsago);
-            return decremented_time;
+
+            return now() + (YEARTOSECONDS * nyearsago);
         }
 
         /********* CONTRACT ACTIONS ********/
@@ -478,10 +472,11 @@ namespace fioio {
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    timebuffer},
-                                   {"fee_collected", reg_amount}};
-            send_response(json.dump().c_str());
+           const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
+                                  timebuffer + string("\",\"fee_collected\":") +
+                                  to_string(reg_amount) + string("}");
+
+           send_response(response_string.c_str());
         }
 
         [[eosio::action]]
@@ -537,11 +532,11 @@ namespace fioio {
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    timebuffer},
-                                   {"fee_collected", reg_amount}};
+            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
+                                   timebuffer + string("\",\"fee_collected\":") +
+                                   to_string(reg_amount) + string("}");
 
-            send_response(json.dump().c_str());
+            send_response(response_string.c_str());
         }
 
        /***********
@@ -611,11 +606,11 @@ namespace fioio {
                 a.expiration = new_expiration_time;
             });
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    timebuffer},
-                                   {"fee_collected", reg_amount}};
+            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
+                                   timebuffer + string("\",\"fee_collected\":") +
+                                   to_string(reg_amount) + string("}");
 
-            send_response(json.dump().c_str());
+            send_response(response_string.c_str());
         }
 
         /**********
@@ -701,11 +696,11 @@ namespace fioio {
                 a.bundleeligiblecountdown = getBundledAmount() + bundleeligiblecountdown;
             });
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"expiration",    timebuffer},
-                                   {"fee_collected", reg_amount}};
+            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
+                                   timebuffer + string("\",\"fee_collected\":") +
+                                   to_string(reg_amount) + string("}");
 
-            send_response(json.dump().c_str());
+            send_response(response_string.c_str());
         }
 
         /*
@@ -925,11 +920,10 @@ namespace fioio {
                 }
             }
 
-            nlohmann::json json = {{"status",       "OK"},
-                                   {"items_burned", (burnlist.size() + domainburnlist.size())}
-            };
+            const string response_string = string("{\"status\": \"OK\",\"items_burned\":") +
+                                     to_string(burnlist.size() + domainburnlist.size()) + string("}");
 
-            send_response(json.dump().c_str());
+            send_response(response_string.c_str());
         }
 
         /***
@@ -953,9 +947,10 @@ namespace fioio {
             const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
                                                     tpid);
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"fee_collected", fee_amount}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                     to_string(fee_amount) + string("}");
+
+            send_response(response_string.c_str());
         } //addaddress
 
         [[eosio::action]]
@@ -1025,9 +1020,10 @@ namespace fioio {
                         );
             }
 
-            nlohmann::json json = {{"status",        "OK"},
-                                   {"fee_collected", fee_amount}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                     to_string(fee_amount) + string("}");
+
+            send_response(response_string.c_str());
         }
 
         /**

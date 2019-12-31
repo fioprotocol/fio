@@ -11,7 +11,6 @@
 #include <fio.common/fio.common.hpp>
 #include <fio.common/fioerror.hpp>
 #include <eosio/native/intrinsics.hpp>
-#include <fio.common/json.hpp>
 #include <string>
 #include <map>
 
@@ -267,8 +266,8 @@ namespace fioio {
             }
             update_fees();
 
-            nlohmann::json json = {{"status", "OK"}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"OK\"}");
+            send_response(response_string.c_str());
         }
 
         /**********
@@ -334,10 +333,8 @@ namespace fioio {
                 });
             }
 
-            nlohmann::json json = {{"status", "OK"}};
-
-            send_response(json.dump().c_str());
-            print("done bundlevote.", "\n");
+            const string response_string = string("{\"status\": \"OK\"}");
+            send_response(response_string.c_str());
         }
 
 
@@ -399,8 +396,8 @@ namespace fioio {
 
             update_fees();
 
-            nlohmann::json json = {{"status", "OK"}};
-            send_response(json.dump().c_str());
+            const string response_string = string("{\"status\": \"OK\"}");
+            send_response(response_string.c_str());
         }
 
         inline void fio_fees(const name &actor, const asset &fee)  {

@@ -15,7 +15,6 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/crypto.hpp>
-#include "json.hpp"
 #include "keyops.hpp"
 #include "fioerror.hpp"
 #include "fio.accounts.hpp"
