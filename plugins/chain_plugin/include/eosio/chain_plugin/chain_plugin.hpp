@@ -47,7 +47,7 @@ namespace eosio {
     namespace chain_apis {
         struct empty {
         };
-
+        const uint32_t WALKVALUE = 1000 * 10;
         struct permission {
             name perm_name;
             name parent;
@@ -699,7 +699,7 @@ namespace eosio {
 
                     auto walk_table_row_range = [&](auto itr, auto end_itr) {
                         auto cur_time = fc::time_point::now();
-                        auto end_time = cur_time + fc::microseconds(1000 * 100); /// 100ms max time
+                        auto end_time = cur_time + fc::microseconds(WALKVALUE); /// 100ms max time
                         vector<char> data;
                         for (unsigned int count = 0; cur_time <= end_time && count < p.limit &&
                                                      itr != end_itr; ++itr, cur_time = fc::time_point::now()) {
@@ -785,7 +785,7 @@ namespace eosio {
 
                     auto walk_table_row_range = [&](auto itr, auto end_itr) {
                         auto cur_time = fc::time_point::now();
-                        auto end_time = cur_time + fc::microseconds(1000 * 100); /// 100ms max time
+                        auto end_time = cur_time + fc::microseconds(WALKVALUE); /// 100ms max time
                         vector<char> data;
                         for (unsigned int count = 0; cur_time <= end_time && count < p.limit &&
                                                      itr != end_itr; ++count, ++itr, cur_time = fc::time_point::now()) {
@@ -1265,6 +1265,7 @@ namespace eosio {
         static void log_guard_exception(const chain::guard_exception &e);
 
         unique_ptr<class chain_plugin_impl> my;
+
     };
 
 }
