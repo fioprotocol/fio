@@ -29,19 +29,6 @@ if [ ! -d /usr/local/Frameworks ]; then
 	exit 1;
 fi
 
-echo "${COLOR_CYAN}[Checking LLVM 4 support]${COLOR_NC}"
-if [ ! -d /usr/local/Cellar/llvm@4 ]; then
-  execute bash -c "cd /usr/local/Cellar && \
-	curl -OL https://bin.fioprotocol.io/build-tools/llvm4-mac.tbz \
-  && tar jxf llvm4-mac.tbz \
-  && cd /usr/local/opt \
-  && ln -s ../Cellar/llvm@4/4.0.1_1 llvm@4 \
-  && brew pin llvm@4"
-	printf " - LLVM successfully linked from /usr/local/opt/llvm@4 to ${LLVM_ROOT}\\n"
-else
-	printf " - LLVM found @ ${LLVM_ROOT}.\\n"
-fi
-
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
