@@ -189,10 +189,10 @@ namespace eosio {
                 socket_stream->next_layer().set_option(boost::asio::ip::tcp::no_delay(true));
                 socket_stream->next_layer().set_option(boost::asio::socket_base::send_buffer_size(1024 * 1024));
                 socket_stream->next_layer().set_option(boost::asio::socket_base::receive_buffer_size(1024 * 1024));
-                socket_stream->async_accept([self = shared_from_this(), this](boost::system::error_code ec) {
-                    callback(ec, "async_accept", [&] {
-                        start_read();
-                        send(state_history_plugin_abi);
+                socket_stream->async_accept([self = shared_from_this()](boost::system::error_code ec) {
+                  self->callback(ec, "async_accept", [self] {
+                      self->start_read();
+                      self->send(state_history_plugin_abi);
                     });
                 });
             }
@@ -200,16 +200,16 @@ namespace eosio {
             void start_read() {
                 auto in_buffer = std::make_shared<boost::beast::flat_buffer>();
                 socket_stream->async_read(
-                        *in_buffer, [self = shared_from_this(), this, in_buffer](boost::system::error_code ec, size_t) {
-                            callback(ec, "async_read", [&] {
+                  *in_buffer, [self = shared_from_this(), in_buffer](boost::system::error_code ec, size_t) {
+                     self->callback(ec, "async_read", [self, in_buffer] {
                                 auto d = boost::asio::buffer_cast<char const *>(
                                         boost::beast::buffers_front(in_buffer->data()));
                                 auto s = boost::asio::buffer_size(in_buffer->data());
                                 fc::datastream<const char *> ds(d, s);
                                 state_request req;
                                 fc::raw::unpack(ds, req);
-                                req.visit(*this);
-                                start_read();
+                                req.visit(*self);
+                                self->start_read();
                             });
                         });
             }
@@ -235,11 +235,11 @@ namespace eosio {
                 sent_abi = true;
                 socket_stream->async_write( //
                         boost::asio::buffer(send_queue[0]),
-                        [self = shared_from_this(), this](boost::system::error_code ec, size_t) {
-                            callback(ec, "async_write", [&] {
-                                send_queue.erase(send_queue.begin());
-                                sending = false;
-                                send();
+                        [self = shared_from_this()](boost::system::error_code ec, size_t) {
+                           self->callback(ec, "async_write", [self] {
+                              self->send_queue.erase(self->send_queue.begin());
+                              self->sending = false;
+                              self->send();
                             });
                         });
             }
@@ -336,11 +336,13 @@ namespace eosio {
 
             template<typename F>
             void callback(boost::system::error_code ec, const char *what, F f) {
-                if (plugin->stopping)
-                    return;
-                if (ec)
-                    return on_fail(ec, what);
-                catch_and_close(f);
+              app().post( priority::medium, [=]() {
+              if( plugin->stopping )
+              return;
+              if( ec )
+              return on_fail( ec, what );
+              catch_and_close( f );
+              } );
             }
 
             void on_fail(boost::system::error_code ec, const char *what) {
