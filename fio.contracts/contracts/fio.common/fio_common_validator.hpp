@@ -40,7 +40,7 @@ namespace fioio {
         fa.fioname = "";
         fa.fiodomain = "";
 
-        size_t pos = p.find(':');
+        size_t pos = p.find('@');
         fa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
@@ -210,5 +210,4 @@ namespace fioio {
         bool decode_base58(const string &str, vector<unsigned char> &vch) {
             return DecodeBase58(str.c_str(), vch);
         }
-
 }
