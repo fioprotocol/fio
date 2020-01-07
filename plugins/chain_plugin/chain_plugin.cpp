@@ -2203,7 +2203,7 @@ if( options.count(name) ) { \
                 for (size_t pos = 0; pos < table_rows_result.rows.size(); pos++) {
 
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                    if (nam.find(':') !=
+                    if (nam.find('@') !=
                         std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
 
