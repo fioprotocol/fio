@@ -38,6 +38,8 @@ namespace fioio {
         uint128_t payee_fio_address;
         string payer_fio_address_hex_str;
         string payee_fio_address_hex_str;
+        uint128_t payer_fio_address_with_time;
+        uint128_t payee_fio_address_with_time;
         string content;  //this content is a encrypted blob containing the details of the request.
         uint64_t time_stamp;
         string payer_fio_addr;
@@ -48,17 +50,22 @@ namespace fioio {
         uint64_t primary_key() const { return fio_request_id; }
         uint128_t by_receiver() const { return payer_fio_address; }
         uint128_t by_originator() const { return payee_fio_address; }
+        uint128_t by_payerwtime() const { return payer_fio_address_with_time;}
+        uint128_t by_payeewtime() const { return payee_fio_address_with_time;}
 
         EOSLIB_SERIALIZE(fioreqctxt,
-        (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)(
-                content)(time_stamp)(payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)
+        (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)
+                (payer_fio_address_with_time)(payee_fio_address_with_time)
+        (content)(time_stamp)(payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)
         )
     };
 
 
     typedef multi_index<"fioreqctxts"_n, fioreqctxt,
             indexed_by<"byreceiver"_n, const_mem_fun < fioreqctxt, uint128_t, &fioreqctxt::by_receiver>>,
-    indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_originator>
+    indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_originator>>,
+    indexed_by<"bypayerwtime"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_payerwtime>>,
+    indexed_by<"bypayeewtime"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_payeewtime>
     >>
     fiorequest_contexts_table;
 
@@ -69,6 +76,8 @@ namespace fioio {
         uint128_t payee_fio_address;
         string payer_fio_address_hex_str;
         string payee_fio_address_hex_str;
+        uint128_t payer_fio_address_with_time;
+        uint128_t payee_fio_address_with_time;
         string content;  //this content is a encrypted blob containing the details of the request.
         uint64_t time_stamp;
         string payer_fio_addr;
@@ -77,18 +86,24 @@ namespace fioio {
         string payee_key = nullptr;
 
         uint64_t primary_key() const { return id; }
-        uint128_t by_payee() const { return payer_fio_address; }
-        uint128_t by_payer() const { return payee_fio_address; }
+        uint128_t by_payee() const { return payee_fio_address; }
+        uint128_t by_payer() const { return payer_fio_address; }
+        uint128_t by_payeewtime() const { return payee_fio_address_with_time; }
+        uint128_t by_payerwtime() const { return payer_fio_address_with_time; }
+
 
         EOSLIB_SERIALIZE(recordobt_info,
         (id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)
+        (payer_fio_address_with_time)(payee_fio_address_with_time)
         (content)(time_stamp)(payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)
         )
     };
 
     typedef multi_index<"recordobts"_n, recordobt_info,
             indexed_by<"bypayee"_n, const_mem_fun < recordobt_info, uint128_t, &recordobt_info::by_payee>>,
-    indexed_by<"bypayer"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payer>
+    indexed_by<"bypayer"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payer>>,
+    indexed_by<"bypayerwtime"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payerwtime>>,
+    indexed_by<"bypayeewtime"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payeewtime>
     >>
     recordobt_table;
 

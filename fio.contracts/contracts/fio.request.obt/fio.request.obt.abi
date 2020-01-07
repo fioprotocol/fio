@@ -21,6 +21,12 @@
           "name": "payee_fio_address_hex_str",
           "type": "string"
         },{
+          "name": "payer_fio_address_with_time",
+          "type": "uint128"
+        },{
+          "name": "payee_fio_address_with_time",
+          "type": "uint128"
+        },{
           "name": "content",
           "type": "string"
         },{
@@ -58,6 +64,12 @@
               },{
                 "name": "payee_fio_address_hex_str",
                 "type": "string"
+              },{
+                "name": "payer_fio_address_with_time",
+                "type": "uint128"
+              },{
+                "name": "payee_fio_address_with_time",
+                "type": "uint128"
               },{
                 "name": "content",
                 "type": "string"
