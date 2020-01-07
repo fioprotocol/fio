@@ -236,6 +236,13 @@ namespace fioio {
                 const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
                 const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
                 const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
+                const string payerwtimestr = payer_fio_address + to_string(currentTime);
+                const string payeewtimestr = payee_fio_address + to_string(currentTime);
+                const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
+                const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
+
+                print (" payeewtime is ",payeewtimestr, " payerwtimestr is ",payerwtimestr,"\n");
+
 
                 recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
@@ -243,6 +250,8 @@ namespace fioio {
                     obtinf.payee_fio_address = toHash;
                     obtinf.payer_fio_address_hex_str = fromHashStr;
                     obtinf.payee_fio_address_hex_str = toHashStr;
+                    obtinf.payer_fio_address_with_time = payerwtime;
+                    obtinf.payee_fio_address_with_time = payeewtime;
                     obtinf.content = content;
                     obtinf.time_stamp = currentTime;
                     obtinf.payer_fio_addr = payer_fio_address;
@@ -396,8 +405,14 @@ namespace fioio {
             const uint64_t currentTime = now();
             const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
             const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
+            const string payerwtimestr = payer_fio_address + to_string(currentTime);
+            const string payeewtimestr = payee_fio_address + to_string(currentTime);
+            const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
+            const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
             const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
             const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
+
+            print (" payeewtime is ",payeewtimestr, " payerwtimestr is ",payerwtimestr,"\n");
 
             fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
@@ -405,6 +420,8 @@ namespace fioio {
                 frc.payee_fio_address = toHash;
                 frc.payer_fio_address_hex_str = fromHashStr;
                 frc.payee_fio_address_hex_str = toHashStr;
+                frc.payer_fio_address_with_time= payerwtime;
+                frc.payee_fio_address_with_time=payeewtime;
                 frc.content = content;
                 frc.time_stamp = currentTime;
                 frc.payer_fio_addr = payer_fio_address;
