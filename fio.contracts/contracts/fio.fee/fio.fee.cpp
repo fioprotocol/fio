@@ -149,9 +149,6 @@ namespace fioio {
             }
         }
 
-
-
-
     public:
         using contract::contract;
 

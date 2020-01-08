@@ -103,7 +103,8 @@ namespace fioio {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
-
+            fio_400_assert(fio_request_id.length() < 16, "fio_request_id", fio_request_id, "No such FIO Request",
+                           ErrorRequestContextNotFound);
             fio_400_assert(payer_fio_address.length() > 0, "payer_fio_address", payer_fio_address,
                            "from fio address not found", ErrorInvalidFioNameFormat);
             fio_400_assert(payee_fio_address.length() > 0, "payee_fio_address", payee_fio_address,
@@ -460,7 +461,7 @@ namespace fioio {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
-            fio_400_assert(fio_request_id.length() > 0, "fio_request_id", fio_request_id, "No value specified",
+            fio_400_assert(fio_request_id.length() > 0 && fio_request_id.length() < 16, "fio_request_id", fio_request_id, "No value specified",
                            ErrorRequestContextNotFound);
 
            const uint64_t currentTime = current_time();
