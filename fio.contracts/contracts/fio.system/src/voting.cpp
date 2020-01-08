@@ -59,7 +59,6 @@ namespace eosiosystem {
                     info.addresshash = 0;
                     info.is_active = false;
                 });
-
             }
             auto votersbyaddress = _voters.get_index<"byaddress"_n>();
             auto voters = votersbyaddress.find(fioaddrhash);
@@ -70,11 +69,9 @@ namespace eosiosystem {
                 {
                     votersbyaddress.erase(voters);
                 }
-
             }
         }
     }
-
 
 
     /**
@@ -128,9 +125,7 @@ namespace eosiosystem {
                 info.location = location;
                 info.last_claim_time = ct;
             });
-
         }
-
     }
 
     static constexpr eosio::name token_account{"fio.token"_n};
@@ -330,7 +325,7 @@ namespace eosiosystem {
               return (a.second < b.second);
     }
 
-    void system_contract::update_elected_producers(block_timestamp block_time) {
+        void system_contract::update_elected_producers(block_timestamp block_time) {
         _gstate.last_producer_schedule_update = block_time;
 
         auto idx = _producers.get_index<"prototalvote"_n>();
@@ -697,7 +692,6 @@ namespace eosiosystem {
                 });
             }
         }
-
     }
 
 
@@ -861,7 +855,6 @@ namespace eosiosystem {
         });
     }
 
-
     void system_contract::updlocked(const name &owner,const uint64_t &amountremaining)
     {
         require_auth(TokenContract);
@@ -875,8 +868,6 @@ namespace eosiosystem {
         });
     }
 
-
-
     void system_contract::setautoproxy(const name &proxy,const name &owner)
     {
         require_auth(owner);
@@ -888,16 +879,13 @@ namespace eosiosystem {
         check(itervi != votersbyowner.end(), "specified proxy not found.");
         check(itervi->is_proxy == true,"specified proxy is not registered as a proxy");
 
-
         itervi = votersbyowner.find(owner.value);
         check(itervi != votersbyowner.end(), "specified owner not found.");
         votersbyowner.modify(itervi, same_payer, [&](auto &av) {
             av.is_auto_proxy = true;
             av.proxy = proxy;
         });
-
     }
-
 
     void system_contract::crautoproxy(const name &proxy,const name &owner)
     {
