@@ -119,7 +119,8 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
         //based on grant type.
         auto lockiter = lockedTokensTable.find(tokenowner.value);
         if(lockiter != lockedTokensTable.end()) {
-                check(amount >= (lockiter->remaining_locked_amount-feeamount),"lock amount is incoherent.");
+
+                check(amount >= (lockiter->remaining_locked_amount - feeamount),"lock amount is incoherent.");
 
                 uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
                 if(
@@ -129,7 +130,9 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
                         ((lockiter->grant_type == 2)&&
                          ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
                         //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
-                        ((lockiter->grant_type == 2)&&  !isfee)
+                        ((lockiter->grant_type == 2)&&  !isfee) ||
+                        //if lock type is 3 and its not a fee, always subtract the locked remaining from the amount in the account.
+                        ((lockiter->grant_type == 3)&&  !isfee)
                         ) {
                         //recompute the remaining locked amount based on vesting.
                         uint64_t unlockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;

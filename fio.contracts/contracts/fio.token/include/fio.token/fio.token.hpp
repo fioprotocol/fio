@@ -183,15 +183,20 @@ namespace eosio {
                         if (lockiter->grant_type == 1) {
                             //pay out 1% for type 1
                             amountpay = totalgrantamount / 100;
-                            print(" amount to pay type 1 ",amountpay,"\n");
+                            print(" amount to pay type 1 ", amountpay, "\n");
 
                         } else if (lockiter->grant_type == 2) {
                             //pay out 2% for type 2
-                            amountpay = (totalgrantamount/100)*2;
-                            print(" amount to pay type 2 ",amountpay,"\n");
+                            amountpay = (totalgrantamount / 100) * 2;
+                            print(" amount to pay type 2 ", amountpay, "\n");
+                        } else if (lockiter->grant_type == 3) {
+                            //pay out 0 for type 3
+                            amountpay = 0;
+                            print(" amount to pay for type 3 for day 0 is ", amountpay, "\n");
                         }else{
                             check(false,"unknown grant type");
                         }
+
                         if (newlockedamount > amountpay) {
                             newlockedamount -= amountpay;
                         }else {
@@ -213,10 +218,16 @@ namespace eosio {
                         if (lockiter->grant_type == 1) {
                             //this logic assumes to have 3 decimal places in the specified percentage
                             percentperblock = 12375;
-                        } else {
+                        } else if (lockiter->grant_type == 2){
                             //this is assumed to have 3 decimal places in the specified percentage
                             percentperblock = 12275;
+                        } else if (lockiter->grant_type == 3){
+                            //this is assumed to have 3 decimal places in the specified percentage
+                            percentperblock = 12500;
+                        } else {  //unknown lock type, dont unlock
+                            return lockiter->remaining_locked_amount;
                         }
+
                         print("remaining payouts ", remainingPayouts, "\n");
                         //this is assumed to have 3 decimal places in the specified percentage
                         amountpay = (remainingPayouts * (totalgrantamount * percentperblock)) / 100000;
