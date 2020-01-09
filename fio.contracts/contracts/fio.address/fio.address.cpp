@@ -139,7 +139,7 @@ namespace fioio {
             int64 returnvalue = 0;
 
             if (bundlevoters.end() == bundlevoters.begin()) {
-                return 10000;
+                return 500;
             }
 
             for (const auto &itr : bundlevoters) {
@@ -148,7 +148,7 @@ namespace fioio {
             }
 
             if (totalcount == 0) {
-                return 10000;
+                return 500;
             }
             return returnvalue / totalcount;
         }
@@ -368,14 +368,12 @@ namespace fioio {
                 });
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset;
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                reg_fee_asset.symbol = symbol("FIO", 9);
-                reg_fee_asset.amount = reg_amount;
+                asset reg_fee_asset = asset(reg_amount, FIOSYMBOL);
 
                 fio_fees(actor, reg_fee_asset);
                 process_rewards(tpid, reg_amount, get_self());
@@ -462,12 +460,10 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (uint64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = reg_amount;
+            asset reg_fee_asset = asset(reg_amount, FIOSYMBOL);
 
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
@@ -521,12 +517,12 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (uint64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
             asset reg_fee_asset;
 
-            reg_fee_asset.symbol = symbol("FIO", 9);
+            reg_fee_asset.symbol = FIOSYMBOL;
             reg_fee_asset.amount = reg_amount;
 
             fio_fees(actor, reg_fee_asset);
@@ -585,14 +581,10 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (uint64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = reg_amount;
-
+            asset reg_fee_asset = asset(reg_amount, FIOSYMBOL);
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
@@ -676,13 +668,11 @@ namespace fioio {
                            "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
                            ErrorNoEndpoint);
 
-            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (uint64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = reg_amount;
+            asset reg_fee_asset = asset(reg_amount, FIOSYMBOL);
+            fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
 
             const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
@@ -1002,13 +992,10 @@ namespace fioio {
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t fee_amount = fee_iter->suf_amount;
-            fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+            fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = reg_amount;
+            asset reg_fee_asset = asset(reg_amount, FIOSYMBOL);
 
             fio_fees(actor, reg_fee_asset);
             process_rewards(tpid, reg_amount, get_self());

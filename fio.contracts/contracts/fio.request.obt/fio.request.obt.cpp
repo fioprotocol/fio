@@ -35,23 +35,12 @@ namespace fioio {
             string fio_address;
         };
 
-        int64_t stoi(const char *s)
-        {
-            int64_t i;
-            i = 0;
-            while (*s >= '0' && *s <= '9') {
-                i = i * 10 + (*s - '0');
-                s++;
-            }
-            return i;
-        }
-
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
                 print("Collecting FIO API fees: ", fee);
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
-                       make_tuple(actor, "fio.treasury"_n, fee,
+                       make_tuple(actor, TREASURYACCOUNT, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
             } else {
@@ -142,13 +131,11 @@ namespace fioio {
             //add 30 days to the domain expiration, this call will work until 30 days past expire.
             domexp = get_time_plus_seconds(domexp,SECONDS30DAYS);
 
-
             fio_400_assert(present_time <= domexp, "payer_fio_address", payer_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
             auto account_iter = clientkeys.find(account);
             string payer_key = account_iter->clientkey; // Index 0 is FIO
-
 
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
@@ -174,17 +161,13 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "record_obt_data",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            uint64_t reg_amount = fee_iter->suf_amount;
             uint64_t fee_type = fee_iter->type;
-
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "record_obt_data unexpected fee type for endpoint record_obt_data, expected 1", ErrorNoEndpoint);
 
-            uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown > 0) {
-                fee_amount = 0;
+            if (fioname_iter->bundleeligiblecountdown > 0) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
@@ -195,19 +178,17 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset = asset();
-                reg_fee_asset.amount = fee_amount;
-                reg_fee_asset.symbol = symbol("FIO", 9);
+                asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
 
                 fio_fees(aactor, reg_fee_asset);
                 process_rewards(tpid, fee_amount, get_self());
 
                 if (fee_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
-                            ("eosio"_n, {{_self, "active"_n}},
+                            (SYSTEMACCOUNT, {{_self, "active"_n}},
                              {aactor, true}
                             );
                 }
@@ -361,18 +342,15 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "new_funds_request",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            const uint64_t reg_amount = fee_iter->suf_amount;
             const uint64_t fee_type = fee_iter->type;
 
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "new_funds_request unexpected fee type for endpoint new_funds_request, expected 1",
                            ErrorNoEndpoint);
 
-            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown > 0) {
-                fee_amount = 0;
+            if (fioname_iter->bundleeligiblecountdown > 0) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
@@ -383,19 +361,17 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset = asset();
-                reg_fee_asset.symbol = symbol("FIO", 9);
-                reg_fee_asset.amount = fee_amount;
+                asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
 
                 fio_fees(aActor, reg_fee_asset);
                 process_rewards(tpid, fee_amount, get_self());
 
                 if (fee_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
-                            ("eosio"_n, {{_self, "active"_n}},
+                            (SYSTEMACCOUNT, {{_self, "active"_n}},
                              {aActor, true}
                             );
                 }
@@ -517,18 +493,14 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "reject_funds_request",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            const uint64_t reg_amount = fee_iter->suf_amount;
             const uint64_t fee_type = fee_iter->type;
-
             fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
                            "reject_funds_request unexpected fee type for endpoint reject_funds_request, expected 1",
                            ErrorNoEndpoint);
 
-            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
             uint64_t fee_amount = 0;
 
-            if (bundleeligiblecountdown > 0) {
-                fee_amount = 0;
+            if (fioname_iter->bundleeligiblecountdown > 0) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
@@ -543,16 +515,14 @@ namespace fioio {
                                "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset = asset();
-                reg_fee_asset.amount = fee_amount;
-                reg_fee_asset.symbol = symbol("FIO", 9);
+                asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
 
                 fio_fees(aactor, reg_fee_asset);
                 process_rewards(tpid, fee_amount, get_self());
 
                 if (fee_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
-                            ("eosio"_n, {{_self, "active"_n}},
+                            (SYSTEMACCOUNT, {{_self, "active"_n}},
                              {aactor, true}
                             );
                 }
