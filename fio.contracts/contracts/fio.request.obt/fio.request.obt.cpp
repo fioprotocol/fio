@@ -37,17 +37,17 @@ namespace fioio {
 
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
-                print("Collecting FIO API fees: ", fee);
+
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
                        make_tuple(actor, TREASURYACCOUNT, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
+
             } else {
                 print("Payments currently disabled.");
             }
         }
-
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
                 : contract(s, code, ds),
@@ -181,9 +181,7 @@ namespace fioio {
                 fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
-
-                fio_fees(aactor, reg_fee_asset);
+                fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
                 process_rewards(tpid, fee_amount, get_self());
 
                 if (fee_amount > 0) {
@@ -364,9 +362,7 @@ namespace fioio {
                 fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
-
-                fio_fees(aActor, reg_fee_asset);
+                fio_fees(aActor, asset(fee_amount, FIOSYMBOL));
                 process_rewards(tpid, fee_amount, get_self());
 
                 if (fee_amount > 0) {
@@ -515,9 +511,7 @@ namespace fioio {
                                "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
-
-                fio_fees(aactor, reg_fee_asset);
+                fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
                 process_rewards(tpid, fee_amount, get_self());
 
                 if (fee_amount > 0) {

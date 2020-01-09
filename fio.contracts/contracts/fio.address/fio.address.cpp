@@ -106,15 +106,12 @@ namespace fioio {
             return owner_account_name;
         }
 
-        static constexpr eosio::name token_account{"fio.token"_n};
-        static constexpr eosio::name treasury_account{"fio.treasury"_n};
-
         inline void fio_fees(const name &actor, const asset &fee) const {
             if (appConfig.pmtson) {
 
                 action(permission_level{actor, "active"_n},
-                       token_account, "transfer"_n,
-                       make_tuple(actor, treasury_account, fee,
+                       TokenContract, "transfer"_n,
+                       make_tuple(actor, TREASURYACCOUNT, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
 
