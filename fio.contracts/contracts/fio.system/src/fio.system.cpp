@@ -185,7 +185,7 @@ namespace eosiosystem {
 
         check(is_account(owner),"account must pre exist");
         check(amount > 0,"cannot add locked token amount less or equal 0.");
-        check(locktype == 1 || locktype == 2,"lock type must be 1,2");
+        check(locktype == 1 || locktype == 2 || locktype == 3,"lock type must be 1,2,3");
 
         _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
                 a.owner = owner;
