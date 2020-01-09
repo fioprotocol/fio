@@ -178,7 +178,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
@@ -361,7 +361,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
                 asset reg_fee_asset = asset(fee_amount, FIOSYMBOL);
@@ -511,7 +511,7 @@ namespace fioio {
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
-                fio_400_assert(max_fee >= (uint64_t)fee_amount, "max_fee", to_string(max_fee),
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee),
                                "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
