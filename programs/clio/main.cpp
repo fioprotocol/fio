@@ -3653,6 +3653,22 @@ int main(int argc, char **argv) {
                 auto trx_result = call(renew_domain_func, packed_transaction(trx, packed_transaction::none));
                 std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
             }
+            if (actions[0].name.to_string() == "setdomainpub") {
+                auto trx_result = call(set_fio_dom_func, packed_transaction(trx, packed_transaction::none));
+                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+            }
+            if (actions[0].name.to_string() == "recordobt") {
+                auto trx_result = call(record_send_func, packed_transaction(trx, packed_transaction::none));
+                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+            }
+            if (actions[0].name.to_string() == "rejectfndreq") {
+                auto trx_result = call(reject_fund_func, packed_transaction(trx, packed_transaction::none));
+                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+            }
+            if (actions[0].name.to_string() == "newfundsreq") {
+                auto trx_result = call(new_funds_func, packed_transaction(trx, packed_transaction::none));
+                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
+            }
             if (actions[0].name.to_string() == "renewaddress") {
                 auto trx_result = call(renew_address_func, packed_transaction(trx, packed_transaction::none));
                 std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
