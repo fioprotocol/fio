@@ -520,10 +520,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (uint64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-
-            reg_fee_asset.symbol = FIOSYMBOL;
-            reg_fee_asset.amount = reg_amount;
+            asset reg_fee_asset = asset(reg_amount, FIOSYMBOL);
 
             fio_fees(actor, reg_fee_asset);
             processbucketrewards(tpid, reg_amount, get_self());
