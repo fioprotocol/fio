@@ -145,7 +145,6 @@ namespace fioio {
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
-            print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
 
             account = fioname_iter->owner_account;
@@ -220,9 +219,6 @@ namespace fioio {
                 const string payeewtimestr = payee_fio_address + to_string(currentTime);
                 const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
                 const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
-
-                print (" payeewtime is ",payeewtimestr, " payerwtimestr is ",payerwtimestr,"\n");
-
 
                 recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
@@ -329,7 +325,6 @@ namespace fioio {
             fio_400_assert(present_time <= domexp, "payee_fio_address", payee_fio_address,
                            "FIO Domain expired", ErrorFioNameExpired);
 
-            print("account: ", account, " actor: ", aActor, "\n");
             fio_403_assert(account == aActor.value, ErrorSignature);
 
             //begin fees, bundle eligible fee logic
@@ -384,8 +379,6 @@ namespace fioio {
             const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
             const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
             const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
-
-            print (" payeewtime is ",payeewtimestr, " payerwtimestr is ",payerwtimestr,"\n");
 
             fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
@@ -477,7 +470,6 @@ namespace fioio {
 
             const string payer_fio_address = fioname_iter->name;
 
-            print("account: ", account, " actor: ", aactor, "\n");
             fio_403_assert(account == aactor.value, ErrorSignature);
 
             //begin fees, bundle eligible fee logic
