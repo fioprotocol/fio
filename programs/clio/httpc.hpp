@@ -106,6 +106,11 @@ namespace eosio {
             const string reg_proxy_func = chain_func_base + "/register_proxy";
             const string reg_producer_func = chain_func_base + "/register_producer";
             const string vote_producer_func = chain_func_base + "/vote_producer";
+            const string set_fio_dom_func = chain_func_base + "/set_fio_domain_public";
+            const string record_send_func = chain_func_base + "/record_obt_data";
+            const string reject_fund_func = chain_func_base + "/reject_funds_request";
+            const string new_funds_func = chain_func_base + "/new_funds_request";
+
 
             const string push_txns_func = chain_func_base + "/push_transactions";
             const string json_to_bin_func = chain_func_base + "/abi_json_to_bin";
