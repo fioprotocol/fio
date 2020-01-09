@@ -14,3 +14,6 @@
 [submodule "libraries/yubihsm"]
 	path = libraries/yubihsm
 	url = https://github.com/Yubico/yubihsm-shell
+[submodule "libraries/appbase"]
+	path = libraries/appbase
+	url = https://github.com/dapixio/appbase
