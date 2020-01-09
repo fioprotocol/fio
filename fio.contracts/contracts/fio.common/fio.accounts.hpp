@@ -24,7 +24,8 @@ namespace fioio {
     static const name FOUNDATIONACCOUNT = name("fio.foundatn");
     static const name TREASURYACCOUNT = name("fio.treasury");
     static const name SYSTEMACCOUNT = name("eosio");
-
+    static constexpr name FIOISSUER = name("eosio"_n);
+    static constexpr eosio::symbol FIOSYMBOL = eosio::symbol("FIO", 9);
     //owner permission
     static const name OWNER = name("owner");
     static const name ACTIVE = name("active");

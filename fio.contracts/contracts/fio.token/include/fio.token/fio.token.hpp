@@ -126,11 +126,6 @@ namespace eosio {
             bool existing;
         };
 
-
-        static constexpr symbol FIOSYMBOL = symbol("FIO", 9);
-        static constexpr name FIOISSUER = name("eosio"_n);
-
-
         //this will compute the present unlocked tokens for this user based on the
         //unlocking schedule, it will update the lockedtokens table if the doupdate
         //is set to true.
