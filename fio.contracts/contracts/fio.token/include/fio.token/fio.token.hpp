@@ -100,7 +100,7 @@ namespace eosio {
         struct [[eosio::table]] currency_stats {
             asset supply;
             asset max_supply;
-
+            name issuer = SYSTEMACCOUNT;
             uint64_t primary_key() const { return supply.symbol.code().raw(); }
         };
 
