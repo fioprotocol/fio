@@ -29,6 +29,25 @@ if [ ! -d /usr/local/Frameworks ]; then
 	exit 1;
 fi
 
+echo "${COLOR_CYAN}[Checking LLVM 4 support]${COLOR_NC}"
+if $PIN_COMPILER || $BUILD_CLANG; then
+  CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX='${LLVM_ROOT}' -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE='${BUILD_DIR}/pinned_toolchain.cmake' .."
+else
+  CMAKE_FLAGS="-G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD='host' -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release .."
+fi
+if [ ! -d /usr/local/Cellar/llvm ]; then
+  execute bash -c "cd /usr/local/Cellar \
+	&& git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm && cd llvm \
+  && mkdir build \
+  && cd build \
+  && ${CMAKE} ${CMAKE_FLAGS} \
+  && make -j${JOBS} \
+  && make install"
+	printf " - LLVM successfully linked from /usr/local/opt/llvm@4 to ${LLVM_ROOT}\\n"
+else
+	printf " - LLVM found @ ${LLVM_ROOT}.\\n"
+fi
+
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
