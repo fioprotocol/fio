@@ -31,39 +31,38 @@ namespace fioio {
             47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, -1, -1, -1, -1, -1
     };
 
-
 // result must be declared (for the worst case): char result[len * 2];
     int DecodeBase58(
             const char *str, int len, unsigned char *result) {
-
-        result[0] = 0;
         int resultlen = 1;
-        for (int i = 0; i < len; i++) {
-            unsigned int carry = (unsigned int) ALPHABET_MAP[(unsigned char) str[i]];
-            for (int j = 0; j < resultlen; j++) {
-                carry += (unsigned int) (result[j]) * 58;
-                result[j] = (unsigned char) (carry & 0xff);
-                carry >>= 8;
+        if( str != nullptr ){
+            result[0] = 0;
+            for (int i = 0; i < len; i++) {
+                unsigned int carry = (unsigned int) ALPHABET_MAP[(unsigned char) str[i]];
+                for (int j = 0; j < resultlen; j++) {
+                    carry += (unsigned int) (result[j]) * 58;
+                    result[j] = (unsigned char) (carry & 0xff);
+                    carry >>= 8;
+                }
+                while (carry > 0) {
+                    result[resultlen++] = (unsigned int) (carry & 0xff);
+                    carry >>= 8;
+                }
             }
-            while (carry > 0) {
-                result[resultlen++] = (unsigned int) (carry & 0xff);
-                carry >>= 8;
+
+            for (int i = 0; i < len && str[i] == '1'; i++)
+                result[resultlen++] = 0;
+
+            // Poorly coded, but guaranteed to work.
+            for (int i = resultlen - 1, z = (resultlen >> 1) + (resultlen & 1);
+                 i >= z; i--) {
+                int k = result[i];
+                result[i] = result[resultlen - i - 1];
+                result[resultlen - i - 1] = k;
             }
-        }
-
-        for (int i = 0; i < len && str[i] == '1'; i++)
-            result[resultlen++] = 0;
-
-        // Poorly coded, but guaranteed to work.
-        for (int i = resultlen - 1, z = (resultlen >> 1) + (resultlen & 1);
-             i >= z; i--) {
-            int k = result[i];
-            result[i] = result[resultlen - i - 1];
-            result[resultlen - i - 1] = k;
         }
         return resultlen;
     }
-
 
     static uint64_t shorten_key(unsigned char *key) {
         uint64_t res = 0;
@@ -101,5 +100,4 @@ namespace fioio {
         new_account = myStr.substr(0, 12);
         free(pub_key_bytes);
     }
-
 }
