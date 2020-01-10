@@ -59,7 +59,6 @@ else
     sudo ./install.sh
 fi
 
-printf "\n${COLOR_RED}      ___           ___           ___                       ___\n"
 printf "\n${bldred}\n"
 printf "      ___                       ___                 \n"
 printf "     /\\__\\                     /\\  \\            \n"
