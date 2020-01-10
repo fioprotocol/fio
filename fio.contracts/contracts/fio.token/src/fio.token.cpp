@@ -151,7 +151,11 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
                         }
 
                 } else if (isfee) {
-                        uint64_t unlockedbalance = amount - lockiter->remaining_locked_amount;
+
+                        uint64_t unlockedbalance = 0;
+                        if (amount > lockiter->remaining_locked_amount) {
+                            unlockedbalance = amount - lockiter->remaining_locked_amount;
+                        }
                         if (unlockedbalance >= transferamount) {
                                 return true;
                         }else {
