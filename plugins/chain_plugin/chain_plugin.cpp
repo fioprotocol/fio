@@ -2651,8 +2651,10 @@ if( options.count(name) ) { \
 
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_name, fa);
-            int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
-
+            int res = fioio::isFioNameValid(fa.fiodomain) * 10;
+            if( res == 0 && !fa.domainOnly ) {
+                fioio::isFioNameValid(fa.fioname);
+            }
             FIO_400_ASSERT(res == 0, "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
             //declare variables.
