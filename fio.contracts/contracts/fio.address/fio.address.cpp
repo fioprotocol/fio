@@ -382,7 +382,7 @@ namespace fioio {
             return fee_amount;
         }
 
-        inline uint32_t get_time_plus_one_year(uint64_t timein) {
+        inline uint32_t get_time_plus_one_year(const uint32_t timein) {
             return timein + YEARTOSECONDS;
         }
 
@@ -399,7 +399,7 @@ namespace fioio {
          * @param nyearsago   this is the number of years ago from now to return as a value
          * @return  the decremented now() time by nyearsago
          */
-        inline uint32_t get_now_minus_years(int nyearsago) {
+        inline uint32_t get_now_minus_years(const uint32_t nyearsago) {
             return now() - (YEARTOSECONDS * nyearsago);
         }
         /***
@@ -407,7 +407,7 @@ namespace fioio {
          * @param nyearsago   this is the number of years from now to return as a value
          * @return  the decremented now() time by nyearsago
          */
-        inline uint32_t get_now_plus_years(int nyearsago) {
+        inline uint32_t get_now_plus_years(const uint32_t nyearsago) {
 
             return now() + (YEARTOSECONDS * nyearsago);
         }
