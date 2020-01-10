@@ -38,7 +38,7 @@ export BOOST_LINK_LOCATION=${OPT_DIR}/boost
 
 # LLVM
 export LLVM_VERSION=release_40
-export LLVM_ROOT=${OPT_DIR}/llvm
+export LLVM_ROOT=${OPT_DIR}/llvm@4
 export LLVM_DIR=${LLVM_ROOT}/lib/cmake/llvm
 
 # DOXYGEN
