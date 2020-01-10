@@ -35,9 +35,9 @@ if $PIN_COMPILER || $BUILD_CLANG; then
 else
   CMAKE_FLAGS="-G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD='host' -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release .."
 fi
-if [ ! -d /usr/local/Cellar/llvm ]; then
+if [ ! -d /usr/local/Cellar/llvm@4 ]; then
   execute bash -c "cd /usr/local/Cellar \
-	&& git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm && cd llvm \
+	&& git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm@4 && cd llvm@4 \
   && mkdir build \
   && cd build \
   && ${CMAKE} ${CMAKE_FLAGS} \
