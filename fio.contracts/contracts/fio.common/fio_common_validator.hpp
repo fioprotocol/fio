@@ -73,7 +73,7 @@ namespace fioio {
     }
 
     inline int isDomainNameValid(const string &domain, const bool &domainOnly) {
-        return domainOnly ? isFioNameValid(domain) * 10 : 0;
+        return isFioNameValid(domain);
     }
 
     inline int fioNameSizeCheck(const string &fn, const string &fd) {
