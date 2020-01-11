@@ -1026,8 +1026,7 @@ namespace fioio {
 
         void decrcounter(const string &fio_address) {
 
-            const string tstr = fio_address;
-            const uint128_t hashval = string_to_uint128_hash(tstr.c_str());
+            const uint128_t hashval = string_to_uint128_hash(fio_address.c_str());
 
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(hashval);
