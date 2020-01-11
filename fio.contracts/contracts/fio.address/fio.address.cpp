@@ -93,7 +93,6 @@ namespace fioio {
                     accountmap.emplace(_self, [&](struct eosio_name &p) {
                         p.account = nmi;
                         p.clientkey = owner_fio_public_key;
-                        p.keyhash = string_to_uint128_hash(owner_fio_public_key.c_str());
                     });
                 } else {
                     fio_400_assert(accountExists, "owner_account", owner_account,
@@ -1022,7 +1021,6 @@ namespace fioio {
                 accountmap.emplace(_self, [&](struct eosio_name &p) {
                     p.account = account.value;
                     p.clientkey = client_key;
-                    p.keyhash = string_to_uint128_hash(client_key.c_str());
                 });
             }
         }

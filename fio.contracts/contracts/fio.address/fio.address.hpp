@@ -88,17 +88,10 @@ namespace fioio {
 
         uint64_t account = 0;
         string clientkey = nullptr;
-        uint128_t keyhash = 0;
-
         uint64_t primary_key() const { return account; }
-        uint128_t by_keyhash() const { return keyhash; }
 
-        EOSLIB_SERIALIZE(eosio_name, (account)(clientkey)(keyhash)
-        )
+        EOSLIB_SERIALIZE(eosio_name, (account)(clientkey))
     };
 
-    typedef multi_index<"accountmap"_n, eosio_name,
-            indexed_by<"bykey"_n, const_mem_fun < eosio_name, uint128_t, &eosio_name::by_keyhash>>
-    >
-    eosio_names_table;
+    typedef multi_index<"accountmap"_n, eosio_name> eosio_names_table;
 }

@@ -66,10 +66,7 @@
         },{
           "name": "clientkey",
           "type": "string"
-        },{
-            "name": "keyhash",
-            "type": "uint128"
-          }
+        }
       ]
      },{
       "name": "regaddress",
