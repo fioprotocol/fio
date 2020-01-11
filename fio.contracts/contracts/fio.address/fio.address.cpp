@@ -174,7 +174,7 @@ namespace fioio {
                            ErrorInvalidNumberAddresses);
         }
 
-        uint32_t fio_address_update(const name &owneractor, const name &actor, int64_t max_fee, const FioAddress &fa,
+        uint32_t fio_address_update( const name &actor, const name &owner, int64_t max_fee, const FioAddress &fa,
                                     const string &tpid) {
 
             const uint32_t expiration_time = get_now_plus_one_year();
@@ -198,7 +198,7 @@ namespace fioio {
             uint64_t domain_owner = domains_iter->account;
 
             if (!isPublic) {
-                fio_400_assert(domain_owner == owneractor.value, "fio_address", fa.fioaddress,
+                fio_400_assert(domain_owner == actor.value, "fio_address", fa.fioaddress,
                                "FIO Domain is not public. Only owner can create FIO Addresses.",
                                ErrorInvalidFioNameFormat);
             }
@@ -214,12 +214,10 @@ namespace fioio {
                            "FIO address already registered", ErrorFioNameAlreadyRegistered);
 
 
-            auto key_iter = accountmap.find(actor.value);
+            auto key_iter = accountmap.find(owner.value);
 
-            fio_400_assert(key_iter != accountmap.end(), "actor", to_string(actor.value),
-                           "Actor is not bound in the account map.", ErrorActorNotInFioAccountMap);
-
-            const uint64_t ownerHash = string_to_uint64_hash(key_iter->clientkey.c_str());
+            fio_400_assert(key_iter != accountmap.end(), "owner", to_string(owner.value),
+                           "Owner is not bound in the account map.", ErrorActorNotInFioAccountMap);
 
             uint64_t id = fionames.available_primary_key();
             vector<tokenpubaddr> pubaddresses;
@@ -236,17 +234,17 @@ namespace fioio {
                 a.domain = fa.fiodomain;
                 a.domainhash = domainHash;
                 a.expiration = expiration_time;
-                a.owner_account = actor.value;
+                a.owner_account = owner.value;
                 a.bundleeligiblecountdown = getBundledAmount();
             });
 
-            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, actor,
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, owner,
                                                     true, tpid);
 
             return expiration_time;
         }
 
-        uint32_t fio_domain_update(const string &fio_domain, const string &owner_fio_public_key, const name &actor,
+        uint32_t fio_domain_update(const string &fio_domain, const name &owner,
                                    const FioAddress &fa) {
 
             uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
@@ -270,7 +268,7 @@ namespace fioio {
                 d.name = fa.fiodomain;
                 d.domainhash = domainHash;
                 d.expiration = expiration_time;
-                d.account = actor.value;
+                d.account = owner.value;
             });
             return expiration_time;
         }
@@ -487,10 +485,9 @@ namespace fioio {
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
-
             const name nm = name{owner_account_name};
 
-            const uint32_t expiration_time = fio_domain_update(fio_domain, owner_fio_public_key, actor, fa);
+            const uint32_t expiration_time = fio_domain_update(fio_domain, nm, fa);
 
             struct tm timeinfo;
             fioio::convertfiotime(expiration_time, &timeinfo);
