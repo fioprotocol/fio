@@ -124,16 +124,13 @@ namespace fioio {
         return value;
     }
 
-    static uint128_t string_to_uint128_hash(const char *str) {
+    static uint128_t string_to_uint128_hash(const string str) {
 
         eosio::checksum160 tmp;
         uint128_t retval = 0;
         uint8_t *bp = (uint8_t *) &tmp;
-        uint32_t len = 0;
 
-        while (str[len]) ++len;
-
-        tmp = eosio::sha1(str, len);
+        tmp = eosio::sha1(str.c_str(), str.length());
 
         bp = (uint8_t *) &tmp;
         memcpy(&retval, bp, sizeof(retval));

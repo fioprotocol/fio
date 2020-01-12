@@ -150,7 +150,7 @@ namespace fioio {
             return returnvalue / totalcount;
         }
 
-        inline void addaddress_errors(const vector<tokenpubaddr> pubaddresses, const FioAddress &fa, const int64_t &max_fee) const {
+        inline void addaddress_errors(const vector<tokenpubaddr> &pubaddresses, const FioAddress &fa, const int64_t &max_fee) const {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
             fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "FIO Address not found",
@@ -380,7 +380,7 @@ namespace fioio {
             return fee_amount;
         }
 
-        inline uint32_t get_time_plus_one_year(uint64_t timein) {
+        inline uint32_t get_time_plus_one_year(const uint32_t timein) {
             return timein + YEARTOSECONDS;
         }
 
@@ -397,7 +397,7 @@ namespace fioio {
          * @param nyearsago   this is the number of years ago from now to return as a value
          * @return  the decremented now() time by nyearsago
          */
-        inline uint32_t get_now_minus_years(int nyearsago) {
+        inline uint32_t get_now_minus_years(const uint32_t nyearsago) {
             return now() - (YEARTOSECONDS * nyearsago);
         }
         /***
@@ -405,7 +405,7 @@ namespace fioio {
          * @param nyearsago   this is the number of years from now to return as a value
          * @return  the decremented now() time by nyearsago
          */
-        inline uint32_t get_now_plus_years(int nyearsago) {
+        inline uint32_t get_now_plus_years(const uint32_t nyearsago) {
 
             return now() + (YEARTOSECONDS * nyearsago);
         }
@@ -1026,8 +1026,7 @@ namespace fioio {
 
         void decrcounter(const string &fio_address) {
 
-            const string tstr = fio_address;
-            const uint128_t hashval = string_to_uint128_hash(tstr.c_str());
+            const uint128_t hashval = string_to_uint128_hash(fio_address.c_str());
 
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(hashval);

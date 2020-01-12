@@ -831,8 +831,8 @@ namespace eosiosystem {
         const auto ct = current_time_point();
         double delta_change_rate = 0.0;
         double total_inactive_vpay_share = 0.0;
+        auto prodbyowner = _producers.get_index<"byowner"_n>();
         for (const auto &pd : producer_deltas) {
-            auto prodbyowner = _producers.get_index<"byowner"_n>();
             auto pitr = prodbyowner.find(pd.first.value);
             if (pitr != prodbyowner.end()) {
                 check(!voting || pitr->active() || !pd.second.second /* not from new set */,

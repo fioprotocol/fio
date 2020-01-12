@@ -139,15 +139,15 @@ namespace fioio {
 
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
             namesbyname = fionames.get_index<"byname"_n>();
-            fioname_iter = namesbyname.find(nameHash);
+            auto fioname_iter2 = namesbyname.find(nameHash);
 
-            fio_400_assert(fioname_iter != namesbyname.end(), "payee_fio_address", payee_fio_address,
+            fio_400_assert(fioname_iter2 != namesbyname.end(), "payee_fio_address", payee_fio_address,
                            "No such FIO Address",
                            ErrorFioNameNotReg);
 
             fio_403_assert(account == aactor.value, ErrorSignature);
 
-            account = fioname_iter->owner_account;
+            account = fioname_iter2->owner_account;
             account_iter = clientkeys.find(account);
             string payee_key = account_iter->clientkey;
 
