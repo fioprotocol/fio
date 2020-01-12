@@ -63,16 +63,17 @@ namespace fioio {
         uint64_t id;
         string name;
         uint128_t domainhash;
+        uint64_t account;
         uint8_t is_public = 0;
         uint64_t expiration;
-        uint64_t account;
+
 
         uint64_t primary_key() const { return id; }
         uint64_t by_account() const { return account; }
         uint64_t by_expiration() const { return expiration; }
         uint128_t by_name() const { return domainhash; }
 
-        EOSLIB_SERIALIZE(domain, (id)(name)(domainhash)(is_public)(expiration)(account)
+        EOSLIB_SERIALIZE(domain, (id)(name)(domainhash)(account)(is_public)(expiration)
         )
     };
 
