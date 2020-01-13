@@ -115,13 +115,30 @@ namespace eosiosystem {
                         authority auth,
                         const uint64_t max_fee) {
             require_auth(account);
-            eosio::action{
-                    permission_level{account, "active"_n},
-                    fioio::FeeContract, "mandatoryfee"_n,
-                    std::make_tuple(std::string("auth_update"), account, max_fee)
-            }.send();
 
-
+            //check the list of system accounts, if it is one of these do not charge the fees.
+            if(!(account == fioio::MSIGACCOUNT ||
+                 account == fioio::WRAPACCOUNT ||
+                 account == fioio::SYSTEMACCOUNT ||
+                 account == fioio::ASSERTACCOUNT ||
+                 account == fioio::WHITELISTACCOUNT ||
+                 account == fioio::REQOBTACCOUNT ||
+                 account == fioio::FeeContract ||
+                 account == fioio::AddressContract ||
+                 account == fioio::TPIDContract ||
+                 account == fioio::TokenContract ||
+                 account == fioio::FOUNDATIONACCOUNT ||
+                 account == fioio::TREASURYACCOUNT ||
+                 account == fioio::FIOSYSTEMACCOUNT ||
+                 account == fioio::FIOACCOUNT)
+                ) {
+                eosio::action{
+                        permission_level{account, "active"_n},
+                        fioio::FeeContract, "mandatoryfee"_n,
+                        std::make_tuple(std::string("auth_update"), account, max_fee)
+                }.send();
+            }
+            
             if (permission == fioio::ACTIVE || permission == fioio::OWNER){
                 eosio_assert((auth.keys.size() == 0) || (auth.keys.size() == 1),
                              "update auth not permitted on owner or active unless keys is empty or has a single entry matching the account public key");
