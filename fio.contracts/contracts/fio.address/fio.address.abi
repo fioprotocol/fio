@@ -47,15 +47,15 @@
           "name": "domainhash",
           "type": "uint128"
         },{
+          "name": "account",
+          "type": "name"
+        },{
          "name": "is_public",
          "type": "uint8"
        },{
           "name": "expiration",
           "type": "uint32"
-        },{
-          "name": "account",
-          "type": "uint64"
-         }
+        }
       ]
     },{
       "name": "eosio_name",
