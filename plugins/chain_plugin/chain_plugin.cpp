@@ -2277,13 +2277,7 @@ if( options.count(name) ) { \
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
-
-            uint128_t plusone = keyhash + 1;
-
-            std::string hexvalkeyhashplus1 = "0x";
-            hexvalkeyhashplus1.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&plusone), sizeof(plusone)));
-
+            
 
             get_table_rows_params eosio_table_row_params = get_table_rows_params{
                     .json           = true,
@@ -2291,7 +2285,7 @@ if( options.count(name) ) { \
                     .scope          = fio_system_scope,
                     .table          = fio_accounts_table,
                     .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhashplus1,
+                    .upper_bound    = hexvalkeyhash,
                     .key_type       = "hex",
                     .index_position = "2"};
 
