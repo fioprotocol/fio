@@ -241,8 +241,7 @@ namespace eosio {
                         print(" updating recomputed locked amount into table ", newlockedamount, "\n");
                         //get fio balance for this account,
                         uint32_t present_time = now();
-                        symbol sym_name = symbol("FIO", 9);
-                        const auto my_balance = eosio::token::get_balance("fio.token"_n,actor, sym_name.code() );
+                        const auto my_balance = eosio::token::get_balance("fio.token"_n,actor, FIOSYMBOL.code() );
                         uint64_t amount = my_balance.amount;
 
                         if (newlockedamount > amount){

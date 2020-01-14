@@ -436,12 +436,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-
-            asset reg_fee_asset;
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = reg_amount;
-
-            fio_fees(account, reg_fee_asset);
+            fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
             print("called mandatory fee for account processing completed","\n");

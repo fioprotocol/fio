@@ -148,11 +148,9 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                asset reg_fee_asset = asset();
-                reg_fee_asset.amount = fee_amount;
-                reg_fee_asset.symbol = symbol("FIO", 9);
+;
 
-                fio_fees(actor, reg_fee_asset);
+                fio_fees(actor, asset(fee_amount, FIOSYMBOL));
 
                 process_rewards(tpid, fee_amount, get_self());
 
@@ -257,11 +255,7 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                asset reg_fee_asset = asset();
-                reg_fee_asset.amount = fee_amount;
-                reg_fee_asset.symbol = symbol("FIO", 9);
-
-                fio_fees(actor, reg_fee_asset);
+                fio_fees(actor, asset(fee_amount, FIOSYMBOL));
 
                 process_rewards(tpid, fee_amount, get_self());
 
