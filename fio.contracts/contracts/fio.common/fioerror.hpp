@@ -84,7 +84,7 @@ namespace fioio {
     constexpr auto ErrorInvalidNumberAddresses = ident | httpDataError | 146;   // Invalid number of addresses
     constexpr auto ErrorInsufficientUnlockedFunds = ident | httpDataError | 147;   // not enough unlocked funds
     constexpr auto ErrorNoWork = ident | httpDataError | 148;   // no work to perform
-
+    constexpr auto ErrorClientKeyNotFound = ident | httpDataError | 149; // Fioname not yet registered (No clientkey)
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
