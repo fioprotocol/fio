@@ -135,6 +135,9 @@ namespace fioio {
                            "FIO Domain expired", ErrorFioNameExpired);
 
             auto account_iter = clientkeys.find(account);
+            fio_400_assert(account_iter != clientkeys.end(), "payer_fio_address", payer_fio_address,
+                           "No such FIO Address",
+                           ErrorClientKeyNotFound);
             string payer_key = account_iter->clientkey; // Index 0 is FIO
 
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
@@ -149,6 +152,9 @@ namespace fioio {
 
             account = fioname_iter2->owner_account;
             account_iter = clientkeys.find(account);
+            fio_400_assert(account_iter != clientkeys.end(), "payee_fio_address", payee_fio_address,
+                           "No such FIO Address",
+                           ErrorClientKeyNotFound);
             string payee_key = account_iter->clientkey;
 
             //begin fees, bundle eligible fee logic
@@ -294,6 +300,9 @@ namespace fioio {
 
             uint64_t account = fioname_iter2->owner_account;
             auto account_iter = clientkeys.find(account);
+            fio_400_assert(account_iter != clientkeys.end(), "payer_fio_address", payer_fio_address,
+                           "No such FIO Address",
+                           ErrorClientKeyNotFound);
             string payer_key = account_iter->clientkey; // Index 0 is FIO
 
             nameHash = string_to_uint128_hash(payee_fio_address.c_str());
@@ -305,6 +314,9 @@ namespace fioio {
 
             account = fioname_iter->owner_account;
             account_iter = clientkeys.find(account);
+            fio_400_assert(account_iter != clientkeys.end(), "payee_fio_address", payee_fio_address,
+                           "No such FIO Address",
+                           ErrorClientKeyNotFound);
             string payee_key = account_iter->clientkey;
 
             const uint64_t payeenameexp = fioname_iter->expiration;
