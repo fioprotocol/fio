@@ -93,7 +93,7 @@ public:
                                         action(permission_level{get_self(), "active"_n},
                                                TokenContract, "transfer"_n,
                                                make_tuple(TREASURYACCOUNT, name(itrfio->owner_account),
-                                                          asset(itr.rewards, symbol("FIO", 9)),
+                                                          asset(itr.rewards, FIOSYMBOL),
                                                           string("Paying TPID from treasury."))
                                         ).send();
                                 } else { //Allocate to BP buckets instead
@@ -289,7 +289,7 @@ public:
                         if (payout > 0) {
                                 action(permission_level{get_self(), "active"_n},
                                        TokenContract, "transfer"_n,
-                                       make_tuple(TREASURYACCOUNT, name(bpiter->owner), asset(payout, symbol("FIO", 9)),
+                                       make_tuple(TREASURYACCOUNT, name(bpiter->owner), asset(payout, FIOSYMBOL),
                                                   string("Paying producer from treasury."))
                                        ).send();
 
@@ -316,7 +316,7 @@ public:
                         auto fdtnstate = fdtnrewards.get();
                         action(permission_level{get_self(), "active"_n},
                                 TokenContract, "transfer"_n,
-                                make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, symbol("FIO", 9)),
+                                make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, FIOSYMBOL),
                                         string("Paying foundation from treasury."))).send();
 
                         //Clear the foundation rewards counter

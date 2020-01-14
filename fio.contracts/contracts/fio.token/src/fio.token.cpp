@@ -76,7 +76,7 @@ void token::issue(name to, asset quantity, string memo) {
         if (amount > 0 && amount < MAXFIOMINT) {
             action(permission_level{"eosio"_n, "active"_n},
                    "fio.token"_n, "issue"_n,
-                   make_tuple(to, asset(amount, symbol("FIO", 9)),
+                   make_tuple(to, asset(amount, FIOSYMBOL),
                               string("New tokens produced from reserves"))
             ).send();
         }
@@ -111,8 +111,7 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
 
         //get fio balance for this account,
         uint32_t present_time = now();
-        symbol sym_name = symbol("FIO", 9);
-        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, sym_name.code() );
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, FIOSYMBOL.code() );
         uint64_t amount = my_balance.amount;
 
         //see if the user is in the lockedtokens table, if so recompute the balance
@@ -238,7 +237,7 @@ void token::trnsfiopubky(const string &payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
 
         qty.amount = amount;
-        qty.symbol = symbol("FIO", 9);
+        qty.symbol = FIOSYMBOL;
 
         fio_400_assert(amount > 0 && qty.amount > 0, "amount", std::to_string(amount),
                        "Invalid amount value", ErrorInvalidAmount);
@@ -313,7 +312,7 @@ void token::trnsfiopubky(const string &payee_public_key,
                                           fioio::ErrorPubAddressExist);
         }
 
-        fio_fees(actor, asset{(int64_t)reg_amount, symbol("FIO", 9)});
+        fio_fees(actor, asset{(int64_t)reg_amount, FIOSYMBOL});
         process_rewards(tpid, reg_amount, get_self());
 
         require_recipient(actor);

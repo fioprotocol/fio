@@ -225,11 +225,7 @@ namespace eosiosystem {
         fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
-        asset reg_fee_asset;
-        reg_fee_asset.symbol = symbol("FIO", 9);
-        reg_fee_asset.amount = reg_amount;
-
-        fio_fees(actor, reg_fee_asset);
+        fio_fees(actor, asset(reg_amount, FIOSYMBOL));
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
@@ -306,11 +302,8 @@ namespace eosiosystem {
         fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
-        asset reg_fee_asset;
-        reg_fee_asset.symbol = symbol("FIO", 9);
-        reg_fee_asset.amount = reg_amount;
 
-        fio_fees(actor, reg_fee_asset);
+        fio_fees(actor, asset(reg_amount, FIOSYMBOL));
         processrewardsnotpid(reg_amount, get_self());
 
         //end new fees, logic for Mandatory fees.
@@ -529,12 +522,7 @@ namespace eosiosystem {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = fee_amount;
-
-            fio_fees(actor, reg_fee_asset);
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
             processrewardsnotpid(fee_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
@@ -660,11 +648,7 @@ namespace eosiosystem {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            asset reg_fee_asset;
-            reg_fee_asset.symbol = symbol("FIO", 9);
-            reg_fee_asset.amount = fee_amount;
-
-            fio_fees(actor, reg_fee_asset);
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
             processrewardsnotpid(fee_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
@@ -704,8 +688,7 @@ namespace eosiosystem {
 
         //get fio balance for this account,
         uint32_t present_time = now();
-        symbol sym_name = symbol("FIO", 9);
-        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, sym_name.code() );
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, FIOSYMBOL.code() );
         uint64_t amount = my_balance.amount;
 
         //see if the user is in the lockedtokens table, if so recompute the balance
