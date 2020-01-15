@@ -287,7 +287,7 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void bundlevote(
-                uint64_t bundled_transactions,
+                int64_t bundled_transactions,
                 const string &actor
         ) {
             const name aactor = name(actor.c_str());

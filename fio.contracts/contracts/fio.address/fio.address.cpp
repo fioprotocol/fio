@@ -132,7 +132,7 @@ namespace fioio {
         }
 
         inline uint64_t getBundledAmount() {
-            uint128_t totalcount = 0;
+            int totalcount = 0;
             uint64_t returnvalue = 0;
 
             if (bundlevoters.end() == bundlevoters.begin()) {
