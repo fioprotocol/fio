@@ -131,9 +131,9 @@ namespace fioio {
             fio_400_assert(res == 0, fioname, fa.fioaddress, fioerror, ErrorInvalidFioNameFormat);
         }
 
-        inline int64 getBundledAmount() {
-            int totalcount = 0;
-            int64 returnvalue = 0;
+        inline uint64_t getBundledAmount() {
+            uint128_t totalcount = 0;
+            uint64_t returnvalue = 0;
 
             if (bundlevoters.end() == bundlevoters.begin()) {
                 return 500;

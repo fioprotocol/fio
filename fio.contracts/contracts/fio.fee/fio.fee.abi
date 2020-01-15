@@ -28,7 +28,7 @@
         "name": "bundlevote",
         "base": "",
         "fields": [
-            {"name":"bundled_transactions", "type":"float64"},
+            {"name":"bundled_transactions", "type":"uint64"},
             {"name":"actor", "type":"string"}
         ]
       },{
@@ -85,7 +85,7 @@
         "base": "",
         "fields": [
            {"name":"block_producer_name", "type":"name"},
-           {"name":"bundledbvotenumber", "type":"int64"},
+           {"name":"bundledbvotenumber", "type":"uint64"},
            {"name":"lastvotetimestamp", "type":"uint64"}
         ]
      }],
