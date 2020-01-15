@@ -305,7 +305,7 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            fio_400_assert(bundled_transactions >= 0, "bundled_transactions", to_string(bundled_transactions),
+            fio_400_assert(bundled_transactions > 0, "bundled_transactions", to_string(bundled_transactions),
                            " Must be positive",
                            ErrorFioNameNotReg);
 
