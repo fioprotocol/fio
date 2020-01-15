@@ -287,7 +287,7 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void bundlevote(
-                int64_t bundled_transactions,
+                uint64_t bundled_transactions,
                 const string &actor
         ) {
             const name aactor = name(actor.c_str());
@@ -305,7 +305,7 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            fio_400_assert(bundled_transactions > 0, "bundled_transactions", to_string(bundled_transactions),
+            fio_400_assert(bundled_transactions >= 0, "bundled_transactions", to_string(bundled_transactions),
                            " Must be positive",
                            ErrorFioNameNotReg);
 

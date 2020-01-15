@@ -78,7 +78,7 @@ namespace fioio {
     // @abi table bundlevoter i64
     struct [[eosio::action]] bundlevoter {
         name block_producer_name;
-        int64_t bundledbvotenumber;
+        uint64_t bundledbvotenumber;
         uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return block_producer_name.value; }
