@@ -244,10 +244,10 @@ namespace fioio {
             return expiration_time;
         }
 
-        uint32_t fio_domain_update(const string &fio_domain, const name &owner,
+        uint32_t fio_domain_update(const name &owner,
                                    const FioAddress &fa) {
 
-            uint128_t domainHash = string_to_uint128_hash(fio_domain.c_str());
+            uint128_t domainHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint32_t expiration_time;
 
             fio_400_assert(fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO domain",
@@ -487,7 +487,7 @@ namespace fioio {
             register_errors(fa, true);
             const name nm = name{owner_account_name};
 
-            const uint32_t expiration_time = fio_domain_update(fio_domain, nm, fa);
+            const uint32_t expiration_time = fio_domain_update(nm, fa);
 
             struct tm timeinfo;
             fioio::convertfiotime(expiration_time, &timeinfo);
