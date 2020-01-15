@@ -28,7 +28,7 @@
         "name": "bundlevote",
         "base": "",
         "fields": [
-            {"name":"bundled_transactions", "type":"uint64"},
+            {"name":"bundled_transactions", "type":"int64"},
             {"name":"actor", "type":"string"}
         ]
       },{
