@@ -1,6 +1,6 @@
 /** FioToken implementation file
  *  Description: FioToken is the smart contract that help manage the FIO Token.
- *  @author Adam Androulidakis, Casey Gardiner
+ *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @modifedby
  *  @file fio.token.cpp
  *  @copyright Dapix
@@ -217,11 +217,9 @@ void token::transfer(name from,
 
 
 inline void token::fio_fees(const name &actor, const asset &fee) {
-        if (appConfig.pmtson) {
+        if (fee.amount > 0) {
                 // check for funds is implicitly done as part of the funds transfer.
                 transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
-        } else {
-                print("Payments currently disabled.");
         }
 }
 

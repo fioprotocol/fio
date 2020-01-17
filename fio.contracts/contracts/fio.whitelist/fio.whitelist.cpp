@@ -37,7 +37,7 @@ namespace fioio {
         }
 
         inline void fio_fees(const name &actor, const asset &fee) const {
-            if (appConfig.pmtson) {
+            if (fee.amount > 0) {
                 // check for funds is implicitly done as part of the funds transfer.
                 print("Collecting FIO API fees: ", fee, "\n");
                 action(permission_level{actor, "active"_n},
@@ -45,8 +45,6 @@ namespace fioio {
                        make_tuple(actor, "fio.treasury"_n, fee,
                                   string("FIO API fees. Thank you."))
                 ).send();
-            } else {
-                print("Payments currently disabled.", "\n");
             }
         }
 

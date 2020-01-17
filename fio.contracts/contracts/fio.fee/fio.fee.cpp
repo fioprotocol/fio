@@ -398,11 +398,13 @@ namespace fioio {
         }
 
         inline void fio_fees(const name &actor, const asset &fee)  {
-            action(permission_level{actor, "active"_n},
-                   TokenContract, "transfer"_n,
-                   make_tuple(actor, TREASURYACCOUNT, fee,
-                              string("FIO API fees. Thank you."))
-            ).send();
+            if(fee.amount > 0) {
+                action(permission_level{actor, "active"_n},
+                       TokenContract, "transfer"_n,
+                       make_tuple(actor, TREASURYACCOUNT, fee,
+                                  string("FIO API fees. Thank you."))
+                ).send();
+            }
         }
 
 
@@ -465,13 +467,24 @@ namespace fioio {
             const uint128_t endPointHash = string_to_uint128_hash(end_point.c_str());
             const uint64_t fee_id = fiofees.available_primary_key();
 
-            fiofees.emplace(_self, [&](struct fiofee &f) {
-                f.fee_id = fee_id;
-                f.end_point = end_point;
-                f.end_point_hash = endPointHash;
-                f.type = type;
-                f.suf_amount = suf_amount;
-            });
+            auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fees_iter = feesbyendpoint.find(endPointHash);
+
+            if (fees_iter != feesbyendpoint.end())
+            {
+                    feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
+                        a.type = type;
+                        a.suf_amount = suf_amount;
+                    });
+            } else {
+                fiofees.emplace(_self, [&](struct fiofee &f) {
+                    f.fee_id = fee_id;
+                    f.end_point = end_point;
+                    f.end_point_hash = endPointHash;
+                    f.type = type;
+                    f.suf_amount = suf_amount;
+                });
+            }
         }
     };
 
