@@ -132,11 +132,13 @@ namespace eosiosystem {
     static constexpr eosio::name treasury_account{"fio.treasury"_n};
 
     inline void fio_fees(const name &actor, const asset &fee)  {
+        if(fee.amount > 0) {
             action(permission_level{actor, "active"_n},
                    token_account, "transfer"_n,
                    make_tuple(actor, treasury_account, fee,
                               string("FIO API fees. Thank you."))
             ).send();
+        }
     }
 
     /******

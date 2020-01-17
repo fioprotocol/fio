@@ -36,7 +36,7 @@ namespace fioio {
         };
 
         inline void fio_fees(const name &actor, const asset &fee) const {
-            if (appConfig.pmtson) {
+            if (fee.amount>0) {
 
                 action(permission_level{actor, "active"_n},
                        TokenContract, "transfer"_n,
@@ -44,8 +44,6 @@ namespace fioio {
                                   string("FIO API fees. Thank you."))
                 ).send();
 
-            } else {
-                print("Payments currently disabled.");
             }
         }
     public:
