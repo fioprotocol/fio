@@ -4349,6 +4349,10 @@ int main(int argc, char **argv) {
     auto registerProducer = register_producer_subcommand(system);
     auto unregisterProducer = unregister_producer_subcommand(system);
 
+    auto listBandWidth = list_bw_subcommand(system);
+    auto bidname = bidname_subcommand(system);
+    auto bidnameinfo = bidname_info_subcommand(system);
+
     auto voteProducer = system->add_subcommand("voteproducer", localized("Vote for a producer"));
     voteProducer->require_subcommand();
     auto voteProxy = vote_producer_proxy_subcommand(voteProducer);
