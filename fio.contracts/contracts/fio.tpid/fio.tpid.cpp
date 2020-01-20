@@ -88,7 +88,7 @@ public:
                 eosio_assert(has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
                              has_auth("fio.reqobt"_n) || has_auth("eosio"_n),
                              "missing required authority of fio.address, fio.treasury, fio.token, eosio or fio.reqobt");
-
+                check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
                 const auto tpidhash = string_to_uint128_hash(tpid.c_str());
                 auto tpidsbyname = tpids.get_index<"byname"_n>();
                 if (tpidsbyname.find(tpidhash) == tpidsbyname.end()) {
