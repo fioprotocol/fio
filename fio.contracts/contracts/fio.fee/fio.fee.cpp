@@ -259,6 +259,8 @@ namespace fioio {
                         fv.suf_amount = feeval.value;
                         fv.lastvotetimestamp = nowtime;
                     });
+                } else{
+                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
                 }
             }
             update_fees();
@@ -275,8 +277,6 @@ namespace fioio {
             require_auth(SYSTEMACCOUNT);
             update_fees();
         }
-
-
 
        /********
         * This action allows block producers to vote for the number of transactions that will be permitted
