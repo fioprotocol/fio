@@ -30,15 +30,6 @@ namespace eosiosystem {
     using eosio::singleton;
     using eosio::transaction;
 
-    inline void fio_fees(const name &actor, const asset &fee)  {
-        if(fee.amount > 0) {
-            action(permission_level{actor, "active"_n},
-                   TokenContract, "transfer"_n,
-                   make_tuple(actor, TREASURYACCOUNT, fee,
-                              string("FIO API fees. Thank you."))
-            ).send();
-        }
-    }
 
    /*******
     * this action will do the required work in the system tables that is necessary

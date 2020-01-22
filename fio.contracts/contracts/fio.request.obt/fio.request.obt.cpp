@@ -35,17 +35,6 @@ namespace fioio {
             string fio_address;
         };
 
-        inline void fio_fees(const name &actor, const asset &fee) const {
-            if (fee.amount>0) {
-
-                action(permission_level{actor, "active"_n},
-                       TokenContract, "transfer"_n,
-                       make_tuple(actor, TREASURYACCOUNT, fee,
-                                  string("FIO API fees. Thank you."))
-                ).send();
-
-            }
-        }
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
                 : contract(s, code, ds),

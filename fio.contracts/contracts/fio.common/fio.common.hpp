@@ -90,6 +90,16 @@ namespace fioio {
         return 0;
     }
 
+     void fio_fees(const name &actor, const asset &fee)  {
+        if(fee.amount > 0) {
+            action(permission_level{actor, "active"_n},
+                   TokenContract, "transfer"_n,
+                   make_tuple(actor, TREASURYACCOUNT, fee,
+                              string("FIO API fees. Thank you."))
+            ).send();
+        }
+    }
+
     static constexpr uint64_t string_to_uint64_hash(const char *str) {
 
         uint32_t len = 0;
