@@ -191,7 +191,7 @@ namespace fioio {
                            ErrorFioNameNotReg);
 
             //check that the producer is active
-            fio_400_assert(((topprods.find(prod_iter->owner.value) == topprods.end())), "actor", actor,
+            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
