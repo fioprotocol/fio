@@ -322,7 +322,7 @@ namespace eosiosystem {
         auto idx = _producers.get_index<"prototalvote"_n>();
 
         std::vector <std::pair<eosio::producer_key, uint16_t>> top_producers;
-        top_producers.reserve(21);
+        top_producers.reserve(MAXACTIVEBPS);
 
         //clear _topprods table
         auto iter = _topprods.begin();
@@ -331,7 +331,7 @@ namespace eosiosystem {
         }
 
         for (auto it = idx.cbegin();
-             it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it) {
+             it != idx.cend() && top_producers.size() < MAXACTIVEBPS && 0 < it->total_votes && it->active(); ++it) {
             top_producers.emplace_back(
                     std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
 
