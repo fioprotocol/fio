@@ -17,7 +17,6 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/transaction.hpp>
 #include <fio.token/fio.token.hpp>
-#include <fio.treasury/fio.treasury.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <eosiolib/asset.hpp>
@@ -31,14 +30,11 @@ namespace eosiosystem {
     using eosio::singleton;
     using eosio::transaction;
 
-    static constexpr eosio::name token_account{"fio.token"_n};
-    static constexpr eosio::name treasury_account{"fio.treasury"_n};
-
     inline void fio_fees(const name &actor, const asset &fee)  {
         if(fee.amount > 0) {
             action(permission_level{actor, "active"_n},
-                   token_account, "transfer"_n,
-                   make_tuple(actor, treasury_account, fee,
+                   TokenContract, "transfer"_n,
+                   make_tuple(actor, TREASURYACCOUNT, fee,
                               string("FIO API fees. Thank you."))
             ).send();
         }
