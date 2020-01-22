@@ -33,6 +33,7 @@ namespace fioio {
         bundlevoters_table bundlevoters;
         feevotes_table feevotes;
         eosiosystem::producers_table producers;
+        eosiosystem::top_producers_table topprods;
 
         void update_fees() {
             print("called update fees.", "\n");
@@ -40,12 +41,12 @@ namespace fioio {
 
             const bool dbgout = false;
 
-            //get the producers from the producers table, only use producers with is_active set true.
+            //get the producers from the producers table, only use elected producers
             //for the active producers. make a map for each producer and its associated multiplier
             // for use in performing the multiplications later,
             auto prod_iter = producers.lower_bound(0);
             while (prod_iter != producers.end()) {
-                if (prod_iter->is_active) {
+                if ((topprods.find(prod_iter->owner.value) != topprods.end())) {
                     if (dbgout) {
                         print(" found active producer", prod_iter->owner, "\n");
                     }
@@ -158,7 +159,8 @@ namespace fioio {
                   bundlevoters(_self, _self.value),
                   feevoters(_self, _self.value),
                   feevotes(_self, _self.value),
-                  producers("eosio"_n, name("eosio").value) {
+                  producers(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
+                  topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
         }
 
         /*********
@@ -189,8 +191,7 @@ namespace fioio {
                            ErrorFioNameNotReg);
 
             //check that the producer is active
-            const bool is_active = prod_iter->is_active;
-            fio_400_assert(is_active, "actor", actor,
+            fio_400_assert(((topprods.find(prod_iter->owner.value) == topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -300,8 +301,7 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            const bool is_active = prod_iter->is_active;
-            fio_400_assert(is_active, "actor", actor,
+            fio_400_assert(((topprods.find(prod_iter->owner.value) == topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -363,8 +363,7 @@ namespace fioio {
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
-            const bool is_active = prod_iter->is_active;
-            fio_400_assert(is_active, "actor", actor,
+            fio_400_assert(((topprods.find(prod_iter->owner.value) == topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
