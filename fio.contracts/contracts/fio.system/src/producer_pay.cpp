@@ -50,6 +50,13 @@ namespace eosiosystem {
         /// only update block producers once every minute, block_timestamp is in half seconds
         if (timestamp.slot - _gstate.last_producer_schedule_update.slot > 120) {
             update_elected_producers(timestamp);
+            //invoke the fee computation.
+
+            action(permission_level{get_self(), "active"_n},
+                   "fio.fee"_n, "updatefees"_n,
+                   make_tuple(_self)
+            ).send();
+
         }
     }
 

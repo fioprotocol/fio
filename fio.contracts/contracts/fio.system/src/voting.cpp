@@ -17,7 +17,7 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/transaction.hpp>
 #include <fio.token/fio.token.hpp>
-
+#include <fio.treasury/fio.treasury.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
 #include <eosiolib/asset.hpp>
@@ -30,6 +30,19 @@ namespace eosiosystem {
     using eosio::const_mem_fun;
     using eosio::singleton;
     using eosio::transaction;
+
+    static constexpr eosio::name token_account{"fio.token"_n};
+    static constexpr eosio::name treasury_account{"fio.treasury"_n};
+
+    inline void fio_fees(const name &actor, const asset &fee)  {
+        if(fee.amount > 0) {
+            action(permission_level{actor, "active"_n},
+                   token_account, "transfer"_n,
+                   make_tuple(actor, treasury_account, fee,
+                              string("FIO API fees. Thank you."))
+            ).send();
+        }
+    }
 
    /*******
     * this action will do the required work in the system tables that is necessary
@@ -125,19 +138,6 @@ namespace eosiosystem {
                 info.location = location;
                 info.last_claim_time = ct;
             });
-        }
-    }
-
-    static constexpr eosio::name token_account{"fio.token"_n};
-    static constexpr eosio::name treasury_account{"fio.treasury"_n};
-
-    inline void fio_fees(const name &actor, const asset &fee)  {
-        if(fee.amount > 0) {
-            action(permission_level{actor, "active"_n},
-                   token_account, "transfer"_n,
-                   make_tuple(actor, treasury_account, fee,
-                              string("FIO API fees. Thank you."))
-            ).send();
         }
     }
 
@@ -328,10 +328,20 @@ namespace eosiosystem {
         std::vector <std::pair<eosio::producer_key, uint16_t>> top_producers;
         top_producers.reserve(21);
 
+        //clear _topprods table
+        auto iter = _topprods.begin();
+        while (iter != _topprods.end()) {
+                iter = _topprods.erase(iter);
+        }
+
         for (auto it = idx.cbegin();
              it != idx.cend() && top_producers.size() < 21 && 0 < it->total_votes && it->active(); ++it) {
             top_producers.emplace_back(
                     std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
+
+            _topprods.emplace(get_self(), [&](auto &p) {
+                  p.producer = it->owner;
+            });
         }
 
         if (top_producers.size() < _gstate.last_producer_schedule_size) {
@@ -356,12 +366,7 @@ namespace eosiosystem {
         if (set_proposed_producers(packed_schedule.data(), packed_schedule.size()) >= 0) {
             _gstate.last_producer_schedule_size = static_cast<decltype(_gstate.last_producer_schedule_size)>( top_producers.size());
         }
-        //invoke the fee computation.
 
-        action(permission_level{get_self(), "active"_n},
-               "fio.fee"_n, "updatefees"_n,
-               make_tuple(_self)
-        ).send();
     }
 
     double system_contract::update_total_votepay_share(time_point ct,
