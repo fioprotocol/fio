@@ -260,7 +260,7 @@ namespace fioio {
                         fv.lastvotetimestamp = nowtime;
                     });
                 } else {
-                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
+                    fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             }
             update_fees();
@@ -322,7 +322,7 @@ namespace fioio {
                         a.lastvotetimestamp = nowtime;
                     });
                 } else {
-                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
+                    fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             } else {
                 bundlevoters.emplace(_self, [&](struct bundlevoter &f) {
@@ -385,7 +385,7 @@ namespace fioio {
                         a.lastvotetimestamp = nowtime;
                     });
                 } else {
-                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
+                    fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             } else {
                 feevoters.emplace(_self, [&](struct feevoter &f) {
