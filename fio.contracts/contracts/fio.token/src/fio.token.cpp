@@ -120,18 +120,18 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
         if(lockiter != lockedTokensTable.end()) {
 
                 check(amount >= (lockiter->remaining_locked_amount - feeamount),"lock amount is incoherent.");
-               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 35 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 35 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 35 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 35 minutes from grant","\n");
+               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 12 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 12 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
 
                 //
                // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
-                uint32_t issueplus210 = lockiter->timestamp+(35*60);
+                uint32_t issueplus210 = lockiter->timestamp+(12*60);
                 if(
                         //if lock type 1 always subtract remaining locked amount from balance
                         ((lockiter->grant_type == 1) && !isfee) ||
-                        //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
+                        //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking .
                         ((lockiter->grant_type == 2)&&
                          ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
                         //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
@@ -140,10 +140,10 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
                         ((lockiter->grant_type == 3)&&  !isfee)
                         ) {
                         //recompute the remaining locked amount based on vesting.
-                        uint64_t unlockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;
+                        uint64_t lockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;
                         //subtract the lock amount from the balance
-                        if (unlockedTokenAmount < amount) {
-                                amount -= unlockedTokenAmount;
+                        if (lockedTokenAmount < amount) {
+                                amount -= lockedTokenAmount;
                                 return (amount >= transferamount);
                         } else {
                                 return false;
