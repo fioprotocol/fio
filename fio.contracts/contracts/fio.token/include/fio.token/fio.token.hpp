@@ -53,9 +53,6 @@ namespace eosio {
         [[eosio::action]]
         void mintfio(const name &to, const uint64_t &amount);
 
-        inline void fio_fees(const name &actor, const asset &fee);
-
-
         [[eosio::action]]
         void retire(asset quantity, string memo);
 

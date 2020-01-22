@@ -36,18 +36,6 @@ namespace fioio {
             appConfig = configsSingleton.get_or_default(config());
         }
 
-        inline void fio_fees(const name &actor, const asset &fee) const {
-            if (fee.amount > 0) {
-                // check for funds is implicitly done as part of the funds transfer.
-                print("Collecting FIO API fees: ", fee, "\n");
-                action(permission_level{actor, "active"_n},
-                       TokenContract, "transfer"_n,
-                       make_tuple(actor, "fio.treasury"_n, fee,
-                                  string("FIO API fees. Thank you."))
-                ).send();
-            }
-        }
-
         struct decrementcounter {
             string fio_address;
         };

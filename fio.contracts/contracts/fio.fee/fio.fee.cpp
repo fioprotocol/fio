@@ -401,16 +401,6 @@ namespace fioio {
             send_response(response_string.c_str());
         }
 
-        inline void fio_fees(const name &actor, const asset &fee)  {
-            if(fee.amount > 0) {
-                action(permission_level{actor, "active"_n},
-                       TokenContract, "transfer"_n,
-                       make_tuple(actor, TREASURYACCOUNT, fee,
-                                  string("FIO API fees. Thank you."))
-                ).send();
-            }
-        }
-
 
         [[eosio::action]]
         void mandatoryfee(

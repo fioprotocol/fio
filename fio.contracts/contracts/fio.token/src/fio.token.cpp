@@ -215,14 +215,6 @@ void token::transfer(name from,
 }
 
 
-
-inline void token::fio_fees(const name &actor, const asset &fee) {
-        if (fee.amount > 0) {
-                // check for funds is implicitly done as part of the funds transfer.
-                transfer(actor, "fio.treasury"_n, fee, string("FIO API fees. Thank you."));
-        }
-}
-
 void token::trnsfiopubky(const string &payee_public_key,
                          const int64_t &amount,
                          const int64_t &max_fee,

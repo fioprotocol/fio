@@ -25,11 +25,6 @@
 #define BPMAXRESERVE 25000000000000000
 #endif
 
-#define MINUTE 60
-#define YEARDAYS 365
-#define MAXBPS 42
-#define MAXACTIVEBPS 21
-
 #include "fio.treasury.hpp"
 
 namespace fioio {
