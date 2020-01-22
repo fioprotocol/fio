@@ -259,6 +259,8 @@ namespace fioio {
                         fv.suf_amount = feeval.value;
                         fv.lastvotetimestamp = nowtime;
                     });
+                } else {
+                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
                 }
             }
             update_fees();
@@ -275,8 +277,6 @@ namespace fioio {
             require_auth(SYSTEMACCOUNT);
             update_fees();
         }
-
-
 
        /********
         * This action allows block producers to vote for the number of transactions that will be permitted
@@ -321,6 +321,8 @@ namespace fioio {
                         a.bundledbvotenumber = bundled_transactions;
                         a.lastvotetimestamp = nowtime;
                     });
+                } else {
+                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
                 }
             } else {
                 bundlevoters.emplace(_self, [&](struct bundlevoter &f) {
@@ -382,6 +384,8 @@ namespace fioio {
                         a.fee_multiplier = multiplier;
                         a.lastvotetimestamp = nowtime;
                     });
+                } else {
+                    fio_404_assert(false, "Time violation", ErrorTimeViolation);
                 }
             } else {
                 feevoters.emplace(_self, [&](struct feevoter &f) {

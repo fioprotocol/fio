@@ -4349,6 +4349,10 @@ int main(int argc, char **argv) {
     auto registerProducer = register_producer_subcommand(system);
     auto unregisterProducer = unregister_producer_subcommand(system);
 
+    auto listBandWidth = list_bw_subcommand(system);
+    auto bidname = bidname_subcommand(system);
+    auto bidnameinfo = bidname_info_subcommand(system);
+
     auto voteProducer = system->add_subcommand("voteproducer", localized("Vote for a producer"));
     voteProducer->require_subcommand();
     auto voteProxy = vote_producer_proxy_subcommand(voteProducer);
@@ -4358,44 +4362,10 @@ int main(int argc, char **argv) {
 
     auto listProducers = list_producers_subcommand(system);
 
-    auto delegateBandWidth = delegate_bandwidth_subcommand(system);
-    auto undelegateBandWidth = undelegate_bandwidth_subcommand(system);
-    auto listBandWidth = list_bw_subcommand(system);
-    auto bidname = bidname_subcommand(system);
-    auto bidnameinfo = bidname_info_subcommand(system);
-
-    auto buyram = buyram_subcommand(system);
-    auto sellram = sellram_subcommand(system);
-
     auto claimRewards = claimrewards_subcommand(system);
 
     auto regProxy = regproxy_subcommand(system);
     auto unregProxy = unregproxy_subcommand(system);
-
-    auto cancelDelay = canceldelay_subcommand(system);
-
-    auto rex = system->add_subcommand("rex", localized("Actions related to REX (the resource exchange)"));
-    rex->require_subcommand();
-    auto deposit = deposit_subcommand(rex);
-    auto withdraw = withdraw_subcommand(rex);
-    auto buyrex = buyrex_subcommand(rex);
-    auto lendrex = lendrex_subcommand(rex);
-    auto unstaketorex = unstaketorex_subcommand(rex);
-    auto sellrex = sellrex_subcommand(rex);
-    auto cancelrexorder = cancelrexorder_subcommand(rex);
-    auto mvtosavings = mvtosavings_subcommand(rex);
-    auto mvfromsavings = mvfrsavings_subcommand(rex);
-    auto rentcpu = rentcpu_subcommand(rex);
-    auto rentnet = rentnet_subcommand(rex);
-    auto fundcpuloan = fundcpuloan_subcommand(rex);
-    auto fundnetloan = fundnetloan_subcommand(rex);
-    auto defcpuloan = defcpuloan_subcommand(rex);
-    auto defnetloan = defnetloan_subcommand(rex);
-    auto consolidate = consolidate_subcommand(rex);
-    auto updaterex = updaterex_subcommand(rex);
-    auto rexexec = rexexec_subcommand(rex);
-    auto closerex = closerex_subcommand(rex);
-
 
     try {
         app.parse(argc, argv);

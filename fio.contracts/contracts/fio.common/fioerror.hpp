@@ -85,6 +85,8 @@ namespace fioio {
     constexpr auto ErrorInsufficientUnlockedFunds = ident | httpDataError | 147;   // not enough unlocked funds
     constexpr auto ErrorNoWork = ident | httpDataError | 148;   // no work to perform
     constexpr auto ErrorClientKeyNotFound = ident | httpDataError | 149; // Fioname not yet registered (No clientkey)
+    constexpr auto ErrorTimeViolation = ident | httpLocationError | 150;   // Domain not yet registered
+
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
