@@ -106,18 +106,6 @@ namespace fioio {
             return owner_account_name;
         }
 
-        inline void fio_fees(const name &actor, const asset &fee) const {
-            if (fee.amount>0) {
-
-                action(permission_level{actor, "active"_n},
-                       TokenContract, "transfer"_n,
-                       make_tuple(actor, TREASURYACCOUNT, fee,
-                                  string("FIO API fees. Thank you."))
-                ).send();
-
-            }
-        }
-
         inline void register_errors(const FioAddress &fa, bool domain) const {
             const int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
             string fioname = "fio_address";

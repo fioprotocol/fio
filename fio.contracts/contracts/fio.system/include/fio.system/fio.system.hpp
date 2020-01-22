@@ -138,6 +138,21 @@ locked_tokens_table;
 //end locked token holders table.
 
 
+//Top producers that are calculated every block in update_elected_producers
+struct [[eosio::table, eosio::contract("fio.system")]] top_prod_info {
+    name producer;
+
+    uint64_t primary_key() const { return producer.value; }
+
+    // explicit serialization macro is not necessary, used here only to improve compilation time
+    EOSLIB_SERIALIZE( top_prod_info, (producer)
+    )
+};
+
+typedef eosio::multi_index<"topprods"_n, top_prod_info>
+top_producers_table;
+
+
 
 struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     uint64_t id;
@@ -156,7 +171,6 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     time_point last_claim_time;
     //init this to zero here to ensure that if the location is not specified, sorting will still work.
     uint16_t location = 0;
-
     uint64_t primary_key() const { return id; }
     uint64_t by_owner() const{return owner.value;}
     uint128_t by_address() const{return addresshash;}
@@ -243,6 +257,7 @@ class [[eosio::contract("fio.system")]] system_contract : public native {
 private:
     voters_table _voters;
     producers_table _producers;
+    top_producers_table _topprods;
     locked_tokens_table _lockedtokens;
    //MAS-522 eliminate producers2 producers_table2 _producers2;
     global_state_singleton _global;
