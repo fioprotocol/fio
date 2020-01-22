@@ -76,7 +76,7 @@ namespace fioio {
 
             name aactor = name(actor.c_str());
             require_auth(aactor);
-
+            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
             fio_400_assert(fio_request_id.length() < 16, "fio_request_id", fio_request_id, "No such FIO Request",
@@ -257,7 +257,7 @@ namespace fioio {
 
             const name aActor = name(actor.c_str());
             require_auth(aActor);
-
+            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
@@ -421,7 +421,7 @@ namespace fioio {
             print("call reject funds request\n");
             const name aactor = name(actor.c_str());
             require_auth(aactor);
-
+            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
