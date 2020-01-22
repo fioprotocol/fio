@@ -24,6 +24,7 @@ namespace fioio {
         bundlevoters_table bundlevoters;
         tpids_table tpids;
         eosiosystem::voters_table voters;
+        eosiosystem::top_producers_table topprods;
         config appConfig;
 
     public:
@@ -36,7 +37,8 @@ namespace fioio {
                                                                         bundlevoters(FeeContract, FeeContract.value),
                                                                         accountmap(_self, _self.value),
                                                                         tpids(TPIDContract, TPIDContract.value),
-                                                                        voters(AddressContract, AddressContract.value) {
+                                                                        voters(AddressContract, AddressContract.value),
+                                                                        topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value){
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -119,21 +121,32 @@ namespace fioio {
 
         inline uint64_t getBundledAmount() {
             int totalcount = 0;
+            vector<uint64_t> votes;
             uint64_t returnvalue = 0;
 
             if (bundlevoters.end() == bundlevoters.begin()) {
                 return 500;
             }
 
-            for (const auto &itr : bundlevoters) {
-                returnvalue += itr.bundledbvotenumber;
-                totalcount++;
+            for (const auto &itr : topprods) {
+                auto vote_iter = bundlevoters.find(itr.producer.value);
+                if( vote_iter != bundlevoters.end()){
+                    votes.push_back(vote_iter->bundledbvotenumber);
+                }
             }
 
-            if (totalcount == 0) {
+            size_t size = votes.size();
+
+            if (size == 0 ) {
                 return 500;
+            } else {
+                sort(votes.begin(), votes.end());
+                if (size % 2 == 0) {
+                    return (votes[size / 2 - 1] + votes[size / 2]) / 2;
+                } else {
+                    return votes[size / 2];
+                }
             }
-            return returnvalue / totalcount;
         }
 
         inline void addaddress_errors(const vector<tokenpubaddr> &pubaddresses, const FioAddress &fa, const int64_t &max_fee) const {
@@ -198,7 +211,6 @@ namespace fioio {
             auto fioname_iter = namesbyname.find(nameHash);
             fio_400_assert(fioname_iter == namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO address already registered", ErrorFioNameAlreadyRegistered);
-
 
             auto key_iter = accountmap.find(owner.value);
 

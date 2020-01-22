@@ -181,7 +181,6 @@ namespace fioio {
 
             bool dbgout = false;
 
-
             //validate the actor.
             //check that the actor is in the block producers.
             auto prodbyowner = producers.get_index<"byowner"_n>();
