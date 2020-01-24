@@ -32,7 +32,6 @@ namespace fioio {
         feevoters_table feevoters;
         bundlevoters_table bundlevoters;
         feevotes_table feevotes;
-        eosiosystem::producers_table producers;
         eosiosystem::top_producers_table topprods;
 
         void update_fees() {
@@ -41,26 +40,21 @@ namespace fioio {
 
             const bool dbgout = false;
 
-            //get the producers from the producers table, only use elected producers
-            //for the active producers. make a map for each producer and its associated multiplier
-            // for use in performing the multiplications later,
-            auto prod_iter = producers.lower_bound(0);
-            while (prod_iter != producers.end()) {
-                if ((topprods.find(prod_iter->owner.value) != topprods.end())) {
-                    if (dbgout) {
-                        print(" found active producer", prod_iter->owner, "\n");
-                    }
-                    auto voters_iter = feevoters.find(prod_iter->owner.value);
-                    const string v1 = prod_iter->owner.to_string();
+            //Selecting only elected producers, create a map for each producer and its associated multiplier
+            //for use in performing the multiplications later,
+            auto topprod = topprods.begin();
+            while (topprod != topprods.end()) {
+
+                    auto voters_iter = feevoters.find(topprod->producer.value);
+                    const string v1 = topprod->producer.to_string();
 
                     if (voters_iter != feevoters.end()) {
                         if (dbgout) {
-                            print(" adding producer to multiplier map", prod_iter->owner, "\n");
+                            print(" adding producer to multiplier map", v1.c_str(), "\n");
                         }
                         producer_fee_multipliers_map.insert(make_pair(v1, voters_iter->fee_multiplier));
                     }
-                }
-                prod_iter++;
+                topprod++;
             }
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
@@ -159,7 +153,6 @@ namespace fioio {
                   bundlevoters(_self, _self.value),
                   feevoters(_self, _self.value),
                   feevotes(_self, _self.value),
-                  producers(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
                   topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
         }
 
@@ -181,16 +174,8 @@ namespace fioio {
 
             bool dbgout = false;
 
-            //validate the actor.
-            //check that the actor is in the block producers.
-            auto prodbyowner = producers.get_index<"byowner"_n>();
-            auto prod_iter = prodbyowner.find(aactor.value);
-            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            //check that the producer is active
-            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
+            //check that the producer is active block producer
+            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -293,14 +278,7 @@ namespace fioio {
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            auto prodbyowner = producers.get_index<"byowner"_n>();
-            auto prod_iter = prodbyowner.find(aactor.value);
-
-            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
+            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -355,14 +333,7 @@ namespace fioio {
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            auto prodbyowner = producers.get_index<"byowner"_n>();
-            auto prod_iter = prodbyowner.find(aactor.value);
-
-            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
+            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
