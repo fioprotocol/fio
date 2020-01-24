@@ -52,10 +52,16 @@ namespace eosiosystem {
             update_elected_producers(timestamp);
             //invoke the fee computation.
 
-            action(permission_level{get_self(), "active"_n},
-                   "fio.fee"_n, "updatefees"_n,
-                   make_tuple(_self)
-            ).send();
+        }
+
+        if (timestamp.slot - _gstate.last_fee_update.slot > 126) {
+
+          action(permission_level{get_self(), "active"_n},
+                 "fio.fee"_n, "updatefees"_n,
+                 make_tuple(_self)
+          ).send();
+
+          _gstate.last_fee_update = timestamp;
 
         }
     }
