@@ -2277,7 +2277,7 @@ if( options.count(name) ) { \
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
-            
+
 
             get_table_rows_params eosio_table_row_params = get_table_rows_params{
                     .json           = true,
@@ -2915,7 +2915,7 @@ if( options.count(name) ) { \
                                           shorten_abi_errors);
         }
 
-        read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const try {
+        read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const {
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
             const auto table_type = get_table_type(abi, N(producers));
             const abi_serializer abis{abi, abi_serializer_max_time};
@@ -2977,7 +2977,7 @@ if( options.count(name) ) { \
             result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time,
                                                                shorten_abi_errors)["total_producer_vote_weight"].as_double();
             return result;
-        } catch (...) {
+        } /*catch (...) {
             read_only::get_producers_result result;
 
             for (auto p : db.active_producers().producers) {
@@ -2991,7 +2991,7 @@ if( options.count(name) ) { \
             }
 
             return result;
-        }
+        } */
 
         read_only::get_producer_schedule_result
         read_only::get_producer_schedule(const read_only::get_producer_schedule_params &p) const {
