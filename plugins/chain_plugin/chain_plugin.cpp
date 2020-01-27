@@ -1573,7 +1573,6 @@ if( options.count(name) ) { \
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
 
         const uint16_t FEEMAXLENGTH = 32;
-        const uint16_t FIOADDRESSLENGTH = 64;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
 
         /***
@@ -2372,13 +2371,6 @@ if( options.count(name) ) { \
 
             if (isbundleeligible) {
 
-                FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", "", "Invalid FIO Address",
-                               fioio::ErrorChainAddressEmpty);
-
-                FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", p.fio_address.c_str(),
-                               "Invalid FIO Address",
-                               fioio::ErrorInvalidFioNameFormat);
-
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -2404,7 +2396,7 @@ if( options.count(name) ) { \
 
                 fioio::FioAddress fa;
                 fioio::getFioAddressStruct(p.fio_address, fa);
-                int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
+                int res = fioio::validateFioNameFormat(fa);
                 FIO_400_ASSERT(res == 0, "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameNotReg);
 
@@ -2526,11 +2518,8 @@ if( options.count(name) ) { \
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_address, fa);
             // assert if empty fio name
-            int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
+            int res = fioio::validateFioNameFormat(fa);
 
-            FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", fa.fioaddress,
-                           "Invalid FIO Address",
-                           fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
@@ -2636,19 +2625,10 @@ if( options.count(name) ) { \
 
             avail_check_result result;
 
-            FIO_400_ASSERT(p.fio_name.size() <= FIOADDRESSLENGTH, "fio_name", p.fio_name, "Invalid FIO Name",
-                           fioio::ErrorInvalidFioNameFormat);
-
-            // assert if empty fio name
-            FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid FIO Name",
-                           fioio::ErrorInvalidFioNameFormat);
-
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_name, fa);
-            int res = fioio::isFioNameValid(fa.fiodomain) * 10;
-            if( res == 0 && !fa.domainOnly ) {
-                fioio::isFioNameValid(fa.fioname);
-            }
+            int res = fioio::validateFioNameFormat(fa);
+
             FIO_400_ASSERT(res == 0, "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
             //declare variables.
