@@ -425,7 +425,7 @@ namespace eosiosystem {
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
         uint128_t voterDomainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
-        fio_400_assert(isFioNameValid(fio_address), "fio_address", fio_address, "FIO Address not found",
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
                        ErrorDomainAlreadyRegistered);
 
         // compare fio_address owner and compare to actor
@@ -539,7 +539,7 @@ namespace eosiosystem {
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
         uint128_t voterDomainHash = string_to_uint128_hash(va.fiodomain.c_str());
 
-        fio_400_assert(isFioNameValid(fio_address), "fio_address", fio_address, "FIO Address not found",
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
                        ErrorDomainAlreadyRegistered);
 
         // compare fio_address owner and compare to actor

@@ -223,9 +223,14 @@ void token::trnsfiopubky(const string &payee_public_key,
 
         require_auth(actor);
         asset qty;
+
+        FioAddress fa;
+        getFioAddressStruct(tpid, fa);
+
         fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
-        check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+
+        check(tpid == "" || validateFioNameFormat(fa), "TPID must be empty or valid FIO address");
         qty.amount = amount;
         qty.symbol = FIOSYMBOL;
 

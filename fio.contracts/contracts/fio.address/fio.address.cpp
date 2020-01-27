@@ -109,7 +109,7 @@ namespace fioio {
         }
 
         inline void register_errors(const FioAddress &fa, bool domain) const {
-            const int res = fa.domainOnly ? isFioNameValid(fa.fiodomain) * 10 : isFioNameValid(fa.fioname);
+            const int res = validateFioNameFormat(fa);
             string fioname = "fio_address";
             string fioerror = "Invalid FIO address";
             if (domain) {
@@ -152,7 +152,7 @@ namespace fioio {
         inline void addaddress_errors(const vector<tokenpubaddr> &pubaddresses, const FioAddress &fa, const int64_t &max_fee) const {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
-            fio_400_assert(isFioNameValid(fa.fioaddress), "fio_address", fa.fioaddress, "FIO Address not found",
+            fio_400_assert(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "FIO Address not found",
                            ErrorDomainAlreadyRegistered);
             int countem = 0;
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
@@ -175,7 +175,10 @@ namespace fioio {
 
         uint32_t fio_address_update( const name &actor, const name &owner, int64_t max_fee, const FioAddress &fa,
                                     const string &tpid) {
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fatad;
+            getFioAddressStruct(tpid, fatad);
+
+            check(tpid == "" || validateFioNameFormat(fatad), "TPID must be empty or valid FIO address");
             const uint32_t expiration_time = get_now_plus_one_year();
             const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             const uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
@@ -275,7 +278,10 @@ namespace fioio {
         chain_data_update(const string &fioaddress, const vector<tokenpubaddr> pubaddresses,
                           int64_t max_fee, const FioAddress &fa,
                           const name &actor, const bool isFIO, const string &tpid) {
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fatad;
+            getFioAddressStruct(tpid, fatad);
+
+            check(tpid == "" || validateFioNameFormat(fatad), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
@@ -414,7 +420,10 @@ namespace fioio {
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, const int64_t &max_fee, const name &actor,
                    const string &tpid) {
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+
+            check(tpid == "" || validateFioNameFormat(fa), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                           ErrorMaxFeeInvalid);
 
@@ -426,7 +435,6 @@ namespace fioio {
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
-            FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
             const name nm = name{owner_account_name};
@@ -465,10 +473,12 @@ namespace fioio {
         }
 
         [[eosio::action]]
-        void
-        regdomain(const string &fio_domain, const string &owner_fio_public_key,
+        void regdomain(const string &fio_domain, const string &owner_fio_public_key,
                   const int64_t &max_fee, const name &actor, const string &tpid) {
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+
+            check(tpid == "" || validateFioNameFormat(fa), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
@@ -480,7 +490,6 @@ namespace fioio {
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
-            FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
             const name nm = name{owner_account_name};
@@ -529,11 +538,13 @@ namespace fioio {
         void
         renewdomain(const string &fio_domain, const int64_t &max_fee, const string &tpid, const name &actor) {
             require_auth(actor);
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+
+            check(tpid == "" || validateFioNameFormat(fa), "TPID must be empty or valid FIO address");
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                           ErrorMaxFeeInvalid);
 
-            FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
 
@@ -598,13 +609,15 @@ namespace fioio {
         [[eosio::action]]
         void
         renewaddress(const string &fio_address, const int64_t &max_fee, const string &tpid, const name &actor) {
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+
+            check(tpid == "" || validateFioNameFormat(fa), "TPID must be empty or valid FIO address");
             require_auth(actor);
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
-            FioAddress fa;
             getFioAddressStruct(fio_address, fa);
             register_errors(fa, false);
 
@@ -928,7 +941,10 @@ namespace fioio {
         void
         setdomainpub(const string &fio_domain, const int8_t is_public, const int64_t &max_fee, const name &actor,
                      const string &tpid) {
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+
+            check(tpid == "" || validateFioNameFormat(fa), "TPID must be empty or valid FIO address");
             require_auth(actor);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -936,7 +952,6 @@ namespace fioio {
             fio_400_assert((is_public == 1 || is_public == 0), "is_public", to_string(is_public), "Only 0 or 1 allowed",
                            ErrorMaxFeeInvalid);
 
-            FioAddress fa;
             uint32_t present_time = now();
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
