@@ -159,6 +159,8 @@ namespace eosio {
             char *buffer = (char *) (max_stack_buffer_size < size ? malloc(size) : alloca(size));
             read_action_data(buffer, size);
             set_proposed_producers(buffer, size);
+            free(buffer);
+            buffer = nullptr;
         }
 
         [[eosio::action]]

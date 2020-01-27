@@ -98,6 +98,6 @@ namespace fioio {
         std::string myStr = tn.to_string();
         //throw an error for safety, since this code was just ported.
         new_account = myStr.substr(0, 12);
-        free(pub_key_bytes);
+        delete[] pub_key_bytes;
     }
 }
