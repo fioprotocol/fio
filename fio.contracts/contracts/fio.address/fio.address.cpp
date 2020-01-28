@@ -931,6 +931,9 @@ namespace fioio {
             send_response(response_string.c_str());
         } //addaddress
 
+
+
+
         [[eosio::action]]
         void
         setdomainpub(const string &fio_domain, const int8_t is_public, const int64_t &max_fee, const name &actor,
@@ -963,9 +966,17 @@ namespace fioio {
             fio_400_assert(present_time <= expiration, "fio_domain", fa.fiodomain, "FIO Domain expired",
                            ErrorDomainExpired);
 
-            fio_400_assert(domain_iter->account == actor.value, "fio_domain", fa.fioaddress,
+            //this is put into place to support the genesis of the fio chain, we need
+            //to create domains and also addresses on those domains at genesis, but we only
+            //have the public key for the owner of the domain, so at genesis, the eosio account
+            //can make domains public and not public so as to add addresses to the domains
+            //during FIO genesis. After genesis this conditional surrounding this assertion should
+            //be removed.
+            if (actor != SYSTEMACCOUNT) {
+                fio_400_assert(domain_iter->account == actor.value, "fio_domain", fa.fioaddress,
                                "actor is not domain owner.",
                                ErrorInvalidFioNameFormat);
+            }
 
             domainsbyname.modify(domain_iter, _self, [&](struct domain &a) {
                 a.is_public = is_public;
