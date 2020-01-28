@@ -738,7 +738,7 @@ namespace eosiosystem {
         //validate input
         if (proxy) {
             check(producers.size() == 0, "cannot vote for producers and proxy at same time");
-            check(voter_name != proxy, "Invalid or duplicated producers");
+            check(voter_name != proxy, "Invalid or duplicated producers0");
         } else {
             check(producers.size() <= 30, "attempt to vote for too many producers");
             for (size_t i = 1; i < producers.size(); ++i) {
@@ -813,7 +813,7 @@ namespace eosiosystem {
             auto pitr = prodbyowner.find(pd.first.value);
             if (pitr != prodbyowner.end()) {
                 check(!voting || pitr->active() || !pd.second.second /* not from new set */,
-                      "Invalid or duplicated producers");
+                      "Invalid or duplicated producers1");
                 double init_total_votes = pitr->total_votes;
                 prodbyowner.modify(pitr, same_payer, [&](auto &p) {
                     p.total_votes += pd.second.first;
@@ -824,7 +824,7 @@ namespace eosiosystem {
                     //check( p.total_votes >= 0, "something bad happened" );
                 });
             } else {
-                check(!pd.second.second , "Invalid or duplicated producers"); //data corruption
+                check(!pd.second.second , "Invalid or duplicated producers2"); //data corruption
             }
 
         }

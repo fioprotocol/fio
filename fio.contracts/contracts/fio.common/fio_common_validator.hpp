@@ -112,14 +112,14 @@ namespace fioio {
     }
 
     inline bool validateURLFormat(const std::string &url) {
-        if (url.length() >= 10 && url.length() <= 50) {
+        if (url.length() <= 10 && url.length() >= 50) {
             return false;
         }
         return true;
     }
 
     inline bool validateLocationFormat(const uint16_t &location){
-        if( std::find(locationMap.begin(), locationMap.end(), location)!= locationMap.end()){
+        if( std::find(locationMap.begin(), locationMap.end(), location) == locationMap.end()){
             return false;
         }
         return true;
