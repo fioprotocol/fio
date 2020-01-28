@@ -151,9 +151,9 @@ namespace eosiosystem {
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
-        fio_400_assert(fioio::isURLValid(url), "url", url, "Invalid url",
+        fio_400_assert(validateURLFormat(url), "url", url, "Invalid url",
                        ErrorMaxFeeInvalid);
-        fio_400_assert(fioio::isLocationValid(location), "location", to_string(location), "Invalid location",
+        fio_400_assert(validateLocationFormat(location), "location", to_string(location), "Invalid location",
                        ErrorMaxFeeInvalid);
         fio_400_assert(isPubKeyValid(fio_pub_key),"fio_pub_key", fio_pub_key,
                        "Invalid FIO Public Key",
@@ -422,9 +422,7 @@ namespace eosiosystem {
 
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
-        const int res = validateFioNameFormat(fa);
-
-        fio_400_assert(res == 0, "fio_address", fio_address, "FIO Address not found",
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
                        ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
@@ -537,9 +535,8 @@ namespace eosiosystem {
         FioAddress fa, va;
         getFioAddressStruct(proxy, fa);
         getFioAddressStruct(fio_address, va);
-        const int res = validateFioNameFormat(fa);
 
-        fio_400_assert(res == 0, "fio_address", fio_address, "FIO Address not found",
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
                        ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());

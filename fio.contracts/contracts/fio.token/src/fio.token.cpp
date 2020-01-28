@@ -227,7 +227,9 @@ void token::trnsfiopubky(const string &payee_public_key,
         fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
 
-        isTPIDFormatValid(tpid);
+        fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                       "TPID must be empty or valid FIO address",
+                       ErrorPubKeyValid);
 
         qty.amount = amount;
         qty.symbol = FIOSYMBOL;
