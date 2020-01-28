@@ -96,7 +96,7 @@ namespace fioio {
             getFioAddressStruct(tpid, fa);
             return validateFioNameFormat(fa);
         }
-        return 0;
+        return 1;
     }
 
     inline bool isPubAddressValid(const std::string &address) {
