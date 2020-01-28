@@ -484,6 +484,7 @@ namespace fioio {
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
+            FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
             register_errors(fa, true);
             const name nm = name{owner_account_name};
