@@ -64,7 +64,7 @@ namespace fioio {
     }
 
     inline int validateFioNameFormat(const FioAddress &fa) {
-        int rt;
+        int rt = 0;
         if (fa.domainOnly) {
             if (fa.fiodomain.size() < 1 || fa.fiodomain.size() > maxFioDomainLen) {
                 return 1;
@@ -88,6 +88,15 @@ namespace fioio {
             }
         }
         return true;
+    }
+
+    inline int isTPIDFormatValid(const string &tpid) {
+        if( tpid.size() != 0 ){
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+            return validateFioNameFormat(fa);
+        }
+        return 0;
     }
 
     inline bool isPubAddressValid(const std::string &address) {
