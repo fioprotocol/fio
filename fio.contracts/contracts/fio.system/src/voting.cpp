@@ -419,14 +419,16 @@ namespace eosiosystem {
                        ErrorMaxFeeInvalid);
         name proxy;
         std::vector<name> producers_accounts;
+
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
+        const int res = validateFioNameFormat(fa);
+
+        fio_400_assert(res == 0, "fio_address", fio_address, "FIO Address not found",
+                       ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
         uint128_t voterDomainHash = string_to_uint128_hash(fa.fiodomain.c_str());
-
-        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
-                       ErrorDomainAlreadyRegistered);
 
         // compare fio_address owner and compare to actor
         auto namesbyname = _fionames.get_index<"byname"_n>();
@@ -535,12 +537,13 @@ namespace eosiosystem {
         FioAddress fa, va;
         getFioAddressStruct(proxy, fa);
         getFioAddressStruct(fio_address, va);
+        const int res = validateFioNameFormat(fa);
+
+        fio_400_assert(res == 0, "fio_address", fio_address, "FIO Address not found",
+                       ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
         uint128_t voterDomainHash = string_to_uint128_hash(va.fiodomain.c_str());
-
-        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
-                       ErrorDomainAlreadyRegistered);
 
         // compare fio_address owner and compare to actor
         auto namesbyname = _fionames.get_index<"byname"_n>();
