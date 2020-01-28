@@ -52,35 +52,36 @@ namespace fioio {
         }
     }
 
-    inline int charValidate(const string &name){
+    inline bool validateCharName(const string &name){
         if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
-            return 2;
+            return false;
         }
         if (name.front() == '-' || name.back() == '-') {
-            return 3;
+            return false;
         }
 
-        return 0;
+        return true;
     }
 
-    inline int validateFioNameFormat(const FioAddress &fa) {
-        int rt;
+    inline bool validateFioNameFormat(const FioAddress &fa) {
         if (fa.domainOnly) {
             if (fa.fiodomain.size() < 1 || fa.fiodomain.size() > maxFioDomainLen) {
-                return 1;
+                return false;
             }
-            rt = charValidate(fa.fiodomain);
+            return validateCharName(fa.fiodomain);
         } else {
             if (fa.fioaddress.size() < 3 || fa.fioaddress.size() > maxFioLen ) {
-                return 1;
+                return false;
             }
-            rt = charValidate(fa.fioname) + charValidate(fa.fiodomain);
+            if( !validateCharName(fa.fioname) || !validateCharName(fa.fiodomain) ){
+                return false;
+            };
         }
 
-        return rt;
+        return true;
     }
 
-    inline bool isChainNameValid(const string &chain) {
+    inline bool validateChainNameFormat(const string &chain) {
         if (chain.size() >= 1 && chain.size() <= 10) {
             if (chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
                 std::string::npos) {
@@ -90,33 +91,44 @@ namespace fioio {
         return true;
     }
 
-    inline bool isPubAddressValid(const std::string &address) {
-        if ( address.length() > 0 && address.length() <= 128 ) {
-            if(address.find_first_not_of(' ') != std::string::npos) {
-                return true;
-            }
+    inline bool validateTPIDFormat(const string &tpid) {
+        if( tpid.size() > 0 ){
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+            return validateFioNameFormat(fa);
         }
-        return false;
+        return true;
+    }
+
+    inline bool validatePubAddressFormat(const std::string &address) {
+        if ( address == "" || address.length() > 128 ) {
+            return false;
+        }
+
+        if(address.find_first_of(' ') != std::string::npos) {
+            return false;
+        }
+        return true;
+    }
+
+    inline bool validateURLFormat(const std::string &url) {
+        if (url.length() <= 10 && url.length() >= 50) {
+            return false;
+        }
+        return true;
+    }
+
+    inline bool validateLocationFormat(const uint16_t &location){
+        if( std::find(locationMap.begin(), locationMap.end(), location) == locationMap.end()){
+            return false;
+        }
+        return true;
     }
 
     inline string chainToUpper(string chain) {
         transform(chain.begin(), chain.end(), chain.begin(), ::toupper);
 
         return chain;
-    }
-
-    inline bool isURLValid(const std::string &url) {
-        if (url.length() >= 10 && url.length() <= 50) {
-            return true;
-        }
-        return false;
-    }
-
-    inline bool isLocationValid(const uint16_t &location){
-        if( std::find(locationMap.begin(), locationMap.end(), location)!= locationMap.end()){
-            return true;
-        }
-        return false;
     }
 
     bool isStringInt(const std::string &s) {

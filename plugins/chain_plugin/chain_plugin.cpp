@@ -2396,8 +2396,7 @@ if( options.count(name) ) { \
 
                 fioio::FioAddress fa;
                 fioio::getFioAddressStruct(p.fio_address, fa);
-                int res = fioio::validateFioNameFormat(fa);
-                FIO_400_ASSERT(res == 0, "fio_address", p.fio_address, "Invalid FIO Address",
+                FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameNotReg);
 
                 FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", p.fio_address,
@@ -2518,13 +2517,12 @@ if( options.count(name) ) { \
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_address, fa);
             // assert if empty fio name
-            int res = fioio::validateFioNameFormat(fa);
 
-            FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
-            FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
+            FIO_400_ASSERT(fioio::validateChainNameFormat(p.token_code), "token_code", p.token_code,
                            "Invalid Token Code",
                            fioio::ErrorTokenCodeInvalid);
 
@@ -2627,9 +2625,8 @@ if( options.count(name) ) { \
 
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_name, fa);
-            int res = fioio::validateFioNameFormat(fa);
 
-            FIO_400_ASSERT(res == 0, "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
             //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
