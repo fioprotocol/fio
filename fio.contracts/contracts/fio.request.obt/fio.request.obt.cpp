@@ -157,7 +157,7 @@ namespace fioio {
 
             uint64_t fee_amount = 0;
 
-            if (fioname_iter->bundleeligiblecountdown > 0) {
+            if (fioname_iter->bundleeligiblecountdown > 1) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
@@ -340,7 +340,7 @@ namespace fioio {
 
             uint64_t fee_amount = 0;
 
-            if (fioname_iter->bundleeligiblecountdown > 0) {
+            if (fioname_iter->bundleeligiblecountdown > 1) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
