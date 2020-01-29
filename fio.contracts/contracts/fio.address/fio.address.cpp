@@ -1046,25 +1046,21 @@ namespace fioio {
         void decrcounter(const string &fio_address, const int32_t step) {
 
         check(step > 0, "step must be greater than 0");
-        eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+        check((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
                      has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
                      "missing required authority of fio.address, fio.token, fio.fee, fio.treasury, fio.reqobt, fio.system");
 
-
-            const uint128_t hashval = string_to_uint128_hash(fio_address.c_str());
-
             auto namesbyname = fionames.get_index<"byname"_n>();
-            auto fioname_iter = namesbyname.find(hashval);
+            auto fioname_iter = namesbyname.find(string_to_uint128_hash(fio_address.c_str()));
             fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                            "FIO address not registered", ErrorFioNameAlreadyRegistered);
-
-            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
-
-            if (bundleeligiblecountdown > 0) {
+  
+            if (fioname_iter->bundleeligiblecountdown > step - 1) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
-                    a.bundleeligiblecountdown = (bundleeligiblecountdown - step);
+                    a.bundleeligiblecountdown = (fioname_iter->bundleeligiblecountdown - step);
                 });
             }
+            else check(false, "Failed to decrement eligible bundle counter"); // required to fail the parent transaction
         }
     };
 
