@@ -36,11 +36,6 @@ namespace fioio {
             appConfig = configsSingleton.get_or_default(config());
         }
 
-        struct decrementcounter {
-            string fio_address;
-        };
-
-
         void addwhitelist(string fio_public_key_hash,
                           const string &content,
                           int64_t max_fee,
@@ -123,9 +118,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = fio_address
-                        }
+                        make_tuple(fio_address, 1)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
@@ -230,9 +223,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = fio_address
-                        }
+                        make_tuple(fio_address, 1)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;

@@ -1043,7 +1043,13 @@ namespace fioio {
             }
         }
 
-        void decrcounter(const string &fio_address) {
+        void decrcounter(const string &fio_address, const int32_t step) {
+
+        check(step > 0, "step must be greater than 0");
+        eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+                     has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
+                     "missing required authority of fio.address, fio.token, fio.fee, fio.treasury, fio.reqobt, fio.system");
+
 
             const uint128_t hashval = string_to_uint128_hash(fio_address.c_str());
 
@@ -1056,7 +1062,7 @@ namespace fioio {
 
             if (bundleeligiblecountdown > 0) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
-                    a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
+                    a.bundleeligiblecountdown = (bundleeligiblecountdown - step);
                 });
             }
         }
