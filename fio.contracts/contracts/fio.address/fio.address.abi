@@ -236,6 +236,9 @@
       "fields": [{
       "name": "fio_address",
       "type": "string"
+      },{
+      "name": "step",
+      "type": "int32"
       }]
     },{
       "name": "bind2eosio",
