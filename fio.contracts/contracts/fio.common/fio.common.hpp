@@ -67,6 +67,10 @@
 #define MAXACTIVEBPS 21
 #endif
 
+#ifndef DEFAULTBUNDLEAMT
+#define DEFAULTBUNDLEAMT 100
+#endif
+
 namespace fioio {
 
     using namespace eosio;

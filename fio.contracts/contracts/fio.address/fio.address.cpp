@@ -12,6 +12,7 @@
 #include <fio.token/include/fio.token/fio.token.hpp>
 #include <eosiolib/asset.hpp>
 
+
 namespace fioio {
 
     class [[eosio::contract("FioAddressLookup")]]  FioNameLookup : public eosio::contract {
@@ -124,7 +125,7 @@ namespace fioio {
             uint64_t returnvalue = 0;
 
             if (bundlevoters.end() == bundlevoters.begin()) {
-                return 500;
+                return DEFAULTBUNDLEAMT;
             }
 
             for (const auto &itr : topprods) {
@@ -137,7 +138,7 @@ namespace fioio {
             size_t size = votes.size();
 
             if (size == 0 ) {
-                return 500;
+                return DEFAULTBUNDLEAMT;
             } else {
                 sort(votes.begin(), votes.end());
                 if (size % 2 == 0) {
