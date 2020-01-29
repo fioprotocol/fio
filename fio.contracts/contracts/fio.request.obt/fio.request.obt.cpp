@@ -31,10 +31,6 @@ namespace fioio {
         tpids_table tpids;
         recordobt_table recordObtTable;
 
-        struct decrementcounter {
-            string fio_address;
-        };
-
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
                 : contract(s, code, ds),
@@ -166,9 +162,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = payer_fio_address
-                        }
+                        make_tuple(payer_fio_address, 2)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
@@ -351,9 +345,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = payee_fio_address
-                        }
+                        make_tuple(payer_fio_address, 2)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
@@ -498,9 +490,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = payer_fio_address
-                        }
+                        make_tuple(payer_fio_address, 1)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;

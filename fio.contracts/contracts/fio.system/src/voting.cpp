@@ -401,10 +401,6 @@ namespace eosiosystem {
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
 
-    struct decrementcounter {
-        string fio_address;
-    };
-
     /*** remove vproducer
     void system_contract::vproducer(const name &voter_name, const name &proxy, const std::vector <name> &producers) {
         require_auth(voter_name);
@@ -506,9 +502,7 @@ namespace eosiosystem {
                     permission_level{_self, "active"_n},
                     AddressContract,
                     "decrcounter"_n,
-                    decrementcounter{
-                            .fio_address = fio_address
-                    }
+                    make_tuple(fio_address, 1)
             }.send();
         } else {
             fee_amount = fee_iter->suf_amount;
@@ -632,9 +626,7 @@ namespace eosiosystem {
                     permission_level{_self, "active"_n},
                     AddressContract,
                     "decrcounter"_n,
-                    decrementcounter{
-                            .fio_address = fio_address
-                    }
+                      make_tuple(fio_address, 1)
             }.send();
         } else {
             fee_amount = fee_iter->suf_amount;
