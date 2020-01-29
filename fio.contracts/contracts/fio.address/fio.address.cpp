@@ -1062,7 +1062,7 @@ namespace fioio {
 
             if (bundleeligiblecountdown > 0) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
-                    a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
+                    a.bundleeligiblecountdown = (bundleeligiblecountdown - step);
                 });
             }
         }
