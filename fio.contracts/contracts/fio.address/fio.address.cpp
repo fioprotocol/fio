@@ -157,21 +157,16 @@ namespace fioio {
                            ErrorMaxFeeInvalid);
             fio_400_assert(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "FIO Address not found",
                            ErrorDomainAlreadyRegistered);
-            int countem = 0;
+            fio_400_assert(pubaddresses.size() <= 5 && pubaddresses.size() > 0, "public_addresses", "public_addresses",
+                           "Min 1, Max 5 public addresses are allowed",
+                           ErrorInvalidNumberAddresses);
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 fio_400_assert(validateChainNameFormat(tpa->token_code), "token_code", tpa->token_code, "Invalid token code format",
                                ErrorInvalidFioNameFormat);
                 fio_400_assert(validatePubAddressFormat(tpa->public_address), "public_address", tpa->public_address,
                                "Invalid public address format",
                                ErrorChainAddressEmpty);
-                countem++;
             }
-            fio_400_assert(countem > 0, "public_addresses", "public_addresses",
-                           "Min 1, Max 25 public addresses are allowed",
-                           ErrorInvalidNumberAddresses);
-            fio_400_assert(countem <= 25, "public_addresses", "public_addresses",
-                           "Min 1, Max 25 public addresses are allowed",
-                           ErrorInvalidNumberAddresses);
         }
 
         uint32_t fio_address_update( const name &actor, const name &owner, int64_t max_fee, const FioAddress &fa,
@@ -319,6 +314,9 @@ namespace fioio {
                         break;
                     }
                     if( fioname_iter->addresses.size() == tempi){
+                        fio_400_assert(fioname_iter->addresses.size() != 100, "token_code", tpa->token_code, "Maximum token codes mapped to single FIO Address reached. Only 100 can be mapped.",
+                                       ErrorInvalidFioNameFormat);
+
                         tempStruct.public_address = tpa->public_address;
                         tempStruct.token_code = tpa->token_code;
 
