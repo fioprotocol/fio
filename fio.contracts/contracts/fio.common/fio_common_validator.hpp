@@ -49,7 +49,7 @@ namespace fioio {
             c = char(::tolower(c));
         }
 
-        if (pos == string::npos) {
+        if (pos == string::npos || pos == 0 ) {
             fa.fiodomain = fa.fioaddress;
         } else {
             if (!fa.domainOnly) { fa.fioname = fa.fioaddress.substr(0, pos); }
