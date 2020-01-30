@@ -40,19 +40,14 @@ namespace fioio {
 
         //Lower Case
         fa.fioaddress = p;
-
-        if( fa.domainOnly ) {
-            if( pos == 0 ){ fa.fioaddress = fa.fioaddress.erase(0,1); }
-        }
-        
         for (auto &c : fa.fioaddress) {
             c = char(::tolower(c));
         }
 
-        if (pos == string::npos || pos == 0 ) {
+        if (pos == string::npos || fa.domainOnly) {
             fa.fiodomain = fa.fioaddress;
         } else {
-            if (!fa.domainOnly) { fa.fioname = fa.fioaddress.substr(0, pos); }
+            fa.fioname = fa.fioaddress.substr(0, pos);
             fa.fiodomain = fa.fioaddress.substr(pos + 1);
         }
     }
