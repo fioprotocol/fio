@@ -120,14 +120,14 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
         if(lockiter != lockedTokensTable.end()) {
 
                 check(amount >= (lockiter->remaining_locked_amount - feeamount),"lock amount is incoherent.");
-               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 12 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 12 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
+               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 32 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 32 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 32 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 32 minutes from grant","\n");
 
                 //
                // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
-                uint32_t issueplus210 = lockiter->timestamp+(12*60);
+                uint32_t issueplus210 = lockiter->timestamp+(32*60);
                 if(
                         //if lock type 1 always subtract remaining locked amount from balance
                         ((lockiter->grant_type == 1) && !isfee) ||

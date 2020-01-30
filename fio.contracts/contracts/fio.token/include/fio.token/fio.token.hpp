@@ -142,11 +142,11 @@ namespace eosio {
                     print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
                     // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
                     //we kludge the time block evaluation to become one block per 3 minutes
-                    uint32_t timeElapsed90DayBlocks = (int)(present_time  - lockiter->timestamp) / (5*60);
+                    uint32_t timeElapsed90DayBlocks = (int)(present_time  - lockiter->timestamp) / (15*60);
                     print("--------------------DANGER------------------------------ ","\n");
                     print("--------------------DANGER------------------------------ ","\n");
                     print("--------------------DANGER------------------------------ ","\n");
-                    print("------time step for unlocking is kludged to 5 min-------","\n");
+                    print("------time step for unlocking is kludged to 15 min-------","\n");
                     print("--------------------DANGER------------------------------ ","\n");
                     print("--------------------DANGER------------------------------ ","\n");
                     print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
@@ -169,9 +169,10 @@ namespace eosio {
                     }
 
                     bool didsomething = false;
+                    bool ninetyDaysSinceGrant = true;
 
-                    //do the day zero unlocking, this is the first unlocking.
-                    if(numberVestingPayouts == 0) {
+                    //this is the first unlocking. 90 days after grant
+                    if((numberVestingPayouts == 0)&&(ninetyDaysSinceGrant)) {
                         if (lockiter->grant_type == 1) {
                             //pay out 1% for type 1
                             amountpay = totalgrantamount / 100;
