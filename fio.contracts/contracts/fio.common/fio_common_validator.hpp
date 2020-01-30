@@ -36,10 +36,15 @@ namespace fioio {
         fa.fiodomain = "";
 
         size_t pos = p.find('@');
-        fa.domainOnly = pos == string::npos;
+        ffa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
         fa.fioaddress = p;
+
+        if( fa.domainOnly ) {
+            if( pos == 0 ){ fa.fioaddress = fa.fioaddress.erase(0,1); }
+        }
+        
         for (auto &c : fa.fioaddress) {
             c = char(::tolower(c));
         }
