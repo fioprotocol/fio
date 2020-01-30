@@ -212,7 +212,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         (updatepower)
         // voting.cpp
         (regproducer)(regiproducer)(unregprod)(voteproducer)(voteproxy)(inhibitunlck)
-        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)
+        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)(burnaction)
         (unregproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)
