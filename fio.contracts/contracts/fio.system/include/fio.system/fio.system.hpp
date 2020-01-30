@@ -404,7 +404,7 @@ private:
     //void update_voting_power(const name &voter, const asset &total_update);
 
     // defined in voting.hpp
-    void update_elected_producers(block_timestamp timestamp);
+    void update_elected_producers(const block_timestamp& timestamp);
 
     uint64_t get_votable_balance(const name &tokenowner);
 

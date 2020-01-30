@@ -303,57 +303,56 @@ namespace eosiosystem {
         send_response(response_string.c_str());
     }
 
-    bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
-              return (a.second < b.second);
-    }
+    void system_contract::update_elected_producers(const block_timestamp& block_time) {
 
-        void system_contract::update_elected_producers(block_timestamp block_time) {
-        _gstate.last_producer_schedule_update = block_time;
+      _gstate.last_producer_schedule_update = block_time;
 
-        auto idx = _producers.get_index<"prototalvote"_n>();
+      auto idx = _producers.get_index<"prototalvote"_n>();
 
-        std::vector <std::pair<eosio::producer_key, uint16_t>> top_producers;
-        top_producers.reserve(MAXACTIVEBPS);
+      using value_type = std::pair<eosio::producer_key, uint16_t>;
+      std::vector< value_type > top_producers;
+      top_producers.reserve(MAXACTIVEBPS);
 
-        //clear _topprods table
-        auto iter = _topprods.begin();
-        while (iter != _topprods.end()) {
-                iter = _topprods.erase(iter);
-        }
+      //clear _topprods table
+      auto iter = _topprods.begin();
+      while (iter != _topprods.end()) {
+        iter = _topprods.erase(iter);
+      }
 
-        for (auto it = idx.cbegin();
-             it != idx.cend() && top_producers.size() < MAXACTIVEBPS && 0 < it->total_votes && it->active(); ++it) {
-            top_producers.emplace_back(
-                    std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
+      for( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < MAXACTIVEBPS && 0 < it->total_votes && it->active(); ++it ) {
+         top_producers.emplace_back(
+                        std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
 
-            _topprods.emplace(get_self(), [&](auto &p) {
-                  p.producer = it->owner;
-            });
-        }
+         _topprods.emplace(get_self(), [&](auto &p) {
+            p.producer = it->owner;
+          });
 
-        if (top_producers.size() < _gstate.last_producer_schedule_size) {
-            return;
-        }
+      }
 
-        /// sort by producer location, location initialized to zero in fio.system.hpp
-        /// location will be set upon call to register producer by the block producer.
-        ///the location should be considered as a scheduled order of producers, they should
-        /// set the location so that traversing locations gives most proximal producer locations
-        /// to help address latency.
-        std::sort( top_producers.begin(), top_producers.end(), sort_producers_by_location );
+      if( top_producers.size() == 0 || top_producers.size() < _gstate.last_producer_schedule_size ) {
+         return;
+      }
 
-        std::vector <eosio::producer_key> producers;
+      /// sort by producer location, location initialized to zero in fio.system.hpp
+      /// location will be set upon call to register producer by the block producer.
+      /// the location should be considered as a scheduled order of producers, they should
+      /// set the location so that traversing locations gives most proximal producer locations
+      /// to help address latency.
+      std::sort( top_producers.begin(), top_producers.end(), []( const value_type& lhs, const value_type& rhs ) {
+         return lhs.first.producer_name < rhs.first.producer_name; // sort by producer name
+         // return lhs.second < rhs.second; // sort by location
+      } );
 
-        producers.reserve(top_producers.size());
-        for (const auto &item : top_producers)
-            producers.push_back(item.first);
+      std::vector<eosio::producer_key> producers;
 
-        auto packed_schedule = pack(producers);
+      producers.reserve(top_producers.size());
+      for( auto& item : top_producers )
+         producers.push_back( std::move(item.first) );
 
-        if (set_proposed_producers(packed_schedule.data(), packed_schedule.size()) >= 0) {
-            _gstate.last_producer_schedule_size = static_cast<decltype(_gstate.last_producer_schedule_size)>( top_producers.size());
-        }
-
+      auto packed_schedule = pack(producers);
+      if( set_proposed_producers(packed_schedule.data(), packed_schedule.size() ) >= 0 ) {
+         _gstate.last_producer_schedule_size = static_cast<decltype(_gstate.last_producer_schedule_size)>( top_producers.size() );
+      }
     }
 
     double system_contract::update_total_votepay_share(time_point ct,
