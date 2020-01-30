@@ -300,7 +300,7 @@ public:
 
                                 //Invoke system contract to reset producer last_claim_time and unpaid_blocks
                                 action(permission_level{get_self(), "active"_n},
-                                       AddressContract, "resetclaim"_n,
+                                       SYSTEMACCOUNT, "resetclaim"_n,
                                        make_tuple(producer)
                                        ).send();
                         }
