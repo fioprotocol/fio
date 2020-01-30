@@ -573,7 +573,6 @@ namespace eosio {
 
             struct get_pub_address_result {
                 fc::string public_address;
-                int block_num;
             };
 
             get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
@@ -1312,7 +1311,7 @@ FC_REFLECT(eosio::chain_apis::obt_records,
                    (status))
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code))
-FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address)(block_num));
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address));
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
