@@ -181,7 +181,6 @@ namespace eosio {
         void setabi(name account, const std::vector<char> &abi) {
 
             check( (account == fioio::MSIGACCOUNT ||
-                    account == fioio::WHITELISTACCOUNT ||
                     account == fioio::WRAPACCOUNT ||
                     account == fioio::FeeContract ||
                     account == fioio::AddressContract ||

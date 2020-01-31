@@ -22,17 +22,12 @@ namespace fioio {
     vector<string> fioFinanceActions;
     vector<string> fioFeeActions;
     vector<string> fioRequestObtActions;
-    vector<string> whitelistActions;
     vector<string> fioTokenActions;
     vector<string> fioTreasuryActions;
 
     static void Set_map(void) {
         //eosio actions
         eosioActions.push_back("default");
-        //whitelist actions
-        whitelistActions.push_back("addwhitelist");
-        whitelistActions.push_back("remwhitelist");
-
         //fio.system actions
         fioAddressActions.push_back("regaddress");
         fioAddressActions.push_back("regdomain");
@@ -79,9 +74,6 @@ namespace fioio {
         }
         if (find(fioTreasuryActions.begin(), fioTreasuryActions.end(), t) != fioTreasuryActions.end()) {
             return "fio.treasury";
-        }
-        if (find(whitelistActions.begin(), whitelistActions.end(), t) != whitelistActions.end()) {
-            return "fio.whitelst";
         }
         if (find(fioFeeActions.begin(), fioFeeActions.end(), t) != fioFeeActions.end()) {
             return "fio.fee";

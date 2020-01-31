@@ -94,8 +94,6 @@ namespace eosio {
             const string renew_address_func = chain_func_base + "/renew_fio_address";
             const string renew_domain_func = chain_func_base + "/renew_fio_domain";
             const string unreg_producer_func = chain_func_base + "/unregister_producer";
-            const string rem_whitelist_func = chain_func_base + "/remove_from_whitelist";
-            const string add_whitelist_func = chain_func_base + "/add_to_whitelist";
             const string set_feemult_func = chain_func_base + "/submit_fee_multiplier";
             const string set_feevote_func = chain_func_base + "/submit_fee_ratios";
             const string proxy_vote_func = chain_func_base + "/proxy_vote";
