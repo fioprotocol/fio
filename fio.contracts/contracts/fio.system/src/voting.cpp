@@ -680,7 +680,7 @@ namespace eosiosystem {
         //based on grant type.
         auto lockiter = _lockedtokens.find(tokenowner.value);
         if(lockiter != _lockedtokens.end()){
-            check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
+            check(amount >= lockiter->remaining_locked_amount,"votable balance lock amount is incoherent.");
             //if lock type 1 always subtract remaining locked amount from balance
             if (lockiter->grant_type == 1) {
                 double percent = 1.0 - (double)((double)lockiter->remaining_locked_amount / (double)lockiter->total_grant_amount);
@@ -707,8 +707,8 @@ namespace eosiosystem {
            // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
             uint32_t issueplus210 = lockiter->timestamp+(32*60);
             //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
-           if ((lockiter->grant_type == 2)&&
-             ((present_time > issueplus210)&&lockiter->inhibit_unlocking)
+           if (((lockiter->grant_type == 2)&&((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
+                   (lockiter->grant_type == 4)
             ){
                 //subtract the lock amount from the balance
                 if (lockiter->remaining_locked_amount < amount) {
