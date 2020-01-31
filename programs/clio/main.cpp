@@ -3689,14 +3689,6 @@ int main(int argc, char **argv) {
                 auto trx_result = call(unreg_producer_func, packed_transaction(trx, packed_transaction::none));
                 std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
             }
-            if (actions[0].name.to_string() == "remwhitelist") {
-                auto trx_result = call(rem_whitelist_func, packed_transaction(trx, packed_transaction::none));
-                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
-            }
-            if (actions[0].name.to_string() == "addwhitelist") {
-                auto trx_result = call(add_whitelist_func, packed_transaction(trx, packed_transaction::none));
-                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
-            }
             if (actions[0].name.to_string() == "setfeemult") {
                 auto trx_result = call(set_feemult_func, packed_transaction(trx, packed_transaction::none));
                 std::cout << fc::json::to_pretty_string(trx_result) << std::endl;

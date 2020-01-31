@@ -1002,24 +1002,6 @@ namespace eosio {
             void submit_bundled_transaction(const submit_bundled_transaction_params &params,
                                             chain::plugin_interface::next_function<submit_bundled_transaction_results> next);
 
-            using add_to_whitelist_params = fc::variant_object;
-            struct add_to_whitelist_results {
-                chain::transaction_id_type transaction_id;
-                fc::variant processed;
-            };
-
-            void add_to_whitelist(const add_to_whitelist_params &params,
-                                  chain::plugin_interface::next_function<add_to_whitelist_results> next);
-
-            using remove_from_whitelist_params = fc::variant_object;
-            struct remove_from_whitelist_results {
-                chain::transaction_id_type transaction_id;
-                fc::variant processed;
-            };
-
-            void remove_from_whitelist(const remove_from_whitelist_params &params,
-                                       chain::plugin_interface::next_function<remove_from_whitelist_results> next);
-
             //begin unregister_proxy
             using unregister_proxy_params = fc::variant_object;
             struct unregister_proxy_results {
@@ -1338,8 +1320,6 @@ FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (transaction_id
 FC_REFLECT(eosio::chain_apis::read_write::proxy_vote_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::submit_fee_multiplier_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::submit_fee_ratios_results, (transaction_id)(processed));
-FC_REFLECT(eosio::chain_apis::read_write::add_to_whitelist_results, (transaction_id)(processed));
-FC_REFLECT(eosio::chain_apis::read_write::remove_from_whitelist_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::renew_fio_domain_results, (transaction_id)(processed));

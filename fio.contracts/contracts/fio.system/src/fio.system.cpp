@@ -148,7 +148,6 @@ namespace eosiosystem {
         require_auth(acnt);
 
         check(( acnt == fioio::MSIGACCOUNT ||
-                acnt == fioio::WHITELISTACCOUNT ||
                 acnt == fioio::WRAPACCOUNT ||
                 acnt == fioio::FeeContract ||
                 acnt == fioio::AddressContract ||

@@ -29,7 +29,6 @@ namespace fioio {
     static const name VPAYACCOUNT =      name("eosio.vpay");
 
 
-    static const name WHITELISTACCOUNT =  name("fio.whitelst");
     static const name REQOBTACCOUNT =     name("fio.reqobt");
     static const name FeeContract =       name("fio.fee");
     static const name AddressContract =   name("fio.address");

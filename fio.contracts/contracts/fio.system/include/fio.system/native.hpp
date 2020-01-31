@@ -121,7 +121,6 @@ namespace eosiosystem {
                  account == fioio::WRAPACCOUNT ||
                  account == fioio::SYSTEMACCOUNT ||
                  account == fioio::ASSERTACCOUNT ||
-                 account == fioio::WHITELISTACCOUNT ||
                  account == fioio::REQOBTACCOUNT ||
                  account == fioio::FeeContract ||
                  account == fioio::AddressContract ||
@@ -203,7 +202,6 @@ namespace eosiosystem {
             require_auth(account);
 
             eosio::check((account == fioio::MSIGACCOUNT ||
-                   account == fioio::WHITELISTACCOUNT ||
                    account == fioio::WRAPACCOUNT ||
                    account == fioio::FeeContract ||
                    account == fioio::AddressContract ||
