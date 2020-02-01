@@ -96,7 +96,7 @@ namespace fioio {
 
      void fio_fees(const name &actor, const asset &fee)  {
         if(fee.amount > 0) {
-            action(permission_level{actor, "active"_n},
+            action(permission_level{SYSTEMACCOUNT, "active"_n},
                    TokenContract, "transfer"_n,
                    make_tuple(actor, TREASURYACCOUNT, fee,
                               string("FIO API fees. Thank you."))
