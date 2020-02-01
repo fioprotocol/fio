@@ -187,10 +187,11 @@ void token::transfer(name from,
         if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
                 check(to == TREASURYACCOUNT, "transfer not allowed");
         }
+        eosio_assert((has_auth(SYSTEMACCOUNT) ||  has_auth(TREASURYACCOUNT)) ,
+                 "missing required authority of treasury or eosio");
 
 
         check(from != to, "cannot transfer to self");
-        require_auth(from);
         check(is_account(to), "to account does not exist");
         auto sym = quantity.symbol.code();
         stats statstable(_self, sym.raw());
