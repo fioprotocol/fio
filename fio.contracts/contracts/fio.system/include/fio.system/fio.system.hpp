@@ -358,7 +358,7 @@ public:
 
     // functions defined in producer_pay.cpp
     [[eosio::action]]
-    void resetclaim(const name producer);
+    void resetclaim(const name &producer);
 
     [[eosio::action]]
     void setpriv(name account, uint8_t is_priv);

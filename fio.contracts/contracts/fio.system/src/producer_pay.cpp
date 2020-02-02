@@ -15,8 +15,10 @@ namespace eosiosystem {
     const int64_t useconds_per_day = 24 * 3600 * int64_t(1000000);
     const int64_t useconds_per_year = seconds_per_year * 1000000ll;
 
+    using namespace eosio;
+
     void system_contract::onblock(ignore <block_header>) {
-        using namespace eosio;
+
 
         require_auth(_self);
 
@@ -66,10 +68,9 @@ namespace eosiosystem {
         }
     }
 
-    using namespace eosio;
-
-    void system_contract::resetclaim(const name producer) {
-      require_auth(get_self());
+    void system_contract::resetclaim(const name &producer) {
+      check((has_auth(SYSTEMACCOUNT) ||  has_auth(TREASURYACCOUNT)) ,
+               "missing required authority of treasury or eosio");
         const auto &prod = _producers.get(producer.value);
            // Reset producer claim info
            _producers.modify(prod, get_self(), [&](auto &p) {
