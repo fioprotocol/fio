@@ -98,10 +98,9 @@ public:
                                        "fio.tpid"_n, "rewardspaid"_n,
                                        make_tuple(itr.fioaddress)
                                 ).send();
+                                tpids_paid++;
+                                if (tpids_paid >= 100) break; //only paying 100 tpids
                         } // endif itr.rewards >=
-
-                        tpids_paid++;
-                        if (tpids_paid >= 100) break; //only paying 100 tpids
                 } // for (const auto &itr : tpids)
 
                 fio_400_assert(tpids_paid > 0, "tpidclaim", "tpidclaim","No work.", ErrorNoWork);
