@@ -20,8 +20,9 @@ namespace fioio {
 
     struct tokenpubaddr {
         string token_code;
+        string chain_code;
         string public_address;
-        EOSLIB_SERIALIZE( tokenpubaddr, (token_code)(public_address))
+        EOSLIB_SERIALIZE( tokenpubaddr, (token_code)(chain_code)(public_address))
     };
 
 

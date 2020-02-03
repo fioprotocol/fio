@@ -2525,6 +2525,9 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(fioio::validateChainNameFormat(p.token_code), "token_code", p.token_code,
                            "Invalid Token Code",
                            fioio::ErrorTokenCodeInvalid);
+            FIO_400_ASSERT(fioio::validateChainNameFormat(p.chain_code), "chain_code", p.chain_code,
+                           "Invalid Chain Code",
+                           fioio::ErrorTokenCodeInvalid);
 
             const name code = ::eosio::string_to_name("fio.address");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
@@ -2602,7 +2605,8 @@ if( options.count(name) ) { \
             }
 
             for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
-                if (name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code) {
+                if ((name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code)&&
+                        (name_result.rows[0]["addresses"][i]["chain_code"].as_string() == p.chain_code)){
                     result.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
                 }
             }

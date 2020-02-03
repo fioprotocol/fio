@@ -97,6 +97,7 @@
                  "base": "",
                  "fields": [
                     {"name":"token_code", "type":"string"},
+                     {"name":"chain_code", "type":"string"},
                     {"name":"public_address", "type":"string"}
                  ]
           },
