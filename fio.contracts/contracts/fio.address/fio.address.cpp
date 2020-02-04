@@ -307,10 +307,11 @@ namespace fioio {
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 string token = tpa->token_code.c_str();
+                string chaincode = tpa->chain_code.c_str();
                 int tempi = 1;
                 tokenpubaddr tempStruct;
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
-                    if( it->token_code == token ){
+                    if( (it->token_code == token) && (it->chain_code == chaincode)  ){
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
