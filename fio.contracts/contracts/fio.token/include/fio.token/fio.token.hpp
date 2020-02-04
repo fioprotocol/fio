@@ -129,8 +129,6 @@ namespace eosio {
         static uint64_t computeremaininglockedtokens(const name &actor, bool doupdate){
             uint32_t present_time = now();
 
-            print(" unlock_tokens for ",actor,"\n");
-
             eosiosystem::locked_tokens_table lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
             auto lockiter = lockedTokensTable.find(actor.value);
             if(lockiter != lockedTokensTable.end()){

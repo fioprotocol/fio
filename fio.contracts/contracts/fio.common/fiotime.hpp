@@ -59,8 +59,6 @@ namespace fioio {
         int wday, yday, leap;
         static const char days_in_month[] = {31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29};
 
-        print(t, " INSIDE.   ");
-
         /* Reject time_t values whose year would overflow int */
         if (t < INT_MIN * 31622400LL || t > INT_MAX * 31622400LL)
             return -1;
@@ -108,7 +106,6 @@ namespace fioio {
             return -1;
 
         tm->tm_year = years + 2000;
-        print(tm->tm_year, "   TESTINSIDE.   ");
         tm->tm_mon = months + 3;
         if (tm->tm_mon >= 12) {
             tm->tm_mon -= 12;
