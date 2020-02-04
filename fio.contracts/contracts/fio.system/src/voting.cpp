@@ -45,15 +45,13 @@ namespace eosiosystem {
         uint64_t nowtime = now();
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto nameiter = namesbyname.find(fioaddrhash);
-        check(nameiter != namesbyname.end(),"unexpected error verifying expired address");
-
+        //check(nameiter != namesbyname.end(),"unexpected error verifying expired address");
         uint64_t expire = nameiter->expiration;
 
-        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime){
+        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime) {
             auto prodbyaddress = _producers.get_index<"byaddress"_n>();
             auto prod = prodbyaddress.find(fioaddrhash);
-            if (prod != prodbyaddress.end())
-            {
+            if (prod != prodbyaddress.end()) {
                 prodbyaddress.modify(prod, _self, [&](producer_info &info) {
                     info.fio_address = "";
                     info.addresshash = 0;
@@ -62,11 +60,9 @@ namespace eosiosystem {
             }
             auto votersbyaddress = _voters.get_index<"byaddress"_n>();
             auto voters = votersbyaddress.find(fioaddrhash);
-            if (voters != votersbyaddress.end())
-            {
+            if (voters != votersbyaddress.end()) {
                 //be absolutely certain to only delete the record we are interested in.
-                if (voters->addresshash == fioaddrhash)
-                {
+                if (voters->addresshash == fioaddrhash) {
                     votersbyaddress.erase(voters);
                 }
             }

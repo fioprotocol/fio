@@ -879,14 +879,14 @@ namespace fioio {
                 auto fionamesiter = namesbyname.find(burner);
 
                 //look for any producer, or voter records associated with this name.
-                action(
-                        permission_level{_self, "active"_n},
-                        "eosio"_n,
-                        "burnaction"_n,
-                        std::make_tuple(burner)
-                ).send();
-
                 if (fionamesiter != namesbyname.end()) {
+                    action(
+                            permission_level{SYSTEMACCOUNT, "active"_n},
+                            "eosio"_n,
+                            "burnaction"_n,
+                            std::make_tuple(burner)
+                    ).send();
+
                     namesbyname.erase(fionamesiter);
                 }
                 //remove from the
