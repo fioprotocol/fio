@@ -163,6 +163,8 @@ namespace fioio {
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 fio_400_assert(validateChainNameFormat(tpa->token_code), "token_code", tpa->token_code, "Invalid token code format",
                                ErrorInvalidFioNameFormat);
+                fio_400_assert(validateChainNameFormat(tpa->chain_code), "chain_code", tpa->chain_code, "Invalid chain code format",
+                               ErrorInvalidFioNameFormat);
                 fio_400_assert(validatePubAddressFormat(tpa->public_address), "public_address", tpa->public_address,
                                "Invalid public address format",
                                ErrorChainAddressEmpty);
@@ -218,6 +220,7 @@ namespace fioio {
             tokenpubaddr t1;
             t1.public_address = key_iter->clientkey;
             t1.token_code = "FIO";
+            t1.chain_code = "FIO";
             pubaddresses.push_back(t1);
 
             fionames.emplace(_self, [&](struct fioname &a) {
@@ -304,10 +307,11 @@ namespace fioio {
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 string token = tpa->token_code.c_str();
+                string chaincode = tpa->chain_code.c_str();
                 int tempi = 1;
                 tokenpubaddr tempStruct;
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
-                    if( it->token_code == token ){
+                    if( (it->token_code == token) && (it->chain_code == chaincode)  ){
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
@@ -319,6 +323,7 @@ namespace fioio {
 
                         tempStruct.public_address = tpa->public_address;
                         tempStruct.token_code = tpa->token_code;
+                        tempStruct.chain_code = tpa->chain_code;
 
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses.push_back(tempStruct);
