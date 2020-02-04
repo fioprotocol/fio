@@ -35,7 +35,6 @@ namespace fioio {
         eosiosystem::top_producers_table topprods;
 
         void update_fees() {
-            print("called update fees.", "\n");
             map<string, double> producer_fee_multipliers_map;
 
             const bool dbgout = false;
@@ -377,8 +376,6 @@ namespace fioio {
                 const name &account,
                 const int64_t &max_fee
         ) {
-            print("called mandatory fee for account ", account, " end point ",end_point,"\n");
-
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
             const uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
@@ -403,9 +400,6 @@ namespace fioio {
 
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
-            //end new fees, logic for Mandatory fees.
-            print("called mandatory fee for account processing completed","\n");
-
         }
 
         /*******
