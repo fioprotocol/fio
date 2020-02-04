@@ -1,29 +1,17 @@
 /** FioTreasury implementation file
  *  Description: FioTreasury smart contract controls block producer and tpid payments.
- *  @author Adam Androulidakis Ed Rotthoff
+ *  @author Adam Androulidakis, Ed Rotthoff, Casey Gardiner
  *  @modifedby
  *  @file fio.treasury.cpp
  *  @copyright Dapix
  */
 
-#define TESTNET
-
-
-#ifdef TESTNET
-#define REWARDMAX 1000000
-#define PAYSCHEDTIME 121
-#define FDTNMAXTOMINT 150000000000
-#define BPMAXTOMINT 5000000000
-#define FDTNMAXRESERVE 19165365400000
-#define BPMAXRESERVE 15000000000
-#else
-#define REWARDMAX 100000000000
-#define PAYSCHEDTIME 172801
-#define FDTNMAXTOMINT 150000000000000
-#define BPMAXTOMINT 50000000000000
-#define FDTNMAXRESERVE 191653654000000000
-#define BPMAXRESERVE 25000000000000000
-#endif
+#define REWARDMAX       100000000000            // 100 FIO
+#define FDTNMAXTOMINT   150000000000000         // 150,000 FIO
+#define BPMAXTOMINT     50000000000000          // 50,000  FIO
+#define FDTNMAXRESERVE  191653654000000000      // 191,653,654 FIO
+#define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
+#define PAYSCHEDTIME    172801                  // 1 day  ( block time )
 
 #include "fio.treasury.hpp"
 
@@ -65,13 +53,10 @@ public:
         // @abi action
         [[eosio::action]]
         void tpidclaim(const name &actor) {
-
                 require_auth(actor);
 
                 uint64_t tpids_paid = 0;
-
                 auto clockiter = clockstate.begin();
-
 
                 //This contract should only be able to iterate throughout the entire tpids table to
                 //to check for rewards once every x blocks.
@@ -111,17 +96,14 @@ public:
                        make_tuple()
                 ).send();
 
-
                 const string response_string = string("{\"status\": \"OK\",\"tpids_paid\":") +
                                          to_string(tpids_paid) + string("}");
                 send_response(response_string.c_str());
-
         } //tpid_claim
 
         // @abi action
         [[eosio::action]]
         void bpclaim(const string &fio_address, const name &actor) {
-
                 require_auth(actor);
 
                 gstate = global.get();
@@ -150,7 +132,6 @@ public:
 
                 fio_400_assert(now() < expiration, "domain", domiter->name,
                                "FIO Domain expired", ErrorDomainExpired);
-
                 fio_400_assert(now() < fioiter->expiration, "fio_address", fio_address,
                                "FIO Address expired", ErrorFioNameExpired);
 
@@ -159,9 +140,7 @@ public:
                 // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
                 auto clockiter = clockstate.begin();
                 if (clockiter != clockstate.end() && now() >= clockiter->payschedtimer + PAYSCHEDTIME) { //+ 172801
-
                         if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
-
                                 auto iter = voteshares.begin();
                                 while (iter != voteshares.end()) {
                                         iter = voteshares.erase(iter);
@@ -182,7 +161,6 @@ public:
                                                         p.votes = itr.total_votes;
                                                 });
                                 }
-
                                 bpcounter++;
                                 if (bpcounter > MAXBPS) break;
                         } // &itr : producers
@@ -219,13 +197,13 @@ public:
                         uint64_t fdtntomint = FDTNMAXTOMINT;
                         const uint64_t fdtnremainingreserve = FDTNMAXRESERVE - clockiter->fdtnreservetokensminted;
 
-                        if (fdtnremainingreserve < FDTNMAXTOMINT){
+                        if (fdtnremainingreserve < FDTNMAXTOMINT) {
                                 fdtntomint = fdtnremainingreserve;
                         }
 
                         if (clockiter->fdtnreservetokensminted < FDTNMAXRESERVE) {
 
-                                //Mint new tokens up to 150,000 FIO
+                                //Mint new tokens up to 50,000 FIO
                                 action(permission_level{get_self(), "active"_n},
                                        TokenContract, "mintfio"_n,
                                        make_tuple(FOUNDATIONACCOUNT,fdtntomint)
@@ -258,28 +236,24 @@ public:
                                         });
                                 bpcounter++;
                         } // &itr : voteshares
-
                         //Start 24 track for daily pay
                         clockstate.modify(clockiter, get_self(), [&](auto &entry) {
                                         entry.payschedtimer = now();
                                 });
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
-
                 auto bpiter = voteshares.find(producer);
-
                 prodbyowner = producers.get_index<"byowner"_n>();
                 proditer = prodbyowner.find(producer);
                 check(proditer != prodbyowner.end(),"producer not found");
-
                 /******* Payouts *******/
                 //This contract should only allow the producer to be able to claim rewards once every 172800 blocks (1 day).
                 uint64_t payout = 0;
 
                 if (bpiter != voteshares.end()) {
                         payout = static_cast<uint64_t>(bpiter->abpayshare + bpiter->sbpayshare);
-
                         check(proditer->is_active, "producer does not have an active key");
+
                         if (payout > 0) {
                                 action(permission_level{get_self(), "active"_n},
                                        TokenContract, "transfer"_n,
@@ -288,7 +262,6 @@ public:
                                        ).send();
 
                                 // Reduce the producer's share of daily rewards and bucketrewards
-
                                 if (bpiter->abpayshare > 0) {
                                         bprewards.set(bpreward{bprewards.get().rewards - payout}, _self);
                                 }
@@ -296,15 +269,12 @@ public:
                                 clockstate.modify(clockiter, get_self(), [&](auto &entry) {
                                                 entry.rewardspaid += payout;
                                         });
-
                                 //Invoke system contract to reset producer last_claim_time and unpaid_blocks
                                 action(permission_level{get_self(), "active"_n},
                                        AddressContract, "resetclaim"_n,
                                        make_tuple(producer)
                                        ).send();
                         }
-
-
 
                         // PAY FOUNDATION //
                         auto fdtnstate = fdtnrewards.get();
@@ -315,9 +285,6 @@ public:
 
                         //Clear the foundation rewards counter
                         fdtnrewards.set(fdtnreward{0}, _self);
-                        //////////////////////////////////////
-
-
                         //remove the producer from payschedule
                         voteshares.erase(bpiter);
                 } //endif now() > bpiter + 172800
@@ -325,7 +292,6 @@ public:
                 const string response_string = string("{\"status\": \"OK\",\"amount\":") +
                                          to_string(payout) + string("}");
                 send_response(response_string.c_str());
-
         } //bpclaim
 
         // @abi action
