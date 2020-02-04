@@ -345,7 +345,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        make_tuple(payer_fio_address, 2)
+                        make_tuple(payee_fio_address, 2)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
