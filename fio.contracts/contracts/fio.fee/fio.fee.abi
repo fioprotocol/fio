@@ -39,14 +39,23 @@
             {"name":"actor", "type":"string"}
         ]
       },{
-               "name": "mandatoryfee",
-               "base": "",
-               "fields": [
-                   {"name":"end_point", "type":"string"},
-                   {"name":"account", "type":"name"},
-                   {"name":"max_fee", "type":"int64"}
-               ]
-             },{
+        "name": "mandatoryfee",
+        "base": "",
+        "fields": [
+            {"name":"end_point", "type":"string"},
+            {"name":"account", "type":"name"},
+            {"name":"max_fee", "type":"int64"}
+        ]
+      },{
+        "name": "bytemandfee",
+        "base": "",
+        "fields": [
+            {"name":"end_point", "type":"string"},
+            {"name":"account", "type":"name"},
+            {"name":"max_fee", "type":"int64"},
+            {"name":"bytesize", "type":"int64"}
+        ]
+      },{
         "name": "updatefees",
         "base": "",
         "fields": [
@@ -107,9 +116,13 @@
          "ricardian_contract": ""
        },{
          "name": "mandatoryfee",
-                 "type": "mandatoryfee",
-                 "ricardian_contract": ""
-               },{
+         "type": "mandatoryfee",
+         "ricardian_contract": ""
+       },{
+         "name": "bytemandfee",
+         "type": "bytemandfee",
+         "ricardian_contract": ""
+       },{
          "name": "updatefees",
          "type": "updatefees",
          "ricardian_contract": ""
