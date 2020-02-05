@@ -61,7 +61,6 @@ namespace eosio {
         sizep  += sizeof(_proposal_name);
         uint32_t numrequested = _requested.size();
         if (numrequested >0) {
-            uint32_t ts = numrequested * sizeof(_requested[0]);
            sizep += numrequested * sizeof(_requested[0]) ;
         }
         sizep += size;
