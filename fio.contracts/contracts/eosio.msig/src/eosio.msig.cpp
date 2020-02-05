@@ -56,11 +56,20 @@ namespace eosio {
         proposals proptable(_self, _proposer.value);
         check(proptable.find(_proposal_name.value) == proptable.end(), "proposal with the same name exists");
 
+        //get the sizes of all paramters.
+        uint64_t sizep = sizeof(_proposer);
+        sizep  += sizeof(_proposal_name);
+        uint32_t numrequested = _requested.size();
+        if (numrequested >0) {
+           sizep += numrequested * sizeof(_requested[0]) ;
+        }
+        sizep += size;
+
         //collect fees.
         eosio::action{
                 permission_level{_proposer, "active"_n},
-                fioio::FeeContract, "mandatoryfee"_n,
-                std::make_tuple(std::string("msig_propose"), _proposer, _maxfee)
+                fioio::FeeContract, "bytemandfee"_n,
+                std::make_tuple(std::string("msig_propose"), _proposer, _maxfee,sizep)
         }.send();
 
         auto packed_requested = pack(_requested);

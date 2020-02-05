@@ -370,6 +370,7 @@ namespace fioio {
         }
 
 
+        // @abi action
         [[eosio::action]]
         void mandatoryfee(
                 const string &end_point,
@@ -400,6 +401,54 @@ namespace fioio {
 
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
+        }
+
+        // @abi action
+        [[eosio::action]]
+        void bytemandfee(
+                const string &end_point,
+                const name &account,
+                const int64_t &max_fee,
+                const int64_t &bytesize
+        ) {
+            print("called mandatory byte fee for account ", account, " end point ",end_point," byte size ",bytesize,"\n");
+
+            require_auth(account);
+            //begin new fees, logic for Mandatory fees.
+            const uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t remv = bytesize % 1000;
+            uint64_t divv = bytesize / 1000;
+            if (remv > 0 ){
+                divv ++;
+            }
+
+            reg_amount = divv * reg_amount;
+
+            const uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(account, asset(reg_amount, FIOSYMBOL));
+            processrewardsnotpid(reg_amount, get_self());
+            //end new fees, logic for Mandatory fees.
+
+            print("called mandatory byte fee for account processing completed","\n");
+
         }
 
         /*******
@@ -445,7 +494,7 @@ namespace fioio {
         }
     };
 
-    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)(mandatoryfee)
-    (create)
+    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)
+                           (mandatoryfee)(bytemandfee)(create)
     )
 }
