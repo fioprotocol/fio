@@ -411,7 +411,7 @@ namespace fioio {
                 const int64_t &max_fee,
                 const int64_t &bytesize
         ) {
-            print("called mandatory byte fee for account ", account, " end point ",end_point,"\n");
+            print("called mandatory byte fee for account ", account, " end point ",end_point," byte size ",bytesize,"\n");
 
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
@@ -430,6 +430,7 @@ namespace fioio {
             if (remv > 0 ){
                 divv ++;
             }
+
             reg_amount = divv * reg_amount;
 
             const uint64_t fee_type = fee_iter->type;
