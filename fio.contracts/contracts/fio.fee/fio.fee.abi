@@ -3,7 +3,7 @@
     "version": "eosio::abi/1.0",
     "types": [],
     "structs": [{
-        "name": "create",
+        "name": "createfee",
         "base": "",
         "fields": [
             {"name":"end_point", "type":"string"},
@@ -99,8 +99,8 @@
         ]
      }],
     "actions": [{
-         "name": "create",
-         "type": "create",
+         "name": "createfee",
+         "type": "createfee",
          "ricardian_contract": ""
        },{
          "name": "setfeevote",
