@@ -143,24 +143,6 @@ namespace eosiosystem {
        // set_resource_limits(newact.value, 0, 0, 0);
     }
 
-    void eosiosystem::native::setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code) {
-
-        require_auth(account);
-
-        eosio::check((account == fioio::MSIGACCOUNT ||
-                      account == fioio::WRAPACCOUNT ||
-                      account == fioio::FeeContract ||
-                      account == fioio::AddressContract ||
-                      account == fioio::TPIDContract ||
-                      account == fioio::REQOBTACCOUNT ||
-                      account == fioio::TokenContract ||
-                      account == fioio::FOUNDATIONACCOUNT ||
-                      account == fioio::TREASURYACCOUNT ||
-                      account == fioio::SYSTEMACCOUNT), "setcode is not permitted");
-
-
-    }
-
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
 
         require_auth(acnt);

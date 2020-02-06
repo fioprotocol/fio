@@ -215,6 +215,7 @@ namespace eosiosystem {
 
         [[eosio::action]]
         void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code);
+        //special note, dont add code here, setcode will not run this code.
 
         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
         using updateauth_action = eosio::action_wrapper<"updateauth"_n, &native::updateauth>;
