@@ -214,23 +214,7 @@ namespace eosiosystem {
         void setabi(name account, const std::vector<char> &abi);
 
         [[eosio::action]]
-        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code) {
-
-            require_auth(account);
-
-            eosio::check((account == fioio::MSIGACCOUNT ||
-                   account == fioio::WRAPACCOUNT ||
-                   account == fioio::FeeContract ||
-                   account == fioio::AddressContract ||
-                   account == fioio::TPIDContract ||
-                   account == fioio::REQOBTACCOUNT ||
-                   account == fioio::TokenContract ||
-                   account == fioio::FOUNDATIONACCOUNT ||
-                   account == fioio::TREASURYACCOUNT ||
-                   account == fioio::SYSTEMACCOUNT), "setcode is not permitted");
-
-
-        }
+        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code);
 
         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
         using updateauth_action = eosio::action_wrapper<"updateauth"_n, &native::updateauth>;
