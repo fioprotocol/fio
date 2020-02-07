@@ -3,6 +3,7 @@
  *  @copyright defined in fio/LICENSE
  */
 #include <eosio/chain_plugin/chain_plugin.hpp>
+#include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fork_database.hpp>
 #include <eosio/chain/block_log.hpp>
 #include <eosio/chain/exceptions.hpp>
@@ -18,7 +19,6 @@
 
 #include <eosio/chain/eosio_contract.hpp>
 
-#include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/fioserialize.h>
 #include <eosio/chain/fioio/pubkey_validation.hpp>
 #include <fio.common/fioerror.hpp>
@@ -4776,7 +4776,7 @@ if( options.count(name) ) { \
         read_only::serialize_json(const read_only::serialize_json_params &params) const try {
             serialize_json_result result;
 
-            string actionname = fioio::returncontract(params.action.to_string());
+            string actionname = fioio::map_to_contract(params.action.to_string());
             name code = ::eosio::string_to_name(actionname.c_str());
 
             const auto code_account = db.db().find<account_object, by_name>(code);

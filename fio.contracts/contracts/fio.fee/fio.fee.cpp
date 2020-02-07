@@ -459,7 +459,7 @@ namespace fioio {
          */
         // @abi action
         [[eosio::action]]
-        void create(
+        void createfee(
                 string end_point,
                 int64_t type,
                 int64_t suf_amount
@@ -495,6 +495,6 @@ namespace fioio {
     };
 
     EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)
-                           (mandatoryfee)(bytemandfee)(create)
+                           (mandatoryfee)(bytemandfee)(createfee)
     )
 }

@@ -10,97 +10,66 @@
 #pragma once
 
 #include <string>
-#include <fc/reflect/reflect.hpp>
 
 namespace fioio {
 
-    using namespace std;
+    static std::string map_to_contract(const std::string &action) {
 
-    //map<string, string> ctType;
-    vector<string> eosioActions;
-    vector<string> fioAddressActions;
-    vector<string> fioFinanceActions;
-    vector<string> fioFeeActions;
-    vector<string> fioRequestObtActions;
-    vector<string> fioTokenActions;
-    vector<string> fioTreasuryActions;
+        // msig actions
+        if (action == "approve" || action == "cancel" || action == "invalidate" ||
+            action == "exec" || action == "propose" || action == "unapprove")
+          return "eosio.msig";
 
-    static void Set_map(void) {
-        //eosio actions
-        eosioActions.push_back("default");
-        //fio.system actions
-        fioAddressActions.push_back("regaddress");
-        fioAddressActions.push_back("regdomain");
-        fioAddressActions.push_back("addaddress");
-        fioAddressActions.push_back("renewdomain");
-        fioAddressActions.push_back("renewaddress");
-        fioAddressActions.push_back("expdomain");
-        fioAddressActions.push_back("setdomainpub");
-        fioAddressActions.push_back("expaddresses");
-        fioAddressActions.push_back("bind2eosio");
-        fioAddressActions.push_back("burnexpired");
+        // fio.address actions
+        if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
+            action == "renewdomain" || action == "renewaddress" || action == "expdomain" ||
+            action == "setdomainpub" || action == "expaddresses" || action == "bind2eosio" ||
+            action == "burnexpired" || action == "decrcounter" || action == "resetclaim")
+          return "fio.address";
+          // note: resetclaim should be in eosio system contract account but there is currrently an open bug
 
-        //fio.fee actions
-        fioFeeActions.push_back("setfeemult");
-        fioFeeActions.push_back("bundlevote");
-        fioFeeActions.push_back("setfeevote");
 
-        fioTreasuryActions.push_back("tpidclaim");
-        fioTreasuryActions.push_back("bpclaim");
+        // fio.fee actions
+        if (action == "setfeemult" || action == "bundlevote" || action == "setfeevote" ||
+            action == "bytemandfee" || action == "updatefees" || action == "mandatoryfee" ||
+            action == "createfee")
+          return "fio.fee";
+
+
+        // fio.treasury actions
+        if (action == "tpidclaim" || action == "bpclaim" || action == "bppoolupdate" ||
+            action == "fdtnrwdupdat" || action == "bprewdupdate" || action == "startclock" ||
+            action == "updateclock")
+          return "fio.treasury";
 
         //fio.token actions
-        fioTokenActions.push_back("trnsfiopubky");
-        //fio.finance actions
-        fioFinanceActions.push_back("requestfunds");
-
+        if (action == "trnsfiopubky" || action == "create" || action == "issue" ||
+            action == "transfer" || action == "mintfio")
+          return "fio.token";
         //fio.request.obt actions
-        fioRequestObtActions.push_back("recordobt");
-        fioRequestObtActions.push_back("rejectfndreq");
-        fioRequestObtActions.push_back("newfundsreq");
+        if (action == "recordobt" || action == "rejectfndreq" || action == "newfundsreq")
+          return "fio.reqobt";
+
+        //fio.tpid actions
+        if (action == "updatebounty" || action == "rewardspaid" || action == "updatetpid")
+          return "fio.tpid";
+
+        //system actions
+        if (action == "newaccount" || action == "onblock" || action == "addlocked" ||
+            action == "regproducer" || action == "unregprod" || action == "regproxy" ||
+            action == "voteproducer" || action == "unregproxy" || action == "voteproxy" ||
+            action == "setabi" || action == "setcode" || action == "updateauth" ||
+            action == "setprods" || action == "setpriv" || action == "init" ||
+            action == "nonce" || action == "burnaction" || action == "canceldelay" ||
+            action == "crautoproxy" || action == "deleteauth" || action == "inhibitunlck" ||
+            action == "linkauth" || action == "onerror" ||
+            action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
+            action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
+            action == "updatepower")
+          return "eosio";
+
+        return "nomap";
     }
 
-    static string map_to_contract(string t) {
-        if (find(fioAddressActions.begin(), fioAddressActions.end(), t) != fioAddressActions.end()) {
-            return "fio.address";
-        }
-        if (find(fioFinanceActions.begin(), fioFinanceActions.end(), t) != fioFinanceActions.end()) {
-            return "fio.finance";
-        }
-        if (find(fioRequestObtActions.begin(), fioRequestObtActions.end(), t) != fioRequestObtActions.end()) {
-            return "fio.reqobt";
-        }
-        if (find(fioTokenActions.begin(), fioTokenActions.end(), t) != fioTokenActions.end()) {
-            return "fio.token";
-        }
-        if (find(fioTreasuryActions.begin(), fioTreasuryActions.end(), t) != fioTreasuryActions.end()) {
-            return "fio.treasury";
-        }
-        if (find(fioFeeActions.begin(), fioFeeActions.end(), t) != fioFeeActions.end()) {
-            return "fio.fee";
-        }
-        return "eosio";
-    }
 
-    inline string returncontract(string incomingaction) {
-        Set_map();
-
-        string contract = map_to_contract(incomingaction);
-
-        return contract;
-    }
-
-    struct regaddress {
-        string name;
-        uint64_t requestor;
-    };
-
-    struct regdomain {
-        string name;
-        uint64_t requestor;
-    };
 }
-
-FC_REFLECT(fioio::regaddress, (name)(requestor)
-)
-FC_REFLECT(fioio::regdomain, (name)(requestor)
-)
