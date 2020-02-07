@@ -44,7 +44,7 @@
 
 
 #ifndef MAXBOUNTYTOKENSTOMINT
-#define MAXBOUNTYTOKENSTOMINT 200000000000000000
+#define MAXBOUNTYTOKENSTOMINT 125000000000000000
 #endif
 
 #ifndef MINVOTEDFIO
@@ -240,7 +240,7 @@ namespace fioio {
             uint64_t bamount = 0;
 
             if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                bamount = (uint64_t) (static_cast<double>(amount) * .40);
 
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
@@ -302,7 +302,7 @@ namespace fioio {
             uint64_t bamount = 0;
 
             if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                bamount = (uint64_t) (static_cast<double>(amount) * .40);
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
                        make_tuple(TREASURYACCOUNT,bamount)
