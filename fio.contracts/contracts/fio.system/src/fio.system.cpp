@@ -146,17 +146,19 @@ namespace eosiosystem {
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
 
         require_auth(acnt);
-
-        check(( acnt == fioio::MSIGACCOUNT ||
-                acnt == fioio::WRAPACCOUNT ||
-                acnt == fioio::FeeContract ||
-                acnt == fioio::AddressContract ||
-                acnt == fioio::TPIDContract ||
-                acnt == fioio::REQOBTACCOUNT ||
-                acnt == fioio::TokenContract ||
-                acnt == fioio::FOUNDATIONACCOUNT ||
-                acnt == fioio::TREASURYACCOUNT ||
-                acnt == fioio::SYSTEMACCOUNT), "setabi is not permitted");
+        check((acnt == SYSTEMACCOUNT ||
+                      acnt == MSIGACCOUNT ||
+                      acnt == WRAPACCOUNT ||
+                      acnt == ASSERTACCOUNT ||
+                      acnt == REQOBTACCOUNT ||
+                      acnt == FeeContract ||
+                      acnt == AddressContract ||
+                      acnt == TPIDContract ||
+                      acnt == TokenContract ||
+                      acnt == FOUNDATIONACCOUNT ||
+                      acnt == TREASURYACCOUNT ||
+                      acnt == FIOSYSTEMACCOUNT ||
+                      acnt == FIOACCOUNT),"set abi not permitted." );
 
 
         eosio::multi_index<"abihash"_n, abi_hash> table(_self, _self.value);
