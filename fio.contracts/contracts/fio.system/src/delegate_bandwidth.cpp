@@ -64,15 +64,18 @@ namespace eosiosystem {
                 ),
                 "missing required authority of fio.address, fio.treasury, eosio, fio.fee, fio.token, or fio.reqobt");
 
-        auto voter_itr = _voters.find(voter.value);
-        if ((voter_itr == _voters.end())&& updateonly) {
+        auto votersbyowner = _voters.get_index<"byowner"_n>();
+        auto voter_itr = votersbyowner.find(voter.value);
+
+        if ((voter_itr == votersbyowner.end())&& updateonly) {
             //its not there so return.
             return;
         }
-        if ((voter_itr == _voters.end())&& !updateonly) {
-            voter_itr = _voters.emplace(voter, [&](auto &v) {
+        if ((voter_itr == votersbyowner.end())&& !updateonly) {
+             _voters.emplace(voter, [&](auto &v) {
                 v.owner = voter;
             });
+             return;
         }
         if (voter_itr->producers.size() || voter_itr->proxy) {
             update_votes(voter, voter_itr->proxy, voter_itr->producers, false);

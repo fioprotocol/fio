@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
-
-set(EOSIO_VERSION_MIN "1.6")
+project(contracttests)
+set(EOSIO_VERSION_MIN "0.9")
 set(EOSIO_VERSION_SOFT_MAX "1.7")
 #set(EOSIO_VERSION_HARD_MAX "")
 

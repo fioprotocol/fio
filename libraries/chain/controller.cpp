@@ -1322,6 +1322,8 @@ namespace eosio {
                                                            skip_recording);
                         }
 
+                        EOS_ASSERT(trn.delay_sec == (unsigned_int)0, block_validate_exception, "delayed tx not permitted");
+
                         trx_context.delay = fc::seconds(trn.delay_sec);
 
                         if (check_auth) {

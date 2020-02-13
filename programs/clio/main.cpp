@@ -1192,20 +1192,28 @@ struct create_account_subcommand {
 };
 
 struct unregister_producer_subcommand {
-    string producer_str;
+    string fioaddress_str;
+    string actor_str;
+    string maxfee_str;
+
 
     unregister_producer_subcommand(CLI::App *actionRoot) {
         auto unregister_producer = actionRoot->add_subcommand("unregprod",
                                                               localized("Unregister an existing producer"));
-        unregister_producer->add_option("account", producer_str,
-                                        localized("The account to unregister as a producer"))->required();
+        unregister_producer->add_option("fio_address", fioaddress_str,
+                                        localized("The address to unregister as a producer"))->required();
+        unregister_producer->add_option("actor", actor_str,
+                                        localized("The actor to pay fee for unregistering the producer"))->required();
+        unregister_producer->add_option("max_fee", maxfee_str,
+                                        localized("The maxmimum fee allowed to be paid to the network"))->required();
         add_standard_transaction_options(unregister_producer, "account@active");
 
         unregister_producer->set_callback([this] {
             fc::variant act_payload = fc::mutable_variant_object()
-                    ("producer", producer_str);
-
-            auto accountPermissions = get_account_permissions(tx_permission, {producer_str, config::active_name});
+            ("fio_address", fioaddress_str)
+            ("actor", actor_str)
+            ("max_fee", maxfee_str);
+            auto accountPermissions = get_account_permissions(tx_permission, {actor_str, config::active_name});
             send_actions({create_action(accountPermissions, config::system_account_name, N(unregprod), act_payload)});
         });
     }
@@ -3687,14 +3695,6 @@ int main(int argc, char **argv) {
             }
             if (actions[0].name.to_string() == "unregprod") {
                 auto trx_result = call(unreg_producer_func, packed_transaction(trx, packed_transaction::none));
-                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
-            }
-            if (actions[0].name.to_string() == "remwhitelist") {
-                auto trx_result = call(rem_whitelist_func, packed_transaction(trx, packed_transaction::none));
-                std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
-            }
-            if (actions[0].name.to_string() == "addwhitelist") {
-                auto trx_result = call(add_whitelist_func, packed_transaction(trx, packed_transaction::none));
                 std::cout << fc::json::to_pretty_string(trx_result) << std::endl;
             }
             if (actions[0].name.to_string() == "setfeemult") {

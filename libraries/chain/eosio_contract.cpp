@@ -129,12 +129,29 @@ namespace eosio {
             } FC_CAPTURE_AND_RETHROW((create))
         }
 
+
         void apply_eosio_setcode(apply_context &context) {
             const auto &cfg = context.control.get_global_properties().configuration;
 
             auto &db = context.db;
             auto act = context.get_action().data_as<setcode>();
             context.require_authorization(act.account);
+
+
+            EOS_ASSERT(act.account == SYSTEMACCOUNT ||
+                               act.account == MSIGACCOUNT ||
+                               act.account == WRAPACCOUNT ||
+                               act.account == ASSERTACCOUNT ||
+                               act.account == REQOBTACCOUNT ||
+                               act.account == FeeContract ||
+                               act.account == AddressContract ||
+                               act.account == TPIDContract ||
+                               act.account == TokenContract ||
+                               act.account == FOUNDATIONACCOUNT ||
+                               act.account == TREASURYACCOUNT ||
+                               act.account == FIOSYSTEMACCOUNT ||
+                               act.account == FIOACCOUNT
+                    ,fio_invalid_account_or_action,"set code not permitted." );
 
             EOS_ASSERT(act.vmtype == 0, invalid_contract_vm_type, "code should be 0");
             EOS_ASSERT(act.vmversion == 0, invalid_contract_vm_version, "version should be 0");

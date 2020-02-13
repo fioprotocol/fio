@@ -129,27 +129,43 @@ namespace eosio {
         static uint64_t computeremaininglockedtokens(const name &actor, bool doupdate){
             uint32_t present_time = now();
 
-            print(" unlock_tokens for ",actor,"\n");
-
             eosiosystem::locked_tokens_table lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
             auto lockiter = lockedTokensTable.find(actor.value);
             if(lockiter != lockedTokensTable.end()){
                 if(lockiter->inhibit_unlocking && (lockiter->grant_type == 2)){
                     return lockiter->remaining_locked_amount;
                 }
-                if (lockiter->unlocked_period_count < 9)  {
+                if (lockiter->unlocked_period_count < 6)  {
                     print(" issue time is ",lockiter->timestamp,"\n");
                     print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
-                    // uint32_t timeElapsed90DayBlocks = (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY) / 90;
-                    //we kludge the time block evaluation to become one block per 3 minutes
-                    uint32_t timeElapsed90DayBlocks = (int)(present_time  - lockiter->timestamp) / (5*60);
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("------time step for unlocking is kludged to 5 min-------","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print("--------------------DANGER------------------------------ ","\n");
-                    print(" timeElapsed90DayBlocks ",timeElapsed90DayBlocks,"\n");
+
+                    //to shorten the vesting schedule adapt these variables.
+                    //uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY);
+                    //uint32_t firstPayPeriod = 90;
+                    //uint32_t payoutTimePeriod = 180;
+                    print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
+                    print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
+                    print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
+                    //modified this to become minutes since grant!!!!
+                    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+                    print("DANGER DANGER DANGER unlocking schedule set to become 15 minutes to first unlock event!!","\n");
+                    print("DANGER DANGER DANGER unlocking schedule set to 15 minutes for subsequent unlocks","\n");
+                    uint32_t firstPayPeriod = 15;
+                    uint32_t payoutTimePeriod = 15;
+
+                    bool ninetyDaysSinceGrant = daysSinceGrant >= firstPayPeriod;
+
+                    uint32_t payoutsDue = 0;
+                    if (daysSinceGrant > firstPayPeriod) {
+                        daysSinceGrant -= firstPayPeriod;
+                        payoutsDue = daysSinceGrant / payoutTimePeriod;
+                        if (payoutsDue > 6){
+                            payoutsDue = 6;
+                        }
+
+                    }
+
+                    print(" payoutsDue ",payoutsDue,"\n");
                     uint32_t numberVestingPayouts = lockiter->unlocked_period_count;
                     print(" number payouts so far ",numberVestingPayouts,"\n");
                     uint32_t remainingPayouts = 0;
@@ -161,30 +177,21 @@ namespace eosio {
                     print(" total grant amount ",totalgrantamount,"\n");
 
                     uint64_t amountpay = 0;
-
                     uint64_t addone = 0;
-
-                    if (timeElapsed90DayBlocks > 8){
-                        timeElapsed90DayBlocks = 8;
-                    }
-
                     bool didsomething = false;
 
-                    //do the day zero unlocking, this is the first unlocking.
-                    if(numberVestingPayouts == 0) {
-                        if (lockiter->grant_type == 1) {
+                    //this is the first unlocking. 90 days after grant
+                    if((numberVestingPayouts == 0)&&(ninetyDaysSinceGrant)) {
+                        if ((lockiter->grant_type == 1) ||
+                            (lockiter->grant_type == 2) ||
+                            (lockiter->grant_type == 3)){
                             //pay out 1% for type 1
-                            amountpay = totalgrantamount / 100;
-                            print(" amount to pay type 1 ", amountpay, "\n");
-
-                        } else if (lockiter->grant_type == 2) {
-                            //pay out 2% for type 2
-                            amountpay = (totalgrantamount / 100) * 2;
-                            print(" amount to pay type 2 ", amountpay, "\n");
-                        } else if (lockiter->grant_type == 3) {
-                            //pay out 0 for type 3
+                            amountpay = (totalgrantamount / 100)*6;
+                            print(" amount to pay type 1,2,3 ", amountpay, "\n");
+                        } else if (lockiter->grant_type == 4) {
+                            //pay out 0 for type 4
                             amountpay = 0;
-                            print(" amount to pay for type 3 for day 0 is ", amountpay, "\n");
+                            print(" amount to pay for type 4 for is ", amountpay, "\n");
                         }else{
                             check(false,"unknown grant type");
                         }
@@ -204,18 +211,17 @@ namespace eosio {
                         numberVestingPayouts--;
                     }
 
-                    if (timeElapsed90DayBlocks > numberVestingPayouts) {
-                        remainingPayouts = timeElapsed90DayBlocks - numberVestingPayouts;
+                    if (payoutsDue > numberVestingPayouts) {
+                        remainingPayouts = payoutsDue - numberVestingPayouts;
                         uint64_t percentperblock = 0;
-                        if (lockiter->grant_type == 1) {
+                        if ((lockiter->grant_type == 1) ||
+                            (lockiter->grant_type == 2) ||
+                            (lockiter->grant_type == 3)) {
                             //this logic assumes to have 3 decimal places in the specified percentage
-                            percentperblock = 12375;
-                        } else if (lockiter->grant_type == 2){
+                            percentperblock = 18800;
+                        } else if (lockiter->grant_type == 4){
                             //this is assumed to have 3 decimal places in the specified percentage
-                            percentperblock = 12275;
-                        } else if (lockiter->grant_type == 3){
-                            //this is assumed to have 3 decimal places in the specified percentage
-                            percentperblock = 12500;
+                            return lockiter->remaining_locked_amount;
                         } else {  //unknown lock type, dont unlock
                             return lockiter->remaining_locked_amount;
                         }

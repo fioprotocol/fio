@@ -44,7 +44,7 @@
 
 
 #ifndef MAXBOUNTYTOKENSTOMINT
-#define MAXBOUNTYTOKENSTOMINT 200000000000000000
+#define MAXBOUNTYTOKENSTOMINT 125000000000000000
 #endif
 
 #ifndef MINVOTEDFIO
@@ -65,6 +65,10 @@
 
 #ifndef MAXACTIVEBPS
 #define MAXACTIVEBPS 21
+#endif
+
+#ifndef DEFAULTBUNDLEAMT
+#define DEFAULTBUNDLEAMT 100
 #endif
 
 namespace fioio {
@@ -92,7 +96,7 @@ namespace fioio {
 
      void fio_fees(const name &actor, const asset &fee)  {
         if(fee.amount > 0) {
-            action(permission_level{actor, "active"_n},
+            action(permission_level{SYSTEMACCOUNT, "active"_n},
                    TokenContract, "transfer"_n,
                    make_tuple(actor, TREASURYACCOUNT, fee,
                               string("FIO API fees. Thank you."))
@@ -236,7 +240,7 @@ namespace fioio {
             uint64_t bamount = 0;
 
             if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                bamount = (uint64_t) (static_cast<double>(amount) * .40);
 
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
@@ -298,7 +302,7 @@ namespace fioio {
             uint64_t bamount = 0;
 
             if (bounties.get().tokensminted < MAXBOUNTYTOKENSTOMINT) {
-                bamount = (uint64_t) (static_cast<double>(amount) * .65);
+                bamount = (uint64_t) (static_cast<double>(amount) * .40);
                 action(permission_level{TREASURYACCOUNT, "active"_n},
                        TokenContract, "mintfio"_n,
                        make_tuple(TREASURYACCOUNT,bamount)

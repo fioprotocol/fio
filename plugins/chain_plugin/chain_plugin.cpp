@@ -3,6 +3,7 @@
  *  @copyright defined in fio/LICENSE
  */
 #include <eosio/chain_plugin/chain_plugin.hpp>
+#include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fork_database.hpp>
 #include <eosio/chain/block_log.hpp>
 #include <eosio/chain/exceptions.hpp>
@@ -18,7 +19,6 @@
 
 #include <eosio/chain/eosio_contract.hpp>
 
-#include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/fioio/fioserialize.h>
 #include <eosio/chain/fioio/pubkey_validation.hpp>
 #include <fio.common/fioerror.hpp>
@@ -1573,7 +1573,6 @@ if( options.count(name) ) { \
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
 
         const uint16_t FEEMAXLENGTH = 32;
-        const uint16_t FIOADDRESSLENGTH = 64;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
 
         /***
@@ -2277,7 +2276,7 @@ if( options.count(name) ) { \
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
-            
+
 
             get_table_rows_params eosio_table_row_params = get_table_rows_params{
                     .json           = true,
@@ -2372,13 +2371,6 @@ if( options.count(name) ) { \
 
             if (isbundleeligible) {
 
-                FIO_400_ASSERT(!p.fio_address.empty(), "fio_address", "", "Invalid FIO Address",
-                               fioio::ErrorChainAddressEmpty);
-
-                FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", p.fio_address.c_str(),
-                               "Invalid FIO Address",
-                               fioio::ErrorInvalidFioNameFormat);
-
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -2404,8 +2396,7 @@ if( options.count(name) ) { \
 
                 fioio::FioAddress fa;
                 fioio::getFioAddressStruct(p.fio_address, fa);
-                int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
-                FIO_400_ASSERT(res == 0, "fio_address", p.fio_address, "Invalid FIO Address",
+                FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameNotReg);
 
                 FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", p.fio_address,
@@ -2526,17 +2517,16 @@ if( options.count(name) ) { \
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_address, fa);
             // assert if empty fio name
-            int res = fa.domainOnly ? fioio::isFioNameValid(fa.fiodomain) * 10 : fioio::isFioNameValid(fa.fioname);
 
-            FIO_400_ASSERT(p.fio_address.size() <= FIOADDRESSLENGTH, "fio_address", fa.fioaddress,
-                           "Invalid FIO Address",
-                           fioio::ErrorInvalidFioNameFormat);
-            FIO_400_ASSERT(res == 0, "fio_address", fa.fioaddress, "Invalid FIO Address",
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
-            FIO_400_ASSERT(fioio::isChainNameValid(p.token_code), "token_code", p.token_code,
+            FIO_400_ASSERT(fioio::validateChainNameFormat(p.token_code), "token_code", p.token_code,
                            "Invalid Token Code",
+                           fioio::ErrorTokenCodeInvalid);
+            FIO_400_ASSERT(fioio::validateChainNameFormat(p.chain_code), "chain_code", p.chain_code,
+                           "Invalid Chain Code",
                            fioio::ErrorTokenCodeInvalid);
 
             const name code = ::eosio::string_to_name("fio.address");
@@ -2615,7 +2605,8 @@ if( options.count(name) ) { \
             }
 
             for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
-                if (name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code) {
+                if ((name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code)&&
+                        (name_result.rows[0]["addresses"][i]["chain_code"].as_string() == p.chain_code)){
                     result.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
                 }
             }
@@ -2636,20 +2627,10 @@ if( options.count(name) ) { \
 
             avail_check_result result;
 
-            FIO_400_ASSERT(p.fio_name.size() <= FIOADDRESSLENGTH, "fio_name", p.fio_name, "Invalid FIO Name",
-                           fioio::ErrorInvalidFioNameFormat);
-
-            // assert if empty fio name
-            FIO_400_ASSERT(!p.fio_name.empty(), "fio_name", p.fio_name, "Invalid FIO Name",
-                           fioio::ErrorInvalidFioNameFormat);
-
             fioio::FioAddress fa;
             fioio::getFioAddressStruct(p.fio_name, fa);
-            int res = fioio::isFioNameValid(fa.fiodomain) * 10;
-            if( res == 0 && !fa.domainOnly ) {
-                fioio::isFioNameValid(fa.fioname);
-            }
-            FIO_400_ASSERT(res == 0, "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
+
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
             //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -2915,7 +2896,7 @@ if( options.count(name) ) { \
                                           shorten_abi_errors);
         }
 
-        read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const try {
+        read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const {
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
             const auto table_type = get_table_type(abi, N(producers));
             const abi_serializer abis{abi, abi_serializer_max_time};
@@ -2977,7 +2958,7 @@ if( options.count(name) ) { \
             result.total_producer_vote_weight = get_global_row(d, abi, abis, abi_serializer_max_time,
                                                                shorten_abi_errors)["total_producer_vote_weight"].as_double();
             return result;
-        } catch (...) {
+        } /*catch (...) {
             read_only::get_producers_result result;
 
             for (auto p : db.active_producers().producers) {
@@ -2991,7 +2972,7 @@ if( options.count(name) ) { \
             }
 
             return result;
-        }
+        } */
 
         read_only::get_producer_schedule_result
         read_only::get_producer_schedule(const read_only::get_producer_schedule_params &p) const {
@@ -4029,105 +4010,6 @@ if( options.count(name) ) { \
             } CATCH_AND_CALL(next);
         }
 
-        void read_write::add_to_whitelist(const read_write::add_to_whitelist_params &params,
-                                          next_function<read_write::add_to_whitelist_results> next) {
-            try {
-                FIO_403_ASSERT(params.size() == 4,
-                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
-                auto pretty_input = std::make_shared<packed_transaction>();
-                auto resolver = make_resolver(this, abi_serializer_max_time);
-                transaction_metadata_ptr ptrx;
-                dlog("add_to_whitelist called");
-                try {
-                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
-                }
-                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
-
-                transaction trx = pretty_input->get_transaction();
-                vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
-                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
-                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::InvalidAccountOrAction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "addwhitelist", fioio::InvalidAccountOrAction);
-
-                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
-                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
-                    if (result.contains<fc::exception_ptr>()) {
-                        next(result.get<fc::exception_ptr>());
-                    } else {
-                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                        try {
-                            fc::variant output;
-                            try {
-                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
-                            } catch (chain::abi_exception &) {
-                                output = *trx_trace_ptr;
-                            }
-                            const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::add_to_whitelist_results{id, output});
-                        } CATCH_AND_CALL(next);
-                    }
-                });
-            } catch (boost::interprocess::bad_alloc &) {
-                chain_plugin::handle_db_exhaustion();
-            } CATCH_AND_CALL(next);
-        }
-
-
-        void read_write::remove_from_whitelist(const read_write::remove_from_whitelist_params &params,
-                                               next_function<read_write::remove_from_whitelist_results> next) {
-            try {
-                FIO_403_ASSERT(params.size() == 4,
-                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
-                auto pretty_input = std::make_shared<packed_transaction>();
-                auto resolver = make_resolver(this, abi_serializer_max_time);
-                transaction_metadata_ptr ptrx;
-                dlog("remove_from_whitelist called");
-                try {
-                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
-                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
-                }
-                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
-
-                transaction trx = pretty_input->get_transaction();
-                vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
-                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
-
-                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
-                FIO_403_ASSERT(actions[0].account.to_string() == "fio.whitelst", fioio::InvalidAccountOrAction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "remwhitelist", fioio::InvalidAccountOrAction);
-
-                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
-                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
-                    if (result.contains<fc::exception_ptr>()) {
-                        next(result.get<fc::exception_ptr>());
-                    } else {
-                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
-
-                        try {
-                            fc::variant output;
-                            try {
-                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
-                            } catch (chain::abi_exception &) {
-                                output = *trx_trace_ptr;
-                            }
-                            const chain::transaction_id_type &id = trx_trace_ptr->id;
-                            next(read_write::remove_from_whitelist_results{id, output});
-                        } CATCH_AND_CALL(next);
-                    }
-                });
-            } catch (boost::interprocess::bad_alloc &) {
-                chain_plugin::handle_db_exhaustion();
-            } CATCH_AND_CALL(next);
-        }
-
         void read_write::unregister_producer(const read_write::unregister_producer_params &params,
                                              next_function<read_write::unregister_producer_results> next) {
             try {
@@ -4894,7 +4776,7 @@ if( options.count(name) ) { \
         read_only::serialize_json(const read_only::serialize_json_params &params) const try {
             serialize_json_result result;
 
-            string actionname = fioio::returncontract(params.action.to_string());
+            string actionname = fioio::map_to_contract(params.action.to_string());
             name code = ::eosio::string_to_name(actionname.c_str());
 
             const auto code_account = db.db().find<account_object, by_name>(code);

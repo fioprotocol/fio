@@ -15,8 +15,10 @@ namespace eosiosystem {
     const int64_t useconds_per_day = 24 * 3600 * int64_t(1000000);
     const int64_t useconds_per_year = seconds_per_year * 1000000ll;
 
+    using namespace eosio;
+
     void system_contract::onblock(ignore <block_header>) {
-        using namespace eosio;
+
 
         require_auth(_self);
 
@@ -52,18 +54,23 @@ namespace eosiosystem {
             update_elected_producers(timestamp);
             //invoke the fee computation.
 
-            action(permission_level{get_self(), "active"_n},
-                   "fio.fee"_n, "updatefees"_n,
-                   make_tuple(_self)
-            ).send();
+        }
+
+        if (timestamp.slot - _gstate.last_fee_update.slot > 126) {
+
+          action(permission_level{get_self(), "active"_n},
+                 "fio.fee"_n, "updatefees"_n,
+                 make_tuple(_self)
+          ).send();
+
+          _gstate.last_fee_update = timestamp;
 
         }
     }
 
-    using namespace eosio;
-
-    void system_contract::resetclaim(const name producer) {
-      require_auth(get_self());
+    void system_contract::resetclaim(const name &producer) {
+      check((has_auth(SYSTEMACCOUNT) ||  has_auth(TREASURYACCOUNT)) ,
+               "missing required authority of treasury or eosio");
         const auto &prod = _producers.get(producer.value);
            // Reset producer claim info
            _producers.modify(prod, get_self(), [&](auto &p) {

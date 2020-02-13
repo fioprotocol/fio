@@ -119,31 +119,31 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
         auto lockiter = lockedTokensTable.find(tokenowner.value);
         if(lockiter != lockedTokensTable.end()) {
 
-                check(amount >= (lockiter->remaining_locked_amount - feeamount),"lock amount is incoherent.");
-               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 12 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 12 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
+            print ("amount is ", amount, "lockiter remaining locked amount ",lockiter->remaining_locked_amount," fee amount ", feeamount," transfer amount is ",transferamount, "\n");
+
+                //check(amount >= (lockiter->remaining_locked_amount - feeamount),"can transfer lock amount is incoherent.");
+               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 25 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 25 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
 
                 //
                // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
-                uint32_t issueplus210 = lockiter->timestamp+(12*60);
+                uint32_t issueplus210 = lockiter->timestamp+(25*60);
                 if(
-                        //if lock type 1 always subtract remaining locked amount from balance
-                        ((lockiter->grant_type == 1) && !isfee) ||
-                        //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking .
-                        ((lockiter->grant_type == 2)&&
-                         ((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
-                        //if lock type is 2 and its not a fee, always subtract the locked remaining from the amount in the account.
-                        ((lockiter->grant_type == 2)&&  !isfee) ||
-                        //if lock type is 3 and its not a fee, always subtract the locked remaining from the amount in the account.
-                        ((lockiter->grant_type == 3)&&  !isfee)
+                        //if lock type 1 or 2 or 3, 4 and not a fee subtract remaining locked amount from balance
+                        (((lockiter->grant_type == 1)||(lockiter->grant_type == 2)||(lockiter->grant_type == 3)||(lockiter->grant_type == 4)) && !isfee) ||
+                        //if lock type 2 and more than 210 days since grant and inhibit locking is set then subtract remaining locked amount from balance .
+                        //this keeps the type 2 grant from being used for fees if the inhibit locking is not flipped after 210 days.
+                        ((lockiter->grant_type == 2)&&((present_time > issueplus210)&&lockiter->inhibit_unlocking))
                         ) {
                         //recompute the remaining locked amount based on vesting.
-                        uint64_t lockedTokenAmount = computeremaininglockedtokens(tokenowner,false)-feeamount;
+                        uint64_t lockedTokenAmount = computeremaininglockedtokens(tokenowner,false);//-feeamount;
+                        print ("can transfer, locked token amount after vesting ", lockedTokenAmount, " amount in account is ", amount,"\n");
                         //subtract the lock amount from the balance
                         if (lockedTokenAmount < amount) {
                                 amount -= lockedTokenAmount;
+                            print ("can transfer, subtracted from amount, new amount is ", amount,"\n");
                                 return (amount >= transferamount);
                         } else {
                                 return false;
@@ -187,10 +187,11 @@ void token::transfer(name from,
         if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
                 check(to == TREASURYACCOUNT, "transfer not allowed");
         }
+        eosio_assert((has_auth(SYSTEMACCOUNT) ||  has_auth(TREASURYACCOUNT)) ,
+                 "missing required authority of treasury or eosio");
 
 
         check(from != to, "cannot transfer to self");
-        require_auth(from);
         check(is_account(to), "to account does not exist");
         auto sym = quantity.symbol.code();
         stats statstable(_self, sym.raw());
@@ -205,8 +206,8 @@ void token::transfer(name from,
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
         //we need to check the from, check for locked amount remaining
-        fio_400_assert(can_transfer(from,0, quantity.amount,true), "from", to_string(from.value),
-                       "insufficient unlocked funds for transfer.",
+        fio_400_assert(can_transfer(from,0, quantity.amount,true), "actor", to_string(from.value),
+                       "Funds locked",
                        ErrorInsufficientUnlockedFunds);
         auto payer = has_auth(to) ? to : from;
 
@@ -223,9 +224,14 @@ void token::trnsfiopubky(const string &payee_public_key,
 
         require_auth(actor);
         asset qty;
+
         fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
-        check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+
+        fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                       "TPID must be empty or valid FIO address",
+                       ErrorPubKeyValid);
+
         qty.amount = amount;
         qty.symbol = FIOSYMBOL;
 
@@ -316,8 +322,8 @@ void token::trnsfiopubky(const string &payee_public_key,
                 {actor}
                 );
 
-        fio_400_assert(can_transfer(actor,reg_amount, qty.amount,false), "actor", to_string(actor.value),
-                       "insufficient unlocked funds for transfer.",
+        fio_400_assert(can_transfer(actor,reg_amount, qty.amount,false), "amount", to_string(qty.amount),
+                       "Insufficient balance tokens locked",
                        ErrorInsufficientUnlockedFunds);
 
         sub_balance(actor, qty);

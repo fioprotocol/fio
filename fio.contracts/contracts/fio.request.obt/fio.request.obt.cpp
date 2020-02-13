@@ -31,10 +31,6 @@ namespace fioio {
         tpids_table tpids;
         recordobt_table recordObtTable;
 
-        struct decrementcounter {
-            string fio_address;
-        };
-
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
                 : contract(s, code, ds),
@@ -76,7 +72,9 @@ namespace fioio {
 
             name aactor = name(actor.c_str());
             require_auth(aactor);
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
             fio_400_assert(fio_request_id.length() < 16, "fio_request_id", fio_request_id, "No such FIO Request",
@@ -159,14 +157,12 @@ namespace fioio {
 
             uint64_t fee_amount = 0;
 
-            if (fioname_iter->bundleeligiblecountdown > 0) {
+            if (fioname_iter->bundleeligiblecountdown > 1) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = payer_fio_address
-                        }
+                        make_tuple(payer_fio_address, 2)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
@@ -257,7 +253,9 @@ namespace fioio {
 
             const name aActor = name(actor.c_str());
             require_auth(aActor);
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
@@ -342,14 +340,12 @@ namespace fioio {
 
             uint64_t fee_amount = 0;
 
-            if (fioname_iter->bundleeligiblecountdown > 0) {
+            if (fioname_iter->bundleeligiblecountdown > 1) {
                 action{
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = payee_fio_address
-                        }
+                        make_tuple(payee_fio_address, 2)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;
@@ -421,7 +417,9 @@ namespace fioio {
             print("call reject funds request\n");
             const name aactor = name(actor.c_str());
             require_auth(aactor);
-            check (tpid == "" || isFioNameValid(tpid), "TPID must be empty or valid FIO address");
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
@@ -492,9 +490,7 @@ namespace fioio {
                         permission_level{_self, "active"_n},
                         AddressContract,
                         "decrcounter"_n,
-                        decrementcounter{
-                                .fio_address = payer_fio_address
-                        }
+                        make_tuple(payer_fio_address, 1)
                 }.send();
             } else {
                 fee_amount = fee_iter->suf_amount;

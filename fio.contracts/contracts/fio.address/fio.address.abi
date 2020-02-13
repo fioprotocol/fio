@@ -97,6 +97,7 @@
                  "base": "",
                  "fields": [
                     {"name":"token_code", "type":"string"},
+                     {"name":"chain_code", "type":"string"},
                     {"name":"public_address", "type":"string"}
                  ]
           },
@@ -236,6 +237,9 @@
       "fields": [{
       "name": "fio_address",
       "type": "string"
+      },{
+      "name": "step",
+      "type": "int32"
       }]
     },{
       "name": "bind2eosio",

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <eosio/chain/apply_context.hpp>
+#include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/transaction_context.hpp>
 #include <eosio/chain/exceptions.hpp>
@@ -56,6 +57,11 @@ namespace eosio {
                     receiver_account = &db.get<account_metadata_object, by_name>(receiver);
                     privileged = receiver_account->is_privileged();
                     auto native = control.find_apply_handler(receiver, act->account, act->name);
+                    if (act->name != name("nonce")){
+                      EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
+                                 "Unknown action ${action} in contract ${contract}",
+                                 ("action", act->name)("contract", act->account));
+                    }
                     if (native) {
                         if (trx_context.enforce_whiteblacklist && control.is_producing_block()) {
                             control.check_contract_list(receiver);

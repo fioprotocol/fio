@@ -45,15 +45,13 @@ namespace eosiosystem {
         uint64_t nowtime = now();
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto nameiter = namesbyname.find(fioaddrhash);
-        check(nameiter != namesbyname.end(),"unexpected error verifying expired address");
-
+        //check(nameiter != namesbyname.end(),"unexpected error verifying expired address");
         uint64_t expire = nameiter->expiration;
 
-        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime){
+        if ((expire + ADDRESSWAITFORBURNDAYS) <= nowtime) {
             auto prodbyaddress = _producers.get_index<"byaddress"_n>();
             auto prod = prodbyaddress.find(fioaddrhash);
-            if (prod != prodbyaddress.end())
-            {
+            if (prod != prodbyaddress.end()) {
                 prodbyaddress.modify(prod, _self, [&](producer_info &info) {
                     info.fio_address = "";
                     info.addresshash = 0;
@@ -62,11 +60,9 @@ namespace eosiosystem {
             }
             auto votersbyaddress = _voters.get_index<"byaddress"_n>();
             auto voters = votersbyaddress.find(fioaddrhash);
-            if (voters != votersbyaddress.end())
-            {
+            if (voters != votersbyaddress.end()) {
                 //be absolutely certain to only delete the record we are interested in.
-                if (voters->addresshash == fioaddrhash)
-                {
+                if (voters->addresshash == fioaddrhash) {
                     votersbyaddress.erase(voters);
                 }
             }
@@ -151,9 +147,9 @@ namespace eosiosystem {
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
-        fio_400_assert(fioio::isURLValid(url), "url", url, "Invalid url",
+        fio_400_assert(validateURLFormat(url), "url", url, "Invalid url",
                        ErrorMaxFeeInvalid);
-        fio_400_assert(fioio::isLocationValid(location), "location", to_string(location), "Invalid location",
+        fio_400_assert(validateLocationFormat(location), "location", to_string(location), "Invalid location",
                        ErrorMaxFeeInvalid);
         fio_400_assert(isPubKeyValid(fio_pub_key),"fio_pub_key", fio_pub_key,
                        "Invalid FIO Public Key",
@@ -303,57 +299,56 @@ namespace eosiosystem {
         send_response(response_string.c_str());
     }
 
-    bool sort_producers_by_location(std::pair<eosio::producer_key,uint16_t> a, std::pair<eosio::producer_key,uint16_t> b) {
-              return (a.second < b.second);
-    }
+    void system_contract::update_elected_producers(const block_timestamp& block_time) {
 
-        void system_contract::update_elected_producers(block_timestamp block_time) {
-        _gstate.last_producer_schedule_update = block_time;
+      _gstate.last_producer_schedule_update = block_time;
 
-        auto idx = _producers.get_index<"prototalvote"_n>();
+      auto idx = _producers.get_index<"prototalvote"_n>();
 
-        std::vector <std::pair<eosio::producer_key, uint16_t>> top_producers;
-        top_producers.reserve(MAXACTIVEBPS);
+      using value_type = std::pair<eosio::producer_key, uint16_t>;
+      std::vector< value_type > top_producers;
+      top_producers.reserve(MAXACTIVEBPS);
 
-        //clear _topprods table
-        auto iter = _topprods.begin();
-        while (iter != _topprods.end()) {
-                iter = _topprods.erase(iter);
-        }
+      //clear _topprods table
+      auto iter = _topprods.begin();
+      while (iter != _topprods.end()) {
+        iter = _topprods.erase(iter);
+      }
 
-        for (auto it = idx.cbegin();
-             it != idx.cend() && top_producers.size() < MAXACTIVEBPS && 0 < it->total_votes && it->active(); ++it) {
-            top_producers.emplace_back(
-                    std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
+      for( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < MAXACTIVEBPS && 0 < it->total_votes && it->active(); ++it ) {
+         top_producers.emplace_back(
+                        std::pair<eosio::producer_key, uint16_t>({{it->owner, it->producer_public_key}, it->location}));
 
-            _topprods.emplace(get_self(), [&](auto &p) {
-                  p.producer = it->owner;
-            });
-        }
+         _topprods.emplace(get_self(), [&](auto &p) {
+            p.producer = it->owner;
+          });
 
-        if (top_producers.size() < _gstate.last_producer_schedule_size) {
-            return;
-        }
+      }
 
-        /// sort by producer location, location initialized to zero in fio.system.hpp
-        /// location will be set upon call to register producer by the block producer.
-        ///the location should be considered as a scheduled order of producers, they should
-        /// set the location so that traversing locations gives most proximal producer locations
-        /// to help address latency.
-        std::sort( top_producers.begin(), top_producers.end(), sort_producers_by_location );
+      if( top_producers.size() == 0 || top_producers.size() < _gstate.last_producer_schedule_size ) {
+         return;
+      }
 
-        std::vector <eosio::producer_key> producers;
+      /// sort by producer location, location initialized to zero in fio.system.hpp
+      /// location will be set upon call to register producer by the block producer.
+      /// the location should be considered as a scheduled order of producers, they should
+      /// set the location so that traversing locations gives most proximal producer locations
+      /// to help address latency.
+      std::sort( top_producers.begin(), top_producers.end(), []( const value_type& lhs, const value_type& rhs ) {
+         return lhs.first.producer_name < rhs.first.producer_name; // sort by producer name
+         // return lhs.second < rhs.second; // sort by location
+      } );
 
-        producers.reserve(top_producers.size());
-        for (const auto &item : top_producers)
-            producers.push_back(item.first);
+      std::vector<eosio::producer_key> producers;
 
-        auto packed_schedule = pack(producers);
+      producers.reserve(top_producers.size());
+      for( auto& item : top_producers )
+         producers.push_back( std::move(item.first) );
 
-        if (set_proposed_producers(packed_schedule.data(), packed_schedule.size()) >= 0) {
-            _gstate.last_producer_schedule_size = static_cast<decltype(_gstate.last_producer_schedule_size)>( top_producers.size());
-        }
-
+      auto packed_schedule = pack(producers);
+      if( set_proposed_producers(packed_schedule.data(), packed_schedule.size() ) >= 0 ) {
+         _gstate.last_producer_schedule_size = static_cast<decltype(_gstate.last_producer_schedule_size)>( top_producers.size() );
+      }
     }
 
     double system_contract::update_total_votepay_share(time_point ct,
@@ -401,10 +396,6 @@ namespace eosiosystem {
      *  If voting for a proxy, the producer votes will not change until the proxy updates their own vote.
      */
 
-    struct decrementcounter {
-        string fio_address;
-    };
-
     /*** remove vproducer
     void system_contract::vproducer(const name &voter_name, const name &proxy, const std::vector <name> &producers) {
         require_auth(voter_name);
@@ -419,14 +410,14 @@ namespace eosiosystem {
                        ErrorMaxFeeInvalid);
         name proxy;
         std::vector<name> producers_accounts;
+
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
+                       ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
         uint128_t voterDomainHash = string_to_uint128_hash(fa.fiodomain.c_str());
-
-        fio_400_assert(isFioNameValid(fio_address), "fio_address", fio_address, "FIO Address not found",
-                       ErrorDomainAlreadyRegistered);
 
         // compare fio_address owner and compare to actor
         auto namesbyname = _fionames.get_index<"byname"_n>();
@@ -506,9 +497,7 @@ namespace eosiosystem {
                     permission_level{_self, "active"_n},
                     AddressContract,
                     "decrcounter"_n,
-                    decrementcounter{
-                            .fio_address = fio_address
-                    }
+                    make_tuple(fio_address, 1)
             }.send();
         } else {
             fee_amount = fee_iter->suf_amount;
@@ -536,11 +525,11 @@ namespace eosiosystem {
         getFioAddressStruct(proxy, fa);
         getFioAddressStruct(fio_address, va);
 
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
+                       ErrorDomainAlreadyRegistered);
+
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
         uint128_t voterDomainHash = string_to_uint128_hash(va.fiodomain.c_str());
-
-        fio_400_assert(isFioNameValid(fio_address), "fio_address", fio_address, "FIO Address not found",
-                       ErrorDomainAlreadyRegistered);
 
         // compare fio_address owner and compare to actor
         auto namesbyname = _fionames.get_index<"byname"_n>();
@@ -632,9 +621,7 @@ namespace eosiosystem {
                     permission_level{_self, "active"_n},
                     AddressContract,
                     "decrcounter"_n,
-                    decrementcounter{
-                            .fio_address = fio_address
-                    }
+                      make_tuple(fio_address, 1)
             }.send();
         } else {
             fee_amount = fee_iter->suf_amount;
@@ -689,7 +676,7 @@ namespace eosiosystem {
         //based on grant type.
         auto lockiter = _lockedtokens.find(tokenowner.value);
         if(lockiter != _lockedtokens.end()){
-            check(amount >= lockiter->remaining_locked_amount,"lock amount is incoherent.");
+            check(amount >= lockiter->remaining_locked_amount,"votable balance lock amount is incoherent.");
             //if lock type 1 always subtract remaining locked amount from balance
             if (lockiter->grant_type == 1) {
                 double percent = 1.0 - (double)((double)lockiter->remaining_locked_amount / (double)lockiter->total_grant_amount);
@@ -708,16 +695,16 @@ namespace eosiosystem {
                     return amount;
                 }
             }
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 12 minutes from grant","\n");
+            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
+            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
+            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
+            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
 
            // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
-            uint32_t issueplus210 = lockiter->timestamp+(12*60);
+            uint32_t issueplus210 = lockiter->timestamp+(25*60);
             //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
-           if ((lockiter->grant_type == 2)&&
-             ((present_time > issueplus210)&&lockiter->inhibit_unlocking)
+           if (((lockiter->grant_type == 2)&&((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
+                   (lockiter->grant_type == 4)
             ){
                 //subtract the lock amount from the balance
                 if (lockiter->remaining_locked_amount < amount) {
@@ -738,7 +725,7 @@ namespace eosiosystem {
         //validate input
         if (proxy) {
             check(producers.size() == 0, "cannot vote for producers and proxy at same time");
-            check(voter_name != proxy, "Invalid or duplicated producers");
+            check(voter_name != proxy, "Invalid or duplicated producers0");
         } else {
             check(producers.size() <= 30, "attempt to vote for too many producers");
             for (size_t i = 1; i < producers.size(); ++i) {
@@ -813,7 +800,7 @@ namespace eosiosystem {
             auto pitr = prodbyowner.find(pd.first.value);
             if (pitr != prodbyowner.end()) {
                 check(!voting || pitr->active() || !pd.second.second /* not from new set */,
-                      "Invalid or duplicated producers");
+                      "Invalid or duplicated producers1");
                 double init_total_votes = pitr->total_votes;
                 prodbyowner.modify(pitr, same_payer, [&](auto &p) {
                     p.total_votes += pd.second.first;
@@ -824,7 +811,7 @@ namespace eosiosystem {
                     //check( p.total_votes >= 0, "something bad happened" );
                 });
             } else {
-                check(!pd.second.second , "Invalid or duplicated producers"); //data corruption
+                check(!pd.second.second , "Invalid or duplicated producers2"); //data corruption
             }
 
         }
@@ -853,7 +840,7 @@ namespace eosiosystem {
 
     void system_contract::setautoproxy(const name &proxy,const name &owner)
     {
-        require_auth(owner);
+        require_auth(TPIDContract);
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.

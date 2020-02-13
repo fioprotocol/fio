@@ -32,35 +32,28 @@ namespace fioio {
         feevoters_table feevoters;
         bundlevoters_table bundlevoters;
         feevotes_table feevotes;
-        eosiosystem::producers_table producers;
         eosiosystem::top_producers_table topprods;
 
         void update_fees() {
-            print("called update fees.", "\n");
             map<string, double> producer_fee_multipliers_map;
 
             const bool dbgout = false;
 
-            //get the producers from the producers table, only use elected producers
-            //for the active producers. make a map for each producer and its associated multiplier
-            // for use in performing the multiplications later,
-            auto prod_iter = producers.lower_bound(0);
-            while (prod_iter != producers.end()) {
-                if ((topprods.find(prod_iter->owner.value) != topprods.end())) {
-                    if (dbgout) {
-                        print(" found active producer", prod_iter->owner, "\n");
-                    }
-                    auto voters_iter = feevoters.find(prod_iter->owner.value);
-                    const string v1 = prod_iter->owner.to_string();
+            //Selecting only elected producers, create a map for each producer and its associated multiplier
+            //for use in performing the multiplications later,
+            auto topprod = topprods.begin();
+            while (topprod != topprods.end()) {
+
+                    auto voters_iter = feevoters.find(topprod->producer.value);
+                    const string v1 = topprod->producer.to_string();
 
                     if (voters_iter != feevoters.end()) {
                         if (dbgout) {
-                            print(" adding producer to multiplier map", prod_iter->owner, "\n");
+                            print(" adding producer to multiplier map", v1.c_str(), "\n");
                         }
                         producer_fee_multipliers_map.insert(make_pair(v1, voters_iter->fee_multiplier));
                     }
-                }
-                prod_iter++;
+                topprod++;
             }
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
@@ -159,7 +152,6 @@ namespace fioio {
                   bundlevoters(_self, _self.value),
                   feevoters(_self, _self.value),
                   feevotes(_self, _self.value),
-                  producers(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
                   topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
         }
 
@@ -181,16 +173,8 @@ namespace fioio {
 
             bool dbgout = false;
 
-            //validate the actor.
-            //check that the actor is in the block producers.
-            auto prodbyowner = producers.get_index<"byowner"_n>();
-            auto prod_iter = prodbyowner.find(aactor.value);
-            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            //check that the producer is active
-            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
+            //check that the producer is active block producer
+            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -293,14 +277,7 @@ namespace fioio {
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            auto prodbyowner = producers.get_index<"byowner"_n>();
-            auto prod_iter = prodbyowner.find(aactor.value);
-
-            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
+            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -355,14 +332,7 @@ namespace fioio {
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            auto prodbyowner = producers.get_index<"byowner"_n>();
-            auto prod_iter = prodbyowner.find(aactor.value);
-
-            fio_400_assert(prod_iter != prodbyowner.end(), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
-
-            fio_400_assert(((topprods.find(prod_iter->owner.value) != topprods.end())), "actor", actor,
+            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
@@ -400,14 +370,13 @@ namespace fioio {
         }
 
 
+        // @abi action
         [[eosio::action]]
         void mandatoryfee(
                 const string &end_point,
                 const name &account,
                 const int64_t &max_fee
         ) {
-            print("called mandatory fee for account ", account, " end point ",end_point,"\n");
-
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
             const uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
@@ -432,8 +401,53 @@ namespace fioio {
 
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
+        }
+
+        // @abi action
+        [[eosio::action]]
+        void bytemandfee(
+                const string &end_point,
+                const name &account,
+                const int64_t &max_fee,
+                const int64_t &bytesize
+        ) {
+            print("called mandatory byte fee for account ", account, " end point ",end_point," byte size ",bytesize,"\n");
+
+            require_auth(account);
+            //begin new fees, logic for Mandatory fees.
+            const uint128_t endpoint_hash = fioio::string_to_uint128_hash(end_point.c_str());
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t remv = bytesize % 1000;
+            uint64_t divv = bytesize / 1000;
+            if (remv > 0 ){
+                divv ++;
+            }
+
+            reg_amount = divv * reg_amount;
+
+            const uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(account, asset(reg_amount, FIOSYMBOL));
+            processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
-            print("called mandatory fee for account processing completed","\n");
+
+            print("called mandatory byte fee for account processing completed","\n");
 
         }
 
@@ -445,7 +459,7 @@ namespace fioio {
          */
         // @abi action
         [[eosio::action]]
-        void create(
+        void createfee(
                 string end_point,
                 int64_t type,
                 int64_t suf_amount
@@ -480,7 +494,7 @@ namespace fioio {
         }
     };
 
-    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)(mandatoryfee)
-    (create)
+    EOSIO_DISPATCH(FioFee, (setfeevote)(bundlevote)(setfeemult)(updatefees)
+                           (mandatoryfee)(bytemandfee)(createfee)
     )
 }

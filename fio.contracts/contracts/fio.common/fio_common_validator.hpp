@@ -17,8 +17,9 @@
 
 namespace fioio {
 
-    constexpr auto maxFioNameLen = 50;
-    constexpr auto maxFioDomainLen = 50;
+    constexpr auto maxFioLen = 64;
+    constexpr auto maxFioDomainLen = 62;
+    std::vector<int> locationMap { 10, 20, 30, 40, 50, 60, 70, 80 };
 
     using namespace std;
 
@@ -28,12 +29,6 @@ namespace fioio {
         string fiodomain;
         bool domainOnly;
     };
-
-    std::vector<int> locationMap { 10, 20, 30, 40, 50, 60, 70, 80 };
-
-    inline bool isFioNameEmpty(const string &p) {
-        return p.empty();
-    }
 
     inline void getFioAddressStruct(const string &p, FioAddress &fa) {
         // Split the fio name and domain portions
@@ -49,85 +44,92 @@ namespace fioio {
             c = char(::tolower(c));
         }
 
-        if (pos == string::npos) {
+        if (pos == string::npos || fa.domainOnly) {
             fa.fiodomain = fa.fioaddress;
         } else {
-            if (!fa.domainOnly)
-                fa.fioname = fa.fioaddress.substr(0, pos);
+            fa.fioname = fa.fioaddress.substr(0, pos);
             fa.fiodomain = fa.fioaddress.substr(pos + 1);
         }
     }
 
-    inline int isFioNameValid(const string &name) {
-        //Name validation.
-        if (name.size() < 1 || name.size() > maxFioNameLen) {
-            return 1;
-        }
+    inline bool validateCharName(const string &name){
         if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-") != std::string::npos) {
-            return 2;
+            return false;
         }
         if (name.front() == '-' || name.back() == '-') {
-            return 3;
+            return false;
         }
-        return 0;
+
+        return true;
     }
 
-    inline int isDomainNameValid(const string &domain, const bool &domainOnly) {
-        return isFioNameValid(domain);
-    }
-
-    inline int fioNameSizeCheck(const string &fn, const string &fd) {
-        size_t totalsize = fn.size() + fd.size();
-
-        if (totalsize > maxFioNameLen + maxFioDomainLen) {
-            return 100;
+    inline bool validateFioNameFormat(const FioAddress &fa) {
+        if (fa.domainOnly) {
+            if (fa.fiodomain.size() < 1 || fa.fiodomain.size() > maxFioDomainLen) {
+                return false;
+            }
+            return validateCharName(fa.fiodomain);
+        } else {
+            if (fa.fioaddress.size() < 3 || fa.fioaddress.size() > maxFioLen ) {
+                return false;
+            }
+            if( !validateCharName(fa.fioname) || !validateCharName(fa.fiodomain) ){
+                return false;
+            };
         }
-        return 0;
+
+        return true;
     }
 
-    inline bool isChainNameValid(const string &chain) {
-        if (chain.size() >= 1 && chain.size() <= 10) {
+    inline bool validateChainNameFormat(const string &chain) {
+        if (chain.length() >= 1 && chain.length() <= 10) {
             if (chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
                 std::string::npos) {
                 return false;
             }
+            return true;
+        }
+        return false;
+    }
+
+    inline bool validateTPIDFormat(const string &tpid) {
+        if( tpid.size() > 0 ){
+            FioAddress fa;
+            getFioAddressStruct(tpid, fa);
+            return validateFioNameFormat(fa);
         }
         return true;
     }
 
-    inline bool isPubAddressValid(const std::string &address) {
-        if ( address.length() > 0 && address.length() <= 128 ) {
-            if(address.find_first_not_of(' ') != std::string::npos) {
-                return true;
-            }
+    inline bool validatePubAddressFormat(const std::string &address) {
+        if ( address == "" || address.length() > 128 ) {
+            return false;
         }
-        return false;
+
+        if(address.find_first_of(' ') != std::string::npos) {
+            return false;
+        }
+        return true;
+    }
+
+    inline bool validateURLFormat(const std::string &url) {
+        if (url.length() <= 10 && url.length() >= 50) {
+            return false;
+        }
+        return true;
+    }
+
+    inline bool validateLocationFormat(const uint16_t &location){
+        if( std::find(locationMap.begin(), locationMap.end(), location) == locationMap.end()){
+            return false;
+        }
+        return true;
     }
 
     inline string chainToUpper(string chain) {
-        string my_chain = chain;
+        transform(chain.begin(), chain.end(), chain.begin(), ::toupper);
 
-        transform(my_chain.begin(), my_chain.end(), my_chain.begin(), ::toupper);
-
-        return my_chain;
-    }
-
-    inline bool isURLValid(const std::string &url) {
-        //std::regex re("(http|https)://(w+.)*(w*)/([wd]+/{0,1})+");
-        if ((url.length() >= 10 && url.length() <= 50)) {
-            return true;
-        }
-        return false;
-    }
-
-    inline bool isLocationValid(const uint16_t &location){
-        std::vector<int>::iterator it;
-        it = std::find(locationMap.begin(), locationMap.end(), location);
-
-        if(it != locationMap.end()){
-            return true;
-        }
-        return false;
+        return chain;
     }
 
     bool isStringInt(const std::string &s) {
@@ -136,7 +138,6 @@ namespace fioio {
     }
 
     /** All alphanumeric characters except for "0", "I", "O", and "l" */
-
         static const char *pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
         static const int8_t mapBase58[256] = {
                 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,

@@ -146,18 +146,19 @@ namespace eosiosystem {
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
 
         require_auth(acnt);
-
-        check(( acnt == fioio::MSIGACCOUNT ||
-                acnt == fioio::WHITELISTACCOUNT ||
-                acnt == fioio::WRAPACCOUNT ||
-                acnt == fioio::FeeContract ||
-                acnt == fioio::AddressContract ||
-                acnt == fioio::TPIDContract ||
-                acnt == fioio::REQOBTACCOUNT ||
-                acnt == fioio::TokenContract ||
-                acnt == fioio::FOUNDATIONACCOUNT ||
-                acnt == fioio::TREASURYACCOUNT ||
-                acnt == fioio::SYSTEMACCOUNT), "setabi is not permitted");
+        check((acnt == SYSTEMACCOUNT ||
+                      acnt == MSIGACCOUNT ||
+                      acnt == WRAPACCOUNT ||
+                      acnt == ASSERTACCOUNT ||
+                      acnt == REQOBTACCOUNT ||
+                      acnt == FeeContract ||
+                      acnt == AddressContract ||
+                      acnt == TPIDContract ||
+                      acnt == TokenContract ||
+                      acnt == FOUNDATIONACCOUNT ||
+                      acnt == TREASURYACCOUNT ||
+                      acnt == FIOSYSTEMACCOUNT ||
+                      acnt == FIOACCOUNT),"set abi not permitted." );
 
 
         eosio::multi_index<"abihash"_n, abi_hash> table(_self, _self.value);
@@ -186,7 +187,7 @@ namespace eosiosystem {
 
         check(is_account(owner),"account must pre exist");
         check(amount > 0,"cannot add locked token amount less or equal 0.");
-        check(locktype == 1 || locktype == 2 || locktype == 3,"lock type must be 1,2,3");
+        check(locktype == 1 || locktype == 2 || locktype == 3 || locktype == 4,"lock type must be 1,2,3,4");
 
         _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
                 a.owner = owner;
@@ -212,7 +213,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         (updatepower)
         // voting.cpp
         (regproducer)(regiproducer)(unregprod)(voteproducer)(voteproxy)(inhibitunlck)
-        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)
+        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)(burnaction)
         (unregproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)

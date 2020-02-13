@@ -121,7 +121,6 @@ namespace eosiosystem {
                  account == fioio::WRAPACCOUNT ||
                  account == fioio::SYSTEMACCOUNT ||
                  account == fioio::ASSERTACCOUNT ||
-                 account == fioio::WHITELISTACCOUNT ||
                  account == fioio::REQOBTACCOUNT ||
                  account == fioio::FeeContract ||
                  account == fioio::AddressContract ||
@@ -132,10 +131,27 @@ namespace eosiosystem {
                  account == fioio::FIOSYSTEMACCOUNT ||
                  account == fioio::FIOACCOUNT)
                 ) {
+
+                //get the sizes of all paramters.
+                uint64_t sizep = sizeof(account);
+                sizep  += sizeof(permission);
+                sizep  += sizeof(parent);
+                size_t accounts_size = auth.accounts.size() * sizeof(permission_level_weight);
+                size_t waits_size = auth.waits.size() * sizeof(wait_weight);
+                size_t keys_size = 0;
+                for (const auto &k: auth.keys) {
+                    keys_size += sizeof(key_weight);
+                    keys_size += sizeof(k.key);  ///< serialized size of the key
+                }
+
+                sizep += (accounts_size + waits_size + keys_size);
+
+                sizep  += sizeof(max_fee);
+
                 eosio::action{
                         permission_level{account, "active"_n},
-                        fioio::FeeContract, "mandatoryfee"_n,
-                        std::make_tuple(std::string("auth_update"), account, max_fee)
+                        fioio::FeeContract, "bytemandfee"_n,
+                        std::make_tuple(std::string("auth_update"), account, max_fee,sizep)
                 }.send();
             }
             
@@ -198,24 +214,8 @@ namespace eosiosystem {
         void setabi(name account, const std::vector<char> &abi);
 
         [[eosio::action]]
-        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code) {
-
-            require_auth(account);
-
-            eosio::check((account == fioio::MSIGACCOUNT ||
-                   account == fioio::WHITELISTACCOUNT ||
-                   account == fioio::WRAPACCOUNT ||
-                   account == fioio::FeeContract ||
-                   account == fioio::AddressContract ||
-                   account == fioio::TPIDContract ||
-                   account == fioio::REQOBTACCOUNT ||
-                   account == fioio::TokenContract ||
-                   account == fioio::FOUNDATIONACCOUNT ||
-                   account == fioio::TREASURYACCOUNT ||
-                   account == fioio::SYSTEMACCOUNT), "setcode is not permitted");
-
-
-        }
+        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code);
+        //special note, dont add code here, setcode will not run this code.
 
         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;
         using updateauth_action = eosio::action_wrapper<"updateauth"_n, &native::updateauth>;
