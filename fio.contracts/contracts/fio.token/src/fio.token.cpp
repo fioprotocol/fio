@@ -122,14 +122,14 @@ bool token::can_transfer(const name &tokenowner,const uint64_t &feeamount, const
             print ("amount is ", amount, "lockiter remaining locked amount ",lockiter->remaining_locked_amount," fee amount ", feeamount," transfer amount is ",transferamount, "\n");
 
                 //check(amount >= (lockiter->remaining_locked_amount - feeamount),"can transfer lock amount is incoherent.");
-               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 32 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 32 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 32 minutes from grant","\n");
-                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 32 minutes from grant","\n");
+               print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 25 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2grants for lockout is reset to 25 minutes from grant","\n");
+                print ("DANGER DANGER DANGER -- transfer locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
 
                 //
                // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
-                uint32_t issueplus210 = lockiter->timestamp+(32*60);
+                uint32_t issueplus210 = lockiter->timestamp+(25*60);
                 if(
                         //if lock type 1 or 2 or 3, 4 and not a fee subtract remaining locked amount from balance
                         (((lockiter->grant_type == 1)||(lockiter->grant_type == 2)||(lockiter->grant_type == 3)||(lockiter->grant_type == 4)) && !isfee) ||

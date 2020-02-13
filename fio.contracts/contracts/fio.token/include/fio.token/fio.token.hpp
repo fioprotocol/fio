@@ -148,10 +148,10 @@ namespace eosio {
                     print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
                     //modified this to become minutes since grant!!!!
                     uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-                    print("DANGER DANGER DANGER unlocking schedule set to become 3 minutes to first unlock event!!","\n");
-                    print("DANGER DANGER DANGER unlocking schedule set to 6 minutes for subsequent unlocks","\n");
-                    uint32_t firstPayPeriod = 1;
-                    uint32_t payoutTimePeriod = 2;
+                    print("DANGER DANGER DANGER unlocking schedule set to become 15 minutes to first unlock event!!","\n");
+                    print("DANGER DANGER DANGER unlocking schedule set to 15 minutes for subsequent unlocks","\n");
+                    uint32_t firstPayPeriod = 15;
+                    uint32_t payoutTimePeriod = 15;
 
                     bool ninetyDaysSinceGrant = daysSinceGrant >= firstPayPeriod;
 
