@@ -169,14 +169,9 @@ public:
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
 
-                        uint64_t bptomint = BPMAXTOMINT;
-                        const uint64_t remainingreserve = BPMAXRESERVE - clockiter->bpreservetokensminted;
 
-                        if (remainingreserve < BPMAXTOMINT){
-                            bptomint = remainingreserve;
-                        }
-
-                        if (clockiter->bpreservetokensminted < BPMAXRESERVE) {
+                        if (bprewards.get().rewards < BPMAXTOMINT && clockiter->bpreservetokensminted < BPMAXRESERVE) {
+                          uint64_t bptomint = BPMAXTOMINT - bprewards.get().rewards;
 
                                 //Mint new tokens up to 50,000 FIO
                                 action(permission_level{get_self(), "active"_n},
