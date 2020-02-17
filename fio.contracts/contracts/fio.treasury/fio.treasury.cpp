@@ -9,7 +9,7 @@
 #define REWARDMAX       100000000000            // 100 FIO
 #define FDTNMAXTOMINT   150000000000000         // 150,000 FIO
 #define BPMAXTOMINT     50000000000000          // 50,000  FIO
-#define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
+#define FDTNMAXRESERVE  191653654000000000      // 191,653,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
 #define PAYSCHEDTIME    172801                  // 1 day  ( block time )
 
@@ -169,14 +169,9 @@ public:
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
 
-                        uint64_t bptomint = BPMAXTOMINT;
-                        const uint64_t remainingreserve = BPMAXRESERVE - clockiter->bpreservetokensminted;
 
-                        if (remainingreserve < BPMAXTOMINT){
-                            bptomint = remainingreserve;
-                        }
-
-                        if (clockiter->bpreservetokensminted < BPMAXRESERVE) {
+                        if (bprewards.get().rewards < BPMAXTOMINT && clockiter->bpreservetokensminted < BPMAXRESERVE) {
+                          uint64_t bptomint = BPMAXTOMINT - bprewards.get().rewards;
 
                                 //Mint new tokens up to 50,000 FIO
                                 action(permission_level{get_self(), "active"_n},
