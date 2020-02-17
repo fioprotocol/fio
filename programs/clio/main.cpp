@@ -4223,7 +4223,7 @@ int main(int argc, char **argv) {
     unapprove->add_option("proposal_name", proposal_name, localized("proposal name (string)"))->required();
     unapprove->add_option("permissions", perm,
                           localized("The JSON string of filename defining approving permissions"))->required();
-    approve->add_option("max_fee", max_fee,
+    unapprove->add_option("max_fee", max_fee,
                         localized("The max acceptable fee amount in smallest units of FIO (SUFs)"))->required();
     unapprove->set_callback([&] { approve_or_unapprove("unapprove"); });
 
