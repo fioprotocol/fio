@@ -3,7 +3,7 @@
  *  @author Adam Androulidakis, Ed Rotthoff, Casey Gardiner
  *  @modifedby
  *  @file fio.treasury.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #define REWARDMAX       100000000000            // 100 FIO

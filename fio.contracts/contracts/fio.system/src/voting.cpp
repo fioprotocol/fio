@@ -2,7 +2,7 @@
  *  Description: this file contains actions and data structures pertaining to voting in the fio protocol
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file voting.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

@@ -2,7 +2,7 @@
  *  Description: Handles fio time logic ( high performance )
  *  @author Casey Gardiner
  *  @file fiotime.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

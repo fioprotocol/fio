@@ -3,7 +3,7 @@
  *  @author Adam Androulidakis
  *  @modifedby
  *  @file fio.treasury.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #include <fio.common/fio.common.hpp>

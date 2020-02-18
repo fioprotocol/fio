@@ -3,7 +3,7 @@
  *  @author Casey Gardiner
  *  @modifedby
  *  @file account_operations.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #include <algorithm>

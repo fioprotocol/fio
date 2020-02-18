@@ -3,7 +3,7 @@
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @modifedby
  *  @file fio.common.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #pragma once

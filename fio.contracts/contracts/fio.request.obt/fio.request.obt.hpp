@@ -4,7 +4,7 @@
  *  response to each request for funds.
  *  @author Adam Androulidakis, Casey Gardiner, Ciju John, Ed Rotthoff
  *  @file fio.request.obt.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 

@@ -3,7 +3,7 @@
  *               that are returned by the HTTP messaging layer when an assertion test fails.
  *  @author Phil Mesnier, Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fioerror.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

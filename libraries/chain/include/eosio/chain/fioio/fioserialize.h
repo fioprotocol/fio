@@ -2,7 +2,7 @@
  *  Description: This account will help the chain plugin and contracts to serialize fioaddresses into hashed values.
  *  @author Casey Gardiner / Ed Rotthoff
  *  @file fioserialize.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE )
  *
  */
 

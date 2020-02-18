@@ -3,7 +3,7 @@
  *  block chain transactions (such as send of funds from one FIO address to another).
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fio.request.obt.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

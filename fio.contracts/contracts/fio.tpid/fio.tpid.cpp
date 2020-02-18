@@ -3,7 +3,7 @@
  *  @author Adam Androulidakis
  *  @modifedby
  *  @file fio.tpid.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #include "fio.tpid.hpp"

@@ -2,7 +2,7 @@
  *  Description: Takes in a pubkey and turns it into a hash which is exported to new_account
  *  @author Casey Gardiner
  *  @file keyops.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes: Adam Androulidakis 2-20-2019 - Changed hashing method
  *
