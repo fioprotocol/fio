@@ -3,7 +3,7 @@
  *  the operations on these.
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fio.system.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

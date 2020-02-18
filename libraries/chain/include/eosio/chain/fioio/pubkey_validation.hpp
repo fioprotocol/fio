@@ -2,7 +2,7 @@
  *  Description: Verifies public key format
  *  @author Adam Androulidakis
  *  @file pubkey_validation.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE )
  *
  *  Changes:
  */

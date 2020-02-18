@@ -7,7 +7,7 @@
  *  @author Ed Rotthoff
  *  @modifedby
  *  @file eosio.msig.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 #include <eosio.msig/eosio.msig.hpp>
 #include <eosiolib/action.hpp>

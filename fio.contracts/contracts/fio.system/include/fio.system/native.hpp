@@ -1,6 +1,6 @@
 /**
  *  @file
- *  @copyright defined in eos/LICENSE.txt
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) defined in eos/LICENSE.txt
  */
 #pragma once
 

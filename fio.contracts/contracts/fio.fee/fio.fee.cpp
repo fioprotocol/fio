@@ -3,7 +3,7 @@
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @modifedby
  *  @file fio.fee.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #include "fio.fee.hpp"

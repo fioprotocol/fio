@@ -2,7 +2,7 @@
  *  Description: this contract controls many of the core functions of the fio protocol.
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file fio.system.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

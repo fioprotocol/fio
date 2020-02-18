@@ -2,7 +2,7 @@
  *  Description: FioName smart contract allows issuance of unique domains and names for easy public address resolution
  *  @author Adam Androulidakis, Casey Gardiner, Ciju John, Ed Rotthoff, Phil Mesnier
  *  @file fio.address.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #include "fio.address.hpp"

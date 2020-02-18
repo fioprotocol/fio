@@ -2,7 +2,7 @@
  *  Description: Mapping of actions to account names for use in processing FIO transactions.
  *  @author Casey Gardiner
  *  @file actionmapping.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE )
  *
  *  Changes:
  */

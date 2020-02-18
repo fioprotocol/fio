@@ -2,7 +2,7 @@
  *  Description: Sets up the supported chain data structure
  *  @author Casey Gardiner
  *  @file chain_control.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

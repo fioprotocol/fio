@@ -2,7 +2,7 @@
  *  Description: Takes a fio.name and validates it as spec.
  *  @author Casey Gardiner
  *  @file fio_name_validator.hpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */

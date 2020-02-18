@@ -3,7 +3,7 @@
  *  @author Ed Rotthoff
  *  @modifedby
  *  @file fio.accounts.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  */
 
 #pragma once

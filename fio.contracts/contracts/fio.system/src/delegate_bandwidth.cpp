@@ -2,7 +2,7 @@
  *  Description: this is part of the system contract. it supports voting power.
  *  @author Adam Androulidakis, Casey Gardiner, Ed Rotthoff
  *  @file delegate_bandwidth.cpp
- *  @copyright Dapix
+ *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
  *
  *  Changes:
  */
