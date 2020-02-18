@@ -169,23 +169,35 @@ public:
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
 
+                        if (clockiter->bpreservetokensminted < BPMAXRESERVE && bprewards.get().rewards < BPMAXTOMINT) {
 
-                        if (bprewards.get().rewards < BPMAXTOMINT && clockiter->bpreservetokensminted < BPMAXRESERVE) {
-                          uint64_t bptomint = BPMAXTOMINT - bprewards.get().rewards;
+                          uint64_t bptomint = BPMAXTOMINT;
+                          const uint64_t bpremainingreserve = BPMAXRESERVE - clockiter->bpreservetokensminted;
 
-                                //Mint new tokens up to 50,000 FIO
-                                action(permission_level{get_self(), "active"_n},
-                                       TokenContract, "mintfio"_n,
-                                       make_tuple(TREASURYACCOUNT,bptomint)
-                                       ).send();
+                            if (bpremainingreserve < BPMAXTOMINT) {
+                                    bptomint = bpremainingreserve;
+                            }
 
-                                clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-                                                entry.bpreservetokensminted += bptomint;
-                                        });
+                            if (clockiter->bpreservetokensminted + bptomint > BPMAXRESERVE) {
+                              bptomint = BPMAXRESERVE - clockiter->bpreservetokensminted;
+                            }
+                            //Mint new tokens up to 50,000 FIO
+                            action(permission_level{get_self(), "active"_n},
+                                   TokenContract, "mintfio"_n,
+                                   make_tuple(TREASURYACCOUNT,bptomint)
+                                   ).send();
 
-                                //Include the minted tokens in the reward payout
-                                bprewards.set(bpreward{bprewards.get().rewards + bptomint}, _self);
-                                //This new reward amount that has been minted will be appended to the rewards being divied up next
+                            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
+                                            entry.bpreservetokensminted += bptomint;
+                                    });
+
+                            //Include the minted tokens in the reward payout
+                            bprewards.set(bpreward{bprewards.get().rewards + bptomint}, _self);
+                            //This new reward amount that has been minted will be appended to the rewards being divied up next
+                        }
+                        else
+                        {
+                          print("Block producers reserve minting exhausted");
                         }
                         //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
 
