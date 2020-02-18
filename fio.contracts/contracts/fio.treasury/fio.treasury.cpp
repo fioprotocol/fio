@@ -168,9 +168,9 @@ public:
                         //Move 1/365 of the bucketpool to the bpshare
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
-
+                        uint64_t bptomint = BPMAXTOMINT;
                         if (clockiter->bpreservetokensminted < BPMAXRESERVE && bprewards.get().rewards < BPMAXTOMINT) {
-                          uint64_t bptomint = BPMAXTOMINT - bprewards.get().rewards;
+                          bptomint = BPMAXTOMINT - bprewards.get().rewards;
                           if (clockiter->bpreservetokensminted + bptomint > BPMAXRESERVE) {
                             bptomint = (BPMAXRESERVE + BPMAXTOMINT + bptomint) - (BPMAXRESERVE + BPMAXTOMINT);
                           }
