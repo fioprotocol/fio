@@ -140,16 +140,16 @@ namespace eosiosystem {
        //CPU NET and RAM. to do this we need our accounts to NOT have entrees in the
        //resources table. our accounts will all be unlimited CPU NET and RAM for the
        //foreseeable future of the FIO protocol.
-       // user_resources_table userres(_self, newact.value);
+       /*user_resources_table userres(_self, newact.value);
 
-       // userres.emplace(newact, [&](auto &res) {
-       //     res.owner = newact;
-           // res.net_weight = asset(0, system_contract::get_core_symbol());
-           // res.cpu_weight = asset(0, system_contract::get_core_symbol());
-       // });
+        userres.emplace(newact, [&](auto &res) {
+            res.owner = newact;
+            res.net_weight = asset(0, FIOSYMBOL);
+            res.cpu_weight = asset(0, FIOSYMBOL);
+        });
 
-       // set_resource_limits(newact.value, 0, 0, 0);
-
+        set_resource_limits(newact.value, 4800, 1, 1);
+        */
     fio_400_assert(transaction_size() < MAX_NEWACCOUNT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
       "Transaction is too large", ErrorTransaction);
     }
