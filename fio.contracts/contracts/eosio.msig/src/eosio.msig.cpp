@@ -14,7 +14,8 @@
 #include <eosiolib/permission.hpp>
 #include <eosiolib/crypto.hpp>
 #include "fio.common/fio.accounts.hpp"
-
+#include "fio.common/fioerror.hpp"
+using namespace fioio;
 namespace eosio {
 
     time_point current_time_point() {
@@ -147,6 +148,9 @@ namespace eosio {
                 a.requested_approvals.erase(itr);
             });
         }
+
+        fio_400_assert(transaction_size() < MAX_APPROVE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
     }
 
     /***********
@@ -186,6 +190,9 @@ namespace eosio {
                 a.provided_approvals.erase(itr);
             });
         }
+
+        fio_400_assert(transaction_size() < MAX_UNAPPROVE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
     }
 
 
@@ -227,6 +234,9 @@ namespace eosio {
             check(apps_it != old_apptable.end(), "proposal not found");
             old_apptable.erase(apps_it);
         }
+
+        fio_400_assert(transaction_size() < MAX_CANCEL_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
     }
 
     /******
@@ -289,6 +299,10 @@ namespace eosio {
                       prop.packed_transaction.data(), prop.packed_transaction.size());
 
         proptable.erase(prop);
+
+
+        fio_400_assert(transaction_size() < MAX_EXEC_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
     }
 
     /*****
@@ -318,6 +332,9 @@ namespace eosio {
                 i.last_invalidation_time = current_time_point();
             });
         }
+
+        fio_400_assert(transaction_size() < MAX_INVALIDATE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
     }
 
 } /// namespace eosio
