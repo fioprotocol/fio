@@ -72,6 +72,10 @@ namespace eosiosystem {
     void eosiosystem::system_contract::setpriv(name account, uint8_t ispriv) {
         require_auth(_self);
         set_privileged(account.value, ispriv);
+
+        fio_400_assert(transaction_size() < MAX_SETPRIV_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
+
     }
 
     void eosiosystem::system_contract::rmvproducer(name producer) {
@@ -81,6 +85,10 @@ namespace eosiosystem {
         _producers.modify(prod, same_payer, [&](auto &p) {
             p.deactivate();
         });
+
+        fio_400_assert(transaction_size() < MAX_RMVPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
+
     }
 
     void eosiosystem::system_contract::updtrevision(uint8_t revision) {
@@ -141,6 +149,9 @@ namespace eosiosystem {
        // });
 
        // set_resource_limits(newact.value, 0, 0, 0);
+
+    fio_400_assert(transaction_size() < MAX_NEWACCOUNT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+      "Transaction is too large", ErrorTransaction);
     }
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {

@@ -100,4 +100,10 @@ namespace fioio {
         new_account = myStr.substr(0, 12);
         delete[] pub_key_bytes;
     }
+
+    inline std::string key_to_account(const std::string &pubkey) {
+      std::string newstring;
+      key_to_account(pubkey, newstring);
+      return newstring;
+    }
 }

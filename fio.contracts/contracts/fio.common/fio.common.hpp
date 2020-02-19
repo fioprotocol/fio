@@ -15,6 +15,7 @@
 #include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/crypto.hpp>
+#include <eosiolib/transaction.hpp>
 #include "keyops.hpp"
 #include "fioerror.hpp"
 #include "fio.accounts.hpp"
@@ -71,6 +72,8 @@
 #ifndef DEFAULTBUNDLEAMT
 #define DEFAULTBUNDLEAMT 100
 #endif
+
+
 
 namespace fioio {
 

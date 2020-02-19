@@ -14,6 +14,7 @@
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
 #include <fio.address/fio.address.hpp>
+#include <eosiolib/transaction.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include "native.hpp"
 

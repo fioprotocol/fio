@@ -12,7 +12,6 @@
 #include <fio.token/include/fio.token/fio.token.hpp>
 #include <eosiolib/asset.hpp>
 
-
 namespace fioio {
 
     class [[eosio::contract("FioAddressLookup")]]  FioNameLookup : public eosio::contract {
@@ -466,6 +465,8 @@ namespace fioio {
            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                   timebuffer + string("\",\"fee_collected\":") +
                                   to_string(reg_amount) + string("}");
+          fio_400_assert(transaction_size() < MAX_REGADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            "Transaction is too large", ErrorTransaction);
 
            send_response(response_string.c_str());
         }
@@ -473,10 +474,9 @@ namespace fioio {
         [[eosio::action]]
         void regdomain(const string &fio_domain, const string &owner_fio_public_key,
                   const int64_t &max_fee, const name &actor, const string &tpid) {
-
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
-                           "TPID must be empty or valid FIO address",
-                           ErrorPubKeyValid);
+                   "TPID must be empty or valid FIO address",
+                   ErrorPubKeyValid);
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
@@ -522,6 +522,9 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                    timebuffer + string("\",\"fee_collected\":") +
                                    to_string(reg_amount) + string("}");
+
+            fio_400_assert(transaction_size() < MAX_REGDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -593,6 +596,10 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                    timebuffer + string("\",\"fee_collected\":") +
                                    to_string(reg_amount) + string("}");
+
+
+           fio_400_assert(transaction_size() < MAX_RENEWDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+             "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -682,6 +689,10 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                    timebuffer + string("\",\"fee_collected\":") +
                                    to_string(reg_amount) + string("}");
+
+
+           fio_400_assert(transaction_size() < MAX_RENEWADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+             "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -906,6 +917,10 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"items_burned\":") +
                                      to_string(burnlist.size() + domainburnlist.size()) + string("}");
 
+           fio_400_assert(transaction_size() < MAX_BURNEXPIRED_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+             "Transaction is too large", ErrorTransaction);
+
+
             send_response(response_string.c_str());
         }
 
@@ -931,6 +946,10 @@ namespace fioio {
 
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
+
+           fio_400_assert(transaction_size() < MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            "Transaction is too large", ErrorTransaction);
+
 
             send_response(response_string.c_str());
         } //addaddress
@@ -1013,6 +1032,9 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
+
+          fio_400_assert(transaction_size() < MAX_SETDOMPUB_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            "Transaction is too large", ErrorTransaction);
             send_response(response_string.c_str());
         }
 
@@ -1057,7 +1079,7 @@ namespace fioio {
             auto fioname_iter = namesbyname.find(string_to_uint128_hash(fio_address.c_str()));
             fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
                            "FIO address not registered", ErrorFioNameAlreadyRegistered);
-  
+
             if (fioname_iter->bundleeligiblecountdown > step - 1) {
                 namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (fioname_iter->bundleeligiblecountdown - step);

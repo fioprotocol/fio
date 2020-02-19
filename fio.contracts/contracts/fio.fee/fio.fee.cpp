@@ -93,6 +93,9 @@ namespace fioio {
             //compute the median on the remaining feevalues, this remains to be
             //processed after we have gone through the loop.
             compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+
+            fio_400_assert(transaction_size() < MAX_UPDATEFEES_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
         }
 
         /*******
@@ -250,6 +253,10 @@ namespace fioio {
             update_fees();
 
             const string response_string = string("{\"status\": \"OK\"}");
+
+           fio_400_assert(transaction_size() < MAX_SETFEEVOTE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+             "Transaction is too large", ErrorTransaction);
+
             send_response(response_string.c_str());
         }
 
@@ -309,6 +316,12 @@ namespace fioio {
             }
 
             const string response_string = string("{\"status\": \"OK\"}");
+
+
+            fio_400_assert(transaction_size() < MAX_BUNDLEVOTE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
+
             send_response(response_string.c_str());
         }
 
@@ -366,6 +379,10 @@ namespace fioio {
             update_fees();
 
             const string response_string = string("{\"status\": \"OK\"}");
+
+           fio_400_assert(transaction_size() < MAX_SETFEEMULT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+             "Transaction is too large", ErrorTransaction);
+
             send_response(response_string.c_str());
         }
 
@@ -401,6 +418,9 @@ namespace fioio {
 
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
+
+           fio_400_assert(transaction_size() < MAX_MANDATORYFEE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+             "Transaction is too large", ErrorTransaction);
         }
 
         // @abi action
@@ -491,6 +511,10 @@ namespace fioio {
                     f.suf_amount = suf_amount;
                 });
             }
+            fio_400_assert(transaction_size() < MAX_CREATEFEE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
+
         }
     };
 

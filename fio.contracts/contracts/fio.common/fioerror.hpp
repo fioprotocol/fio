@@ -50,7 +50,7 @@ namespace fioio {
     constexpr auto ErrorSignature = ident | httpInvalidError | 114;   // user permission failure
     constexpr auto ErrorNotFound = ident | httpLocationError | 115;   // cannot locate resource
     constexpr auto ErrorInvalidFioNameFormat = ident | httpDataError | 116;   // Public address exists
-    constexpr auto ErrorTransaction = ident | httpInvalidError | 117;   // Public address exists
+    constexpr auto ErrorTransaction = ident | httpInvalidError | 117;   // Transaction error
     constexpr auto ErrorNoFIONames = ident | httpLocationError | 118; // No FIO Names
     constexpr auto ErrorInvalidJsonInput = ident | httpDataError | 119;   // invalid json sent for json input
     constexpr auto ErrorRequestContextNotFound =
@@ -86,7 +86,6 @@ namespace fioio {
     constexpr auto ErrorNoWork = ident | httpDataError | 148;   // no work to perform
     constexpr auto ErrorClientKeyNotFound = ident | httpDataError | 149; // Fioname not yet registered (No clientkey)
     constexpr auto ErrorTimeViolation = ident | httpDataError | 150;
-
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values

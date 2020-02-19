@@ -15,7 +15,6 @@
 #include <eosiolib/multi_index.hpp>
 #include <eosiolib/privileged.hpp>
 #include <eosiolib/singleton.hpp>
-#include <eosiolib/transaction.hpp>
 #include <fio.token/fio.token.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.common/fio.common.hpp>
@@ -217,6 +216,9 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
 
+       fio_400_assert(transaction_size() < MAX_REGPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+         "Transaction is too large", ErrorTransaction);
+
         send_response(response_string.c_str());
     }
 
@@ -295,6 +297,10 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
+
+
+       fio_400_assert(transaction_size() < MAX_UNREGPROD_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+         "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
     }
@@ -512,6 +518,8 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(fee_amount) + string("}");
+         fio_400_assert(transaction_size() < MAX_VOTEPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
     }

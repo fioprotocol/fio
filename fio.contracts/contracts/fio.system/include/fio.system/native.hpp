@@ -12,13 +12,16 @@
 #include <eosiolib/contract.hpp>
 #include <eosiolib/ignore.hpp>
 #include "fio.common/fio.accounts.hpp"
+#include "fio.common/fioerror.hpp"
 
+using namespace fioio;
 namespace eosiosystem {
     using eosio::name;
     using eosio::permission_level;
     using eosio::public_key;
     using eosio::ignore;
     using eosio::check;
+
 
     struct permission_level_weight {
         permission_level permission;
@@ -154,12 +157,16 @@ namespace eosiosystem {
                         std::make_tuple(std::string("auth_update"), account, max_fee,sizep)
                 }.send();
             }
-            
+
             if (permission == fioio::ACTIVE || permission == fioio::OWNER){
                 eosio_assert((auth.keys.size() == 0) || (auth.keys.size() == 1),
                              "update auth not permitted on owner or active unless keys is empty or has a single entry matching the account public key");
                 //todo add code to check that if there is a single auth key, the key matches the value in the account map.
             }
+
+            fio_400_assert(transaction_size() < MAX_UPDATEAUTH_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
 
         }
 
@@ -174,6 +181,10 @@ namespace eosiosystem {
                    fioio::FeeContract, "mandatoryfee"_n,
                    std::make_tuple(std::string("auth_delete"), account, max_fee)
             }.send();
+
+            fio_400_assert(transaction_size() < MAX_DELETEAUTH_TRANASCTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
         }
 
         [[eosio::action]]
@@ -190,6 +201,10 @@ namespace eosiosystem {
                     fioio::FeeContract, "mandatoryfee"_n,
                     std::make_tuple(std::string("auth_link"), account, max_fee)
             }.send();
+
+            fio_400_assert(transaction_size() < MAX_LINKAUTH_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
         }
 
         [[eosio::action]]
