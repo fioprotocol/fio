@@ -164,10 +164,6 @@ namespace eosiosystem {
                 //todo add code to check that if there is a single auth key, the key matches the value in the account map.
             }
 
-            fio_400_assert(transaction_size() < MAX_UPDATEAUTH_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
-
-
         }
 
         [[eosio::action]]
