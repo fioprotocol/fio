@@ -136,22 +136,16 @@ namespace eosio {
                     return lockiter->remaining_locked_amount;
                 }
                 if (lockiter->unlocked_period_count < 6)  {
-                    print(" issue time is ",lockiter->timestamp,"\n");
-                    print(" present time - issue time is ",(present_time  - lockiter->timestamp),"\n");
-
                     //to shorten the vesting schedule adapt these variables.
-                    //uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY);
-                    //uint32_t firstPayPeriod = 90;
-                    //uint32_t payoutTimePeriod = 180;
-                    print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
-                    print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
-                    print("DANGER DANGER DANGER unlocking schedule set to become minutes instead of days!!","\n");
-                    //modified this to become minutes since grant!!!!
-                    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-                    print("DANGER DANGER DANGER unlocking schedule set to become 15 minutes to first unlock event!!","\n");
-                    print("DANGER DANGER DANGER unlocking schedule set to 15 minutes for subsequent unlocks","\n");
-                    uint32_t firstPayPeriod = 15;
-                    uint32_t payoutTimePeriod = 15;
+                    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY);
+                    uint32_t firstPayPeriod = 90;
+                    uint32_t payoutTimePeriod = 180;
+
+                    //TEST TEST TEST LOCKED TOKENS
+                    //TEST TEST TEST LOCKED TOKENS uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+                    //TEST TEST TEST LOCKED TOKENS uint32_t firstPayPeriod = 15;
+                    //TEST TEST TEST LOCKED TOKENS uint32_t payoutTimePeriod = 15;
+                    //TEST TEST TEST LOCKED TOKENS
 
                     bool ninetyDaysSinceGrant = daysSinceGrant >= firstPayPeriod;
 
@@ -165,16 +159,11 @@ namespace eosio {
 
                     }
 
-                    print(" payoutsDue ",payoutsDue,"\n");
                     uint32_t numberVestingPayouts = lockiter->unlocked_period_count;
-                    print(" number payouts so far ",numberVestingPayouts,"\n");
                     uint32_t remainingPayouts = 0;
 
                     uint64_t newlockedamount = lockiter->remaining_locked_amount;
-                    print(" locked amount ",newlockedamount,"\n");
-
                     uint64_t totalgrantamount = lockiter->total_grant_amount;
-                    print(" total grant amount ",totalgrantamount,"\n");
 
                     uint64_t amountpay = 0;
                     uint64_t addone = 0;
@@ -187,11 +176,9 @@ namespace eosio {
                             (lockiter->grant_type == 3)){
                             //pay out 1% for type 1
                             amountpay = (totalgrantamount / 100)*6;
-                            print(" amount to pay type 1,2,3 ", amountpay, "\n");
                         } else if (lockiter->grant_type == 4) {
                             //pay out 0 for type 4
                             amountpay = 0;
-                            print(" amount to pay for type 4 for is ", amountpay, "\n");
                         }else{
                             check(false,"unknown grant type");
                         }
@@ -201,7 +188,6 @@ namespace eosio {
                         }else {
                             newlockedamount = 0;
                         }
-                        print(" recomputed locked amount ",newlockedamount,"\n");
                         addone = 1;
                         didsomething = true;
                     }
@@ -226,22 +212,18 @@ namespace eosio {
                             return lockiter->remaining_locked_amount;
                         }
 
-                        print("remaining payouts ", remainingPayouts, "\n");
                         //this is assumed to have 3 decimal places in the specified percentage
                         amountpay = (remainingPayouts * (totalgrantamount * percentperblock)) / 100000;
-                        print(" amount to pay ", amountpay, "\n");
 
                         if (newlockedamount > amountpay) {
                             newlockedamount -= amountpay;
                         } else {
                             newlockedamount = 0;
                         }
-                        print(" recomputed locked amount ", newlockedamount, "\n");
                         didsomething = true;
                     }
 
                     if(didsomething && doupdate) {
-                        print(" updating recomputed locked amount into table ", newlockedamount, "\n");
                         //get fio balance for this account,
                         uint32_t present_time = now();
                         const auto my_balance = eosio::token::get_balance("fio.token"_n,actor, FIOSYMBOL.code() );
@@ -257,9 +239,9 @@ namespace eosio {
                             av.remaining_locked_amount = newlockedamount;
                             av.unlocked_period_count += remainingPayouts + addone;
                         });
-                    }else {
-                        print(" NOT updating recomputed locked amount into table ", newlockedamount, "\n");
-                    }
+                    }//else {
+                       // print(" NOT updating recomputed locked amount into table ", newlockedamount, "\n");
+                   // }
 
                     return newlockedamount;
 
