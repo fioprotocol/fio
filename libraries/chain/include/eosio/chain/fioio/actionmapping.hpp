@@ -22,8 +22,8 @@ namespace fioio {
 
         // fio.address actions
         if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
-            action == "renewdomain" || action == "renewaddress" || action == "expdomain" ||
-            action == "setdomainpub" || action == "expaddresses" || action == "bind2eosio" ||
+            action == "renewdomain" || action == "renewaddress" ||
+            action == "setdomainpub" || action == "bind2eosio" ||
             action == "burnexpired" || action == "decrcounter" || action == "resetclaim")
           return "fio.address";
           // note: resetclaim should be in eosio system contract account but there is currrently an open bug
