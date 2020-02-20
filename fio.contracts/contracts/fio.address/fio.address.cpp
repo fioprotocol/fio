@@ -698,91 +698,6 @@ namespace fioio {
         }
 
         /*
-         * TESTING ONLY, REMOVE for main net launch!
-         * This action will create a domain of the specified name and the domain will be
-         * expired.
-         */
-        void expdomain(const name &actor, const string &domain) {
-            require_auth(TokenContract);
-            uint128_t domainHash = string_to_uint128_hash(domain.c_str());
-            uint64_t expiration_time = get_now_minus_years(5);
-
-            auto domainsbyname = domains.get_index<"byname"_n>();
-            auto iter4 = domainsbyname.find(domainHash);
-
-            if (iter4 == domainsbyname.end()) {
-                uint64_t id = domains.available_primary_key();
-                domains.emplace(_self, [&](struct domain &d) {
-                    d.id = id;
-                    d.name = domain;
-                    d.domainhash = domainHash;
-                    d.is_public = 1;
-                    d.expiration = expiration_time;
-                    d.account = actor.value;
-                });
-            }
-        }
-
-        /*
-         * TESTING ONLY this action should be removed for main net launch!!!
-         * This action will add the specified number of expired addresses to the specified domain using the
-         * specified address prefix, values will also be added into the keynames table using the address prefix.
-         */
-        [[eosio::action]]
-        void expaddresses(const name &actor, const string &domain, const string &address_prefix,
-                          const uint64_t &number_addresses_to_add) {
-
-            require_auth(TokenContract);
-
-            uint128_t nameHash;
-            uint64_t domainHash = string_to_uint128_hash(domain.c_str());
-            uint64_t expiration_time = get_now_minus_years(1);
-
-            int countAdded = 0;
-            for (int i = 0; i < 10000; i++) {
-
-                string name;
-                if (i == 0) {
-                    name = address_prefix + "@" + domain;
-                } else {
-                    name = address_prefix + to_string(i * 2) + "@" + domain;
-                }
-
-                int yearsago = 1;
-                if (i > 7) {
-                    yearsago = i / 7;
-                }
-
-                expiration_time = get_now_minus_years(yearsago);
-                nameHash = string_to_uint128_hash(name.c_str());
-                auto namesbyname = fionames.get_index<"byname"_n>();
-                auto iter1 = namesbyname.find(nameHash);
-                vector<tokenpubaddr> temp;
-
-                if (iter1 == namesbyname.end()) {
-                    uint64_t id = fionames.available_primary_key();
-
-                    fionames.emplace(_self, [&](struct fioname &a) {
-                        a.id = id;
-                        a.name = name;
-                        a.addresses = temp;
-                        a.namehash = nameHash;
-                        a.domain = domain;
-                        a.domainhash = domainHash;
-                        a.expiration = expiration_time;
-                        a.owner_account = actor.value;
-                        a.bundleeligiblecountdown = getBundledAmount();
-                    });
-                    countAdded++;
-                }
-
-                if (countAdded == number_addresses_to_add) {
-                    break;
-                }
-            }
-        }
-
-        /*
          * This action will look for expired domains, then look for expired addresses, it will burn a total
          * of 100 addresses each time called. please see the code for the logic of identifying expired domains
          * and addresses.
@@ -814,8 +729,8 @@ namespace fioio {
             const uint32_t minexpiration = get_now_minus_years(windowmaxyears);
 
             //using this instead of now time will place everything in the to be burned list, for testing only.
-           //comment this out because we arent testing
-           // uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
+            //comment this out because we arent testing
+            // uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
 
             auto domainexpidx = domains.get_index<"byexpiration"_n>();
             auto domainiter = domainexpidx.lower_bound(minexpiration);
@@ -1089,7 +1004,6 @@ namespace fioio {
         }
     };
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(expdomain)(
-            expaddresses)(setdomainpub)(burnexpired)(decrcounter)
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(setdomainpub)(burnexpired)(decrcounter)
     (bind2eosio))
 }

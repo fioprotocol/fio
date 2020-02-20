@@ -179,34 +179,6 @@
                }
               ]
         },{
-         "name": "expdomain",
-         "base": "",
-         "fields": [{
-             "name": "actor",
-             "type": "name"
-           },{
-             "name": "domain",
-             "type": "string"
-           }
-         ]
-     },{
-      "name": "expaddresses",
-      "base": "",
-      "fields": [{
-          "name": "actor",
-          "type": "name"
-        },{
-          "name": "domain",
-          "type": "string"
-        },{
-          "name": "address_prefix",
-          "type": "string"
-        },{
-          "name": "number_addresses_to_add",
-          "type": "uint64"
-        }
-      ]
-  },{
    "name": "setdomainpub",
    "base": "",
    "fields": [{
@@ -275,14 +247,6 @@
     },{
       "name": "renewaddress",
       "type": "renewaddress",
-      "ricardian_contract": ""
-    },{
-      "name": "expdomain",
-      "type": "expdomain",
-      "ricardian_contract": ""
-    },{
-      "name": "expaddresses",
-      "type": "expaddresses",
       "ricardian_contract": ""
     },{
       "name": "burnexpired",
