@@ -709,13 +709,11 @@ namespace eosiosystem {
                     return amount;
                 }
             }
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
-            print ("DANGER DANGER DANGER -- voting locked token setting 210 day time limit on type 2 grants for lockout is reset to 25 minutes from grant","\n");
+           //TEST TEST TEST LOCKED TOKENS
+           //TEST TEST TEST LOCKED TOKENS  uint32_t issueplus210 = lockiter->timestamp+(25*60);
+           //TEST TEST TEST LOCKED TOKENS
+           uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
 
-           // uint32_t issueplus210 = lockiter->timestamp+(210*SECONDSPERDAY);
-            uint32_t issueplus210 = lockiter->timestamp+(25*60);
             //if lock type 2 only subtract remaining locked amount if 210 days since launch, and inhibit locking true.
            if (((lockiter->grant_type == 2)&&((present_time > issueplus210)&&lockiter->inhibit_unlocking)) ||
                    (lockiter->grant_type == 4)
