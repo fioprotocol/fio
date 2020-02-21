@@ -53,6 +53,10 @@ namespace fioio {
         //fio.tpid actions
         if (action == "updatebounty" || action == "rewardspaid" || action == "updatetpid")
           return "fio.tpid";
+          
+        // eosio.wrap actions
+        if (action == "execute")
+          return "eosio.wrap";
 
         //system actions
         if (action == "newaccount" || action == "onblock" || action == "addlocked" ||
