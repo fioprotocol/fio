@@ -11,9 +11,9 @@ namespace eosio {
         using contract::contract;
 
         [[eosio::action]]
-        void exec(ignore <name> executer, ignore <transaction> trx);
+        void execute(ignore <name> executer, ignore <transaction> trx);
 
-        using exec_action = eosio::action_wrapper<"exec"_n, &wrap::exec>;
+        using exec_action = eosio::action_wrapper<"execute"_n, &wrap::execute>;
     };
 
 } /// namespace eosio
