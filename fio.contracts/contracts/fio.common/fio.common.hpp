@@ -57,6 +57,14 @@
 #define MINUTE 60
 #endif
 
+#ifndef SECONDSPERHOUR
+#define SECONDSPERHOUR 3600
+#endif
+
+#ifndef SECONDSBETWEENBPCLAIM
+#define SECONDSBETWEENBPCLAIM (SECONDSPERHOUR * 4)
+#endif
+
 #ifndef YEARDAYS
 #define YEARDAYS 365
 #endif

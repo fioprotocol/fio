@@ -65,7 +65,8 @@ namespace fioio {
             action == "linkauth" || action == "onerror" ||
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
-            action == "updatepower")
+            action == "updatepower" ||
+            action == "updlbpclaim")
           return "eosio";
 
         return "nomap";

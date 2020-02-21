@@ -123,9 +123,19 @@ public:
                 const uint64_t producer = fioiter->owner_account;
                 auto prodbyowner = producers.get_index<"byowner"_n>();
                 auto proditer = prodbyowner.find(producer);
-
+                
                 fio_400_assert(proditer != prodbyowner.end(), "fio_address", fio_address,
                                "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
+
+                fio_400_assert((now() - proditer->last_bpclaim) > SECONDSBETWEENBPCLAIM, "fio_address", fio_address,
+                               "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
+
+                //Invoke system contract to update producer last_bpclaim time
+                action(permission_level{get_self(), "active"_n},
+                       SYSTEMACCOUNT, "updlbpclaim"_n,
+                       make_tuple(producer)
+                ).send();
+
 
                 auto domainsbyname = domains.get_index<"byname"_n>();
                 auto domiter = domainsbyname.find(fioiter->domainhash);
