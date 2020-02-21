@@ -170,7 +170,8 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
     bool is_active = true;
     std::string url;
     uint32_t unpaid_blocks = 0;
-    time_point last_claim_time;
+    time_point last_claim_time; //this is the last time a payout was given to this producer.
+    uint32_t last_bpclaim;  //this is the last time bpclaim was called for this producer.
     //init this to zero here to ensure that if the location is not specified, sorting will still work.
     uint16_t location = 0;
     uint64_t primary_key() const { return id; }
@@ -188,7 +189,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] producer_info {
 
     // explicit serialization macro is not necessary, used here only to improve compilation time
     EOSLIB_SERIALIZE( producer_info, (id)(owner)(fio_address)(addresshash)(total_votes)(producer_public_key)(is_active)(url)
-            (unpaid_blocks)(last_claim_time)(location)
+            (unpaid_blocks)(last_claim_time)(last_bpclaim)(location)
     )
 };
 
@@ -360,6 +361,10 @@ public:
     // functions defined in producer_pay.cpp
     [[eosio::action]]
     void resetclaim(const name &producer);
+
+    //update last bpclaim time
+    [[eosio::action]]
+    void updlbpclaim(const name &producer);
 
     [[eosio::action]]
     void setpriv(name account, uint8_t is_priv);
