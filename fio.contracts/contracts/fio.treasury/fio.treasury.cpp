@@ -12,6 +12,7 @@
 #define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
 #define PAYSCHEDTIME    172801                  // 1 day  ( block time )
+#define PAYABLETPIDS    100
 
 #include "fio.treasury.hpp"
 
@@ -84,7 +85,7 @@ public:
                                        make_tuple(itr.fioaddress)
                                 ).send();
                                 tpids_paid++;
-                                if (tpids_paid >= 100) break; //only paying 100 tpids
+                                if (tpids_paid >= PAYABLETPIDS) break; //only paying 100 tpids
                         } // endif itr.rewards >=
                 } // for (const auto &itr : tpids)
 
@@ -167,7 +168,7 @@ public:
                                 }
                                 bpcounter++;
                                 if (bpcounter > MAXBPS) break;
-                        } // &itr : producers
+                        } // &itr : producers table
 
                         //Move 1/365 of the bucketpool to the bpshare
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
@@ -330,7 +331,7 @@ public:
 
                 if (std::distance(clockstate.begin(), clockstate.end()) == 0) {
                         clockstate.emplace(_self, [&](struct treasurystate &entry) {
-                                        entry.lasttpidpayout = now() - 56;
+                                        entry.lasttpidpayout = now();
                                         entry.payschedtimer = now();
                                 });
                 }
