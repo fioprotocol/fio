@@ -270,7 +270,7 @@ namespace fioio {
         }
 
         uint64_t
-        chain_data_update(const string &fioaddress, const vector<tokenpubaddr> pubaddresses,
+        chain_data_update(const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
                           int64_t max_fee, const FioAddress &fa,
                           const name &actor, const bool isFIO, const string &tpid) {
 
@@ -842,7 +842,7 @@ namespace fioio {
         /***
          * Given a fio user name, chain name and chain specific address will attach address to the user's FIO fioname.
          *
-         * @param fioaddress The FIO user name e.g. "adam.fio"
+         * @param fioaddress The FIO user name e.g. "adam@fio"
          * @param tokencode The chain name e.g. "btc"
          * @param pubaddress The chain specific user address
          */
