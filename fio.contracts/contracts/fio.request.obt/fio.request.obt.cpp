@@ -420,7 +420,6 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            print("call reject funds request\n");
             const name aactor = name(actor.c_str());
             require_auth(aactor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,

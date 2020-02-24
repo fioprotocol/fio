@@ -210,8 +210,7 @@ public:
                             bprewards.set(bpreward{bprewards.get().rewards + bptomint}, _self);
                             //This new reward amount that has been minted will be appended to the rewards being divied up next
                         }
-                        else
-                        {
+                        else {
                           print("Block producers reserve minting exhausted");
                         }
                         //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay

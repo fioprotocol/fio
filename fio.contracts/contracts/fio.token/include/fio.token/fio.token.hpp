@@ -39,7 +39,7 @@ namespace eosio {
                                                                          fioio::AddressContract.value),
                                                                 fiofees(fioio::FeeContract, fioio::FeeContract.value),
                                                                 tpids(TPIDContract, TPIDContract.value),
-                                                                lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value){
+                                                                lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
             fioio::configs_singleton configsSingleton(fioio::FeeContract, fioio::FeeContract.value);
             appConfig = configsSingleton.get_or_default(fioio::config());
         }
@@ -98,6 +98,7 @@ namespace eosio {
             asset supply;
             asset max_supply;
             name issuer = SYSTEMACCOUNT;
+
             uint64_t primary_key() const { return supply.symbol.code().raw(); }
         };
 
@@ -105,8 +106,11 @@ namespace eosio {
         typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 
         void sub_balance(name owner, asset value);
+
         void add_balance(name owner, asset value, name ram_payer);
-        bool can_transfer(const name &tokenowner,const uint64_t &feeamount,const uint64_t &transferamount, const bool &isfee);
+
+        bool can_transfer(const name &tokenowner, const uint64_t &feeamount, const uint64_t &transferamount,
+                          const bool &isfee);
 
     public:
 
@@ -126,18 +130,18 @@ namespace eosio {
         //this will compute the present unlocked tokens for this user based on the
         //unlocking schedule, it will update the lockedtokens table if the doupdate
         //is set to true.
-        static uint64_t computeremaininglockedtokens(const name &actor, bool doupdate){
+        static uint64_t computeremaininglockedtokens(const name &actor, bool doupdate) {
             uint32_t present_time = now();
 
             eosiosystem::locked_tokens_table lockedTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
             auto lockiter = lockedTokensTable.find(actor.value);
-            if(lockiter != lockedTokensTable.end()){
-                if(lockiter->inhibit_unlocking && (lockiter->grant_type == 2)){
+            if (lockiter != lockedTokensTable.end()) {
+                if (lockiter->inhibit_unlocking && (lockiter->grant_type == 2)) {
                     return lockiter->remaining_locked_amount;
                 }
-                if (lockiter->unlocked_period_count < 6)  {
+                if (lockiter->unlocked_period_count < 6) {
                     //to shorten the vesting schedule adapt these variables.
-                    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / SECONDSPERDAY);
+                    uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
                     uint32_t firstPayPeriod = 90;
                     uint32_t payoutTimePeriod = 180;
 
@@ -153,7 +157,7 @@ namespace eosio {
                     if (daysSinceGrant > firstPayPeriod) {
                         daysSinceGrant -= firstPayPeriod;
                         payoutsDue = daysSinceGrant / payoutTimePeriod;
-                        if (payoutsDue > 6){
+                        if (payoutsDue > 6) {
                             payoutsDue = 6;
                         }
 
@@ -170,22 +174,22 @@ namespace eosio {
                     bool didsomething = false;
 
                     //this is the first unlocking. 90 days after grant
-                    if((numberVestingPayouts == 0)&&(ninetyDaysSinceGrant)) {
+                    if ((numberVestingPayouts == 0) && (ninetyDaysSinceGrant)) {
                         if ((lockiter->grant_type == 1) ||
                             (lockiter->grant_type == 2) ||
-                            (lockiter->grant_type == 3)){
+                            (lockiter->grant_type == 3)) {
                             //pay out 1% for type 1
-                            amountpay = (totalgrantamount / 100)*6;
+                            amountpay = (totalgrantamount / 100) * 6;
                         } else if (lockiter->grant_type == 4) {
                             //pay out 0 for type 4
                             amountpay = 0;
-                        }else{
-                            check(false,"unknown grant type");
+                        } else {
+                            check(false, "unknown grant type");
                         }
 
                         if (newlockedamount > amountpay) {
                             newlockedamount -= amountpay;
-                        }else {
+                        } else {
                             newlockedamount = 0;
                         }
                         addone = 1;
@@ -193,7 +197,7 @@ namespace eosio {
                     }
 
                     //this accounts for the first unlocking period being the day 0 unlocking period.
-                    if (numberVestingPayouts >0){
+                    if (numberVestingPayouts > 0) {
                         numberVestingPayouts--;
                     }
 
@@ -205,7 +209,7 @@ namespace eosio {
                             (lockiter->grant_type == 3)) {
                             //this logic assumes to have 3 decimal places in the specified percentage
                             percentperblock = 18800;
-                        } else if (lockiter->grant_type == 4){
+                        } else if (lockiter->grant_type == 4) {
                             //this is assumed to have 3 decimal places in the specified percentage
                             return lockiter->remaining_locked_amount;
                         } else {  //unknown lock type, dont unlock
@@ -223,15 +227,17 @@ namespace eosio {
                         didsomething = true;
                     }
 
-                    if(didsomething && doupdate) {
+                    if (didsomething && doupdate) {
                         //get fio balance for this account,
                         uint32_t present_time = now();
-                        const auto my_balance = eosio::token::get_balance("fio.token"_n,actor, FIOSYMBOL.code() );
+                        const auto my_balance = eosio::token::get_balance("fio.token"_n, actor, FIOSYMBOL.code());
                         uint64_t amount = my_balance.amount;
 
-                        if (newlockedamount > amount){
-                            print(" WARNING computed amount ",newlockedamount," is more than amount in account ",amount," \n ",
-                                    " Transaction processing order can cause this, this amount is being re-aligned, resetting remaining locked amount to ", amount, "\n");
+                        if (newlockedamount > amount) {
+                            print(" WARNING computed amount ", newlockedamount, " is more than amount in account ",
+                                  amount, " \n ",
+                                  " Transaction processing order can cause this, this amount is being re-aligned, resetting remaining locked amount to ",
+                                  amount, "\n");
                             newlockedamount = amount;
                         }
                         //update the locked table.
@@ -239,18 +245,15 @@ namespace eosio {
                             av.remaining_locked_amount = newlockedamount;
                             av.unlocked_period_count += remainingPayouts + addone;
                         });
-                    }//else {
-                       // print(" NOT updating recomputed locked amount into table ", newlockedamount, "\n");
-                   // }
+                    }
 
                     return newlockedamount;
 
-                }else{
+                } else {
                     return lockiter->remaining_locked_amount;
                 }
             }
             return 0;
         }
-
     };
 } /// namespace eosio

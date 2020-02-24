@@ -10,8 +10,6 @@
 
 #pragma once
 
-//#include <eosiolib/system.hpp>
-
 namespace fioio {
     using namespace std;
 
