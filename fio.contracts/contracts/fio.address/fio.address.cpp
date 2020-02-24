@@ -728,10 +728,6 @@ namespace fioio {
             //this allows us to search through all of the domains.
             const uint32_t minexpiration = get_now_minus_years(windowmaxyears);
 
-            //using this instead of now time will place everything in the to be burned list, for testing only.
-            //comment this out because we arent testing
-            // uint64_t kludgedNow = get_now_plus_years(10); // This is for testing only
-
             auto domainexpidx = domains.get_index<"byexpiration"_n>();
             auto domainiter = domainexpidx.lower_bound(minexpiration);
 

@@ -1037,7 +1037,6 @@ namespace eosiosystem {
         asset reg_fee_asset;
         reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
-        print(reg_fee_asset.amount);
 
         fio_fees(actor, reg_fee_asset);
         processrewardsnotpid(reg_amount, get_self());
