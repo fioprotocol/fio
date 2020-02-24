@@ -117,9 +117,7 @@ namespace eosio {
         //based on grant type.
         auto lockiter = lockedTokensTable.find(tokenowner.value);
         if (lockiter != lockedTokensTable.end()) {
-            //TEST TEST TEST LOCKED TOKENS
-            //TEST TEST TEST LOCKED TOKENS uint32_t issueplus210 = lockiter->timestamp+(25*60);
-            //TEST TEST TEST LOCKED TOKENS
+            //TEST LOCKED TOKENS uint32_t issueplus210 = lockiter->timestamp+(25*60);
             uint32_t issueplus210 = lockiter->timestamp + (210 * SECONDSPERDAY);
 
             if (
