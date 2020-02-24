@@ -53,7 +53,7 @@ namespace fioio {
         //fio.tpid actions
         if (action == "updatebounty" || action == "rewardspaid" || action == "updatetpid")
           return "fio.tpid";
-          
+
         // eosio.wrap actions
         if (action == "execute")
           return "eosio.wrap";
@@ -69,7 +69,7 @@ namespace fioio {
             action == "linkauth" || action == "onerror" ||
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
-            action == "updatepower" ||
+            action == "updatepower" || action == "getram" ||
             action == "updlbpclaim" || action == "resetclaim")
           return "eosio";
 

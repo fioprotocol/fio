@@ -83,4 +83,21 @@ namespace eosiosystem {
     }
 
 
+    void system_contract::getram(const name actor, const uint16_t bytes) {
+      eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
+                   has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
+                   "missing required authority of fio.address, fio.treasury, fio.fee, fio.token, eosio or fio.reqobt");
+                   
+      auto fee_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
+      auto feeiter = fee_by_endpoint.find(string_to_uint128_hash("feebyte"));
+
+
+      user_resources_table userres(get_self(), get_self().value);
+      auto resiter = userres.find(actor.value);
+      userres.modify(resiter, get_self(), [&](auto &r) {
+        r.ram_bytes = resiter->ram_bytes + bytes * feeiter->suf_amount;
+      });
+
+    }
+
 } //namespace eosiosystem
