@@ -24,9 +24,9 @@ namespace fioio {
         if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
             action == "renewdomain" || action == "renewaddress" ||
             action == "setdomainpub" || action == "bind2eosio" ||
-            action == "burnexpired" || action == "decrcounter" || action == "resetclaim")
+            action == "burnexpired" || action == "decrcounter" )
           return "fio.address";
-          // note: resetclaim should be in eosio system contract account but there is currrently an open bug
+
 
 
         // fio.fee actions
@@ -70,7 +70,7 @@ namespace fioio {
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
             action == "updatepower" ||
-            action == "updlbpclaim")
+            action == "updlbpclaim" || action == "resetclaim")
           return "eosio";
 
         return "nomap";
