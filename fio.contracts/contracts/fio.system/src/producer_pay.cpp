@@ -71,9 +71,10 @@ namespace eosiosystem {
     void system_contract::resetclaim(const name &producer) {
       check((has_auth(SYSTEMACCOUNT) ||  has_auth(TREASURYACCOUNT)) ,
                "missing required authority of treasury or eosio");
-        const auto &prod = _producers.get(producer.value);
-           // Reset producer claim info
-           _producers.modify(prod, get_self(), [&](auto &p) {
+           auto prodbyowner = _producers.get_index<"byowner"_n>();
+           auto proditer = prodbyowner.find(producer.value);
+          // Reset producer claim info
+           prodbyowner.modify(proditer, get_self(), [&](auto &p) {
                p.last_claim_time = time_point {microseconds{static_cast<int64_t>( current_time())}};
                p.unpaid_blocks = 0;
            });

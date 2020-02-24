@@ -137,7 +137,6 @@ public:
                        make_tuple(producer)
                 ).send();
 
-
                 auto domainsbyname = domains.get_index<"byname"_n>();
                 auto domiter = domainsbyname.find(fioiter->domainhash);
 
@@ -292,17 +291,20 @@ public:
                                         });
                                 //Invoke system contract to reset producer last_claim_time and unpaid_blocks
                                 action(permission_level{get_self(), "active"_n},
-                                       AddressContract, "resetclaim"_n,
-                                       make_tuple(producer)
-                                       ).send();
+                                   SYSTEMACCOUNT, "resetclaim"_n,
+                                   make_tuple(producer)
+                                ).send();
                         }
+
 
                         // PAY FOUNDATION //
                         auto fdtnstate = fdtnrewards.get();
-                        action(permission_level{get_self(), "active"_n},
-                                TokenContract, "transfer"_n,
-                                make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, FIOSYMBOL),
-                                        string("Paying foundation from treasury."))).send();
+                        if(fdtnstate.rewards > 0) {
+                            action(permission_level{get_self(), "active"_n},
+                                   TokenContract, "transfer"_n,
+                                   make_tuple(TREASURYACCOUNT, FOUNDATIONACCOUNT, asset(fdtnstate.rewards, FIOSYMBOL),
+                                              string("Paying foundation from treasury."))).send();
+                        }
 
                         //Clear the foundation rewards counter
                         fdtnrewards.set(fdtnreward{0}, _self);
