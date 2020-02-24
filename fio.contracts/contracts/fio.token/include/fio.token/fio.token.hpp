@@ -145,11 +145,9 @@ namespace eosio {
                     uint32_t firstPayPeriod = 90;
                     uint32_t payoutTimePeriod = 180;
 
-                    //TEST TEST TEST LOCKED TOKENS
-                    //TEST TEST TEST LOCKED TOKENS uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-                    //TEST TEST TEST LOCKED TOKENS uint32_t firstPayPeriod = 15;
-                    //TEST TEST TEST LOCKED TOKENS uint32_t payoutTimePeriod = 15;
-                    //TEST TEST TEST LOCKED TOKENS
+                    //TEST LOCKED TOKENS uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+                    //TEST LOCKED TOKENS uint32_t firstPayPeriod = 15;
+                    //TEST LOCKED TOKENS uint32_t payoutTimePeriod = 15;
 
                     bool ninetyDaysSinceGrant = daysSinceGrant >= firstPayPeriod;
 
