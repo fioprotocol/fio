@@ -38,35 +38,6 @@ namespace fioio {
             map<string, double> producer_fee_multipliers_map;
 
             const bool dbgout = false;
-            std::vector<name> deletelist;
-            auto voter = feevoters.begin();
-            while (voter != feevoters.end()) {
-                auto tp = topprods.find(voter->block_producer_name.value);
-                if(tp == topprods.end()){
-                    deletelist.push_back(voter->block_producer_name);
-                }
-                voter++;
-            }
-
-            for (int i = 0; i < deletelist.size(); i++) {
-                const name delname = deletelist[i];
-                //clear the voters of records.
-                auto voter_iter = feevoters.find(delname.value);
-                if ( voter_iter != feevoters.end()) {
-                    feevoters.erase(voter_iter);
-                }
-                //clear bundlevotes
-                auto bundlev_iter = bundlevoters.find(delname.value);
-                if ( bundlev_iter != bundlevoters.end()) {
-                    bundlevoters.erase(bundlev_iter);
-                }
-                //clear feevotes
-                auto bybp = feevotes.get_index<"bybpname"_n>();
-                auto bybp_iter = bybp.find(delname.value);
-                if (bybp_iter != bybp.end()) {
-                    bybp.erase(bybp_iter);
-                }
-            }
 
             //Selecting only elected producers, create a map for each producer and its associated multiplier
             //for use in performing the multiplications later,
