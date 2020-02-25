@@ -221,7 +221,6 @@ namespace eosiosystem {
 
        fio_400_assert(transaction_size() < MAX_REGPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
-
         send_response(response_string.c_str());
     }
 
@@ -304,7 +303,6 @@ namespace eosiosystem {
 
        fio_400_assert(transaction_size() < MAX_UNREGPROD_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
-
         send_response(response_string.c_str());
     }
 
@@ -523,7 +521,6 @@ namespace eosiosystem {
                                  to_string(fee_amount) + string("}");
          fio_400_assert(transaction_size() < MAX_VOTEPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
-
         send_response(response_string.c_str());
     }
 
@@ -1046,7 +1043,6 @@ namespace eosiosystem {
                                  to_string(reg_amount) + string("}");
        fio_400_assert(transaction_size() < MAX_REGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
-
         send_response(response_string.c_str());
     }
 
