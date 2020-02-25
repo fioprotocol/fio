@@ -284,6 +284,7 @@ namespace fioio {
             tokenpubaddr tempStruct;
             string token;
             string chaincode;
+            bool wasFound = false;
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 token = tpa->token_code.c_str();
@@ -302,19 +303,21 @@ namespace fioio {
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
+                        wasFound = true;
                         break;
-                    } else if( it == fioname_iter->addresses.end()){
-                        fio_400_assert(fioname_iter->addresses.size() != 100, "token_code", tpa->token_code, "Maximum token codes mapped to single FIO Address reached. Only 100 can be mapped.",
-                                       ErrorInvalidFioNameFormat);
-
-                        tempStruct.public_address = tpa->public_address;
-                        tempStruct.token_code = tpa->token_code;
-                        tempStruct.chain_code = tpa->chain_code;
-
-                        namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
-                            a.addresses.push_back(tempStruct);
-                        });
                     }
+                }
+                if(!wasFound){
+                    fio_400_assert(fioname_iter->addresses.size() != 100, "token_code", tpa->token_code, "Maximum token codes mapped to single FIO Address reached. Only 100 can be mapped.",
+                                   ErrorInvalidFioNameFormat);
+
+                    tempStruct.public_address = tpa->public_address;
+                    tempStruct.token_code = tpa->token_code;
+                    tempStruct.chain_code = tpa->chain_code;
+
+                    namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                        a.addresses.push_back(tempStruct);
+                    });
                 }
             }
 
