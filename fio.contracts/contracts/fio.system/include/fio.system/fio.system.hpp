@@ -374,8 +374,6 @@ public:
 
     [[eosio::action]]
     void updtrevision(uint8_t revision);
-    [[eosio::action]]
-    void getram(const name actor, const uint16_t bytes);
 
     using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
@@ -391,7 +389,6 @@ public:
     using updtrevision_action = eosio::action_wrapper<"updtrevision"_n, &system_contract::updtrevision>;
     using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
     using setparams_action = eosio::action_wrapper<"setparams"_n, &system_contract::setparams>;
-    using getram_action = eosio::action_wrapper<"getram"_n, &system_contract::getram>;
 
 private:
 

@@ -102,7 +102,7 @@ public:
 
                fio_400_assert(transaction_size() < MAX_TPIDCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
                  "Transaction is too large", ErrorTransaction);
-                getramaction(actor, RAMBUMP);
+
                 send_response(response_string.c_str());
         } //tpid_claim
 
@@ -124,7 +124,7 @@ public:
                 const uint64_t producer = fioiter->owner_account;
                 auto prodbyowner = producers.get_index<"byowner"_n>();
                 auto proditer = prodbyowner.find(producer);
-
+                
                 fio_400_assert(proditer != prodbyowner.end(), "fio_address", fio_address,
                                "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
@@ -317,6 +317,7 @@ public:
 
                fio_400_assert(transaction_size() < MAX_BPCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
                  "Transaction is too large", ErrorTransaction);
+
                 send_response(response_string.c_str());
         } //bpclaim
 
