@@ -32,6 +32,7 @@ namespace fioio {
 
     //this is the amount of time that must elapse for votes to be recorded into the FIO protocol for fees.
     const uint32_t TIME_BETWEEN_VOTES_SECONDS = 120;
+    const uint32_t TIME_BETWEEN_FEE_VOTES_SECONDS = 3600;
 
     // This table contains the data attributes associated with a fee.
     // @abi table fiofee i64
@@ -96,7 +97,7 @@ namespace fioio {
         uint64_t id;       //unique one up id
         name block_producer_name;
         string end_point;
-        uint64_t end_point_hash;
+        uint128_t end_point_hash;
         uint64_t suf_amount;
         uint64_t lastvotetimestamp;
 

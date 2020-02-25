@@ -56,6 +56,8 @@ namespace fioio {
                 topprod++;
             }
 
+
+
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
             uint64_t lastusedHash;
@@ -187,9 +189,7 @@ namespace fioio {
             for (auto &feeval : fee_values) {
                 //check the endpoint exists for this fee
                 const uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
-                if (dbgout) {
-                    print("\nendPointHash: ", endPointHash, "\n");
-                }
+
                 auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
                 fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
                                "invalid end_point", ErrorEndpointNotFound);
@@ -218,7 +218,7 @@ namespace fioio {
                         const uint32_t lastupdate = votebyname_iter->lastvotetimestamp;
 
                         //be silent if the time between votes has not yet elapsed.
-                        if (lastupdate > (nowtime - TIME_BETWEEN_VOTES_SECONDS)) {
+                        if (lastupdate > (nowtime - TIME_BETWEEN_FEE_VOTES_SECONDS)) {
                             timeviolation = true;
                             break;
                         } else {
