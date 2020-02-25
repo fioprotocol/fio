@@ -43,7 +43,7 @@
               "base": "",
               "fields": [
                  {"name":"rewards",
-                  "type":"uint64"},
+                  "type":"uint64"}
               ]
              },{
              "name": "fdtnreward",
