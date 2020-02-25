@@ -284,12 +284,10 @@ namespace fioio {
             tokenpubaddr tempStruct;
             string token;
             string chaincode;
-            int tempi;
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
                 token = tpa->token_code.c_str();
                 chaincode = tpa->chain_code.c_str();
-                tempi = 1;
 
                 fio_400_assert(validateChainNameFormat(token), "token_code", tpa->token_code, "Invalid token code format",
                                ErrorInvalidFioNameFormat);
@@ -305,8 +303,7 @@ namespace fioio {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
                         break;
-                    }
-                    if( fioname_iter->addresses.size() == tempi){
+                    } else if( it == fioname_iter->addresses.end()){
                         fio_400_assert(fioname_iter->addresses.size() != 100, "token_code", tpa->token_code, "Maximum token codes mapped to single FIO Address reached. Only 100 can be mapped.",
                                        ErrorInvalidFioNameFormat);
 
@@ -317,9 +314,7 @@ namespace fioio {
                         namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                             a.addresses.push_back(tempStruct);
                         });
-                        break;
                     }
-                    tempi++;
                 }
             }
 
@@ -361,6 +356,7 @@ namespace fioio {
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 fio_fees(actor, asset(reg_amount, FIOSYMBOL));
                 process_rewards(tpid, reg_amount, get_self());
+
                 if (reg_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
                             ("eosio"_n, {{_self, "active"_n}},
