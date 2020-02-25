@@ -861,10 +861,8 @@ namespace fioio {
            fio_400_assert(transaction_size() < MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
-<<<<<<< HEAD
             getramaction(actor, RAMBUMP);
-=======
->>>>>>> develop
+
             send_response(response_string.c_str());
         } //addaddress
 
