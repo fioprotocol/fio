@@ -38,8 +38,8 @@
 #define MAXBPS 42
 #define MAXACTIVEBPS 21
 #define DEFAULTBUNDLEAMT 100
-#define NEWBYTES 5800
-#define RAMBUMP 1024
+#define NEWBYTES 8640
+#define RAMBUMP 2048
 
 namespace fioio {
 
