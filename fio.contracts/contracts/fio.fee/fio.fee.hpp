@@ -97,7 +97,7 @@ namespace fioio {
         uint64_t id;       //unique one up id
         name block_producer_name;
         string end_point;
-        uint64_t end_point_hash;
+        uint128_t end_point_hash;
         uint64_t suf_amount;
         uint64_t lastvotetimestamp;
 

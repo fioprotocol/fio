@@ -218,9 +218,7 @@ namespace fioio {
             for (auto &feeval : fee_values) {
                 //check the endpoint exists for this fee
                 const uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
-                if (dbgout) {
-                    print("\nendPointHash: ", endPointHash, "\n");
-                }
+
                 auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
                 fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
                                "invalid end_point", ErrorEndpointNotFound);
