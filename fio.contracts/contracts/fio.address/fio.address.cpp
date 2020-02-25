@@ -170,7 +170,7 @@ namespace fioio {
             }
         }
 
-        uint32_t fio_address_update( const name &actor, const name &owner, int64_t max_fee, const FioAddress &fa,
+        uint32_t fio_address_update( const name &actor, const name &owner, const uint64_t max_fee, const FioAddress &fa,
                                     const string &tpid) {
 
             const uint32_t expiration_time = get_now_plus_one_year();
@@ -271,8 +271,8 @@ namespace fioio {
 
         uint64_t
         chain_data_update(const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
-                          int64_t max_fee, const FioAddress &fa,
-                          const name &actor, const bool isFIO, const string &tpid) {
+                          const uint64_t &max_fee, const FioAddress &fa,
+                          const name &actor, const bool &isFIO, const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -860,7 +860,6 @@ namespace fioio {
 
            fio_400_assert(transaction_size() < MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
-
 
             send_response(response_string.c_str());
         } //addaddress
