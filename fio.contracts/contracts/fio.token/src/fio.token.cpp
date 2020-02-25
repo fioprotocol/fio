@@ -206,6 +206,7 @@ namespace eosio {
         fio_400_assert(transaction_size() < MAX_TRANSFER_TRANSACTION_SIZE, "transaction_size",
                        std::to_string(transaction_size()),
                        "Transaction is too large", ErrorTransaction);
+
     }
 
 
@@ -341,7 +342,6 @@ namespace eosio {
         fio_400_assert(transaction_size() < MAX_TRNSPBKY_TRANSACTION_SIZE, "transaction_size",
                        std::to_string(transaction_size()),
                        "Transaction is too large", ErrorTransaction);
-        getramaction(actor, RAMBUMP);
         send_response(response_string.c_str());
 
     }

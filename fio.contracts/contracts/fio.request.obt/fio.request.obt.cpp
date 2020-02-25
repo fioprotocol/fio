@@ -190,7 +190,7 @@ namespace fioio {
                 fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                                "No such FIO Request ", ErrorRequestContextNotFound);
 
-                fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
+                fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
                     fr.status = static_cast<int64_t >(trxstatus::sent_to_blockchain);
@@ -231,7 +231,7 @@ namespace fioio {
 
           fio_400_assert(transaction_size() < MAX_RECORDOBT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
-            getramaction(name(actor), RAMBUMP);
+
             send_response(response_string.c_str());
         }
 
@@ -378,7 +378,7 @@ namespace fioio {
             const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
             const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
 
-            fiorequestContextsTable.emplace(aActor, [&](struct fioreqctxt &frc) {
+            fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
                 frc.payer_fio_address = fromHash;
                 frc.payee_fio_address = toHash;
@@ -399,7 +399,7 @@ namespace fioio {
 
          fio_400_assert(transaction_size() < MAX_NEWFUNDSREQUEST_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
-           getramaction(name(actor), RAMBUMP);
+
            send_response(response_string.c_str());
         }
 
@@ -515,7 +515,7 @@ namespace fioio {
             }
             //end fees, bundle eligible fee logic
 
-            fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
+            fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
                 fr.id = fiorequestStatusTable.available_primary_key();;
                 fr.fio_request_id = requestId;
                 fr.status = static_cast<int64_t >(trxstatus::rejected);
@@ -528,7 +528,7 @@ namespace fioio {
 
           fio_400_assert(transaction_size() < MAX_REJECTFUNDS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
-            getramaction(name(actor), RAMBUMP);
+
             send_response(response_string.c_str());
         }
     };

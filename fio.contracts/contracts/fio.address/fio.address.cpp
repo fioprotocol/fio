@@ -200,7 +200,7 @@ namespace fioio {
             t1.chain_code = "FIO";
             pubaddresses.push_back(t1);
 
-            fionames.emplace(actor, [&](struct fioname &a) {
+            fionames.emplace(_self, [&](struct fioname &a) {
                 a.id = id;
                 a.name = fa.fioaddress;
                 a.addresses = pubaddresses;
@@ -237,7 +237,7 @@ namespace fioio {
 
             uint64_t id = domains.available_primary_key();
 
-            domains.emplace(owner, [&](struct domain &d) {
+            domains.emplace(_self, [&](struct domain &d) {
                 d.id = id;
                 d.name = fa.fiodomain;
                 d.domainhash = domainHash;
@@ -457,7 +457,6 @@ namespace fioio {
           fio_400_assert(transaction_size() < MAX_REGADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
-           getramaction(actor, RAMBUMP);
            send_response(response_string.c_str());
         }
 
@@ -515,7 +514,7 @@ namespace fioio {
 
             fio_400_assert(transaction_size() < MAX_REGDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
-            getramaction(actor, RAMBUMP);
+
             send_response(response_string.c_str());
         }
 
@@ -590,7 +589,7 @@ namespace fioio {
 
            fio_400_assert(transaction_size() < MAX_RENEWDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
-            getramaction(actor, RAMBUMP);
+
             send_response(response_string.c_str());
         }
 
@@ -683,7 +682,7 @@ namespace fioio {
 
            fio_400_assert(transaction_size() < MAX_RENEWADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
-            getramaction(actor, RAMBUMP);
+
             send_response(response_string.c_str());
         }
 
@@ -860,8 +859,6 @@ namespace fioio {
 
            fio_400_assert(transaction_size() < MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
-
-            getramaction(actor, RAMBUMP);
 
             send_response(response_string.c_str());
         } //addaddress

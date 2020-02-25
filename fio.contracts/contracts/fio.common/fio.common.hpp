@@ -38,8 +38,6 @@
 #define MAXBPS 42
 #define MAXACTIVEBPS 21
 #define DEFAULTBUNDLEAMT 100
-#define NEWBYTES 8640
-#define RAMBUMP 2048
 
 namespace fioio {
 
@@ -329,15 +327,6 @@ namespace fioio {
                 "fdtnrwdupdat"_n,
                 std::make_tuple((uint64_t)(static_cast<double>(amount) * .05))
         ).send();
-    }
-
-    void getramaction(const name &actor, const uint16_t bytes) {
-      action(
-              permission_level{SYSTEMACCOUNT, "active"_n},
-              "eosio"_n,
-              "getram"_n,
-              std::make_tuple(actor, bytes) //fee must be appended to reg_amount in previous fiofees call
-      ).send();
     }
 
     inline bool isPubKeyValid(const string &pubkey) {
