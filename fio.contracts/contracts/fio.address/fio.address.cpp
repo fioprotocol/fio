@@ -454,7 +454,7 @@ namespace fioio {
            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                   timebuffer + string("\",\"fee_collected\":") +
                                   to_string(reg_amount) + string("}");
-          fio_400_assert(transaction_size() < MAX_REGADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          fio_400_assert(transaction_size() <= MAX_REGADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
            send_response(response_string.c_str());
@@ -512,7 +512,7 @@ namespace fioio {
                                    timebuffer + string("\",\"fee_collected\":") +
                                    to_string(reg_amount) + string("}");
 
-            fio_400_assert(transaction_size() < MAX_REGDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            fio_400_assert(transaction_size() <= MAX_REGDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
@@ -587,7 +587,7 @@ namespace fioio {
                                    to_string(reg_amount) + string("}");
 
 
-           fio_400_assert(transaction_size() < MAX_RENEWDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           fio_400_assert(transaction_size() <= MAX_RENEWDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
@@ -680,7 +680,7 @@ namespace fioio {
                                    to_string(reg_amount) + string("}");
 
 
-           fio_400_assert(transaction_size() < MAX_RENEWADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           fio_400_assert(transaction_size() <= MAX_RENEWADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
@@ -817,7 +817,7 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"items_burned\":") +
                                      to_string(burnlist.size() + domainburnlist.size()) + string("}");
 
-           fio_400_assert(transaction_size() < MAX_BURNEXPIRED_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           fio_400_assert(transaction_size() <= MAX_BURNEXPIRED_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
 
 
@@ -857,7 +857,7 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
-           fio_400_assert(transaction_size() < MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           fio_400_assert(transaction_size() <= MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
@@ -942,7 +942,7 @@ namespace fioio {
                                      to_string(fee_amount) + string("}");
 
 
-          fio_400_assert(transaction_size() < MAX_SETDOMPUB_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          fio_400_assert(transaction_size() <= MAX_SETDOMPUB_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
             send_response(response_string.c_str());
         }

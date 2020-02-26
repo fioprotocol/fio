@@ -34,7 +34,7 @@ namespace fioio {
         )
     };
 
-    typedef eosio::multi_index<"clockstate"_n, treasurystate> rewards_table;
+    typedef singleton<"clockstate"_n, treasurystate> rewards_table;
 
     //@abi table bppaysched
     struct [[eosio::table]] bppaysched {

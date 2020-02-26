@@ -9,10 +9,6 @@
               "type": "name"
               }]
               },{
-              "name": "updateclock",
-              "base": "",
-              "fields": []
-              },{
               "name": "startclock",
               "base": "",
               "fields": []
@@ -82,10 +78,6 @@
        },{
           "name": "bpclaim",
           "type": "bpclaim",
-          "ricardian_contract": ""
-       },{
-          "name": "updateclock",
-          "type": "updateclock",
           "ricardian_contract": ""
        },{
           "name": "startclock",
