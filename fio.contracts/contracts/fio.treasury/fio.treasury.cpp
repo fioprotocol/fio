@@ -34,21 +34,28 @@ private:
         eosiosystem::producers_table producers;
         bool rewardspaid;
         uint64_t lasttpidpayout;
-
+        treasurystate state;
 public:
         using contract::contract;
-
         FIOTreasury(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
                 tpids(TPIDContract, TPIDContract.value),
                 fionames(AddressContract, AddressContract.value),
                 domains(AddressContract, AddressContract.value),
-                bprewards(_self, _self.value),
-                clockstate(_self, _self.value),
-                voteshares(_self, _self.value),
+                bprewards(get_self(), get_self().value),
+                clockstate(get_self(), get_self().value),
+                voteshares(get_self(), get_self().value),
                 producers(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
                 global(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
-                fdtnrewards(_self, _self.value),
-                bucketrewards(_self, _self.value) {
+                fdtnrewards(get_self(), get_self().value),
+                bucketrewards(get_self(), get_self().value) {
+                  state = clockstate.get_or_default();
+        }
+
+
+
+        //FIOTreasury deconstructor sets the clockstate
+        ~FIOTreasury() {
+          clockstate.set(state, get_self());
         }
 
         // @abi action
@@ -57,11 +64,10 @@ public:
                 require_auth(actor);
 
                 uint64_t tpids_paid = 0;
-                auto clockiter = clockstate.begin();
 
                 //This contract should only be able to iterate throughout the entire tpids table to
                 //to check for rewards once every x blocks.
-                fio_400_assert(now() > clockiter->lasttpidpayout + MINUTE, "tpidclaim", "tpidclaim",
+                fio_400_assert(now() > state.lasttpidpayout + MINUTE, "tpidclaim", "tpidclaim",
                                "No work.", ErrorNoWork);
 
                 for (const auto &itr : tpids) {
@@ -78,7 +84,7 @@ public:
                                                           string("Paying TPID from treasury."))
                                         ).send();
                                 } else { //Allocate to BP buckets instead
-                                        bprewards.set(bpreward{bprewards.get().rewards + itr.rewards}, _self);
+                                        bprewards.set(bpreward{bprewards.get().rewards + itr.rewards}, get_self());
                                 }
                                 action(permission_level{get_self(), "active"_n},
                                        "fio.tpid"_n, "rewardspaid"_n,
@@ -92,15 +98,11 @@ public:
                 fio_400_assert(tpids_paid > 0, "tpidclaim", "tpidclaim","No work.", ErrorNoWork);
 
                 //update the clock but only if there has been a tpid paid out.
-                action(permission_level{get_self(), "active"_n},
-                       get_self(), "updateclock"_n,
-                       make_tuple()
-                ).send();
 
                 const string response_string = string("{\"status\": \"OK\",\"tpids_paid\":") +
                                          to_string(tpids_paid) + string("}");
 
-               fio_400_assert(transaction_size() < MAX_TPIDCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+               fio_400_assert(transaction_size() <= MAX_TPIDCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
                  "Transaction is too large", ErrorTransaction);
 
                 send_response(response_string.c_str());
@@ -124,7 +126,7 @@ public:
                 const uint64_t producer = fioiter->owner_account;
                 auto prodbyowner = producers.get_index<"byowner"_n>();
                 auto proditer = prodbyowner.find(producer);
-                
+
                 fio_400_assert(proditer != prodbyowner.end(), "fio_address", fio_address,
                                "FIO Address not producer or nothing payable", ErrorNoFioAddressProducer);
 
@@ -152,8 +154,7 @@ public:
                 /***************  Pay schedule expiration *******************/
                 //if it has been 24 hours, transfer remaining producer vote_shares to the foundation and record the rewards back into bprewards,
                 // then erase the pay schedule so a new one can be created in a subsequent call to bpclaim.
-                auto clockiter = clockstate.begin();
-                if (clockiter != clockstate.end() && now() >= clockiter->payschedtimer + PAYSCHEDTIME) { //+ 172801
+                if (clockstate.exists() && now() >= state.payschedtimer + PAYSCHEDTIME) { //+ 172801
                         if (std::distance(voteshares.begin(), voteshares.end()) > 0) {
                                 auto iter = voteshares.begin();
                                 while (iter != voteshares.end()) {
@@ -180,20 +181,20 @@ public:
                         } // &itr : producers table
 
                         //Move 1/365 of the bucketpool to the bpshare
-                        bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
-                        bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, _self);
+                        bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
+                        bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
 
-                        if (clockiter->bpreservetokensminted < BPMAXRESERVE && bprewards.get().rewards < BPMAXTOMINT) {
+                        if (state.bpreservetokensminted < BPMAXRESERVE && bprewards.get().rewards < BPMAXTOMINT) {
 
                           uint64_t bptomint = BPMAXTOMINT;
-                          const uint64_t bpremainingreserve = BPMAXRESERVE - clockiter->bpreservetokensminted;
+                          const uint64_t bpremainingreserve = BPMAXRESERVE - state.bpreservetokensminted;
 
                             if (bpremainingreserve < BPMAXTOMINT) {
                                     bptomint = bpremainingreserve;
                             }
 
-                            if (clockiter->bpreservetokensminted + bptomint > BPMAXRESERVE) {
-                              bptomint = BPMAXRESERVE - clockiter->bpreservetokensminted;
+                            if (state.bpreservetokensminted + bptomint > BPMAXRESERVE) {
+                              bptomint = BPMAXRESERVE - state.bpreservetokensminted;
                             }
                             //Mint new tokens up to 50,000 FIO
                             action(permission_level{get_self(), "active"_n},
@@ -201,12 +202,10 @@ public:
                                    make_tuple(TREASURYACCOUNT,bptomint)
                                    ).send();
 
-                            clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-                                            entry.bpreservetokensminted += bptomint;
-                                    });
+                            state.bpreservetokensminted += bptomint;
 
                             //Include the minted tokens in the reward payout
-                            bprewards.set(bpreward{bprewards.get().rewards + bptomint}, _self);
+                            bprewards.set(bpreward{bprewards.get().rewards + bptomint}, get_self());
                             //This new reward amount that has been minted will be appended to the rewards being divied up next
                         }
                         else {
@@ -215,13 +214,13 @@ public:
                         //!!!rewards is now 0 in the bprewards table and can no longer be referred to. If needed use projectedpay
 
                         uint64_t fdtntomint = FDTNMAXTOMINT;
-                        const uint64_t fdtnremainingreserve = FDTNMAXRESERVE - clockiter->fdtnreservetokensminted;
+                        const uint64_t fdtnremainingreserve = FDTNMAXRESERVE - state.fdtnreservetokensminted;
 
                         if (fdtnremainingreserve < FDTNMAXTOMINT) {
                                 fdtntomint = fdtnremainingreserve;
                         }
 
-                        if (clockiter->fdtnreservetokensminted < FDTNMAXRESERVE) {
+                        if (state.fdtnreservetokensminted < FDTNMAXRESERVE) {
 
                                 //Mint new tokens up to 50,000 FIO
                                 action(permission_level{get_self(), "active"_n},
@@ -229,9 +228,7 @@ public:
                                        make_tuple(FOUNDATIONACCOUNT,fdtntomint)
                                 ).send();
 
-                                clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-                                    entry.fdtnreservetokensminted += fdtntomint;
-                                });
+                                    state.fdtnreservetokensminted += fdtntomint;
 
                         }
                         // All bps are now in pay schedule, calculate the shares
@@ -257,9 +254,8 @@ public:
                                 bpcounter++;
                         } // &itr : voteshares
                         //Start 24 track for daily pay
-                        clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-                                        entry.payschedtimer = now();
-                                });
+                        state.payschedtimer = now();
+
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
                 auto bpiter = voteshares.find(producer);
@@ -283,12 +279,11 @@ public:
 
                                 // Reduce the producer's share of daily rewards and bucketrewards
                                 if (bpiter->abpayshare > 0) {
-                                        bprewards.set(bpreward{bprewards.get().rewards - payout}, _self);
+                                        bprewards.set(bpreward{bprewards.get().rewards - payout}, get_self());
                                 }
                                 //Keep track of rewards paid for reserve minting
-                                clockstate.modify(clockiter, get_self(), [&](auto &entry) {
-                                                entry.rewardspaid += payout;
-                                        });
+                                  state.rewardspaid += payout;
+
                                 //Invoke system contract to reset producer last_claim_time and unpaid_blocks
                                 action(permission_level{get_self(), "active"_n},
                                    SYSTEMACCOUNT, "resetclaim"_n,
@@ -307,7 +302,7 @@ public:
                         }
 
                         //Clear the foundation rewards counter
-                        fdtnrewards.set(fdtnreward{0}, _self);
+                        fdtnrewards.set(fdtnreward{0}, get_self());
                         //remove the producer from payschedule
                         voteshares.erase(bpiter);
                 } //endif now() > bpiter + 172800
@@ -315,7 +310,7 @@ public:
                 const string response_string = string("{\"status\": \"OK\",\"amount\":") +
                                          to_string(payout) + string("}");
 
-               fio_400_assert(transaction_size() < MAX_BPCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+               fio_400_assert(transaction_size() <= MAX_BPCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
                  "Transaction is too large", ErrorTransaction);
 
                 send_response(response_string.c_str());
@@ -323,31 +318,11 @@ public:
 
         // @abi action
         [[eosio::action]]
-        void updateclock() {
-                require_auth(TREASURYACCOUNT);
-
-                auto clockiter = clockstate.begin();
-                if (clockiter != clockstate.end()) {
-                        clockstate.erase(clockiter);
-                        clockstate.emplace(_self, [&](struct treasurystate &entry) {
-                                        entry.lasttpidpayout = now();
-                                });
-                }
-        }
-
-        // @abi action
-        [[eosio::action]]
         void startclock() {
                 require_auth(TREASURYACCOUNT);
 
-                if (std::distance(clockstate.begin(), clockstate.end()) == 0) {
-                        clockstate.emplace(_self, [&](struct treasurystate &entry) {
-                                        entry.lasttpidpayout = now();
-                                        entry.payschedtimer = now();
-                                });
-                }
-
-                bucketrewards.set(bucketpool{0}, _self);
+                clockstate.set(treasurystate{now(), now()}, get_self());
+                bucketrewards.set(bucketpool{0}, get_self());
                 bprewdupdate(0);
         }
 
@@ -359,7 +334,7 @@ public:
                              has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
                              "missing required authority of fio.address, fio.treasury, fio.fee, fio.token, eosio or fio.reqobt");
 
-                bprewards.set(bprewards.exists() ? bpreward{bprewards.get().rewards + amount} : bpreward{amount}, _self);
+                bprewards.set(bprewards.exists() ? bpreward{bprewards.get().rewards + amount} : bpreward{amount}, get_self());
         }
 
         // @abi action
@@ -369,7 +344,7 @@ public:
                 eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
                              has_auth(REQOBTACCOUNT)),
                              "missing required authority of fio.address, fio.treasury, fio.token, or fio.reqobt");
-                bucketrewards.set(bucketrewards.exists() ? bucketpool{bucketrewards.get().rewards + amount} : bucketpool{amount}, _self);
+                bucketrewards.set(bucketrewards.exists() ? bucketpool{bucketrewards.get().rewards + amount} : bucketpool{amount}, get_self());
         }
 
         // @abi action
@@ -380,11 +355,12 @@ public:
                              has_auth(REQOBTACCOUNT) || has_auth(SYSTEMACCOUNT) || has_auth(FeeContract)),
                              "missing required authority of fio.address, fio.token, fio.fee, fio.treasury or fio.reqobt");
 
-                fdtnrewards.set(fdtnrewards.exists() ? fdtnreward{fdtnrewards.get().rewards + amount} : fdtnreward{amount}, _self);
+                fdtnrewards.set(fdtnrewards.exists() ? fdtnreward{fdtnrewards.get().rewards + amount} : fdtnreward{amount}, get_self());
 
         }
+
 };     //class FIOTreasury
 
-EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(updateclock)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)
+EOSIO_DISPATCH(FIOTreasury, (tpidclaim)(startclock)(bprewdupdate)(fdtnrwdupdat)(bppoolupdate)
                (bpclaim))
 }

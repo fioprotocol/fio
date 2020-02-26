@@ -121,7 +121,7 @@ namespace eosiosystem {
                 info.last_claim_time = ct;
             });
         }
-        fio_400_assert(transaction_size() < MAX_REGIPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_REGIPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
 
     }
@@ -219,7 +219,7 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
 
-       fio_400_assert(transaction_size() < MAX_REGPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+       fio_400_assert(transaction_size() <= MAX_REGPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
@@ -302,7 +302,7 @@ namespace eosiosystem {
                                  to_string(reg_amount) + string("}");
 
 
-       fio_400_assert(transaction_size() < MAX_UNREGPROD_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+       fio_400_assert(transaction_size() <= MAX_UNREGPROD_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
@@ -521,7 +521,7 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(fee_amount) + string("}");
-         fio_400_assert(transaction_size() < MAX_VOTEPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+         fio_400_assert(transaction_size() <= MAX_VOTEPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
@@ -648,7 +648,7 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(fee_amount) + string("}");
 
-         fio_400_assert(transaction_size() < MAX_VOTEPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+         fio_400_assert(transaction_size() <= MAX_VOTEPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
@@ -966,7 +966,7 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
-       fio_400_assert(transaction_size() < MAX_UNREGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+       fio_400_assert(transaction_size() <= MAX_UNREGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
@@ -1044,7 +1044,7 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
-       fio_400_assert(transaction_size() < MAX_REGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+       fio_400_assert(transaction_size() <= MAX_REGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
@@ -1104,7 +1104,7 @@ namespace eosiosystem {
             });
         }
 
-        fio_400_assert(transaction_size() < MAX_REGIPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_REGIPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
 
     }
