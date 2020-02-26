@@ -98,7 +98,7 @@ public:
                 fio_400_assert(tpids_paid > 0, "tpidclaim", "tpidclaim","No work.", ErrorNoWork);
 
                 //update the clock but only if there has been a tpid paid out.
-
+                state.lasttpidpayout = now();
                 const string response_string = string("{\"status\": \"OK\",\"tpids_paid\":") +
                                          to_string(tpids_paid) + string("}");
 
