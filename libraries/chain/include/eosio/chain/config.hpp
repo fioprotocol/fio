@@ -63,7 +63,7 @@ namespace eosio {
 //const static uint64_t   default_max_storage_size       = 10 * 1024;
 //const static uint32_t   default_max_trx_runtime        = 10*1000;
 //const static uint32_t   default_max_gen_trx_size       = 64 * 1024;
-            const static uint32_t max_transaction_size = 2560;
+            const static uint32_t max_transaction_size = 8098;
             const static uint32_t rate_limiting_precision = 1000 * 1000;
 
 
