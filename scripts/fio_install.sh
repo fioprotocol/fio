@@ -51,9 +51,9 @@ if hash eosio-cpp 2>/dev/null; then
     echo $'Restart Detected\n\n'
 else
     cd ../
-    git clone https://github.com/dapixio/cdt
+    [ -d fio.cdt ] || git clone https://github.com/fioprotocol/fio.cdt.git
     sleep 2s
-    cd cdt
+    cd fio.cdt
     git submodule update --init --recursive
     ./build.sh
     sudo ./install.sh
