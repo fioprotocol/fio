@@ -342,6 +342,16 @@ namespace eosio {
         fio_400_assert(transaction_size() <= MAX_TRNSPBKY_TRANSACTION_SIZE, "transaction_size",
                        std::to_string(transaction_size()),
                        "Transaction is too large", ErrorTransaction);
+
+        if (TRANSFERPUBKEYRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(actor, TRANSFERPUBKEYRAM)
+            ).send();
+        }
+
         send_response(response_string.c_str());
 
     }
