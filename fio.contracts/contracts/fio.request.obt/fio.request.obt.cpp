@@ -232,6 +232,15 @@ namespace fioio {
           fio_400_assert(transaction_size() <= MAX_RECORDOBT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
+            if (RECORDOBTRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(aactor, RECORDOBTRAM)
+                ).send();
+            }
+
             send_response(response_string.c_str());
         }
 
@@ -400,6 +409,15 @@ namespace fioio {
          fio_400_assert(transaction_size() <= MAX_NEWFUNDSREQUEST_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
 
+            if (NEWFUNDSREQUESTRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(aActor, NEWFUNDSREQUESTRAM)
+                ).send();
+            }
+
            send_response(response_string.c_str());
         }
 
@@ -528,6 +546,15 @@ namespace fioio {
 
           fio_400_assert(transaction_size() <= MAX_REJECTFUNDS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
+
+            if (REJECTFUNDSRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(aactor, REJECTFUNDSRAM)
+                ).send();
+            }
 
             send_response(response_string.c_str());
         }

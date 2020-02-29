@@ -459,7 +459,7 @@ namespace fioio {
                         permission_level{SYSTEMACCOUNT, "active"_n},
                         "eosio"_n,
                         "incram"_n,
-                        std::make_tuple(nm, REGADDRESSRAM)
+                        std::make_tuple(actor, REGADDRESSRAM)
                 ).send();
             }
 
@@ -612,6 +612,14 @@ namespace fioio {
            fio_400_assert(transaction_size() <= MAX_RENEWDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
 
+           if (RENEWDOMAINRAM > 0) {
+               action(
+                       permission_level{SYSTEMACCOUNT, "active"_n},
+                       "eosio"_n,
+                       "incram"_n,
+                       std::make_tuple(actor, RENEWDOMAINRAM)
+               ).send();
+           }
             send_response(response_string.c_str());
         }
 
@@ -704,6 +712,15 @@ namespace fioio {
 
            fio_400_assert(transaction_size() <= MAX_RENEWADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
+
+            if (RENEWADDRESSRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, RENEWADDRESSRAM)
+                ).send();
+            }
 
             send_response(response_string.c_str());
         }
@@ -842,7 +859,6 @@ namespace fioio {
            fio_400_assert(transaction_size() <= MAX_BURNEXPIRED_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
 
-
             send_response(response_string.c_str());
         }
 
@@ -881,6 +897,15 @@ namespace fioio {
 
            fio_400_assert(transaction_size() <= MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
+
+            if (ADDADDRESSRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, ADDADDRESSRAM)
+                ).send();
+            }
 
             send_response(response_string.c_str());
         } //addaddress
@@ -958,6 +983,16 @@ namespace fioio {
                         ("eosio"_n, {{_self, "active"_n}},
                          {actor, true}
                         );
+            }
+
+
+            if (SETDOMAINPUBRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, SETDOMAINPUBRAM)
+                ).send();
             }
 
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
