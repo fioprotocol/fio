@@ -536,7 +536,14 @@ namespace eosio {
         }
 
         void transaction_context::validate_cpu_usage_to_bill(int64_t billed_us, bool check_minimum) const {
+
+            EOS_ASSERT(billed_us <= 50000,
+                     block_cpu_usage_exceeded,
+                     " CPU time (${billed} us) is greater maximum allowed cpu time)",
+                     ("billed", billed_us));
+
             if (!control.skip_trx_checks()) {
+
                 if (check_minimum) {
                     const auto &cfg = control.get_global_properties().configuration;
                     EOS_ASSERT(billed_us >= cfg.min_transaction_cpu_usage, transaction_exception,
