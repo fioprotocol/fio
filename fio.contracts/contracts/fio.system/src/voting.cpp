@@ -68,6 +68,37 @@ namespace eosiosystem {
         }
     }
 
+    void
+    system_contract::incram(const name &accountnm, const int64_t &amount) {
+        require_auth(_self);
+        bool debug=true;
+
+        int64_t ram;
+        int64_t cpu;
+        int64_t net;
+        get_resource_limits(accountnm.value,&ram,&net,&cpu);
+        if (ram > 0 ) {
+            if (debug) {
+                print(" incremented the RAM for account ", accountnm, " saw pre-existing RAM value of  ", ram,
+                      "\n");
+                int64_t ramused = get_account_ram_usage(accountnm.value);
+                print(" RAM used by account ", accountnm, " is ", ramused, "\n");
+            }
+            ram += amount;
+            set_resource_limits(accountnm.value, ram, net, cpu);
+            if(debug) {
+                print(" incremented the RAM for account ", accountnm, " new amount is ", ram, "\n");
+            }
+        }else{
+            if(debug) {
+                print(" saw unlimited ram use for account ", accountnm, "\n");
+            }
+
+
+        }
+
+    }
+
 
     /**
      *  This method will create a producer_config and producer_info object for 'producer'
@@ -312,16 +343,22 @@ namespace eosiosystem {
 
       _gstate.last_producer_schedule_update = block_time;
 
+      bool debug=true;
+
       auto idx = _producers.get_index<"prototalvote"_n>();
 
       using value_type = std::pair<eosio::producer_key, uint16_t>;
       std::vector< value_type > top_producers;
       top_producers.reserve(MAXACTIVEBPS);
 
+      vector<name> prevprods;
+
       //clear _topprods table
       auto iter = _topprods.begin();
       while (iter != _topprods.end()) {
-        iter = _topprods.erase(iter);
+          prevprods.push_back(iter->producer);
+          iter = _topprods.erase(iter);
+
       }
 
       for( auto it = idx.cbegin(); it != idx.cend() && top_producers.size() < MAXACTIVEBPS && 0 < it->total_votes && it->active(); ++it ) {
@@ -332,7 +369,36 @@ namespace eosiosystem {
             p.producer = it->owner;
           });
 
+          std::vector<name>::iterator pos = std::find(prevprods.begin(), prevprods.end(), it->owner);
+          if (pos != prevprods.end()) {
+              //it was in the list before, do not ajust the resource limits, remove from list
+              prevprods.erase(pos);
+          }
+          else {
+              if(debug) {
+                  print("setting producer to unlimited resources for account ", it->owner, "\n");
+              }
+              //it was not in the list before, set it unlimited
+              set_resource_limits(it->owner.value, -1,-1,-1);
+          }
       }
+
+        //this is the producers exiting the schedule, reset their resoource limits.
+        for(int i=0; i < prevprods.size(); i++){
+            //get the ram that this account has used.
+            int64_t ram = get_account_ram_usage(prevprods[i].value);
+            if(debug) {
+                print(" de-schedule producer, found ram usage ", ram, " for account ", prevprods[i], "\n");
+            }
+            //increment the ram by the set amount.
+            ram += ADDITIONALRAMBPDESCHEDULING;
+            //set the new limits going forward.
+            set_resource_limits(prevprods[i].value, ram, -1, -1);
+            if(debug) {
+                print(" de-schedule producer, setting RAM limit ", ram, " for account ", prevprods[i],
+                      "\n");
+            }
+        }
 
       if( top_producers.size() == 0 || top_producers.size() < _gstate.last_producer_schedule_size ) {
          return;

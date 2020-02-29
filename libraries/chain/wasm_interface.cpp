@@ -179,6 +179,11 @@ namespace eosio {
                 }
             }
 
+            int64_t
+            get_account_ram_usage(account_name account) {
+                return context.control.get_resource_limits_manager().get_account_ram_usage(account);
+            }
+
             void
             get_resource_limits(account_name account, int64_t &ram_bytes, int64_t &net_weight, int64_t &cpu_weight) {
                 context.control.get_resource_limits_manager().get_account_limits(account, ram_bytes, net_weight,
@@ -1892,6 +1897,7 @@ namespace eosio {
                                     (activate_feature, void(int64_t))
                                     (get_resource_limits, void(int64_t, int, int, int))
                                     (set_resource_limits, void(int64_t, int64_t, int64_t, int64_t))
+                                    (get_account_ram_usage, int64_t(int64_t))
                                     (set_proposed_producers, int64_t(int, int))
                                     (get_blockchain_parameters_packed, int(int, int))
                                     (set_blockchain_parameters_packed, void(int, int))

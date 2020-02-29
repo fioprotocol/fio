@@ -90,6 +90,8 @@ namespace fioio {
                              {_self, owner_account_name, owner_auth, owner_auth}
                             );
 
+
+
                     const uint64_t nmi = owner_account_name.value;
 
                     accountmap.emplace(_self, [&](struct eosio_name &p) {
@@ -97,6 +99,7 @@ namespace fioio {
                         p.clientkey = owner_fio_public_key;
                         p.keyhash = string_to_uint128_hash(owner_fio_public_key.c_str());
                     });
+
                 } else {
                     fio_400_assert(accountExists, "owner_account", owner_account,
                                    "Account does not exist on FIO chain but is bound in accountmap",
@@ -451,6 +454,16 @@ namespace fioio {
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
             processbucketrewards(tpid, reg_amount, get_self());
 
+            if (REGADDRESSRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(nm, REGADDRESSRAM)
+                ).send();
+            }
+
+
            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                   timebuffer + string("\",\"fee_collected\":") +
                                   to_string(reg_amount) + string("}");
@@ -514,6 +527,15 @@ namespace fioio {
 
             fio_400_assert(transaction_size() <= MAX_REGDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
+
+            if (REGDOMAINRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(nm, REGDOMAINRAM)
+                ).send();
+            }
 
             send_response(response_string.c_str());
         }

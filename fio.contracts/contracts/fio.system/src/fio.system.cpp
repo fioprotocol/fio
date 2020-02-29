@@ -136,11 +136,8 @@ namespace eosiosystem {
             }
         }
 
-       //in the FIO protocol we want all of our accounts to be created with unlimited
-       //CPU NET and RAM. to do this we need our accounts to NOT have entrees in the
-       //resources table. our accounts will all be unlimited CPU NET and RAM for the
-       //foreseeable future of the FIO protocol.
-       /*user_resources_table userres(_self, newact.value);
+
+       user_resources_table userres(_self, newact.value);
 
         userres.emplace(newact, [&](auto &res) {
             res.owner = newact;
@@ -148,11 +145,12 @@ namespace eosiosystem {
             res.cpu_weight = asset(0, FIOSYMBOL);
         });
 
-        set_resource_limits(newact.value, 4800, 1, 1);
-        */
+        set_resource_limits(newact.value, INITIALACCOUNTRAM, -1, -1);
+
     fio_400_assert(transaction_size() <= MAX_NEWACCOUNT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
       "Transaction is too large", ErrorTransaction);
     }
+
 
     void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
 
@@ -224,7 +222,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         (updatepower)
         // voting.cpp
         (regproducer)(regiproducer)(unregprod)(voteproducer)(voteproxy)(inhibitunlck)
-        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)(burnaction)
+        (updlocked)(unlocktokens)(setautoproxy)(crautoproxy)(burnaction)(incram)
         (unregproxy)(regiproxy)(regproxy)
         // producer_pay.cpp
         (onblock)

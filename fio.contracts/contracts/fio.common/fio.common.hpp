@@ -352,4 +352,59 @@ namespace fioio {
 
         return true;
     }
+
+    static const uint64_t INITIALACCOUNTRAM  = 25000;
+    static const uint64_t ADDITIONALRAMBPDESCHEDULING = 2560;
+
+    static const uint64_t REGDOMAINRAM  = 2560;  //integrated.
+    static const uint64_t REGADDRESSRAM = 2560; //integrated
+    static const uint64_t ADDADDRESSRAM = 1024;
+    static const uint64_t SETDOMAINPUBRAM = 256;
+    static const uint64_t BURNEXPIREDRAM = 0;
+    static const uint64_t NEWFUNDSREQUESTRAM = 1536;
+    static const uint64_t RECORDOBTRAM = 1024;
+    static const uint64_t RENEWADDRESSRAM = 256;
+    static const uint64_t RENEWDOMAINRAM = 256;
+    static const uint64_t TPIDCLAIMRAM = 0;
+    static const uint64_t BPCLAIMRAM = 0;
+    static const uint64_t TRANSFERRAM = 0;
+    static const uint64_t TRANSFERPUBKEYRAM = 2560;
+    static const uint64_t REJECTFUNDSRAM = 512;
+    static const uint64_t UPDATEFEESRAM = 0;
+    static const uint64_t SETFEEVOTERAM = 512;
+    static const uint64_t SETFEEMULTRAM = 0;
+    static const uint64_t MANDATORYFEERAM = 0;
+    static const uint64_t CREATEFEERAM = 0;
+    static const uint64_t BYTEMANDFEERAM = 0;
+    static const uint64_t BUNDLEVOTERAM = 512;
+    static const uint64_t ADDLOCKEDRAM = 0;
+    static const uint64_t BURNACTIONRAM = 0;
+    static const uint64_t CANCELDELAYRAM = 0;
+    static const uint64_t CREATEAUTOPROXYRAM = 0;
+    static const uint64_t DELETEAUTHRAM = 0;
+    static const uint64_t INHIBITLOCKRAM = 0;
+    static const uint64_t INITRAM = 0;
+    static const uint64_t LINKAUTHRAM = 1024;
+    static const uint64_t NEWACCOUNTRAM = 0;
+    static const uint64_t REGPRODUCERRAM = 2560;
+    static const uint64_t REGPROXYRAM = 2560;
+    static const uint64_t REGIPROXYRAM = 0;
+    static const uint64_t REGIPRODUCERRAM = 0;
+    static const uint64_t RESETCLAIMRAM = 0;
+    static const uint64_t RMVPRODUCERRAM = 0;
+    static const uint64_t VOTEPROXYRAM = 512;
+    static const uint64_t VOTEPRODUCERRAM = 1024;
+    static const uint64_t UNREGPROXYRAM = 0;
+    static const uint64_t UNREGPROD = 0;
+    static const uint64_t UNLOCKTOKENSRAM = 2560;
+    static const uint64_t UPDATEAUTHRAM = 1024;
+    static const uint64_t SETPRIVRAM = 2560;
+    static const uint64_t PROPOSERAM = 2560;
+    static const uint64_t EXECRAM = 0;
+    static const uint64_t APPROVERAM = 1024;
+    static const uint64_t INVALIDATERAM = 0;
+    static const uint64_t UNAPPROVERAM = 0;
+    static const uint64_t CANCELRAM = 2560;
+
+
 } // namespace fioio

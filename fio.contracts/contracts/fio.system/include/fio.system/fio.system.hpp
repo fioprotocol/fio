@@ -303,11 +303,14 @@ public:
     [[eosio::action]]
     void onblock(ignore <block_header> header);
 
-    // functions defined in delegate_bandwidth.cpp
+    // functions defined in delegate_bandwidth.cp
 
     // functions defined in voting.cpp
     [[eosio::action]]
     void burnaction(const uint128_t &fioaddrhash);
+
+    [[eosio::action]]
+    void incram(const name &accountmn, const int64_t &amount);
 
     [[eosio::action]]
     void updlocked(const name &owner,const uint64_t &amountremaining);
