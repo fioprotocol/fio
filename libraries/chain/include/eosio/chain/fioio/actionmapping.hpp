@@ -70,7 +70,7 @@ namespace fioio {
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
             action == "updatepower" ||
-            action == "updlbpclaim" || action == "resetclaim")
+            action == "updlbpclaim" || action == "resetclaim" || action == "incram")
           return "eosio";
 
         return "nomap";
