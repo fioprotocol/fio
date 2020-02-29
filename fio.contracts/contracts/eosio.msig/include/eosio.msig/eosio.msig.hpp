@@ -7,6 +7,9 @@
 
 namespace eosio {
 
+    static const uint64_t PROPOSERAM = 2560; //integrated.
+    static const uint64_t APPROVERAM = 1024; //integrated
+
     class [[eosio::contract("eosio.msig")]] multisig : public contract {
     public:
         using contract::contract;

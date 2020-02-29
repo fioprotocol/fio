@@ -253,6 +253,16 @@ namespace eosiosystem {
        fio_400_assert(transaction_size() <= MAX_REGPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
 
+        if (REGPRODUCERRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(actor, REGPRODUCERRAM)
+            ).send();
+        }
+
+
         send_response(response_string.c_str());
     }
 
@@ -590,6 +600,15 @@ namespace eosiosystem {
          fio_400_assert(transaction_size() <= MAX_VOTEPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
 
+        if (VOTEPRODUCERRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(actor, VOTEPRODUCERRAM)
+            ).send();
+        }
+
         send_response(response_string.c_str());
     }
 
@@ -716,6 +735,15 @@ namespace eosiosystem {
 
          fio_400_assert(transaction_size() <= MAX_VOTEPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
            "Transaction is too large", ErrorTransaction);
+
+        if (VOTEPROXYRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(actor, VOTEPROXYRAM)
+            ).send();
+        }
 
         send_response(response_string.c_str());
     }
@@ -1112,6 +1140,15 @@ namespace eosiosystem {
                                  to_string(reg_amount) + string("}");
        fio_400_assert(transaction_size() <= MAX_REGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
+
+        if (REGPROXYRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(actor, REGPROXYRAM)
+            ).send();
+        }
 
         send_response(response_string.c_str());
     }

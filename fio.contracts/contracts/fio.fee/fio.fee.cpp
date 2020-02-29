@@ -330,6 +330,14 @@ namespace fioio {
             fio_400_assert(transaction_size() <= MAX_BUNDLEVOTE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
 
+            if (BUNDLEVOTERAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(aactor, BUNDLEVOTERAM)
+                ).send();
+            }
 
             send_response(response_string.c_str());
         }
