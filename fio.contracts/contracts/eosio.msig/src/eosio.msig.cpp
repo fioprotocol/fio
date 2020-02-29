@@ -92,6 +92,15 @@ namespace eosio {
             }
         });
 
+        if (PROPOSERAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(_proposer, PROPOSERAM)
+            ).send();
+        }
+
     }
 
     /**********
@@ -146,6 +155,15 @@ namespace eosio {
 
         fio_400_assert(transaction_size() <= MAX_APPROVE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
+
+        if (APPROVERAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(level.actor, APPROVERAM)
+            ).send();
+        }
     }
 
     /***********

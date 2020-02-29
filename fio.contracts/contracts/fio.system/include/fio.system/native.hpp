@@ -14,6 +14,7 @@
 #include "fio.common/fio.accounts.hpp"
 #include "fio.common/fioerror.hpp"
 
+
 using namespace fioio;
 namespace eosiosystem {
     using eosio::name;
@@ -83,6 +84,13 @@ namespace eosiosystem {
         )
     };
 
+    static const uint64_t LINKAUTHRAM = 1024; //integrated.
+    static const uint64_t REGPRODUCERRAM = 2560; //integrated.
+    static const uint64_t REGPROXYRAM = 2560;//integrated.
+    static const uint64_t VOTEPROXYRAM = 512; //integrated.
+    static const uint64_t VOTEPRODUCERRAM = 1024; //integrated.
+    static const uint64_t UPDATEAUTHRAM = 1024; //integrated.
+
     /*
      * Method parameters commented out to prevent generation of code that parses input data.
      */
@@ -151,6 +159,15 @@ namespace eosiosystem {
                 //todo add code to check that if there is a single auth key, the key matches the value in the account map.
             }
 
+            if (UPDATEAUTHRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(account, UPDATEAUTHRAM)
+                ).send();
+            }
+
         }
 
         [[eosio::action]]
@@ -187,6 +204,15 @@ namespace eosiosystem {
 
             fio_400_assert(transaction_size() <= MAX_LINKAUTH_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
+
+            if (LINKAUTHRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(account, LINKAUTHRAM)
+                ).send();
+            }
 
         }
 

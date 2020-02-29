@@ -366,16 +366,9 @@ namespace fioio {
     static const uint64_t RENEWDOMAINRAM = 256; //integrated.
     static const uint64_t TRANSFERPUBKEYRAM = 2560; //integrated.
     static const uint64_t REJECTFUNDSRAM = 512; //integrated.
-    static const uint64_t SETFEEVOTERAM = 512;
-    static const uint64_t BUNDLEVOTERAM = 512;
-    static const uint64_t LINKAUTHRAM = 1024;
-    static const uint64_t REGPRODUCERRAM = 2560;
-    static const uint64_t REGPROXYRAM = 2560;
-    static const uint64_t VOTEPROXYRAM = 512;
-    static const uint64_t VOTEPRODUCERRAM = 1024;
-    static const uint64_t UPDATEAUTHRAM = 1024;
-    static const uint64_t PROPOSERAM = 2560;
-    static const uint64_t APPROVERAM = 1024;
+    static const uint64_t SETFEEVOTERAM = 512; //integrated.
+    static const uint64_t BUNDLEVOTERAM = 512; //integrated.
+
 
 
 
