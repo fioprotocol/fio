@@ -827,6 +827,8 @@ namespace fioio {
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
                 auto fionamesiter = namesbyname.find(burner);
+                auto tpidbyname = tpids.get_index<"byname"_n>();
+                auto tpiditer = tpidbyname.find(burner);
 
                 //look for any producer, or voter records associated with this name.
                 if (fionamesiter != namesbyname.end()) {
@@ -838,6 +840,7 @@ namespace fioio {
                     ).send();
 
                     namesbyname.erase(fionamesiter);
+                    tpidbyname.erase(tpiditer);
                 }
                 //remove from the
             }
