@@ -159,6 +159,9 @@ namespace eosiosystem {
                 //todo add code to check that if there is a single auth key, the key matches the value in the account map.
             }
 
+            fio_400_assert(auth.waits.size() == 0, "authorization_waits", "authorization_waits",
+                           "Waits not supported", ErrorTransaction);
+
             if (UPDATEAUTHRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
