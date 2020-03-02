@@ -84,6 +84,7 @@ namespace fioio {
     constexpr auto ErrorNoWork = ident | httpDataError | 148;   // no work to perform
     constexpr auto ErrorClientKeyNotFound = ident | httpDataError | 149; // Fioname not yet registered (No clientkey)
     constexpr auto ErrorTimeViolation = ident | httpDataError | 150;
+    constexpr auto ErrorNoAuthWaits = ident | httpDataError | 151;
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values

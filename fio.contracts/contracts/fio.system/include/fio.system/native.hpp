@@ -160,7 +160,7 @@ namespace eosiosystem {
             }
 
             fio_400_assert(auth.waits.size() == 0, "authorization_waits", "authorization_waits",
-                           "Waits not supported", ErrorTransaction);
+                           "Waits not supported", ErrorNoAuthWaits);
 
             if (UPDATEAUTHRAM > 0) {
                 action(
