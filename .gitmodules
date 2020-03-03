@@ -7,7 +7,7 @@
 	url = https://github.com/eosio/berkeley-softfloat-3
 [submodule "libraries/fc"]
 	path = libraries/fc
-	url = https://github.com/dapixio/fc
+	url = https://github.com/fioprotocol/fc
 [submodule "libraries/wabt"]
 	path = libraries/wabt
 	url = https://github.com/EOSIO/wabt
@@ -16,4 +16,4 @@
 	url = https://github.com/Yubico/yubihsm-shell
 [submodule "libraries/appbase"]
 	path = libraries/appbase
-	url = https://github.com/dapixio/appbase
+	url = https://github.com/fioprotocol/appbase
