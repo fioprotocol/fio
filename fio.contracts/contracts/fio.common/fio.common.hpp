@@ -353,7 +353,7 @@ namespace fioio {
         return true;
     }
 
-    static const uint64_t INITIALACCOUNTRAM  = 25600;
+    static const uint64_t INITIALACCOUNTRAM  = 25000;
     static const uint64_t ADDITIONALRAMBPDESCHEDULING = 2560;
 
     static const uint64_t REGDOMAINRAM  = 2560;  //integrated.
