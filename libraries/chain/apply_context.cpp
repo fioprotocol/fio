@@ -65,11 +65,6 @@ namespace eosio {
                                  " action ${action} in contract ${contract} too large",
                                  ("action", act->name)("contract", act->account));
                     }
-                    else {
-                      EOS_ASSERT(sizeof(act->data) <  config::max_nonce_size, action_validate_exception,
-                                 " nonce too large: ${size} bytes",
-                                 ("nonce_size", sizeof(act->data)));
-                    }
                     if (native) {
                         if (trx_context.enforce_whiteblacklist && control.is_producing_block()) {
                             control.check_contract_list(receiver);
