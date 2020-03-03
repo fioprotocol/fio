@@ -53,7 +53,7 @@ namespace fioio {
         //fio.tpid actions
         if (action == "updatebounty" || action == "rewardspaid" || action == "updatetpid")
           return "fio.tpid";
-          
+
         // eosio.wrap actions
         if (action == "execute")
           return "eosio.wrap";
@@ -72,6 +72,9 @@ namespace fioio {
             action == "updatepower" ||
             action == "updlbpclaim" || action == "resetclaim" || action == "incram")
           return "eosio";
+
+        if (action == "nonce")
+           return "eosio.null";
 
         return "nomap";
     }
