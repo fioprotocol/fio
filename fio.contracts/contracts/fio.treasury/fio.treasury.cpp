@@ -171,7 +171,7 @@ public:
                         auto proditer = producers.get_index<"prototalvote"_n>();
                         for (const auto &itr : proditer) {
                                 if (itr.is_active) {
-                                        voteshares.emplace(get_self(), [&](auto &p) {
+                                        voteshares.emplace(actor, [&](auto &p) {
                                                         p.owner = itr.owner;
                                                         p.votes = itr.total_votes;
                                                 });
