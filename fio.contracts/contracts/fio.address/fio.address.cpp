@@ -203,7 +203,7 @@ namespace fioio {
             t1.chain_code = "FIO";
             pubaddresses.push_back(t1);
 
-            fionames.emplace(_self, [&](struct fioname &a) {
+            fionames.emplace(actor, [&](struct fioname &a) {
                 a.id = id;
                 a.name = fa.fioaddress;
                 a.addresses = pubaddresses;
@@ -240,7 +240,7 @@ namespace fioio {
 
             uint64_t id = domains.available_primary_key();
 
-            domains.emplace(_self, [&](struct domain &d) {
+            domains.emplace(owner, [&](struct domain &d) {
                 d.id = id;
                 d.name = fa.fiodomain;
                 d.domainhash = domainHash;
@@ -409,6 +409,7 @@ namespace fioio {
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, const int64_t &max_fee, const name &actor,
                    const string &tpid) {
+
             FioAddress fa;
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
                            "TPID must be empty or valid FIO address",
@@ -1029,7 +1030,7 @@ namespace fioio {
                                           ErrorPubAddressExist);
             } else {
                 eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
-                accountmap.emplace(_self, [&](struct eosio_name &p) {
+                accountmap.emplace(get_self(), [&](struct eosio_name &p) {
                     p.account = account.value;
                     p.clientkey = client_key;
                     p.keyhash = string_to_uint128_hash(client_key.c_str());
