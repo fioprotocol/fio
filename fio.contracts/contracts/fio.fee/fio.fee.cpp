@@ -238,7 +238,7 @@ namespace fioio {
                 }
 
                 if (!timeviolation) {
-                    feevotes.emplace(_self, [&](struct feevote &fv) {
+                    feevotes.emplace(aactor, [&](struct feevote &fv) {
                         fv.id = feevotes.available_primary_key();
                         fv.block_producer_name = aactor;
                         fv.end_point = feeval.end_point;
@@ -317,7 +317,7 @@ namespace fioio {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             } else {
-                bundlevoters.emplace(_self, [&](struct bundlevoter &f) {
+                bundlevoters.emplace(aactor, [&](struct bundlevoter &f) {
                     f.block_producer_name = aactor;
                     f.bundledbvotenumber = bundled_transactions;
                     f.lastvotetimestamp = nowtime;
@@ -386,7 +386,7 @@ namespace fioio {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             } else {
-                feevoters.emplace(_self, [&](struct feevoter &f) {
+                feevoters.emplace(aactor, [&](struct feevoter &f) {
                     f.block_producer_name = aactor;
                     f.fee_multiplier = multiplier;
                     f.lastvotetimestamp = nowtime;
@@ -520,7 +520,7 @@ namespace fioio {
                         a.suf_amount = suf_amount;
                     });
             } else {
-                fiofees.emplace(_self, [&](struct fiofee &f) {
+                fiofees.emplace(get_self(), [&](struct fiofee &f) {
                     f.fee_id = fee_id;
                     f.end_point = end_point;
                     f.end_point_hash = endPointHash;

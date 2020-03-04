@@ -198,7 +198,7 @@ namespace eosiosystem {
         check(amount > 0,"cannot add locked token amount less or equal 0.");
         check(locktype == 1 || locktype == 2 || locktype == 3 || locktype == 4,"lock type must be 1,2,3,4");
 
-        _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+        _lockedtokens.emplace(owner, [&](struct locked_token_holder_info &a) {
                 a.owner = owner;
                 a.total_grant_amount = amount;
                 a.unlocked_period_count = 0;
