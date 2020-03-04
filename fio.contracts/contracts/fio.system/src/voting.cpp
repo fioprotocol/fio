@@ -86,6 +86,8 @@ namespace eosiosystem {
             }
             ram += amount;
             set_resource_limits(accountnm.value, ram, net, cpu);
+            _gstate.ram_distributed += ram; 
+
             if(debug) {
                 print(" incremented the RAM for account ", accountnm, " new amount is ", ram, "\n");
             }
