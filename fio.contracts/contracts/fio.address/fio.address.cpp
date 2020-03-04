@@ -534,7 +534,7 @@ namespace fioio {
                         permission_level{SYSTEMACCOUNT, "active"_n},
                         "eosio"_n,
                         "incram"_n,
-                        std::make_tuple(nm, REGDOMAINRAM)
+                        std::make_tuple(actor, REGDOMAINRAM)
                 ).send();
             }
 
