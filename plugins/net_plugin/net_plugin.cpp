@@ -289,7 +289,6 @@ namespace eosio {
    constexpr auto     def_send_buffer_size = 1024*1024*def_send_buffer_size_mb;
    constexpr auto     def_max_write_queue_size = def_send_buffer_size*10;
    constexpr auto     def_max_trx_in_progress_size = 100*1024*1024; // 100 MB
-   constexpr auto     def_max_consecutive_rejected_blocks = 13; // num of rejected blocks before disconnect
    constexpr auto     def_max_clients = 25; // 0 for unlimited clients
    constexpr auto     def_max_nodes_per_host = 1;
    constexpr auto     def_conn_retry_wait = 30;
@@ -499,7 +498,6 @@ namespace eosio {
       bool                    connecting = false;
       bool                    syncing = false;
       uint16_t                protocol_version  = 0;
-      uint16_t                consecutive_rejected_blocks = 0;
       string                  peer_addr;
       unique_ptr<boost::asio::steady_timer> response_expected;
       go_away_reason         no_retry = no_reason;
@@ -798,7 +796,6 @@ namespace eosio {
       flush_queues();
       connecting = false;
       syncing = false;
-      consecutive_rejected_blocks = 0;
       if( last_req ) {
          my_impl->dispatcher->retry_fetch(shared_from_this());
       }
@@ -1590,7 +1587,7 @@ namespace eosio {
    }
 
    void sync_manager::rejected_block(const connection_ptr& c, uint32_t blk_num) {
-      if ( ++c->consecutive_rejected_blocks > def_max_consecutive_rejected_blocks ) {
+      if (state != in_sync ) {
          fc_wlog( logger, "block ${bn} not accepted from ${p}, closing connection", ("bn",blk_num)("p",c->peer_name()) );
          sync_last_requested_num = 0;
          source.reset();
@@ -1695,7 +1692,6 @@ namespace eosio {
       }
 
       fc_dlog(logger, "canceling wait on ${p}", ("p",c->peer_name()));
-      c->consecutive_rejected_blocks = 0;
       c->cancel_wait();
    }
 
@@ -2547,7 +2543,7 @@ namespace eosio {
       fc_dlog(logger, "got a packed transaction, cancel wait");
       peer_ilog(c, "received packed_transaction");
       controller& cc = my_impl->chain_plug->chain();
-      if( db_mode_is_immutable(cc.get_read_mode()) ) {
+      if( cc.get_read_mode() == eosio::db_read_mode::READ_ONLY ) {
          fc_dlog(logger, "got a txn in read-only mode - dropping");
          return;
       }
@@ -3115,7 +3111,7 @@ namespace eosio {
 
       my->incoming_transaction_ack_subscription = app().get_channel<channels::transaction_ack>().subscribe(boost::bind(&net_plugin_impl::transaction_ack, my.get(), _1));
 
-      if( cc.in_immutable_mode() ) {
+      if( cc.get_read_mode() == chain::db_read_mode::READ_ONLY ) {
          my->max_nodes_per_host = 0;
          fc_ilog( logger, "node in read-only mode setting max_nodes_per_host to 0 to prevent connections" );
       }
