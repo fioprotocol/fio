@@ -93,7 +93,7 @@ public:
                 if (tpidsbyname.find(tpidhash) == tpidsbyname.end()) {
 
                         const auto id = tpids.available_primary_key();
-                        tpids.emplace(get_self(), [&](struct tpid &f) {
+                        tpids.emplace(owner, [&](struct tpid &f) {
                                         f.id = id;
                                         f.fioaddress = tpid;
                                         f.fioaddhash = tpidhash;

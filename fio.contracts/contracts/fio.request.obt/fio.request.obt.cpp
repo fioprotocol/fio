@@ -190,7 +190,7 @@ namespace fioio {
                 fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                                "No such FIO Request ", ErrorRequestContextNotFound);
 
-                fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
+                fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
                     fr.status = static_cast<int64_t >(trxstatus::sent_to_blockchain);
@@ -209,7 +209,7 @@ namespace fioio {
                 const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
                 const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
 
-                recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
+                recordObtTable.emplace(aactor, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
                     obtinf.payer_fio_address = fromHash;
                     obtinf.payee_fio_address = toHash;
@@ -387,7 +387,7 @@ namespace fioio {
             const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
             const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
 
-            fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
+            fiorequestContextsTable.emplace(aActor, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
                 frc.payer_fio_address = fromHash;
                 frc.payee_fio_address = toHash;
@@ -533,7 +533,7 @@ namespace fioio {
             }
             //end fees, bundle eligible fee logic
 
-            fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
+            fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
                 fr.id = fiorequestStatusTable.available_primary_key();;
                 fr.fio_request_id = requestId;
                 fr.status = static_cast<int64_t >(trxstatus::rejected);
