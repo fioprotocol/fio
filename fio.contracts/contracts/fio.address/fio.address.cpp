@@ -222,7 +222,8 @@ namespace fioio {
         }
 
         uint32_t fio_domain_update(const name &owner,
-                                   const FioAddress &fa) {
+                                   const FioAddress &fa,
+                                   const name &actor) {
 
             uint128_t domainHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint32_t expiration_time;
@@ -240,7 +241,7 @@ namespace fioio {
 
             uint64_t id = domains.available_primary_key();
 
-            domains.emplace(owner, [&](struct domain &d) {
+            domains.emplace(actor, [&](struct domain &d) {
                 d.id = id;
                 d.name = fa.fiodomain;
                 d.domainhash = domainHash;
@@ -496,7 +497,7 @@ namespace fioio {
             register_errors(fa, true);
             const name nm = name{owner_account_name};
 
-            const uint32_t expiration_time = fio_domain_update(nm, fa);
+            const uint32_t expiration_time = fio_domain_update(nm, fa, actor);
 
             struct tm timeinfo;
             fioio::convertfiotime(expiration_time, &timeinfo);
