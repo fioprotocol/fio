@@ -215,7 +215,7 @@ namespace fioio {
                 a.bundleeligiblecountdown = getBundledAmount();
             });
 
-            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, owner,
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, actor, owner,
                                                     true, tpid);
 
             return expiration_time;
@@ -254,7 +254,7 @@ namespace fioio {
         uint64_t chain_data_update
          (const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
                           const uint64_t &max_fee, const FioAddress &fa,
-                          const name &actor, const bool &isFIO, const string &tpid) {
+                          const name &actor, const name &owner, const bool &isFIO, const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -270,7 +270,7 @@ namespace fioio {
             const uint32_t present_time = now();
 
             const uint64_t account = fioname_iter->owner_account;
-            fio_403_assert(account == actor.value, ErrorSignature);
+            fio_403_assert(account == owner.value, ErrorSignature);
             fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
@@ -304,7 +304,7 @@ namespace fioio {
 
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
                     if( (it->token_code == token) && (it->chain_code == chaincode)  ){
-                        namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                        namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
                         wasFound = true;
@@ -319,7 +319,7 @@ namespace fioio {
                     tempStruct.token_code = tpa->token_code;
                     tempStruct.chain_code = tpa->chain_code;
 
-                    namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                    namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                         a.addresses.push_back(tempStruct);
                     });
                 }
@@ -894,7 +894,7 @@ namespace fioio {
                            "Min 1, Max 5 public addresses are allowed",
                            ErrorInvalidNumberAddresses);
 
-            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
+            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, actor, false,
                                                     tpid);
 
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
