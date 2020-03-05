@@ -304,7 +304,7 @@ namespace fioio {
 
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
                     if( (it->token_code == token) && (it->chain_code == chaincode)  ){
-                        namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                        namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
                         wasFound = true;
@@ -319,7 +319,7 @@ namespace fioio {
                     tempStruct.token_code = tpa->token_code;
                     tempStruct.chain_code = tpa->chain_code;
 
-                    namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                    namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                         a.addresses.push_back(tempStruct);
                     });
                 }
@@ -351,7 +351,7 @@ namespace fioio {
             const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             if (bundleeligiblecountdown > 0) {
-                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
                 });
             } else {
@@ -702,7 +702,7 @@ namespace fioio {
             fioio::convertfiotime(new_expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+            namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
                 a.bundleeligiblecountdown = getBundledAmount() + bundleeligiblecountdown;
             });
