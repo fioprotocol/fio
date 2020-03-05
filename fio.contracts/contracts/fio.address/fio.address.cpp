@@ -215,7 +215,7 @@ namespace fioio {
                 a.bundleeligiblecountdown = getBundledAmount();
             });
 
-            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, owner,
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, actor, owner,
                                                     true, tpid);
 
             return expiration_time;
@@ -254,7 +254,7 @@ namespace fioio {
         uint64_t chain_data_update
          (const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
                           const uint64_t &max_fee, const FioAddress &fa,
-                          const name &actor, const bool &isFIO, const string &tpid) {
+                          const name &actor, const name &owner, const bool &isFIO, const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -270,7 +270,7 @@ namespace fioio {
             const uint32_t present_time = now();
 
             const uint64_t account = fioname_iter->owner_account;
-            fio_403_assert(account == actor.value, ErrorSignature);
+            fio_403_assert(account == owner.value, ErrorSignature);
             fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
@@ -351,7 +351,7 @@ namespace fioio {
             const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
 
             if (bundleeligiblecountdown > 0) {
-                namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                     a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
                 });
             } else {
@@ -702,7 +702,7 @@ namespace fioio {
             fioio::convertfiotime(new_expiration_time, &timeinfo);
             std::string timebuffer = fioio::tmstringformat(timeinfo);
 
-            namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+            namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
                 a.expiration = new_expiration_time;
                 a.bundleeligiblecountdown = getBundledAmount() + bundleeligiblecountdown;
             });
@@ -894,7 +894,7 @@ namespace fioio {
                            "Min 1, Max 5 public addresses are allowed",
                            ErrorInvalidNumberAddresses);
 
-            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
+            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, actor, false,
                                                     tpid);
 
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
