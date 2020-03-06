@@ -354,7 +354,7 @@ namespace fioio {
     }
 
     static const uint64_t INITIALACCOUNTRAM  = 25600;
-    static const uint64_t ADDITIONALRAMBPDESCHEDULING = 2560;
+    static const uint64_t ADDITIONALRAMBPDESCHEDULING = 25600;
 
     static const uint64_t REGDOMAINRAM  = 2560;  //integrated.
     static const uint64_t REGADDRESSRAM = 2560; //integrated.
