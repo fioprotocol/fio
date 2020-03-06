@@ -71,7 +71,7 @@ namespace eosiosystem {
     void
     system_contract::incram(const name &accountnm, const int64_t &amount) {
         require_auth(_self);
-        bool debug=true;
+        bool debug=false;
 
         int64_t ram;
         int64_t cpu;
@@ -353,7 +353,7 @@ namespace eosiosystem {
 
       _gstate.last_producer_schedule_update = block_time;
 
-      bool debug=true;
+      bool debug=false;
 
       auto idx = _producers.get_index<"prototalvote"_n>();
 
