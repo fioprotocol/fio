@@ -153,9 +153,6 @@ namespace eosio {
             });
         }
 
-        fio_400_assert(transaction_size() <= MAX_APPROVE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
-
         if (APPROVERAM > 0) {
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
@@ -164,6 +161,9 @@ namespace eosio {
                     std::make_tuple(level.actor, APPROVERAM)
             ).send();
         }
+
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
     }
 
     /***********
@@ -204,7 +204,7 @@ namespace eosio {
             });
         }
 
-        fio_400_assert(transaction_size() <= MAX_UNAPPROVE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
     }
 
@@ -248,7 +248,7 @@ namespace eosio {
             old_apptable.erase(apps_it);
         }
 
-        fio_400_assert(transaction_size() <= MAX_CANCEL_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
     }
 
@@ -314,7 +314,7 @@ namespace eosio {
         proptable.erase(prop);
 
 
-        fio_400_assert(transaction_size() <= MAX_EXEC_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
     }
 
@@ -346,7 +346,7 @@ namespace eosio {
             });
         }
 
-        fio_400_assert(transaction_size() <= MAX_INVALIDATE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
     }
 

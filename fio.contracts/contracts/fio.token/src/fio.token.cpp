@@ -203,9 +203,8 @@ namespace eosio {
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
 
-        fio_400_assert(transaction_size() <= MAX_TRANSFER_TRANSACTION_SIZE, "transaction_size",
-                       std::to_string(transaction_size()),
-                       "Transaction is too large", ErrorTransaction);
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
 
     }
 
@@ -339,10 +338,6 @@ namespace eosio {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                        to_string(reg_amount) + string("}");
 
-        fio_400_assert(transaction_size() <= MAX_TRNSPBKY_TRANSACTION_SIZE, "transaction_size",
-                       std::to_string(transaction_size()),
-                       "Transaction is too large", ErrorTransaction);
-
         if (TRANSFERPUBKEYRAM > 0) {
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
@@ -351,6 +346,9 @@ namespace eosio {
                     std::make_tuple(actor, TRANSFERPUBKEYRAM)
             ).send();
         }
+
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
 

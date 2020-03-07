@@ -185,9 +185,8 @@ namespace eosiosystem {
                    std::make_tuple(std::string("auth_delete"), account, max_fee)
             }.send();
 
-            fio_400_assert(transaction_size() <= MAX_DELETEAUTH_TRANASCTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
-
         }
 
         [[eosio::action]]
@@ -205,9 +204,6 @@ namespace eosiosystem {
                     std::make_tuple(std::string("auth_link"), account, max_fee)
             }.send();
 
-            fio_400_assert(transaction_size() <= MAX_LINKAUTH_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
-
             if (LINKAUTHRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -217,6 +213,8 @@ namespace eosiosystem {
                 ).send();
             }
 
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
         }
 
         [[eosio::action]]

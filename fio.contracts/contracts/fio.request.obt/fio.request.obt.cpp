@@ -229,9 +229,6 @@ namespace fioio {
             const string response_string = string("{\"status\": \"sent_to_blockchain\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
-          fio_400_assert(transaction_size() <= MAX_RECORDOBT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-            "Transaction is too large", ErrorTransaction);
-
             if (RECORDOBTRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -240,6 +237,9 @@ namespace fioio {
                         std::make_tuple(aactor, RECORDOBTRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -406,8 +406,6 @@ namespace fioio {
            const string response_string = string("{\"fio_request_id\":") + to_string(id) + string(",\"status\":\"requested\"") +
                                     string(",\"fee_collected\":") + to_string(fee_amount) + string("}");
 
-         fio_400_assert(transaction_size() <= MAX_NEWFUNDSREQUEST_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-           "Transaction is too large", ErrorTransaction);
 
             if (NEWFUNDSREQUESTRAM > 0) {
                 action(
@@ -417,6 +415,9 @@ namespace fioio {
                         std::make_tuple(aActor, NEWFUNDSREQUESTRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
            send_response(response_string.c_str());
         }
@@ -544,9 +545,6 @@ namespace fioio {
             const string response_string = string("{\"status\": \"request_rejected\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
-          fio_400_assert(transaction_size() <= MAX_REJECTFUNDS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-            "Transaction is too large", ErrorTransaction);
-
             if (REJECTFUNDSRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -555,6 +553,9 @@ namespace fioio {
                         std::make_tuple(aactor, REJECTFUNDSRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
