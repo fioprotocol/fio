@@ -358,16 +358,16 @@ namespace fioio {
 
     static const uint64_t REGDOMAINRAM  = 2560;  //integrated.
     static const uint64_t REGADDRESSRAM = 2560; //integrated.
-    static const uint64_t ADDADDRESSRAM = 1024; //integrated.
+    static const uint64_t ADDADDRESSRAM = 512; //integrated.
     static const uint64_t SETDOMAINPUBRAM = 256; //integrated.
-    static const uint64_t NEWFUNDSREQUESTRAM = 1536; //integrated.
-    static const uint64_t RECORDOBTRAM = 1024; //integrated.
-    static const uint64_t RENEWADDRESSRAM = 256; //integrated.
-    static const uint64_t RENEWDOMAINRAM = 256; //integrated.
-    static const uint64_t TRANSFERPUBKEYRAM = 2560; //integrated.
+    static const uint64_t NEWFUNDSREQUESTRAM = 2048; //integrated.
+    static const uint64_t RECORDOBTRAM = 2048; //integrated.
+    static const uint64_t RENEWADDRESSRAM = 1024; //integrated.
+    static const uint64_t RENEWDOMAINRAM = 1024; //integrated.
+    static const uint64_t TRANSFERPUBKEYRAM = 1024; //integrated.
     static const uint64_t REJECTFUNDSRAM = 512; //integrated.
-    static const uint64_t SETFEEVOTERAM = 512; //integrated.
-    static const uint64_t BUNDLEVOTERAM = 512; //integrated.
+    static const uint64_t SETFEEVOTERAM = 0; //integrated.
+    static const uint64_t BUNDLEVOTERAM = 0; //integrated.
 
 
 
