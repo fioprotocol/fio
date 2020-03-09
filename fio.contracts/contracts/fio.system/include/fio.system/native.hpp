@@ -85,8 +85,8 @@ namespace eosiosystem {
     };
 
     static const uint64_t LINKAUTHRAM = 1024; //integrated.
-    static const uint64_t REGPRODUCERRAM = 2560; //integrated.
-    static const uint64_t REGPROXYRAM = 2560;//integrated.
+    static const uint64_t REGPRODUCERRAM = 1024; //integrated.
+    static const uint64_t REGPROXYRAM = 1024;//integrated.
     static const uint64_t VOTEPROXYRAM = 512; //integrated.
     static const uint64_t VOTEPRODUCERRAM = 1024; //integrated.
     static const uint64_t UPDATEAUTHRAM = 1024; //integrated.
