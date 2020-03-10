@@ -846,8 +846,14 @@ namespace eosiosystem {
         uint64_t amount = get_votable_balance(voter->owner);
 
         //on the first vote we update the total voted fio.
-        if( voter->last_vote_weight <= 0.0 ) {
+        if( !(voter->proxy) && !(voter->is_proxy) ) {
+
+            if( voter->last_vote_weight > 0.0 ) {
+                _gstate.total_voted_fio -= voter->last_vote_weight;
+            }
+
             _gstate.total_voted_fio += amount;
+
             if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
                 _gstate.thresh_voted_fio_time = current_time_point();
             }
@@ -1256,12 +1262,15 @@ namespace eosiosystem {
         auto pitr = votersbyowner.find(voter.owner.value);
         check(pitr != votersbyowner.end(),"voter not found");
 
-        //on the first vote we update the total voted fio.
-        if( pitr->last_vote_weight <= 0.0 ) {
-            _gstate.total_voted_fio += new_weight;
-            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
-                _gstate.thresh_voted_fio_time = current_time_point();
-            }
+        //adapt the total voted fio.
+        if( pitr->last_vote_weight > 0.0 ) {
+            _gstate.total_voted_fio -= pitr->last_vote_weight;
+        }
+
+        _gstate.total_voted_fio += new_weight;
+
+        if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
+            _gstate.thresh_voted_fio_time = current_time_point();
         }
 
         votersbyowner.modify(pitr, same_payer, [&](auto &v) {
