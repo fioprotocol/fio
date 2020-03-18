@@ -1243,23 +1243,28 @@ struct vote_producer_proxy_subcommand {
 
 struct vote_producers_subcommand {
     string voter_str;
-    vector<eosio::name> producer_names;
+    string maxfee_str;
+    string fioaddress_str;
+    vector<string> producer_names;
 
     vote_producers_subcommand(CLI::App *actionRoot) {
-        auto vote_producers = actionRoot->add_subcommand("prods", localized("Vote for one or more producers"));
-        vote_producers->add_option("voter", voter_str, localized("The voting account"))->required();
+        auto vote_producers = actionRoot->add_subcommand("prods", localized("Vote for one or more producers using fio address of producer"));
+        vote_producers->add_option("fio_address", fioaddress_str, localized("The voting fio address"))->required();
+        vote_producers->add_option("voter", voter_str, localized("The voting fio account"))->required();
+        vote_producers->add_option("max_fee", maxfee_str, localized("The maximum fio fee to pay while voting"))->required();
         vote_producers->add_option("producers", producer_names, localized(
-                "The account(s) to vote for. All options from this position and following will be treated as the producer list."))->required();
+                "The fio addresses to vote for. All options from this position and following will be treated as the producer list."))->required();
         add_standard_transaction_options(vote_producers, "voter@active");
 
         vote_producers->set_callback([this] {
 
-            std::sort(producer_names.begin(), producer_names.end());
+           // std::sort(producer_names.begin(), producer_names.end());
 
             fc::variant act_payload = fc::mutable_variant_object()
-                    ("voter", voter_str)
-                    ("proxy", "")
-                    ("producers", producer_names);
+                    ("producers", producer_names)
+                    ("fio_address",fioaddress_str)
+                    ("actor", voter_str)
+                    ("max_fee",maxfee_str);
             auto accountPermissions = get_account_permissions(tx_permission, {voter_str, config::active_name});
             send_actions(
                     {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
@@ -1267,15 +1272,22 @@ struct vote_producers_subcommand {
     }
 };
 
+//NOTE -- fix these up after main net launch, the producer accounts are in the votes table, we need
+//         to get the associated producer fio address and use a vector of fio addresses instead of names
+//         then do the final call to vote producers.
 struct approve_producer_subcommand {
-    eosio::name voter;
-    eosio::name producer_name;
+    string voter;
+    string max_fee_str;
+    string voter_fio_address;
+    string producer_name;
 
     approve_producer_subcommand(CLI::App *actionRoot) {
         auto approve_producer = actionRoot->add_subcommand("approve",
                                                            localized("Add one producer to list of voted producers"));
         approve_producer->add_option("voter", voter, localized("The voting account"))->required();
-        approve_producer->add_option("producer", producer_name, localized("The account to vote for"))->required();
+        approve_producer->add_option("fio_address", voter_fio_address, localized("The voting fio address"))->required();
+        approve_producer->add_option("producer", producer_name, localized("The fio address of the producer to vote for"))->required();
+        approve_producer->add_option("max_fee", max_fee_str, localized("The maximum fio fee for voting to pay"))->required();
         add_standard_transaction_options(approve_producer, "voter@active");
 
         approve_producer->set_callback([this] {
@@ -1283,12 +1295,11 @@ struct approve_producer_subcommand {
                     ("code", name(config::system_account_name).to_string())
                     ("scope", name(config::system_account_name).to_string())
                     ("table", "voters")
-                    ("table_key", "owner")
-                    ("lower_bound", voter.value)
-                    ("upper_bound", voter.value + 1)
-                    // Less than ideal upper_bound usage preserved so clio can still work with old buggy nodeos versions
-                    // Change to voter.value when clio no longer needs to support nodeos versions older than 1.5.0
-                    ("limit", 1)
+                    ("lower_bound", voter)
+                    ("upper_bound", voter )
+                    ("limit", "1")
+                    ("key_type", "name")
+                    ("index_position", "3")
             );
             auto res = result.as<eosio::chain_apis::read_only::get_table_rows_result>();
             // Condition in if statement below can simply be res.rows.empty() when clio no longer needs to support nodeos versions older than 1.5.0
@@ -1312,9 +1323,10 @@ struct approve_producer_subcommand {
                 return;
             }
             fc::variant act_payload = fc::mutable_variant_object()
-                    ("voter", voter)
-                    ("proxy", "")
-                    ("producers", prods);
+                    ("producers", prods)
+                    ("fio_address",voter_fio_address)
+                    ("actor", voter)
+                    ("max_fee",max_fee_str);
             auto accountPermissions = get_account_permissions(tx_permission, {voter, config::active_name});
             send_actions(
                     {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
@@ -1322,30 +1334,36 @@ struct approve_producer_subcommand {
     }
 };
 
+//NOTE -- fix these up after main net launch, the producer accounts are in the votes table, we need
+//         to get the associated producer fio address and use a vector of fio addresses instead of names
+//         then do the final call to vote producers.
 struct unapprove_producer_subcommand {
-    eosio::name voter;
-    eosio::name producer_name;
+    string voter;
+    string max_fee_str;
+    string voter_fio_address;
+    string producer_name;
 
     unapprove_producer_subcommand(CLI::App *actionRoot) {
         auto approve_producer = actionRoot->add_subcommand("unapprove", localized(
                 "Remove one producer from list of voted producers"));
         approve_producer->add_option("voter", voter, localized("The voting account"))->required();
-        approve_producer->add_option("producer", producer_name,
-                                     localized("The account to remove from voted producers"))->required();
+        approve_producer->add_option("fio_address", voter_fio_address, localized("The voting fio address"))->required();
+        approve_producer->add_option("producer", producer_name, localized("The fio address to remove from your votes"))->required();
+        approve_producer->add_option("max_fee", max_fee_str, localized("The maximum fio fee to pay for voting "))->required();
         add_standard_transaction_options(approve_producer, "voter@active");
 
         approve_producer->set_callback([this] {
             auto result = call(get_table_func, fc::mutable_variant_object("json", true)
-                    ("code", name(config::system_account_name).to_string())
-                    ("scope", name(config::system_account_name).to_string())
-                    ("table", "voters")
-                    ("table_key", "owner")
-                    ("lower_bound", voter.value)
-                    ("upper_bound", voter.value + 1)
-                    // Less than ideal upper_bound usage preserved so clio can still work with old buggy nodeos versions
-                    // Change to voter.value when clio no longer needs to support nodeos versions older than 1.5.0
-                    ("limit", 1)
+                ("code", name(config::system_account_name).to_string())
+                ("scope", name(config::system_account_name).to_string())
+                ("table", "voters")
+                ("lower_bound", voter)
+                ("upper_bound", voter )
+                ("limit", "1")
+                ("key_type", "name")
+                ("index_position", "3")
             );
+
             auto res = result.as<eosio::chain_apis::read_only::get_table_rows_result>();
             // Condition in if statement below can simply be res.rows.empty() when clio no longer needs to support nodeos versions older than 1.5.0
             // Although since this subcommand will actually change the voter's vote, it is probably better to just keep this check to protect
@@ -1367,9 +1385,10 @@ struct unapprove_producer_subcommand {
             }
             prods.erase(it, prods.end()); //should always delete only one element
             fc::variant act_payload = fc::mutable_variant_object()
-                    ("voter", voter)
-                    ("proxy", "")
-                    ("producers", prods);
+                    ("producers", prods)
+                    ("fio_address",voter_fio_address)
+                    ("actor", voter)
+                    ("max_fee",max_fee_str);
             auto accountPermissions = get_account_permissions(tx_permission, {voter, config::active_name});
             send_actions(
                     {create_action(accountPermissions, config::system_account_name, N(voteproducer), act_payload)});
@@ -4357,8 +4376,8 @@ int main(int argc, char **argv) {
     voteProducer->require_subcommand();
     auto voteProxy = vote_producer_proxy_subcommand(voteProducer);
     auto voteProducers = vote_producers_subcommand(voteProducer);
-    auto approveProducer = approve_producer_subcommand(voteProducer);
-    auto unapproveProducer = unapprove_producer_subcommand(voteProducer);
+   // auto approveProducer = approve_producer_subcommand(voteProducer);
+   // auto unapproveProducer = unapprove_producer_subcommand(voteProducer);
 
     auto listProducers = list_producers_subcommand(system);
 
