@@ -33,13 +33,13 @@ namespace eosio {
 
             struct get_actions_params {
                 chain::account_name account_name;
-                optional<int32_t> pos; /// a absolute sequence positon -1 is the end/last action
-                optional<int32_t> offset; ///< the number of actions relative to pos, negative numbers return [pos-offset,pos), positive numbers return [pos,pos+offset)
+                optional<int64_t> pos; /// a absolute sequence positon -1 is the end/last action
+                optional<int64_t> offset; ///< the number of actions relative to pos, negative numbers return [pos-offset,pos), positive numbers return [pos,pos+offset)
             };
 
             struct ordered_action_result {
                 uint64_t global_action_seq = 0;
-                int32_t account_action_seq = 0;
+                int64_t account_action_seq = 0;
                 uint32_t block_num;
                 chain::block_timestamp_type block_time;
                 fc::variant action_trace;
@@ -71,6 +71,14 @@ namespace eosio {
 
             get_transaction_result get_transaction(const get_transaction_params &) const;
 
+            struct get_block_txids_params {
+               uint32_t block_num;
+            };
+            struct get_block_txids_result {
+               vector<transaction_id_type> ids;
+               uint32_t                    last_irreversible_block;
+            };
+            get_block_txids_result get_block_txids(const get_block_txids_params&) const;
 
             /*
             struct ordered_transaction_results {
@@ -161,3 +169,6 @@ FC_REFLECT(eosio::history_apis::read_only::get_key_accounts_params, (public_key)
 FC_REFLECT(eosio::history_apis::read_only::get_key_accounts_results, (account_names))
 FC_REFLECT(eosio::history_apis::read_only::get_controlled_accounts_params, (controlling_account))
 FC_REFLECT(eosio::history_apis::read_only::get_controlled_accounts_results, (controlled_accounts))
+
+FC_REFLECT( eosio::history_apis::read_only::get_block_txids_params, (block_num) )
+FC_REFLECT( eosio::history_apis::read_only::get_block_txids_result, (ids)(last_irreversible_block) )
