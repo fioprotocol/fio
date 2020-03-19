@@ -23,6 +23,10 @@ namespace eosio {
         return ct;
     }
 
+
+
+
+
     /**********
      * This action permits the invoker to propose a multi signature operation. The operaton must be
      * signed by the list of requested accounts, once the accounts sign the approval then the tx
@@ -38,6 +42,9 @@ namespace eosio {
                            ignore<uint64_t> max_fee,
                            ignore<transaction> trx
                            ) {
+
+
+
         name _proposer;
         name _proposal_name;
         std::vector <permission_level> _requested;
@@ -60,6 +67,12 @@ namespace eosio {
         //get the sizes of tx.
         uint64_t sizep = transaction_size();
 
+        bool isTopProd = false;
+        auto tpiter = topprods.find(_proposer.value);
+        if (tpiter != topprods.end()){
+            isTopProd = true;
+        }
+
 
         //collect fee if its not a fio system account.
         if(!(   _proposer == fioio::MSIGACCOUNT ||
@@ -74,7 +87,8 @@ namespace eosio {
                 _proposer == fioio::FOUNDATIONACCOUNT ||
                 _proposer == fioio::TREASURYACCOUNT ||
                 _proposer == fioio::FIOSYSTEMACCOUNT ||
-                _proposer == fioio::FIOACCOUNT)
+                _proposer == fioio::FIOACCOUNT ||
+                isTopProd)
                 ) {
             //collect fees.
             eosio::action{
