@@ -3,6 +3,7 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/ignore.hpp>
 #include <eosiolib/transaction.hpp>
+#include <fio.common/fio.common.hpp>
 
 
 namespace eosio {
@@ -11,7 +12,12 @@ namespace eosio {
     static const uint64_t APPROVERAM = 1024; //integrated
 
     class [[eosio::contract("eosio.msig")]] multisig : public contract {
+    private:
+        eosiosystem::top_producers_table topprods;
     public:
+        multisig(name s, name code, datastream<const char *> ds) : contract(s, code, ds),
+                                                                   topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
+        }
         using contract::contract;
 
         [[eosio::action]]
