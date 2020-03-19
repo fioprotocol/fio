@@ -4,7 +4,7 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
-
+#include <fio.common/keyops.hpp>
 #include <fc/io/json.hpp>
 
 #include <boost/algorithm/string.hpp>
@@ -198,6 +198,10 @@ namespace eosio {
                         (filter_out.find({act.receiver, act.act.name, 0}) == filter_out.end()) &&
                         (filter_out.find({act.receiver, act.act.name, a.actor}) == filter_out.end())) {
                         result.insert(a.actor);
+                    }
+                    if (act.receiver == chain::config::system_account_name && act.act.name == N(newaccount)) {
+                      const auto created = act.act.data_as<chain::newaccount>();
+                      result.insert(created.name);
                     }
                 }
             }
