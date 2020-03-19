@@ -186,7 +186,6 @@ namespace eosio {
                     account == fioio::AddressContract ||
                     account == fioio::TPIDContract ||
                     account == fioio::TokenContract ||
-                    account == fioio::FOUNDATIONACCOUNT ||
                     account == fioio::REQOBTACCOUNT ||
                     account == fioio::TREASURYACCOUNT ||
                     account == fioio::SYSTEMACCOUNT), "setabi is not permitted");
