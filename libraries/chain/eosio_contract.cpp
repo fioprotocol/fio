@@ -147,7 +147,6 @@ namespace eosio {
                                act.account == AddressContract ||
                                act.account == TPIDContract ||
                                act.account == TokenContract ||
-                               act.account == FOUNDATIONACCOUNT ||
                                act.account == TREASURYACCOUNT ||
                                act.account == FIOSYSTEMACCOUNT ||
                                act.account == FIOACCOUNT
