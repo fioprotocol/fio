@@ -449,7 +449,6 @@ namespace fioio {
                 const int64_t &max_fee,
                 const int64_t &bytesize
         ) {
-            print("called mandatory byte fee for account ", account, " end point ",end_point," byte size ",bytesize,"\n");
 
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
@@ -484,9 +483,6 @@ namespace fioio {
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
-
-            print("called mandatory byte fee for account processing completed","\n");
-
         }
 
         /*******
