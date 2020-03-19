@@ -8,15 +8,16 @@
  *
  */
 
-#include <string>
 
 #pragma once
+
+#include <string>
 
 using namespace eosio;
 
 namespace fioio {
 
-    uint32_t acctcap = 12;
+    static uint32_t acctcap = 12;
 
     const char *const ALPHABET =
             "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -32,7 +33,7 @@ namespace fioio {
     };
 
 // result must be declared (for the worst case): char result[len * 2];
-    int DecodeBase58(
+    static int DecodeBase58(
             const char *str, int len, unsigned char *result) {
         int resultlen = 1;
         if( str != nullptr ){
