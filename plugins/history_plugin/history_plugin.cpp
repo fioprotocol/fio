@@ -223,7 +223,7 @@ namespace eosio {
                       result.insert(created.name);
                     }
 
-                    if (act.receiver == chain::config::system_account_name && act.act.name == N(trnsfiopubky)) {
+                    if (act.act.name == N(trnsfiopubky)) {
                       const auto created = act.act.data_as<trnsfiopubky>();
                       result.insert(fioio::key_to_account(created.payee_public_key));
                     }
