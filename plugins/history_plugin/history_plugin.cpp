@@ -11,10 +11,27 @@
 #include <boost/signals2/connection.hpp>
 
 namespace eosio {
+
     using namespace chain;
     using boost::signals2::scoped_connection;
 
     static appbase::abstract_plugin &_history_plugin = app().register_plugin<history_plugin>();
+
+    struct trnsfiopubky {
+        string payee_public_key;
+        int64_t amount;
+        int64_t max_fee;
+        name actor;
+        string tpid;
+
+        static account_name get_account() {
+            return N(fio.token);
+        }
+
+        static action_name get_name() {
+            return N(trnsfiopubky);
+        }
+    };
 
 
     struct account_history_object : public chainbase::object<account_history_object_type, account_history_object> {
@@ -202,8 +219,13 @@ namespace eosio {
                         result.insert(a.actor);
                     }
                     if (act.receiver == chain::config::system_account_name && act.act.name == N(newaccount)) {
-                      const auto created = act.act.data_as<chain::newaccount>();
+                      const auto created = act.act.data_as<eosio::newaccount>();
                       result.insert(created.name);
+                    }
+
+                    if (act.receiver == chain::config::system_account_name && act.act.name == N(trnsfiopubky)) {
+                      const auto created = act.act.data_as<trnsfiopubky>();
+                      result.insert(fioio::key_to_account(created.payee_public_key));
                     }
                 }
             }
@@ -683,3 +705,4 @@ namespace eosio {
 
 
 } /// namespace eosio
+FC_REFLECT(eosio::trnsfiopubky, (payee_public_key)(amount)(max_fee)(actor)(tpid))
