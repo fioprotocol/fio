@@ -61,14 +61,9 @@ namespace eosio {
                       EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
                                  "Unknown action ${action} in contract ${contract}",
                                  ("action", act->name)("contract", act->account));
-
-                      //check for propose or updateauth              
-                      if ((act->name != name("propose")) && (act->name != name("updateauth")) ) {
-                          EOS_ASSERT(sizeof(act->data) < config::max_transaction_size, action_validate_exception,
-                                     " action ${action} in contract ${contract} too large",
-                                     ("action", act->name)("contract", act->account));
-                      }
-
+                      EOS_ASSERT(sizeof(act->data) < config::max_transaction_size, action_validate_exception,
+                                 " action ${action} in contract ${contract} too large",
+                                 ("action", act->name)("contract", act->account));
                     }
                     else {
                       EOS_ASSERT(sizeof(act->data) <  config::max_nonce_size, action_validate_exception,
