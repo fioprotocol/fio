@@ -186,7 +186,7 @@ public:
 
                         if (state.bpreservetokensminted < BPMAXRESERVE && bprewards.get().rewards < BPMAXTOMINT) {
 
-                          uint64_t bptomint = BPMAXTOMINT;
+                          uint64_t bptomint = BPMAXTOMINT - bprewards.get().rewards;
                           const uint64_t bpremainingreserve = BPMAXRESERVE - state.bpreservetokensminted;
 
                             if (bpremainingreserve < BPMAXTOMINT) {
