@@ -102,7 +102,7 @@ public:
                 const string response_string = string("{\"status\": \"OK\",\"tpids_paid\":") +
                                          to_string(tpids_paid) + string("}");
 
-               fio_400_assert(transaction_size() <= MAX_TPIDCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+               fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
                  "Transaction is too large", ErrorTransaction);
 
                 send_response(response_string.c_str());
@@ -171,7 +171,7 @@ public:
                         auto proditer = producers.get_index<"prototalvote"_n>();
                         for (const auto &itr : proditer) {
                                 if (itr.is_active) {
-                                        voteshares.emplace(get_self(), [&](auto &p) {
+                                        voteshares.emplace(actor, [&](auto &p) {
                                                         p.owner = itr.owner;
                                                         p.votes = itr.total_votes;
                                                 });
@@ -186,7 +186,7 @@ public:
 
                         if (state.bpreservetokensminted < BPMAXRESERVE && bprewards.get().rewards < BPMAXTOMINT) {
 
-                          uint64_t bptomint = BPMAXTOMINT;
+                          uint64_t bptomint = BPMAXTOMINT - bprewards.get().rewards;
                           const uint64_t bpremainingreserve = BPMAXRESERVE - state.bpreservetokensminted;
 
                             if (bpremainingreserve < BPMAXTOMINT) {
@@ -310,7 +310,7 @@ public:
                 const string response_string = string("{\"status\": \"OK\",\"amount\":") +
                                          to_string(payout) + string("}");
 
-               fio_400_assert(transaction_size() <= MAX_BPCLAIM_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+                fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
                  "Transaction is too large", ErrorTransaction);
 
                 send_response(response_string.c_str());

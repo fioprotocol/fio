@@ -71,7 +71,7 @@ namespace eosiosystem {
     void
     system_contract::incram(const name &accountnm, const int64_t &amount) {
         require_auth(_self);
-        bool debug=true;
+        bool debug=false;
 
         int64_t ram;
         int64_t cpu;
@@ -152,7 +152,7 @@ namespace eosiosystem {
                 info.last_claim_time = ct;
             });
         }
-        fio_400_assert(transaction_size() <= MAX_REGIPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
 
     }
@@ -250,9 +250,6 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
 
-       fio_400_assert(transaction_size() <= MAX_REGPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-         "Transaction is too large", ErrorTransaction);
-
         if (REGPRODUCERRAM > 0) {
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
@@ -262,6 +259,8 @@ namespace eosiosystem {
             ).send();
         }
 
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
     }
@@ -343,9 +342,8 @@ namespace eosiosystem {
                                  to_string(reg_amount) + string("}");
 
 
-       fio_400_assert(transaction_size() <= MAX_UNREGPROD_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+       fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
-
         send_response(response_string.c_str());
     }
 
@@ -353,7 +351,7 @@ namespace eosiosystem {
 
       _gstate.last_producer_schedule_update = block_time;
 
-      bool debug=true;
+      bool debug=false;
 
       auto idx = _producers.get_index<"prototalvote"_n>();
 
@@ -597,8 +595,6 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(fee_amount) + string("}");
-         fio_400_assert(transaction_size() <= MAX_VOTEPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-           "Transaction is too large", ErrorTransaction);
 
         if (VOTEPRODUCERRAM > 0) {
             action(
@@ -608,6 +604,9 @@ namespace eosiosystem {
                     std::make_tuple(actor, VOTEPRODUCERRAM)
             ).send();
         }
+
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
     }
@@ -733,9 +732,6 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(fee_amount) + string("}");
 
-         fio_400_assert(transaction_size() <= MAX_VOTEPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-           "Transaction is too large", ErrorTransaction);
-
         if (VOTEPROXYRAM > 0) {
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
@@ -744,6 +740,9 @@ namespace eosiosystem {
                     std::make_tuple(actor, VOTEPROXYRAM)
             ).send();
         }
+
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
     }
@@ -847,17 +846,26 @@ namespace eosiosystem {
         uint64_t amount = get_votable_balance(voter->owner);
 
         //on the first vote we update the total voted fio.
-        if( voter->last_vote_weight <= 0.0 ) {
-            _gstate.total_voted_fio += amount;
-            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
-                _gstate.thresh_voted_fio_time = current_time_point();
-            }
-        }
+
 
         auto new_vote_weight = (double)amount;
         if (voter->is_proxy) {
             new_vote_weight += voter->proxied_vote_weight;
         }
+
+        if( !(voter->proxy) ) {
+
+            if( voter->last_vote_weight > 0.0 ) {
+                _gstate.total_voted_fio -= voter->last_vote_weight;
+            }
+
+            _gstate.total_voted_fio += new_vote_weight;
+
+            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
+                _gstate.thresh_voted_fio_time = current_time_point();
+            }
+        }
+
 
         boost::container::flat_map <name, pair<double, bool /*new*/>> producer_deltas;
         if (voter->last_vote_weight > 0) {
@@ -1060,9 +1068,8 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
-       fio_400_assert(transaction_size() <= MAX_UNREGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
          "Transaction is too large", ErrorTransaction);
-
         send_response(response_string.c_str());
     }
 
@@ -1138,9 +1145,6 @@ namespace eosiosystem {
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
-       fio_400_assert(transaction_size() <= MAX_REGPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-         "Transaction is too large", ErrorTransaction);
-
         if (REGPROXYRAM > 0) {
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
@@ -1149,6 +1153,9 @@ namespace eosiosystem {
                     std::make_tuple(actor, REGPROXYRAM)
             ).send();
         }
+
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
 
         send_response(response_string.c_str());
     }
@@ -1207,7 +1214,7 @@ namespace eosiosystem {
             });
         }
 
-        fio_400_assert(transaction_size() <= MAX_REGIPROXY_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
 
     }
@@ -1258,12 +1265,15 @@ namespace eosiosystem {
         auto pitr = votersbyowner.find(voter.owner.value);
         check(pitr != votersbyowner.end(),"voter not found");
 
-        //on the first vote we update the total voted fio.
-        if( pitr->last_vote_weight <= 0.0 ) {
-            _gstate.total_voted_fio += new_weight;
-            if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
-                _gstate.thresh_voted_fio_time = current_time_point();
-            }
+        //adapt the total voted fio.
+        if( pitr->last_vote_weight > 0.0 ) {
+            _gstate.total_voted_fio -= pitr->last_vote_weight;
+        }
+
+        _gstate.total_voted_fio += new_weight;
+
+        if( _gstate.total_voted_fio >= MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ) {
+            _gstate.thresh_voted_fio_time = current_time_point();
         }
 
         votersbyowner.modify(pitr, same_payer, [&](auto &v) {

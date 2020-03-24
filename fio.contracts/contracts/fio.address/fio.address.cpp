@@ -203,7 +203,7 @@ namespace fioio {
             t1.chain_code = "FIO";
             pubaddresses.push_back(t1);
 
-            fionames.emplace(_self, [&](struct fioname &a) {
+            fionames.emplace(actor, [&](struct fioname &a) {
                 a.id = id;
                 a.name = fa.fioaddress;
                 a.addresses = pubaddresses;
@@ -215,14 +215,15 @@ namespace fioio {
                 a.bundleeligiblecountdown = getBundledAmount();
             });
 
-            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, owner,
+            uint64_t fee_amount = chain_data_update(fa.fioaddress, pubaddresses, max_fee, fa, actor, owner,
                                                     true, tpid);
 
             return expiration_time;
         }
 
         uint32_t fio_domain_update(const name &owner,
-                                   const FioAddress &fa) {
+                                   const FioAddress &fa,
+                                   const name &actor) {
 
             uint128_t domainHash = string_to_uint128_hash(fa.fioaddress.c_str());
             uint32_t expiration_time;
@@ -240,7 +241,7 @@ namespace fioio {
 
             uint64_t id = domains.available_primary_key();
 
-            domains.emplace(_self, [&](struct domain &d) {
+            domains.emplace(actor, [&](struct domain &d) {
                 d.id = id;
                 d.name = fa.fiodomain;
                 d.domainhash = domainHash;
@@ -253,7 +254,7 @@ namespace fioio {
         uint64_t chain_data_update
          (const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
                           const uint64_t &max_fee, const FioAddress &fa,
-                          const name &actor, const bool &isFIO, const string &tpid) {
+                          const name &actor, const name &owner, const bool &isFIO, const string &tpid) {
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -269,7 +270,7 @@ namespace fioio {
             const uint32_t present_time = now();
 
             const uint64_t account = fioname_iter->owner_account;
-            fio_403_assert(account == actor.value, ErrorSignature);
+            fio_403_assert(account == owner.value, ErrorSignature);
             fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
                            "FIO Address expired", ErrorFioNameExpired);
 
@@ -303,7 +304,7 @@ namespace fioio {
 
                 for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
                     if( (it->token_code == token) && (it->chain_code == chaincode)  ){
-                        namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                        namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                             a.addresses[it-fioname_iter->addresses.begin()].public_address = tpa->public_address;
                         });
                         wasFound = true;
@@ -318,7 +319,7 @@ namespace fioio {
                     tempStruct.token_code = tpa->token_code;
                     tempStruct.chain_code = tpa->chain_code;
 
-                    namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                    namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                         a.addresses.push_back(tempStruct);
                     });
                 }
@@ -409,6 +410,7 @@ namespace fioio {
         void
         regaddress(const string &fio_address, const string &owner_fio_public_key, const int64_t &max_fee, const name &actor,
                    const string &tpid) {
+
             FioAddress fa;
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
                            "TPID must be empty or valid FIO address",
@@ -467,7 +469,8 @@ namespace fioio {
            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                   timebuffer + string("\",\"fee_collected\":") +
                                   to_string(reg_amount) + string("}");
-          fio_400_assert(transaction_size() <= MAX_REGADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+                                  
+          fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
            send_response(response_string.c_str());
@@ -495,7 +498,7 @@ namespace fioio {
             register_errors(fa, true);
             const name nm = name{owner_account_name};
 
-            const uint32_t expiration_time = fio_domain_update(nm, fa);
+            const uint32_t expiration_time = fio_domain_update(nm, fa, actor);
 
             struct tm timeinfo;
             fioio::convertfiotime(expiration_time, &timeinfo);
@@ -525,17 +528,17 @@ namespace fioio {
                                    timebuffer + string("\",\"fee_collected\":") +
                                    to_string(reg_amount) + string("}");
 
-            fio_400_assert(transaction_size() <= MAX_REGDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
-
             if (REGDOMAINRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
                         "eosio"_n,
                         "incram"_n,
-                        std::make_tuple(nm, REGDOMAINRAM)
+                        std::make_tuple(actor, REGDOMAINRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -609,9 +612,6 @@ namespace fioio {
                                    to_string(reg_amount) + string("}");
 
 
-           fio_400_assert(transaction_size() <= MAX_RENEWDOMAIN_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-             "Transaction is too large", ErrorTransaction);
-
            if (RENEWDOMAINRAM > 0) {
                action(
                        permission_level{SYSTEMACCOUNT, "active"_n},
@@ -620,6 +620,11 @@ namespace fioio {
                        std::make_tuple(actor, RENEWDOMAINRAM)
                ).send();
            }
+
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
             send_response(response_string.c_str());
         }
 
@@ -709,10 +714,6 @@ namespace fioio {
                                    timebuffer + string("\",\"fee_collected\":") +
                                    to_string(reg_amount) + string("}");
 
-
-           fio_400_assert(transaction_size() <= MAX_RENEWADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-             "Transaction is too large", ErrorTransaction);
-
             if (RENEWADDRESSRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -721,6 +722,9 @@ namespace fioio {
                         std::make_tuple(actor, RENEWADDRESSRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -859,7 +863,7 @@ namespace fioio {
             const string response_string = string("{\"status\": \"OK\",\"items_burned\":") +
                                      to_string(burnlist.size() + domainburnlist.size()) + string("}");
 
-           fio_400_assert(transaction_size() <= MAX_BURNEXPIRED_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
@@ -892,13 +896,13 @@ namespace fioio {
                            "Min 1, Max 5 public addresses are allowed",
                            ErrorInvalidNumberAddresses);
 
-            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, false,
+            const uint64_t fee_amount = chain_data_update(fio_address, public_addresses, max_fee, fa, actor, actor, false,
                                                     tpid);
 
             const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
-           fio_400_assert(transaction_size() <= MAX_ADDADDRESS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+           fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
             if (ADDADDRESSRAM > 0) {
@@ -1002,8 +1006,9 @@ namespace fioio {
                                      to_string(fee_amount) + string("}");
 
 
-          fio_400_assert(transaction_size() <= MAX_SETDOMPUB_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+          fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
+
             send_response(response_string.c_str());
         }
 
@@ -1029,7 +1034,7 @@ namespace fioio {
                                           ErrorPubAddressExist);
             } else {
                 eosio_assert_message_code(!existing, "existing EOSIO account not bound to a key", ErrorPubAddressExist);
-                accountmap.emplace(_self, [&](struct eosio_name &p) {
+                accountmap.emplace(get_self(), [&](struct eosio_name &p) {
                     p.account = account.value;
                     p.clientkey = client_key;
                     p.keyhash = string_to_uint128_hash(client_key.c_str());

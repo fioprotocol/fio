@@ -190,7 +190,7 @@ namespace fioio {
                 fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                                "No such FIO Request ", ErrorRequestContextNotFound);
 
-                fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
+                fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
                     fr.status = static_cast<int64_t >(trxstatus::sent_to_blockchain);
@@ -209,7 +209,7 @@ namespace fioio {
                 const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
                 const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
 
-                recordObtTable.emplace(_self, [&](struct recordobt_info &obtinf) {
+                recordObtTable.emplace(aactor, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
                     obtinf.payer_fio_address = fromHash;
                     obtinf.payee_fio_address = toHash;
@@ -229,9 +229,6 @@ namespace fioio {
             const string response_string = string("{\"status\": \"sent_to_blockchain\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
-          fio_400_assert(transaction_size() <= MAX_RECORDOBT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-            "Transaction is too large", ErrorTransaction);
-
             if (RECORDOBTRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -240,6 +237,9 @@ namespace fioio {
                         std::make_tuple(aactor, RECORDOBTRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -387,7 +387,7 @@ namespace fioio {
             const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
             const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
 
-            fiorequestContextsTable.emplace(_self, [&](struct fioreqctxt &frc) {
+            fiorequestContextsTable.emplace(aActor, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
                 frc.payer_fio_address = fromHash;
                 frc.payee_fio_address = toHash;
@@ -406,8 +406,6 @@ namespace fioio {
            const string response_string = string("{\"fio_request_id\":") + to_string(id) + string(",\"status\":\"requested\"") +
                                     string(",\"fee_collected\":") + to_string(fee_amount) + string("}");
 
-         fio_400_assert(transaction_size() <= MAX_NEWFUNDSREQUEST_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-           "Transaction is too large", ErrorTransaction);
 
             if (NEWFUNDSREQUESTRAM > 0) {
                 action(
@@ -417,6 +415,9 @@ namespace fioio {
                         std::make_tuple(aActor, NEWFUNDSREQUESTRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
            send_response(response_string.c_str());
         }
@@ -533,7 +534,7 @@ namespace fioio {
             }
             //end fees, bundle eligible fee logic
 
-            fiorequestStatusTable.emplace(_self, [&](struct fioreqsts &fr) {
+            fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
                 fr.id = fiorequestStatusTable.available_primary_key();;
                 fr.fio_request_id = requestId;
                 fr.status = static_cast<int64_t >(trxstatus::rejected);
@@ -544,9 +545,6 @@ namespace fioio {
             const string response_string = string("{\"status\": \"request_rejected\",\"fee_collected\":") +
                                      to_string(fee_amount) + string("}");
 
-          fio_400_assert(transaction_size() <= MAX_REJECTFUNDS_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-            "Transaction is too large", ErrorTransaction);
-
             if (REJECTFUNDSRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -555,6 +553,9 @@ namespace fioio {
                         std::make_tuple(aactor, REJECTFUNDSRAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }

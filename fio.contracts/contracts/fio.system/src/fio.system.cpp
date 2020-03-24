@@ -73,7 +73,7 @@ namespace eosiosystem {
         require_auth(_self);
         set_privileged(account.value, ispriv);
 
-        fio_400_assert(transaction_size() <= MAX_SETPRIV_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
 
     }
@@ -86,7 +86,7 @@ namespace eosiosystem {
             p.deactivate();
         });
 
-        fio_400_assert(transaction_size() <= MAX_RMVPRODUCER_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransaction);
 
     }
@@ -147,8 +147,9 @@ namespace eosiosystem {
 
         set_resource_limits(newact.value, INITIALACCOUNTRAM, -1, -1);
 
-    fio_400_assert(transaction_size() <= MAX_NEWACCOUNT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-      "Transaction is too large", ErrorTransaction);
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+          "Transaction is too large", ErrorTransaction);
+
     }
 
 
@@ -164,7 +165,6 @@ namespace eosiosystem {
                       acnt == AddressContract ||
                       acnt == TPIDContract ||
                       acnt == TokenContract ||
-                      acnt == FOUNDATIONACCOUNT ||
                       acnt == TREASURYACCOUNT ||
                       acnt == FIOSYSTEMACCOUNT ||
                       acnt == FIOACCOUNT),"set abi not permitted." );
@@ -198,7 +198,7 @@ namespace eosiosystem {
         check(amount > 0,"cannot add locked token amount less or equal 0.");
         check(locktype == 1 || locktype == 2 || locktype == 3 || locktype == 4,"lock type must be 1,2,3,4");
 
-        _lockedtokens.emplace(_self, [&](struct locked_token_holder_info &a) {
+        _lockedtokens.emplace(owner, [&](struct locked_token_holder_info &a) {
                 a.owner = owner;
                 a.total_grant_amount = amount;
                 a.unlocked_period_count = 0;

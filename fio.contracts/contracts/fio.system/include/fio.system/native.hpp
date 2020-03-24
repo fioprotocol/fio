@@ -85,8 +85,8 @@ namespace eosiosystem {
     };
 
     static const uint64_t LINKAUTHRAM = 1024; //integrated.
-    static const uint64_t REGPRODUCERRAM = 2560; //integrated.
-    static const uint64_t REGPROXYRAM = 2560;//integrated.
+    static const uint64_t REGPRODUCERRAM = 1024; //integrated.
+    static const uint64_t REGPROXYRAM = 1024;//integrated.
     static const uint64_t VOTEPROXYRAM = 512; //integrated.
     static const uint64_t VOTEPRODUCERRAM = 1024; //integrated.
     static const uint64_t UPDATEAUTHRAM = 1024; //integrated.
@@ -137,7 +137,6 @@ namespace eosiosystem {
                  account == fioio::AddressContract ||
                  account == fioio::TPIDContract ||
                  account == fioio::TokenContract ||
-                 account == fioio::FOUNDATIONACCOUNT ||
                  account == fioio::TREASURYACCOUNT ||
                  account == fioio::FIOSYSTEMACCOUNT ||
                  account == fioio::FIOACCOUNT)
@@ -185,9 +184,8 @@ namespace eosiosystem {
                    std::make_tuple(std::string("auth_delete"), account, max_fee)
             }.send();
 
-            fio_400_assert(transaction_size() <= MAX_DELETEAUTH_TRANASCTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
-
         }
 
         [[eosio::action]]
@@ -205,9 +203,6 @@ namespace eosiosystem {
                     std::make_tuple(std::string("auth_link"), account, max_fee)
             }.send();
 
-            fio_400_assert(transaction_size() <= MAX_LINKAUTH_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
-
             if (LINKAUTHRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
@@ -217,6 +212,8 @@ namespace eosiosystem {
                 ).send();
             }
 
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
         }
 
         [[eosio::action]]

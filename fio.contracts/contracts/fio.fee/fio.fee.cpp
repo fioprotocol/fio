@@ -96,7 +96,7 @@ namespace fioio {
             //processed after we have gone through the loop.
             compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
 
-            fio_400_assert(transaction_size() <= MAX_UPDATEFEES_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
         }
 
@@ -238,7 +238,7 @@ namespace fioio {
                 }
 
                 if (!timeviolation) {
-                    feevotes.emplace(_self, [&](struct feevote &fv) {
+                    feevotes.emplace(aactor, [&](struct feevote &fv) {
                         fv.id = feevotes.available_primary_key();
                         fv.block_producer_name = aactor;
                         fv.end_point = feeval.end_point;
@@ -254,8 +254,6 @@ namespace fioio {
 
             const string response_string = string("{\"status\": \"OK\"}");
 
-           fio_400_assert(transaction_size() <= MAX_SETFEEVOTE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-             "Transaction is too large", ErrorTransaction);
 
             if (SETFEEVOTERAM > 0) {
                 action(
@@ -265,6 +263,9 @@ namespace fioio {
                         std::make_tuple(aactor, SETFEEVOTERAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -317,7 +318,7 @@ namespace fioio {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             } else {
-                bundlevoters.emplace(_self, [&](struct bundlevoter &f) {
+                bundlevoters.emplace(aactor, [&](struct bundlevoter &f) {
                     f.block_producer_name = aactor;
                     f.bundledbvotenumber = bundled_transactions;
                     f.lastvotetimestamp = nowtime;
@@ -325,10 +326,6 @@ namespace fioio {
             }
 
             const string response_string = string("{\"status\": \"OK\"}");
-
-
-            fio_400_assert(transaction_size() <= MAX_BUNDLEVOTE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
 
             if (BUNDLEVOTERAM > 0) {
                 action(
@@ -338,6 +335,9 @@ namespace fioio {
                         std::make_tuple(aactor, BUNDLEVOTERAM)
                 ).send();
             }
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -386,7 +386,7 @@ namespace fioio {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             } else {
-                feevoters.emplace(_self, [&](struct feevoter &f) {
+                feevoters.emplace(aactor, [&](struct feevoter &f) {
                     f.block_producer_name = aactor;
                     f.fee_multiplier = multiplier;
                     f.lastvotetimestamp = nowtime;
@@ -397,8 +397,8 @@ namespace fioio {
 
             const string response_string = string("{\"status\": \"OK\"}");
 
-           fio_400_assert(transaction_size() <= MAX_SETFEEMULT_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-             "Transaction is too large", ErrorTransaction);
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
 
             send_response(response_string.c_str());
         }
@@ -436,8 +436,9 @@ namespace fioio {
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
 
-           fio_400_assert(transaction_size() <= MAX_MANDATORYFEE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
-             "Transaction is too large", ErrorTransaction);
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+              "Transaction is too large", ErrorTransaction);
+
         }
 
         // @abi action
@@ -448,7 +449,6 @@ namespace fioio {
                 const int64_t &max_fee,
                 const int64_t &bytesize
         ) {
-            print("called mandatory byte fee for account ", account, " end point ",end_point," byte size ",bytesize,"\n");
 
             require_auth(account);
             //begin new fees, logic for Mandatory fees.
@@ -483,9 +483,6 @@ namespace fioio {
             fio_fees(account, asset(reg_amount, FIOSYMBOL));
             processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
-
-            print("called mandatory byte fee for account processing completed","\n");
-
         }
 
         /*******
@@ -520,7 +517,7 @@ namespace fioio {
                         a.suf_amount = suf_amount;
                     });
             } else {
-                fiofees.emplace(_self, [&](struct fiofee &f) {
+                fiofees.emplace(get_self(), [&](struct fiofee &f) {
                     f.fee_id = fee_id;
                     f.end_point = end_point;
                     f.end_point_hash = endPointHash;
@@ -528,9 +525,8 @@ namespace fioio {
                     f.suf_amount = suf_amount;
                 });
             }
-            fio_400_assert(transaction_size() <= MAX_CREATEFEE_TRANSACTION_SIZE, "transaction_size", std::to_string(transaction_size()),
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransaction);
-
 
         }
     };
