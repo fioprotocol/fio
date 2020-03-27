@@ -495,8 +495,8 @@ namespace fioio {
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
 
-            auto ltiter = lockedTokensTable.find(owner_account_name.value);
-            fio_400_assert(ltiter == lockedTokensTable.end(), "owner_fio_public_key", owner_fio_public_key, "regdomain not permitted for account with locked tokens, use an account without locked tokens.",
+            auto ltiter = lockedTokensTable.find(actor.value);
+            fio_400_assert(ltiter == lockedTokensTable.end(), "actor", actor.to_string(), "regdomain not permitted for account with locked tokens, use an account without locked tokens.",
                            ErrorFeeInvalid);
 
             FioAddress fa;
