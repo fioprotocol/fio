@@ -103,7 +103,7 @@ public:
                                          to_string(tpids_paid) + string("}");
 
                fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-                 "Transaction is too large", ErrorTransaction);
+                 "Transaction is too large", ErrorTransactionTooLarge);
 
                 send_response(response_string.c_str());
         } //tpid_claim
@@ -311,7 +311,7 @@ public:
                                          to_string(payout) + string("}");
 
                 fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-                 "Transaction is too large", ErrorTransaction);
+                 "Transaction is too large", ErrorTransactionTooLarge);
 
                 send_response(response_string.c_str());
         } //bpclaim
