@@ -853,7 +853,7 @@ namespace eosiosystem {
             new_vote_weight += voter->proxied_vote_weight;
         }
 
-        if( !(voter->proxy) ) {
+        if( !(proxy) ) {
 
             if( voter->last_vote_weight > 0.0 ) {
                 _gstate.total_voted_fio -= voter->last_vote_weight;
@@ -1266,7 +1266,7 @@ namespace eosiosystem {
         check(pitr != votersbyowner.end(),"voter not found");
 
         //adapt the total voted fio.
-        if( pitr->last_vote_weight > 0.0 ) {
+        if (pitr->last_vote_weight > 0.0) {
             _gstate.total_voted_fio -= pitr->last_vote_weight;
         }
 
