@@ -254,7 +254,7 @@ public:
                                 bpcounter++;
                         } // &itr : voteshares
                         //Start 24 track for daily pay
-                        state.payschedtimer = now();
+                        state.payschedtimer += (PAYSCHEDTIME - 1);
 
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
