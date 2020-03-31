@@ -25,6 +25,7 @@ namespace fioio {
         tpids_table tpids;
         eosiosystem::voters_table voters;
         eosiosystem::top_producers_table topprods;
+        eosiosystem::locked_tokens_table lockedTokensTable;
         config appConfig;
 
     public:
@@ -38,7 +39,8 @@ namespace fioio {
                                                                         accountmap(_self, _self.value),
                                                                         tpids(TPIDContract, TPIDContract.value),
                                                                         voters(AddressContract, AddressContract.value),
-                                                                        topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value){
+                                                                        topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
+                                                                        lockedTokensTable(SYSTEMACCOUNT,SYSTEMACCOUNT.value){
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -492,6 +494,10 @@ namespace fioio {
             }
 
             name owner_account_name = accountmgnt(actor, owner_fio_public_key);
+
+            auto ltiter = lockedTokensTable.find(actor.value);
+            fio_400_assert(ltiter == lockedTokensTable.end(), "actor", actor.to_string(), "regdomain not permitted for account with locked tokens, use an account without locked tokens.",
+                           ErrorFeeInvalid);
 
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
