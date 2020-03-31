@@ -141,13 +141,13 @@ namespace eosio {
                 }
                 if (lockiter->unlocked_period_count < 6) {
                     //to shorten the vesting schedule adapt these variables.
-                  //  uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
-                  //  uint32_t firstPayPeriod = 90;
-                  //  uint32_t payoutTimePeriod = 180;
+                    uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
+                    uint32_t firstPayPeriod = 90;
+                    uint32_t payoutTimePeriod = 180;
 
-                  uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-                  uint32_t firstPayPeriod = 2;
-                  uint32_t payoutTimePeriod = 2;
+                    //TEST LOCKED TOKENS uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+                    //TEST LOCKED TOKENS uint32_t firstPayPeriod = 15;
+                    //TEST LOCKED TOKENS uint32_t payoutTimePeriod = 15;
 
                     bool ninetyDaysSinceGrant = daysSinceGrant >= firstPayPeriod;
 
