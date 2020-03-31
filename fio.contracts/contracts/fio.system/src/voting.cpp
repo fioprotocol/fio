@@ -1036,8 +1036,6 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        regiproxy(actor,fio_address,false);
-
         //begin new fees, logic for Mandatory fees.
         uint128_t endpoint_hash = string_to_uint128_hash("unregister_proxy");
 
@@ -1065,6 +1063,8 @@ namespace eosiosystem {
         fio_fees(actor, reg_fee_asset);
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
+
+        regiproxy(actor,fio_address,false);
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
@@ -1113,8 +1113,6 @@ namespace eosiosystem {
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
                        ErrorDomainExpired);
 
-        regiproxy(actor,fio_address,true);
-
         //begin new fees, logic for Mandatory fees.
         uint128_t endpoint_hash = string_to_uint128_hash("register_proxy");
 
@@ -1142,6 +1140,8 @@ namespace eosiosystem {
         fio_fees(actor, reg_fee_asset);
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
+
+        regiproxy(actor,fio_address,true);
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
