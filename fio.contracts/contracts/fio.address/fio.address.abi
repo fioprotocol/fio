@@ -226,7 +226,26 @@
       "name": "existing",
       "type": "bool"
       }]
-      }
+      },{
+       "name": "transferdom",
+       "base": "",
+       "fields": [{
+       "name": "domain",
+       "type": "name"
+       },{
+       "name": "new_owner",
+       "type": "name"
+       },{
+       "name": "actor",
+       "type": "name"
+       },{
+       "name": "max_fee",
+       "type": "int64"
+       },{
+       "name": "tpid",
+       "type": "string"
+       }]
+     }
   ],
   "actions": [{
       "name": "regaddress",
@@ -259,6 +278,10 @@
     },{
     "name": "bind2eosio",
     "type": "bind2eosio",
+    "ricardian_contract": ""
+    },{
+    "name": "transferdom",
+    "type": "transferdom",
     "ricardian_contract": ""
     }
   ],

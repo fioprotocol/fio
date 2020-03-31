@@ -471,7 +471,7 @@ namespace fioio {
            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                   timebuffer + string("\",\"fee_collected\":") +
                                   to_string(reg_amount) + string("}");
-                                  
+
           fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransaction);
 
@@ -1048,6 +1048,63 @@ namespace fioio {
             }
         }
 
+
+        [[eosio::action]]
+        void transferdom(const name &domain, const name &new_owner, const name &actor, const int64_t &max_fee, const string &tpid) {
+            require_auth(actor);
+
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domiter = domainsbyname.find(string_to_uint128_hash(domain.to_string()));
+
+            fio_400_assert(domiter->account == actor.value, "actor", actor.to_string(),
+                           "actor is not domain owner", ErrorDomainOwner);
+            require_auth(domiter->account);
+            const uint128_t endpoint_hash = string_to_uint128_hash("register_fio_domain");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_fio_domain",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            //Transfer the domain
+
+            domainsbyname.modify(domiter, actor, [&](struct domain &a) {
+                a.account = new_owner.value;
+            });
+
+            const uint64_t fee_amount = fee_iter->suf_amount / 4; // 1/4 of registration fee
+            const uint64_t fee_type = fee_iter->type;
+
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            processbucketrewards(tpid, fee_amount, get_self());
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+           "Transaction is too large", ErrorTransaction);
+
+           if (ADDADDRESSRAM > 0) {
+               action(
+                       permission_level{SYSTEMACCOUNT, "active"_n},
+                       "eosio"_n,
+                       "incram"_n,
+                       std::make_tuple(actor, REGDOMAINRAM / 4)
+               ).send();
+           }
+
+           const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                   to_string(fee_amount) + string("}");
+
+           send_response(response_string.c_str());
+
+
+
+        }
+
         void decrcounter(const string &fio_address, const int32_t step) {
 
         check(step > 0, "step must be greater than 0");
@@ -1070,5 +1127,5 @@ namespace fioio {
     };
 
     EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(setdomainpub)(burnexpired)(decrcounter)
-    (bind2eosio))
+    (bind2eosio) (transferdom))
 }

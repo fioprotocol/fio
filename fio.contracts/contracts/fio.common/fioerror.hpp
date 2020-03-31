@@ -86,6 +86,7 @@ namespace fioio {
     constexpr auto ErrorTimeViolation = ident | httpDataError | 150;
     constexpr auto ErrorNoAuthWaits = ident | httpDataError | 151;
 
+    constexpr auto ErrorDomainOwner = ident | httpInvalidError | 153;
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */
