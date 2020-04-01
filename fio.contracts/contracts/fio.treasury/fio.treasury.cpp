@@ -11,7 +11,9 @@
 #define BPMAXTOMINT     50000000000000          // 50,000  FIO
 #define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
-#define PAYSCHEDTIME    172801                  // 1 day  ( block time )
+//#define PAYSCHEDTIME    172801                  // 1 day  ( block time )
+//kludge to make pay schedule shorter for bpclaim testing
+#define PAYSCHEDTIME    240                  // 2 minutes  ( block time )
 #define PAYABLETPIDS    100
 
 #include "fio.treasury.hpp"
