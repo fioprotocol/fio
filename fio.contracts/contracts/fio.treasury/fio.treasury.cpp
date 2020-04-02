@@ -253,8 +253,13 @@ public:
                                         });
                                 bpcounter++;
                         } // &itr : voteshares
-                        //Start 24 track for daily pay
-                        state.payschedtimer += (PAYSCHEDTIME - 1);
+                        
+                        //Start 24 track for daily pay schedule
+                        if (state.payschedtimer == 0){
+                                state.payschedtimer = now();
+                        }else {
+                                state.payschedtimer += (PAYSCHEDTIME - 1);
+                        }
 
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
