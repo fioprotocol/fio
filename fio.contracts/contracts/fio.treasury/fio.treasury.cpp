@@ -258,8 +258,9 @@ public:
                         //Start 24 track for daily pay
                         if (state.payschedtimer == 0){
                                 state.payschedtimer = now();
+                        }else {
+                                state.payschedtimer += (PAYSCHEDTIME - 1);
                         }
-                        state.payschedtimer += (PAYSCHEDTIME - 1);
 
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
