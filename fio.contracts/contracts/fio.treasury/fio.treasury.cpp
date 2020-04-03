@@ -11,7 +11,7 @@
 #define BPMAXTOMINT     50000000000000          // 50,000  FIO
 #define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
-#define PAYSCHEDTIME    172801                  // 1 day  ( block time )
+#define PAYSCHEDTIME    86401                   //seconds per day + 1
 #define PAYABLETPIDS    100
 
 #include "fio.treasury.hpp"
@@ -253,8 +253,13 @@ public:
                                         });
                                 bpcounter++;
                         } // &itr : voteshares
-                        //Start 24 track for daily pay
-                        state.payschedtimer = now();
+                        
+                        //Start 24 track for daily pay schedule
+                        if (state.payschedtimer == 0){
+                                state.payschedtimer = now();
+                        }else {
+                                state.payschedtimer += (PAYSCHEDTIME - 1);
+                        }
 
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
