@@ -253,9 +253,6 @@ public:
                                         });
                                 bpcounter++;
                         } // &itr : voteshares
-
-
-                        //Start 24 track for daily pay
                         if (state.payschedtimer == 0){
                                 state.payschedtimer = now();
                         }else {

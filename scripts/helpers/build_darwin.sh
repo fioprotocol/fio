@@ -36,10 +36,10 @@ ensure-brew-packages "${REPO_ROOT}/scripts/helpers/build_darwin_deps"
 [[ -z "${CMAKE}" ]] && export CMAKE="/usr/local/bin/cmake"
 # CLANG Installation
 build-clang
+# LLVM Installation
+ensure-llvm
 # BOOST Installation
 ensure-boost
-# LLVM
-ensure-llvm
 # MONGO Installation
 if $INSTALL_MONGO; then
 	echo "${COLOR_CYAN}[Ensuring MongoDB installation]${COLOR_NC}"
