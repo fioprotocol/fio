@@ -114,7 +114,8 @@ public:
                 require_auth(actor);
 
                 gstate = global.get();
-                check( gstate.total_voted_fio >= MINVOTEDFIO,
+
+                check( gstate.total_voted_fio >= MINVOTEDFIO || gstate.thresh_voted_fio_time != time_point() ,
                        "cannot claim rewards until the chain voting threshold is exceeded" );
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
