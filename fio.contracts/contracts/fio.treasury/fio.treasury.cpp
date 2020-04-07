@@ -245,7 +245,7 @@ public:
                         bpcounter = 0;
                         auto votesharesiter = voteshares.get_index<"byvotes"_n>();
                         for (const auto &itr : votesharesiter) {
-                                if (bpcounter > (bpcount - abpcount)) {
+                                if (bpcounter > (bpcount - abpcount)-1) {
                                         voteshares.modify(itr, get_self(), [&](auto &entry) {
                                                         entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
                                                 });
