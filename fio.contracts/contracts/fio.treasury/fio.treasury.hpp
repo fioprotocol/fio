@@ -45,10 +45,12 @@ namespace fioio {
         double votes;
 
         uint64_t primary_key() const { return owner.value; }
+        double by_votes() const { return votes; }
 
         EOSLIB_SERIALIZE( bppaysched, (owner)(abpayshare)(sbpayshare)(votes)
         )
     };
 
-    typedef eosio::multi_index<"voteshares"_n, bppaysched> voteshares_table;
+    typedef eosio::multi_index<"voteshares"_n, bppaysched,
+            indexed_by<"byvotes"_n, const_mem_fun < bppaysched, double, &bppaysched::by_votes> >> voteshares_table;
 }

@@ -114,7 +114,8 @@ public:
                 require_auth(actor);
 
                 gstate = global.get();
-                check( gstate.total_voted_fio >= MINVOTEDFIO,
+
+                check( gstate.total_voted_fio >= MINVOTEDFIO || gstate.thresh_voted_fio_time != time_point() ,
                        "cannot claim rewards until the chain voting threshold is exceeded" );
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
@@ -177,7 +178,7 @@ public:
                                                 });
                                 }
                                 bpcounter++;
-                                if (bpcounter > MAXBPS) break;
+                                if (bpcounter >= MAXBPS) break;
                         } // &itr : producers table
 
                         //Move 1/365 of the bucketpool to the bpshare
@@ -235,15 +236,16 @@ public:
                         uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                         uint64_t abpcount = MAXACTIVEBPS;
 
-                        if (bpcount > MAXBPS) bpcount = MAXBPS; //limit to 42 producers in voteshares
+
                         if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
                         uint64_t toactivebps = static_cast<uint64_t>(bprewardstat.rewards * .40);
 
                         bpcounter = 0;
-                        for (const auto &itr : voteshares) {
-                                if (bpcounter <= abpcount) {
+                        auto votesharesiter = voteshares.get_index<"byvotes"_n>();
+                        for (const auto &itr : votesharesiter) {
+                                if (bpcounter > (bpcount - abpcount)-1) {
                                         voteshares.modify(itr, get_self(), [&](auto &entry) {
                                                         entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
                                                 });
