@@ -236,6 +236,7 @@ public:
                         uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                         uint64_t abpcount = MAXACTIVEBPS;
 
+
                         if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
@@ -244,7 +245,7 @@ public:
                         bpcounter = 0;
                         auto votesharesiter = voteshares.get_index<"byvotes"_n>();
                         for (const auto &itr : votesharesiter) {
-                                if (bpcounter < abpcount) {
+                                if (bpcounter > (bpcount - abpcount)) {
                                         voteshares.modify(itr, get_self(), [&](auto &entry) {
                                                         entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
                                                 });
