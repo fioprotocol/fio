@@ -11,7 +11,7 @@
 #define BPMAXTOMINT     50000000000000          // 50,000  FIO
 #define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
-#define PAYSCHEDTIME    86401                   //seconds per day + 1
+#define PAYSCHEDTIME    121                   //seconds per day + 1
 #define PAYABLETPIDS    100
 
 #include "fio.treasury.hpp"
@@ -178,7 +178,7 @@ public:
                                                 });
                                 }
                                 bpcounter++;
-                                if (bpcounter > MAXBPS) break;
+                                if (bpcounter >= MAXBPS) break;
                         } // &itr : producers table
 
                         //Move 1/365 of the bucketpool to the bpshare
@@ -236,15 +236,15 @@ public:
                         uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                         uint64_t abpcount = MAXACTIVEBPS;
 
-                        if (bpcount > MAXBPS) bpcount = MAXBPS; //limit to 42 producers in voteshares
                         if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
                         uint64_t toactivebps = static_cast<uint64_t>(bprewardstat.rewards * .40);
 
                         bpcounter = 0;
-                        for (const auto &itr : voteshares) {
-                                if (bpcounter <= abpcount) {
+                        auto votesharesiter = voteshares.get_index<"byvotes"_n>();
+                        for (const auto &itr : votesharesiter) {
+                                if (bpcounter < abpcount) {
                                         voteshares.modify(itr, get_self(), [&](auto &entry) {
                                                         entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
                                                 });
