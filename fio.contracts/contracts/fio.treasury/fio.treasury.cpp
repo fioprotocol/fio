@@ -166,21 +166,28 @@ public:
                 //*********** CREATE PAYSCHEDULE **************
                 // If there is no pay schedule then create a new one
                 if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
-                        //Create the payment schedule
-                        uint64_t bpcounter = 0;
-                        auto proditer = producers.get_index<"prototalvote"_n>();
-                        for (const auto &itr : proditer) {
-                                if (itr.is_active) {
-                                        voteshares.emplace(actor, [&](auto &p) {
-                                                        p.owner = itr.owner;
-                                                        p.votes = itr.total_votes;
-                                                });
-                                }
-                                bpcounter++;
-                                if (bpcounter >= MAXBPS) break;
-                        } // &itr : producers table
+                    //Create the payment schedule
+                    int64_t bpcounter = 0;
+                    uint64_t activecount = 0;
+                    auto proditer = producers.get_index<"prototalvote"_n>();
+                    auto itr = proditer.end();
 
-                        //Move 1/365 of the bucketpool to the bpshare
+                    int32_t prodcount = std::distance(producers.begin(), producers.end());
+                    check(prodcount > 0,"error -- no producers");
+
+                    for (int32_t idx=prodcount-1;idx >=0; idx--) {
+                        --itr;
+                        if (itr->is_active) {
+                            voteshares.emplace(actor, [&](auto &p) {
+                                p.owner = itr->owner;
+                                p.votes = itr->total_votes;
+                            });
+                        }
+                        bpcounter++;
+                        if (bpcounter >= MAXBPS) break;
+                    } // &itr : producers table
+
+                    //Move 1/365 of the bucketpool to the bpshare
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
 
@@ -232,8 +239,8 @@ public:
 
                         }
                         // All bps are now in pay schedule, calculate the shares
-                        uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
-                        uint64_t abpcount = MAXACTIVEBPS;
+                        int64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
+                        int64_t abpcount = MAXACTIVEBPS;
 
                         if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
