@@ -153,7 +153,7 @@ namespace eosiosystem {
             });
         }
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 
@@ -262,7 +262,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -347,7 +347,7 @@ namespace eosiosystem {
 
 
        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-         "Transaction is too large", ErrorTransaction);
+         "Transaction is too large", ErrorTransactionTooLarge);
         send_response(response_string.c_str());
     }
 
@@ -613,7 +613,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -752,7 +752,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -1080,7 +1080,7 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-         "Transaction is too large", ErrorTransaction);
+         "Transaction is too large", ErrorTransactionTooLarge);
         send_response(response_string.c_str());
     }
 
@@ -1167,7 +1167,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -1227,7 +1227,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 
