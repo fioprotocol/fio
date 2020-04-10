@@ -1582,8 +1582,9 @@ if( options.count(name) ) { \
         */
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
-
-            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
 
@@ -1602,7 +1603,7 @@ if( options.count(name) ) { \
             uint32_t search_notFound = 0;
             bool search_finished = false;
 
-            fioio::key_to_account(p.fio_public_key, account_name);
+            fioio::key_to_account(fioKey, account_name);
 
             name account = name{account_name};
             get_pending_fio_requests_result result;
@@ -1756,8 +1757,9 @@ if( options.count(name) ) { \
         */
         read_only::get_sent_fio_requests_result
         read_only::get_sent_fio_requests(const read_only::get_sent_fio_requests_params &p) const {
-
-            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
 
@@ -1775,7 +1777,7 @@ if( options.count(name) ) { \
             uint32_t returnCount = 0;
             bool search_finished = false;
 
-            fioio::key_to_account(p.fio_public_key, account_name);
+            fioio::key_to_account(fioKey, account_name);
 
             name account = name{account_name};
             get_sent_fio_requests_result result;
@@ -1917,8 +1919,9 @@ if( options.count(name) ) { \
 
         read_only::get_obt_data_result
         read_only::get_obt_data(const read_only::get_obt_data_params &p) const {
-
-            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
 
@@ -1929,7 +1932,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             string account_name;
-            fioio::key_to_account(p.fio_public_key, account_name);
+            fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
 
             uint32_t search_results = 0;
@@ -2162,17 +2165,20 @@ if( options.count(name) ) { \
         read_only::get_fio_names_result read_only::get_fio_names(const read_only::get_fio_names_params &p) const {
             // assert if empty chain key
             get_fio_names_result result;
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+
             //first check the pub key for validity.
-            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
 
             string account_name;
-            fioio::key_to_account(p.fio_public_key, account_name);
+            fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
 
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-            const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
+            const uint64_t key_hash = ::eosio::string_to_uint64_t(fioKey.c_str()); // hash of public address
 
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
@@ -2411,8 +2417,9 @@ if( options.count(name) ) { \
         } // get_fio_addresses
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
-
-            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
 
@@ -2422,7 +2429,7 @@ if( options.count(name) ) { \
             vector<asset> cursor;
             result.balance = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(p.fio_public_key.c_str());
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey);
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
             std::string hexvalkeyhash = "0x";
