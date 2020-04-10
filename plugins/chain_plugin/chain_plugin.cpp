@@ -2258,6 +2258,158 @@ if( options.count(name) ) { \
             return result;
         } // get_fio_names
 
+
+        /*** v1/chain/get_fio_domains
+       * Retrieves the domains associated with the provided public address
+       * @param p
+       * @return result
+       */
+        read_only::get_fio_domains_result read_only::get_fio_domains(const read_only::get_fio_domains_params &p) const {
+            // assert if empty chain key
+            get_fio_domains_result result;
+            //first check the pub key for validity.
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            name account = name{account_name};
+            time_t temptime;
+            struct tm *timeinfo;
+            char buffer[80];
+
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+            //Get the domain record
+            get_table_rows_params domain_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
+                    .upper_bound=boost::lexical_cast<string>(::eosio::string_to_name(account_name.c_str())),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result domain_result = get_table_rows_by_seckey<index64_index, uint64_t>(domain_row_params,
+                                                                                                    abi,
+                                                                                                    [](uint64_t v) -> uint64_t {
+                                                                                                        return v;
+                                                                                                    });
+
+            FIO_404_ASSERT(!domain_result.rows.empty(), "No FIO Domains", fioio::ErrorPubAddressNotFound);
+
+            std::string dom;
+            uint64_t domexpiration;
+            bool public_domain;
+
+            if (search_offset < domain_result.rows.size() ) {
+                for (size_t pos = 0 + search_offset; pos < domain_result.rows.size();pos++) {
+                    if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                        break;
+                    }
+                    dom = ((string) domain_result.rows[pos]["name"].as_string());
+                    domexpiration = domain_result.rows[pos]["expiration"].as_uint64();
+                    public_domain = domain_result.rows[pos]["is_public"].as_bool();
+
+                    temptime = domexpiration;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                    fiodomain_record d{dom, buffer, public_domain};
+                    result.fio_domains.push_back(d);    //pushback results in domain
+                }
+            }
+
+            return result;
+        } // get_fio_domains
+
+        /*** v1/chain/get_fio_addresses
+       * Retrieves the fio addresses associated with the provided public address
+       * @param p
+       * @return result
+       */
+        read_only::get_fio_addresses_result read_only::get_fio_addresses(const read_only::get_fio_addresses_params &p) const {
+            // assert if empty chain key
+            get_fio_addresses_result result;
+            //first check the pub key for validity.
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            name account = name{account_name};
+
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            const uint64_t key_hash = ::eosio::string_to_uint64_t(p.fio_public_key.c_str()); // hash of public address
+
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_system_code,
+                    .scope       = fio_system_scope,
+                    .table       = fio_address_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position ="4"};
+
+            get_table_rows_result table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            std::string nam;
+            uint64_t namexpiration;
+            time_t temptime;
+            struct tm *timeinfo;
+            char buffer[80];
+
+            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO Addresses", fioio::ErrorPubAddressNotFound);
+
+            if (search_offset < table_rows_result.rows.size()) {
+
+                for (size_t pos = 0 + search_offset;pos < table_rows_result.rows.size();pos++) {
+                    if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                        break;
+                    }
+                    nam = (string) table_rows_result.rows[pos]["name"].as_string();
+                    if (nam.find('@') != std::string::npos) { 
+                        namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+
+                        temptime = namexpiration;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                        fioaddress_record fa{nam, buffer};
+                        result.fio_addresses.push_back(fa);
+                    }
+                }
+            }
+
+            return result;
+        } // get_fio_addresses
+
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
 
             FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
