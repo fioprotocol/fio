@@ -2306,9 +2306,7 @@ if( options.count(name) ) { \
                                                                                                         return v;
                                                                                                     });
 
-            if (domain_result.rows.empty()) {
-                return result;
-            }
+            FIO_404_ASSERT(!domain_result.rows.empty(), "No FIO Domains", fioio::ErrorPubAddressNotFound);
 
             std::string dom;
             uint64_t domexpiration;
@@ -2387,7 +2385,9 @@ if( options.count(name) ) { \
             struct tm *timeinfo;
             char buffer[80];
 
-            if ((!table_rows_result.rows.empty()) && (search_offset < table_rows_result.rows.size())) {
+            FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO Addresses", fioio::ErrorPubAddressNotFound);
+
+            if (search_offset < table_rows_result.rows.size()) {
 
                 for (size_t pos = 0 + search_offset;pos < table_rows_result.rows.size();pos++) {
                     if((search_limit > 0)&&(pos-search_offset >= search_limit)){
