@@ -185,7 +185,7 @@ namespace eosiosystem {
             }.send();
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
+              "Transaction is too large", ErrorTransactionTooLarge);
         }
 
         [[eosio::action]]
@@ -213,7 +213,7 @@ namespace eosiosystem {
             }
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
+              "Transaction is too large", ErrorTransactionTooLarge);
         }
 
         [[eosio::action]]

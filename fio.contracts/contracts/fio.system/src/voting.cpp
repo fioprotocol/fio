@@ -153,7 +153,7 @@ namespace eosiosystem {
             });
         }
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 
@@ -196,7 +196,8 @@ namespace eosiosystem {
 
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
-        fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -210,7 +211,8 @@ namespace eosiosystem {
         auto domainsbyname = _domains.get_index<"byname"_n>();
         auto domains_iter = domainsbyname.find(domainHash);
 
-        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+        fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         uint32_t expiration = domains_iter->expiration;
 
@@ -260,7 +262,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -282,7 +284,8 @@ namespace eosiosystem {
         auto namesbyname = _fionames.get_index<"byname"_n>();
         auto fioname_iter = namesbyname.find(nameHash);
 
-        fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
@@ -296,7 +299,8 @@ namespace eosiosystem {
         auto domainsbyname = _domains.get_index<"byname"_n>();
         auto domains_iter = domainsbyname.find(domainHash);
 
-        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+        fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -343,7 +347,7 @@ namespace eosiosystem {
 
 
        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-         "Transaction is too large", ErrorTransaction);
+         "Transaction is too large", ErrorTransactionTooLarge);
         send_response(response_string.c_str());
     }
 
@@ -496,7 +500,7 @@ namespace eosiosystem {
 
         FioAddress fa;
         getFioAddressStruct(fio_address, fa);
-        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "Invalid FIO Address format",
                        ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
@@ -518,7 +522,8 @@ namespace eosiosystem {
         auto domainsbyname = _domains.get_index<"byname"_n>();
         auto voterdomain_iter = domainsbyname.find(voterDomainHash);
 
-        fio_404_assert(voterdomain_iter != domainsbyname.end(), "FIO Address not found", ErrorDomainNotFound);
+        fio_400_assert(voterdomain_iter != domainsbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
         fio_403_assert(voter_iter->owner_account == actor.value, ErrorSignature);
 
         uint32_t voterdomain_expiration = voterdomain_iter->expiration;
@@ -532,7 +537,8 @@ namespace eosiosystem {
             uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             auto fioname_iter = namesbyname.find(nameHash);
-            fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+            fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
+                           "FIO Address not registered", ErrorFioNameNotReg);
 
             uint32_t name_expiration = fioname_iter->expiration;
 
@@ -542,7 +548,8 @@ namespace eosiosystem {
 
             auto domains_iter = domainsbyname.find(domainHash);
 
-            fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+                           "FIO Address not registered", ErrorFioNameNotReg);
 
             uint32_t expiration = domains_iter->expiration;
             fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -606,7 +613,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -620,7 +627,9 @@ namespace eosiosystem {
         getFioAddressStruct(proxy, fa);
         getFioAddressStruct(fio_address, va);
 
-        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "FIO Address not found",
+        fio_400_assert(validateFioNameFormat(va), "proxy", proxy, "Invalid FIO Address format",
+                       ErrorDomainAlreadyRegistered);
+        fio_400_assert(validateFioNameFormat(fa), "fio_address", fio_address, "Invalid FIO Address format",
                        ErrorDomainAlreadyRegistered);
 
         uint128_t voterHash = string_to_uint128_hash(fio_address.c_str());
@@ -641,8 +650,8 @@ namespace eosiosystem {
 
         auto domainsbyname = _domains.get_index<"byname"_n>();
         auto voterdomain_iter = domainsbyname.find(voterDomainHash);
-
-        fio_404_assert(voterdomain_iter != domainsbyname.end(), "FIO Address not found", ErrorDomainNotFound);
+        fio_400_assert(voterdomain_iter != domainsbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
         fio_403_assert(voter_iter->owner_account == actor.value, ErrorSignature);
 
         uint32_t voterdomain_expiration = voterdomain_iter->expiration;
@@ -652,25 +661,26 @@ namespace eosiosystem {
         uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
         uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
         auto fioname_iter = namesbyname.find(nameHash);
-        fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+        fio_400_assert(fioname_iter != namesbyname.end(), "proxy", proxy,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         //check that the name is not expired
         uint32_t name_expiration = fioname_iter->expiration;
-
         uint64_t account = fioname_iter->owner_account;
-        fio_400_assert(present_time <= name_expiration, "fio_address", proxy,
+        fio_400_assert(present_time <= name_expiration, "proxy", proxy,
                        "FIO Address expired", ErrorFioNameExpired);
 
         auto domains_iter = domainsbyname.find(domainHash);
 
-        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+        fio_400_assert(domains_iter != domainsbyname.end(), "proxy", proxy,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         uint32_t expiration = domains_iter->expiration;
 
         //add 30 days to the domain expiration, this call will work until 30 days past expire.
         expiration = get_time_plus_seconds(expiration,SECONDS30DAYS);
 
-        fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
+        fio_400_assert(present_time <= expiration, "proxy", proxy, "FIO Domain expired",
                        ErrorDomainExpired);
 
         auto proxy_name = name{account};
@@ -742,7 +752,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -853,7 +863,7 @@ namespace eosiosystem {
             new_vote_weight += voter->proxied_vote_weight;
         }
 
-        if( !(voter->proxy) ) {
+        if( !(proxy) ) {
 
             if( voter->last_vote_weight > 0.0 ) {
                 _gstate.total_voted_fio -= voter->last_vote_weight;
@@ -1030,7 +1040,8 @@ namespace eosiosystem {
         auto domainsbyname = _domains.get_index<"byname"_n>();
         auto domains_iter = domainsbyname.find(domainHash);
 
-        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+        fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         uint32_t expiration = domains_iter->expiration;
         fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
@@ -1069,7 +1080,7 @@ namespace eosiosystem {
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-         "Transaction is too large", ErrorTransaction);
+         "Transaction is too large", ErrorTransactionTooLarge);
         send_response(response_string.c_str());
     }
 
@@ -1103,7 +1114,8 @@ namespace eosiosystem {
         auto domainsbyname = _domains.get_index<"byname"_n>();
         auto domains_iter = domainsbyname.find(domainHash);
 
-        fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+        fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+                       "FIO Address not registered", ErrorFioNameNotReg);
 
         uint32_t expiration = domains_iter->expiration;
 
@@ -1155,7 +1167,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
     }
@@ -1215,7 +1227,7 @@ namespace eosiosystem {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 

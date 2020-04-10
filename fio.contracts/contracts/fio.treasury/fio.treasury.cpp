@@ -11,7 +11,7 @@
 #define BPMAXTOMINT     50000000000000          // 50,000  FIO
 #define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
-#define PAYSCHEDTIME    172801                  // 1 day  ( block time )
+#define PAYSCHEDTIME    86401                   //seconds per day + 1
 #define PAYABLETPIDS    100
 
 #include "fio.treasury.hpp"
@@ -103,7 +103,7 @@ public:
                                          to_string(tpids_paid) + string("}");
 
                fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-                 "Transaction is too large", ErrorTransaction);
+                 "Transaction is too large", ErrorTransactionTooLarge);
 
                 send_response(response_string.c_str());
         } //tpid_claim
@@ -114,7 +114,7 @@ public:
                 require_auth(actor);
 
                 gstate = global.get();
-                check( gstate.total_voted_fio >= MINVOTEDFIO,
+                check( gstate.total_voted_fio >= MINVOTEDFIO || gstate.thresh_voted_fio_time != time_point() ,
                        "cannot claim rewards until the chain voting threshold is exceeded" );
 
                 auto namesbyname = fionames.get_index<"byname"_n>();
@@ -166,21 +166,28 @@ public:
                 //*********** CREATE PAYSCHEDULE **************
                 // If there is no pay schedule then create a new one
                 if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
-                        //Create the payment schedule
-                        uint64_t bpcounter = 0;
-                        auto proditer = producers.get_index<"prototalvote"_n>();
-                        for (const auto &itr : proditer) {
-                                if (itr.is_active) {
-                                        voteshares.emplace(actor, [&](auto &p) {
-                                                        p.owner = itr.owner;
-                                                        p.votes = itr.total_votes;
-                                                });
-                                }
-                                bpcounter++;
-                                if (bpcounter > MAXBPS) break;
-                        } // &itr : producers table
+                    //Create the payment schedule
+                    int64_t bpcounter = 0;
+                    uint64_t activecount = 0;
+                    auto proditer = producers.get_index<"prototalvote"_n>();
+                    auto itr = proditer.end();
 
-                        //Move 1/365 of the bucketpool to the bpshare
+                    int32_t prodcount = std::distance(producers.begin(), producers.end());
+                    check(prodcount > 0,"error -- no producers");
+
+                    for (int32_t idx=prodcount-1;idx >=0; idx--) {
+                        --itr;
+                        if (itr->is_active) {
+                            voteshares.emplace(actor, [&](auto &p) {
+                                p.owner = itr->owner;
+                                p.votes = itr->total_votes;
+                            });
+                        }
+                        bpcounter++;
+                        if (bpcounter >= MAXBPS) break;
+                    } // &itr : producers table
+
+                    //Move 1/365 of the bucketpool to the bpshare
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
 
@@ -232,29 +239,34 @@ public:
 
                         }
                         // All bps are now in pay schedule, calculate the shares
-                        uint64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
-                        uint64_t abpcount = MAXACTIVEBPS;
+                        int64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
+                        int64_t abpcount = MAXACTIVEBPS;
 
-                        if (bpcount > MAXBPS) bpcount = MAXBPS; //limit to 42 producers in voteshares
                         if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
                         uint64_t toactivebps = static_cast<uint64_t>(bprewardstat.rewards * .40);
 
                         bpcounter = 0;
-                        for (const auto &itr : voteshares) {
-                                if (bpcounter <= abpcount) {
-                                        voteshares.modify(itr, get_self(), [&](auto &entry) {
-                                                        entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
-                                                });
-                                }
+                        auto votesharesiter = voteshares.get_index<"byvotes"_n>();
+                        for (const auto &itr : votesharesiter) {
+                            if (bpcounter > (bpcount - abpcount)-1) {
+                                voteshares.modify(itr, get_self(), [&](auto &entry) {
+                                    entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
+                                });
+                            }
                                 voteshares.modify(itr, get_self(), [&](auto &entry) {
                                                 entry.sbpayshare =  static_cast<uint64_t>((tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));;
                                         });
                                 bpcounter++;
                         } // &itr : voteshares
-                        //Start 24 track for daily pay
-                        state.payschedtimer = now();
+
+                        //Start 24 track for daily pay schedule
+                        if (state.payschedtimer == 0){
+                                state.payschedtimer = now();
+                        }else {
+                                state.payschedtimer += (PAYSCHEDTIME - 1);
+                        }
 
                 } //if new payschedule
                   //*********** END OF CREATE PAYSCHEDULE **************
@@ -311,7 +323,7 @@ public:
                                          to_string(payout) + string("}");
 
                 fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-                 "Transaction is too large", ErrorTransaction);
+                 "Transaction is too large", ErrorTransactionTooLarge);
 
                 send_response(response_string.c_str());
         } //bpclaim
