@@ -227,23 +227,23 @@
       "type": "bool"
       }]
       },{
-       "name": "transferdom",
+       "name": "xferdomain",
        "base": "",
        "fields": [{
-       "name": "domain",
-       "type": "name"
+       "name": "fio_domain",
+       "type": "string"
        },{
-       "name": "new_owner",
-       "type": "name"
-       },{
-       "name": "actor",
-       "type": "name"
+       "name": "new_owner_fio_public_key",
+       "type": "string"
        },{
        "name": "max_fee",
        "type": "int64"
        },{
        "name": "tpid",
        "type": "string"
+       },{
+       "name": "actor",
+       "type": "name"
        }]
      }
   ],
@@ -280,8 +280,8 @@
     "type": "bind2eosio",
     "ricardian_contract": ""
     },{
-    "name": "transferdom",
-    "type": "transferdom",
+    "name": "xferdomain",
+    "type": "xferdomain",
     "ricardian_contract": ""
     }
   ],
