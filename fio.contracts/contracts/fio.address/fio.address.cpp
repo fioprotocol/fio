@@ -471,7 +471,7 @@ namespace fioio {
            const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                   timebuffer + string("\",\"fee_collected\":") +
                                   to_string(reg_amount) + string("}");
-                                  
+
           fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
             "Transaction is too large", ErrorTransactionTooLarge);
 
@@ -923,9 +923,6 @@ namespace fioio {
             send_response(response_string.c_str());
         } //addaddress
 
-
-
-
         [[eosio::action]]
         void
         setdomainpub(const string &fio_domain, const int8_t is_public, const int64_t &max_fee, const name &actor,
@@ -1048,6 +1045,79 @@ namespace fioio {
             }
         }
 
+        [[eosio::action]]
+        void xferdomain(const string &fio_domain, const string &new_owner_fio_public_key, const int64_t &max_fee,
+                        const string &tpid, const name &actor) {
+            require_auth(actor);
+
+            fio_400_assert(isPubKeyValid(new_owner_fio_public_key), "new_owner_fio_public_key", new_owner_fio_public_key,
+                           "Invalid FIO Public Key", ErrorChainAddressEmpty);
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(string_to_uint128_hash(fio_domain));
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_domain", fio_domain,
+                           "FIO Domain not registered", ErrorDomainNotRegistered);
+
+            const uint32_t domain_expiration = domains_iter->expiration;
+            const uint32_t present_time = now();
+            fio_400_assert(present_time <= domain_expiration, "fio_domain", fio_domain, "FIO Domain expired. Renew first.",
+                           ErrorDomainExpired);
+
+            fio_403_assert(domains_iter->account == actor.value, ErrorSignature);
+            require_auth(domains_iter->account);
+            const uint128_t endpoint_hash = string_to_uint128_hash("transfer_fio_domain");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_fio_domain",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            //Transfer the domain
+            string owner_account;
+            key_to_account(new_owner_fio_public_key, owner_account);
+            const name nm = name{owner_account};
+            domainsbyname.modify(domains_iter, actor, [&](struct domain &a) {
+                a.account = nm.value;
+            });
+
+            //fees
+            const uint64_t fee_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
+
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_domain, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
+                           "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            processbucketrewards(tpid, fee_amount, get_self());
+
+            if (XFERDOMAINRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, XFERDOMAINRAM)
+                ).send();
+            }
+
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                           to_string(fee_amount) + string("}");
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+                           "Transaction is too large", ErrorTransaction);
+
+            send_response(response_string.c_str());
+        }
+
         void decrcounter(const string &fio_address, const int32_t step) {
 
         check(step > 0, "step must be greater than 0");
@@ -1070,5 +1140,5 @@ namespace fioio {
     };
 
     EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(setdomainpub)(burnexpired)(decrcounter)
-    (bind2eosio))
+    (bind2eosio) (xferdomain))
 }

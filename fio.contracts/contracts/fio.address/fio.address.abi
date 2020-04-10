@@ -226,7 +226,26 @@
       "name": "existing",
       "type": "bool"
       }]
-      }
+      },{
+       "name": "xferdomain",
+       "base": "",
+       "fields": [{
+       "name": "fio_domain",
+       "type": "string"
+       },{
+       "name": "new_owner_fio_public_key",
+       "type": "string"
+       },{
+       "name": "max_fee",
+       "type": "int64"
+       },{
+       "name": "tpid",
+       "type": "string"
+       },{
+       "name": "actor",
+       "type": "name"
+       }]
+     }
   ],
   "actions": [{
       "name": "regaddress",
@@ -259,6 +278,10 @@
     },{
     "name": "bind2eosio",
     "type": "bind2eosio",
+    "ricardian_contract": ""
+    },{
+    "name": "xferdomain",
+    "type": "xferdomain",
     "ricardian_contract": ""
     }
   ],

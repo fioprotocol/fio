@@ -24,7 +24,7 @@ namespace fioio {
         if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
             action == "renewdomain" || action == "renewaddress" ||
             action == "setdomainpub" || action == "bind2eosio" ||
-            action == "burnexpired" || action == "decrcounter" )
+            action == "burnexpired" || action == "decrcounter" || action == "xferdomain" )
           return "fio.address";
 
 
