@@ -1068,8 +1068,6 @@ namespace fioio {
             fio_400_assert(present_time <= domain_expiration, "fio_domain", fio_domain, "FIO Domain expired. Renew first.",
                            ErrorDomainExpired);
 
-            //fio_400_assert(domiter->account == actor.value, "actor", actor.to_string(),
-            //               "Not owner of FIO Domain", ErrorDomainOwner);
             fio_403_assert(domains_iter->account == actor.value, ErrorSignature);
             require_auth(domains_iter->account);
             const uint128_t endpoint_hash = string_to_uint128_hash("transfer_fio_domain");
