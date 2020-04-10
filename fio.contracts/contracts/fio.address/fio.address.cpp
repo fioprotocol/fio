@@ -1078,7 +1078,9 @@ namespace fioio {
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             //Transfer the domain
-            const name nm = name{new_owner_fio_public_key};
+            string owner_account;
+            key_to_account(new_owner_fio_public_key, owner_account);
+            const name nm = name{owner_account};
             domainsbyname.modify(domains_iter, actor, [&](struct domain &a) {
                 a.account = nm.value;
             });
