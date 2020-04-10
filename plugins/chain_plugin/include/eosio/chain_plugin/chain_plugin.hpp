@@ -539,6 +539,26 @@ namespace eosio {
                 vector<fioaddress_record> fio_addresses;
             };
 
+            struct get_fio_domains_params {
+                string fio_public_key;
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+            struct get_fio_domains_result {
+                vector<fiodomain_record> fio_domains;
+            };
+
+            struct get_fio_addresses_params {
+                string fio_public_key;
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+            struct get_fio_addresses_result {
+                vector<fioaddress_record> fio_addresses;
+            };
+
+
+
             struct get_fio_balance_params {
                 fc::string fio_public_key;
             };
@@ -584,6 +604,8 @@ namespace eosio {
              * @return
              */
             get_fio_names_result get_fio_names(const get_fio_names_params &params) const;
+            get_fio_domains_result get_fio_domains(const get_fio_domains_params &params) const;
+            get_fio_addresses_result get_fio_addresses(const get_fio_addresses_params &params) const;
 
 
             //avail_check - FIO Address or Domain availability check
@@ -1299,6 +1321,10 @@ FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_publ
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_result, (fio_domains));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_params, (fio_public_key)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_result, (fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_params, (end_point)(fio_address))
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_result, (fee));
 FC_REFLECT(eosio::chain_apis::read_only::avail_check_params, (fio_name))
