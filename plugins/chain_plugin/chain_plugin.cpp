@@ -2429,7 +2429,7 @@ if( options.count(name) ) { \
             vector<asset> cursor;
             result.balance = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(fioKey);
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
             std::string hexvalkeyhash = "0x";
