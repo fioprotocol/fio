@@ -183,8 +183,9 @@ public:
                                                         p.owner = itr->owner;
                                                         p.votes = itr->total_votes;
                                                 });
+                                        bpcounter++;
                                 }
-                                bpcounter++;
+
                                 if (bpcounter >= MAXBPS) break;
                         } // &itr : producers table
 
