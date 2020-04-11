@@ -11,7 +11,8 @@
 #define BPMAXTOMINT     50000000000000          // 50,000  FIO
 #define FDTNMAXRESERVE  181253654000000000      // 181,253,654 FIO
 #define BPMAXRESERVE    10000000000000000       // 10,000,000 FIO
-#define PAYSCHEDTIME    86401                   //seconds per day + 1
+//#define PAYSCHEDTIME    86401                   //seconds per day + 1
+#define PAYSCHEDTIME    121                   //seconds per day + 1
 #define PAYABLETPIDS    100
 
 #include "fio.treasury.hpp"
@@ -170,14 +171,15 @@ public:
                         //Create the payment schedule
                         int64_t bpcounter = 0;
                         uint64_t activecount = 0;
+                        //prototal votes returns active producers sorted beginning at the highest voted to the lowest voted
+                        // active producers  then for inactive producers lowest voted to highest voted.
                         auto proditer = producers.get_index<"prototalvote"_n>();
-                        auto itr = proditer.end();
+                        auto itr = proditer.begin();
 
                         int32_t prodcount = std::distance(producers.begin(), producers.end());
                         check(prodcount > 0,"error -- no producers");
 
-                        for (int32_t idx=prodcount-1;idx >=0; idx--) {
-                                --itr;
+                        for (int32_t idx=0;idx <prodcount; idx++) {
                                 if (itr->is_active) {
                                         voteshares.emplace(actor, [&](auto &p) {
                                                         p.owner = itr->owner;
@@ -185,6 +187,7 @@ public:
                                                 });
                                         bpcounter++;
                                 }
+                                itr++;
 
                                 if (bpcounter >= MAXBPS) break;
                         } // &itr : producers table
