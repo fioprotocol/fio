@@ -1027,10 +1027,12 @@ namespace fioio {
          *
          **/
         [[eosio::action]]
-        void bind2eosio(name account, const string &client_key, bool existing) {
+        void bind2eosio(const name &account, const string &client_key, const bool &existing) {
             eosio_assert((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(SYSTEMACCOUNT)),
                          "missing required authority of fio.address,  fio.token, or eosio");
 
+           fio_400_assert(isPubKeyValid(client_key), "client_key", client_key,
+                          "Invalid FIO Public Key", ErrorPubKeyValid);
             auto other = accountmap.find(account.value);
             if (other != accountmap.end()) {
                 eosio_assert_message_code(existing && client_key == other->clientkey, "EOSIO account already bound",
