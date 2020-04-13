@@ -54,7 +54,7 @@
          "type": "uint8"
        },{
           "name": "expiration",
-          "type": "uint32"
+          "type": "uint64"
         }
       ]
     },{
