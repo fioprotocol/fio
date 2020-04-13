@@ -169,6 +169,8 @@ public:
                     //Create the payment schedule
                     int64_t bpcounter = 0;
                     uint64_t activecount = 0;
+                    //prototal votes returns active producers sorted beginning at the highest voted to the lowest voted
+                    // active producers  then for inactive producers lowest voted to highest voted.
                     auto proditer = producers.get_index<"prototalvote"_n>();
                     auto itr = proditer.begin();
 
@@ -181,10 +183,11 @@ public:
                                 p.owner = itr->owner;
                                 p.votes = itr->total_votes;
                             });
+                            bpcounter++;
                         }
-                        bpcounter++;
-                        if (bpcounter >= MAXBPS) break;
+
                         itr++;
+                        if (bpcounter >= MAXBPS) break;
                     } // &itr : producers table
 
                     //Move 1/365 of the bucketpool to the bpshare
