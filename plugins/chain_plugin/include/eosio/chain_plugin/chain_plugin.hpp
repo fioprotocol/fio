@@ -546,6 +546,7 @@ namespace eosio {
             };
             struct get_fio_domains_result {
                 vector<fiodomain_record> fio_domains;
+                uint32_t more;
             };
 
             struct get_fio_addresses_params {
@@ -555,6 +556,7 @@ namespace eosio {
             };
             struct get_fio_addresses_result {
                 vector<fioaddress_record> fio_addresses;
+                uint32_t more;
             };
 
 
@@ -1331,9 +1333,9 @@ FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_result, (fio_domains));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_result, (fio_domains)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_result, (fio_addresses));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_result, (fio_addresses)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_params, (end_point)(fio_address))
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_result, (fee));
 FC_REFLECT(eosio::chain_apis::read_only::avail_check_params, (fio_name))
