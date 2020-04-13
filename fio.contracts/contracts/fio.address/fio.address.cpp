@@ -1120,7 +1120,7 @@ namespace fioio {
             send_response(response_string.c_str());
         }
 
-        void decrcounter(const string &fio_address, const int32_t step) {
+        void decrcounter(const string &fio_address, const int32_t &step) {
 
         check(step > 0, "step must be greater than 0");
         check((has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
