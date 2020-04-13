@@ -2273,6 +2273,7 @@ if( options.count(name) ) { \
         read_only::get_fio_domains_result read_only::get_fio_domains(const read_only::get_fio_domains_params &p) const {
             // assert if empty chain key
             get_fio_domains_result result;
+            result.more = 0;
             //first check the pub key for validity.
             FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
@@ -2319,10 +2320,16 @@ if( options.count(name) ) { \
             bool public_domain;
 
             if (search_offset < domain_result.rows.size() ) {
+                int64_t leftover = domain_result.rows.size() - (search_offset+search_limit);
+                if (leftover < 0){
+                    leftover = 0;
+                }
+                result.more = leftover;
                 for (size_t pos = 0 + search_offset; pos < domain_result.rows.size();pos++) {
                     if((search_limit > 0)&&(pos-search_offset >= search_limit)){
                         break;
                     }
+
                     dom = ((string) domain_result.rows[pos]["name"].as_string());
                     domexpiration = domain_result.rows[pos]["expiration"].as_uint64();
                     public_domain = domain_result.rows[pos]["is_public"].as_bool();
@@ -2333,6 +2340,7 @@ if( options.count(name) ) { \
 
                     fiodomain_record d{dom, buffer, public_domain};
                     result.fio_domains.push_back(d);    //pushback results in domain
+                    result.more = (domain_result.rows.size()-pos)-1;
                 }
             }
 
@@ -2347,6 +2355,7 @@ if( options.count(name) ) { \
         read_only::get_fio_addresses_result read_only::get_fio_addresses(const read_only::get_fio_addresses_params &p) const {
             // assert if empty chain key
             get_fio_addresses_result result;
+            result.more = 0;
             //first check the pub key for validity.
             FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
@@ -2394,6 +2403,11 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(!table_rows_result.rows.empty(), "No FIO Addresses", fioio::ErrorPubAddressNotFound);
 
             if (search_offset < table_rows_result.rows.size()) {
+                int64_t leftover = table_rows_result.rows.size() - (search_offset+search_limit);
+                if (leftover < 0){
+                    leftover = 0;
+                }
+                result.more = leftover;
 
                 for (size_t pos = 0 + search_offset;pos < table_rows_result.rows.size();pos++) {
                     if((search_limit > 0)&&(pos-search_offset >= search_limit)){
@@ -2410,6 +2424,7 @@ if( options.count(name) ) { \
                         fioaddress_record fa{nam, buffer};
                         result.fio_addresses.push_back(fa);
                     }
+                    result.more = (table_rows_result.rows.size()-pos)-1;
                 }
             }
 
