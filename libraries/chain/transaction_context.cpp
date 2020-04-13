@@ -163,10 +163,12 @@ namespace eosio {
                                                  const signed_transaction &t,
                                                  const transaction_id_type &trx_id,
                                                  fc::time_point s)
-                : control(c), trx(t), id(trx_id), undo_session(), trace(std::make_shared<transaction_trace>()),
+                : control(c), trx(t), id(trx_id), undo_session(), hundo_session(), hiundo_session(), trace(std::make_shared<transaction_trace>()),
                   start(s), net_usage(trace->net_usage), pseudo_start(s) {
             if (!c.skip_db_sessions()) {
                 undo_session = c.mutable_db().start_undo_session(true);
+                hundo_session = c.mutable_hdb().start_undo_session(true);
+                hiundo_session = c.mutable_hidb().start_undo_session(true);
             }
             trace->id = id;
             trace->block_num = c.head_block_num() + 1;
@@ -447,10 +449,14 @@ namespace eosio {
 
         void transaction_context::squash() {
             if (undo_session) undo_session->squash();
+            if (hundo_session) hundo_session->squash();
+            if (hiundo_session) hiundo_session->squash();
         }
 
         void transaction_context::undo() {
             if (undo_session) undo_session->undo();
+            if (hundo_session) hundo_session->undo();
+            if (hiundo_session) hiundo_session->undo();
         }
 
         void transaction_context::check_net_usage() const {

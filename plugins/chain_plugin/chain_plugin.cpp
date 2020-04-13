@@ -227,6 +227,24 @@ namespace eosio {
                 ("chain-state-db-guard-size-mb",
                  bpo::value<uint64_t>()->default_value(config::default_state_guard_size / (1024 * 1024)),
                  "Safely shut down node when free space remaining in the chain state database drops below this size (in MiB).")
+                ("history-dir",
+                 bpo::value<std::string>(),
+                 "Directory containing history data")
+                ("history-state-db-size-mb",
+                 bpo::value<uint64_t>()->default_value(config::default_history_size / (1024  * 1024)),
+                 "Maximum size (in MiB) of the history state database")
+                ("history-state-db-guard-size-mb",
+                 bpo::value<uint64_t>()->default_value(config::default_history_guard_size / (1024  * 1024)),
+                 "Safely shut down node when free space remaining in the history state database drops below this size (in MiB).")
+                ("history-index-dir",
+                 bpo::value<std::string>(),
+                 "Directory containing history index data")
+                ("history-index-state-db-size-mb",
+                 bpo::value<uint64_t>()->default_value(config::default_history_size / (1024  * 1024)),
+                 "Maximum size (in MiB) of the history index state database")
+                ("history-index-state-db-guard-size-mb",
+                 bpo::value<uint64_t>()->default_value(config::default_history_guard_size / (1024  * 1024)),
+                 "Safely shut down node when free space remaining in the history index state database drops below this size (in MiB).")
                 ("reversible-blocks-db-size-mb",
                  bpo::value<uint64_t>()->default_value(config::default_reversible_cache_size / (1024 * 1024)),
                  "Maximum size (in MiB) of the reversible blocks database")
@@ -690,6 +708,38 @@ if( options.count(name) ) { \
                 my->chain_config->state_guard_size =
                         options.at("chain-state-db-guard-size-mb").as<uint64_t>() * 1024 * 1024;
 
+            if( options.count( "history-dir" ) ) {
+                // Workaround for 10+ year old Boost defect
+                // See https://svn.boost.org/trac10/ticket/8535
+                // Should be .as<bfs::path>() but paths with escaped spaces break bpo e.g.
+                // std::exception::what: the argument ('/path/with/white\ space') for option '--history-dir' is invalid
+                auto workaround = options["history-dir"].as<std::string>();
+                bfs::path h_dir = workaround;
+                if( h_dir.is_relative() )
+                   h_dir = bfs::current_path() / h_dir;
+                my->chain_config->history_dir = h_dir / config::default_history_dir_name;
+            }
+
+            if( options.count( "history-state-db-size-mb" ))
+                my->chain_config->history_size = options.at( "history-state-db-size-mb" ).as<uint64_t>() * 1024 * 1024;
+
+            if( options.count( "history-state-db-guard-size-mb" ))
+                my->chain_config->history_guard_size = options.at( "history-state-db-guard-size-mb" ).as<uint64_t>() * 1024 * 1024;
+
+            if( options.count( "history-index-dir" ) ) {
+                auto workaround = options["history-index-dir"].as<std::string>();
+                bfs::path hi_dir = workaround;
+                if( hi_dir.is_relative() )
+                  hi_dir = bfs::current_path() / hi_dir;
+                my->chain_config->history_index_dir = hi_dir / config::default_history_index_dir_name;
+            }
+
+            if( options.count( "history-index-state-db-size-mb" ))
+                my->chain_config->history_index_size = options.at( "history-index-state-db-size-mb" ).as<uint64_t>() * 1024 * 1024;
+
+            if( options.count( "history-index-state-db-guard-size-mb" ))
+                my->chain_config->history_index_guard_size = options.at( "history-index-state-db-guard-size-mb" ).as<uint64_t>() * 1024 * 1024;
+
             if (options.count("reversible-blocks-db-size-mb"))
                 my->chain_config->reversible_cache_size =
                         options.at("reversible-blocks-db-size-mb").as<uint64_t>() * 1024 * 1024;
@@ -699,7 +749,7 @@ if( options.count(name) ) { \
                         options.at("reversible-blocks-db-guard-size-mb").as<uint64_t>() * 1024 * 1024;
 
             if (options.count("chain-threads")) {
-                my->chain_config->thread_pool_size = options.at("chain-threads").as<uint16_t>();
+              my->chain_config->thread_pool_size = options.at("chain-threads").as<uint16_t>();
                 EOS_ASSERT(my->chain_config->thread_pool_size > 0, plugin_config_exception,
                            "chain-threads ${num} must be greater than 0", ("num", my->chain_config->thread_pool_size));
             }

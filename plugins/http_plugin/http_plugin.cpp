@@ -705,6 +705,10 @@ namespace eosio {
                 cb(422, fc::variant(results));
                 elog("Unable to parse arguments to ${api}.${call}", ("api", api_name)("call", call_name));
                 dlog("Bad arguments: ${args}", ("args", body));
+            } catch (chain::plugin_range_not_satisfiable& e) {
+                error_results results{416, "Range Not Satisfiable", error_results::error_info(e, verbose_http_errors)};
+                cb( 416, fc::json::to_string( results ));
+                //dlog( "Exception Details: ${e}", ("e", e.to_detail_string()));  // For debugging only.
             } catch (fc::exception &e) {
                 if (fioio::is_fio_error(e.code())) {
                     auto rescode = fioio::get_http_result(e.code());
