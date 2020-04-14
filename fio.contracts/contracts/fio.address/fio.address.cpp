@@ -1048,6 +1048,98 @@ namespace fioio {
         }
 
         [[eosio::action]]
+        void xferaddress(const string &fio_address, const string &new_owner_fio_public_key, const int64_t &max_fee,
+                        const string &tpid, const name &actor) {
+            require_auth(actor);
+            FioAddress fa;
+            getFioAddressStruct(fio_address, fa);
+
+            fio_400_assert(validateFioNameFormat(fa) || !fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
+                           ErrorDomainAlreadyRegistered);
+            fio_400_assert(isPubKeyValid(new_owner_fio_public_key), "new_owner_fio_public_key",
+                           new_owner_fio_public_key,
+                           "Invalid FIO Public Key", ErrorChainAddressEmpty);
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(string_to_uint128_hash(fa.fiodomain));
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+                           "FIO Domain not registered", ErrorDomainNotRegistered);
+
+            const uint32_t domain_expiration = domains_iter->expiration;
+            const uint32_t present_time = now();
+            fio_400_assert(present_time <= domain_expiration, "fio_address", fio_address, "FIO Domain expired. Renew first.",
+                           ErrorDomainExpired);
+
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fa.fioaddress,
+                           "FIO Address not registered", ErrorFioNameAlreadyRegistered);
+
+            fio_403_assert(fioname_iter->owner_account == actor.value, ErrorSignature);
+            const uint128_t endpoint_hash = string_to_uint128_hash("transfer_fio_address");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_fio_address",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            //Transfer the domain
+            string owner_account;
+            key_to_account(new_owner_fio_public_key, owner_account);
+            const name nm = name{owner_account};
+
+            vector<tokenpubaddr> pubaddresses;
+            tokenpubaddr t1;
+            t1.public_address = new_owner_fio_public_key;
+            t1.token_code = "FIO";
+            t1.chain_code = "FIO";
+            pubaddresses.push_back(t1);
+
+            namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+                a.owner_account = nm.value;
+                a.addresses =  pubaddresses;
+            });
+
+            //fees
+            const uint64_t fee_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
+
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_fio_address unexpected fee type for endpoint register_fio_address, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t) fee_amount, "max_fee", to_string(max_fee),
+                           "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            processbucketrewards(tpid, fee_amount, get_self());
+
+            if (XFERRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, XFERRAM)
+                ).send();
+            }
+
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                           to_string(fee_amount) + string("}");
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+                           "Transaction is too large", ErrorTransaction);
+
+            send_response(response_string.c_str());
+        }
+
+        [[eosio::action]]
         void xferdomain(const string &fio_domain, const string &new_owner_fio_public_key, const int64_t &max_fee,
                         const string &tpid, const name &actor) {
             require_auth(actor);
@@ -1071,7 +1163,6 @@ namespace fioio {
                            ErrorDomainExpired);
 
             fio_403_assert(domains_iter->account == actor.value, ErrorSignature);
-            require_auth(domains_iter->account);
             const uint128_t endpoint_hash = string_to_uint128_hash("transfer_fio_domain");
 
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
@@ -1102,12 +1193,12 @@ namespace fioio {
             fio_fees(actor, asset(fee_amount, FIOSYMBOL));
             processbucketrewards(tpid, fee_amount, get_self());
 
-            if (XFERDOMAINRAM > 0) {
+            if (XFERRAM > 0) {
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
                         "eosio"_n,
                         "incram"_n,
-                        std::make_tuple(actor, XFERDOMAINRAM)
+                        std::make_tuple(actor, XFERRAM)
                 ).send();
             }
 
@@ -1142,5 +1233,5 @@ namespace fioio {
     };
 
     EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(setdomainpub)(burnexpired)(decrcounter)
-    (bind2eosio) (xferdomain))
+    (bind2eosio) (xferdomain)(xferaddress))
 }
