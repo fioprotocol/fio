@@ -1065,21 +1065,16 @@ namespace fioio {
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
 
-            auto domainsbyname = domains.get_index<"byname"_n>();
-            auto domains_iter = domainsbyname.find(string_to_uint128_hash(fa.fiodomain));
-            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
-                           "FIO Domain not registered", ErrorDomainNotRegistered);
-
-            const uint32_t domain_expiration = domains_iter->expiration;
-            const uint32_t present_time = now();
-            fio_400_assert(present_time <= domain_expiration, "fio_address", fio_address, "FIO Domain expired. Renew first.",
-                           ErrorDomainExpired);
-
             const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
             auto namesbyname = fionames.get_index<"byname"_n>();
             auto fioname_iter = namesbyname.find(nameHash);
             fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO Address not registered", ErrorFioNameAlreadyRegistered);
+
+            const uint32_t expiration = fioname_iter->expiration;
+            const uint32_t present_time = now();
+            fio_400_assert(present_time <= expiration, "fio_address", fio_address, "FIO Address expired. Renew first.",
+                           ErrorDomainExpired);
 
             fio_403_assert(fioname_iter->owner_account == actor.value, ErrorSignature);
             const uint128_t endpoint_hash = string_to_uint128_hash("transfer_fio_address");
@@ -1089,7 +1084,7 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            //Transfer the domain
+            //Transfer the address
             string owner_account;
             key_to_account(new_owner_fio_public_key, owner_account);
             const name nm = name{owner_account};
