@@ -146,6 +146,8 @@ namespace eosio {
                                                          chain_apis::read_write::register_proxy_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_fio_domain,
                                                          chain_apis::read_write::transfer_fio_domain_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(transfer_fio_address,
+                                                         chain_apis::read_write::transfer_fio_address_results, 202),
                                      CHAIN_RW_CALL_ASYNC(vote_producer,
                                                          chain_apis::read_write::vote_producer_results, 202),
                                      CHAIN_RW_CALL_ASYNC(proxy_vote,
