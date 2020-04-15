@@ -171,7 +171,7 @@ namespace eosio {
 
         /* we permit the use of transfer from the system account to any other accounts,
          * we permit the use of transfer from the treasury account to any other accounts.
-         * we permit the use of transfer from any other accounts to the treasury account.
+         * we permit the use of transfer from any other accounts to the treasury account for fees.
          */
         if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
             check(to == TREASURYACCOUNT, "transfer not allowed");
@@ -202,10 +202,6 @@ namespace eosio {
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
-
-        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransactionTooLarge);
-
     }
 
 
