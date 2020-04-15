@@ -1095,7 +1095,7 @@ namespace fioio {
                                "FIO Address is active producer. Unregister first.", ErrorNoEndpoint);
             }
 
-            auto proxybyaddress = voters.get_index<"byaddress"_n>()
+            auto proxybyaddress = voters.get_index<"byaddress"_n>();
             auto proxy_iter = proxybyaddress.find(nameHash);
             if(proxy_iter != proxybyaddress.end()){
                 fio_400_assert(!proxy_iter->is_proxy, "fio_address", fio_address,
