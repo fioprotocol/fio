@@ -245,6 +245,25 @@
        "name": "actor",
        "type": "name"
        }]
+     },{
+       "name": "xferaddress",
+       "base": "",
+       "fields": [{
+       "name": "fio_address",
+       "type": "string"
+       },{
+       "name": "new_owner_fio_public_key",
+       "type": "string"
+       },{
+       "name": "max_fee",
+       "type": "int64"
+       },{
+       "name": "tpid",
+       "type": "string"
+       },{
+       "name": "actor",
+       "type": "name"
+       }]
      }
   ],
   "actions": [{
@@ -282,6 +301,10 @@
     },{
     "name": "xferdomain",
     "type": "xferdomain",
+    "ricardian_contract": ""
+    },{
+    "name": "xferaddress",
+    "type": "xferaddress",
     "ricardian_contract": ""
     }
   ],
