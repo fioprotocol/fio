@@ -1155,6 +1155,11 @@ namespace eosiosystem {
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
+        INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                ("eosio"_n, {{_self, "active"_n}},
+                 {actor, false}
+                );
+
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                  to_string(reg_amount) + string("}");
         if (REGPROXYRAM > 0) {
