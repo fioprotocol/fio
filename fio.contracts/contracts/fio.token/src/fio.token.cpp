@@ -194,6 +194,13 @@ namespace eosio {
         check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
+
+        const auto my_balance = eosio::token::get_balance("fio.token"_n, from, FIOSYMBOL.code());
+        uint64_t amount = my_balance.amount;
+        fio_400_assert(amount >= quantity.amount, "max_fee", to_string(quantity.amount),
+                       "Insufficient funds to cover fee",
+                       ErrorInsufficientUnlockedFunds);
+
         //we need to check the from, check for locked amount remaining
         fio_400_assert(can_transfer(from, 0, quantity.amount, true), "actor", to_string(from.value),
                        "Funds locked",
