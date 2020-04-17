@@ -1054,7 +1054,7 @@ namespace fioio {
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
 
-            fio_400_assert(validateFioNameFormat(fa) || !fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
+            fio_400_assert(validateFioNameFormat(fa) && !fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            ErrorDomainAlreadyRegistered);
             fio_400_assert(isPubKeyValid(new_owner_fio_public_key), "new_owner_fio_public_key",
                            new_owner_fio_public_key,
