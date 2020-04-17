@@ -109,9 +109,16 @@ namespace eosio {
                              const bool &isfee) {
 
         //get fio balance for this account,
+        uint64_t amount;
         uint32_t present_time = now();
-        const auto my_balance = eosio::token::get_balance("fio.token"_n, tokenowner, FIOSYMBOL.code());
-        uint64_t amount = my_balance.amount;
+        accounts from_acnts(_self, tokenowner.value);
+        const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
+
+        if(acnts_iter != from_acnts.end()){
+            amount = acnts_iter->balance.amount;
+        } else{
+            amount = 0;
+        }
 
         //see if the user is in the lockedtokens table, if so recompute the balance
         //based on grant type.
@@ -195,11 +202,14 @@ namespace eosio {
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
 
-        const auto my_balance = eosio::token::get_balance("fio.token"_n, from, FIOSYMBOL.code());
-        uint64_t amount = my_balance.amount;
-        fio_400_assert(amount >= quantity.amount, "max_fee", to_string(quantity.amount),
+        accounts from_acnts(_self, from.value);
+        const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
+        fio_400_assert(acnts_iter != from_acnts.end(), "max_fee", to_string(quantity.amount),
                        "Insufficient funds to cover fee",
-                       ErrorInsufficientUnlockedFunds);
+                       ErrorLowFunds);
+        fio_400_assert(acnts_iter->balance.amount >= quantity.amount, "max_fee", to_string(quantity.amount),
+                       "Insufficient funds to cover fee",
+                       ErrorLowFunds);
 
         //we need to check the from, check for locked amount remaining
         fio_400_assert(can_transfer(from, 0, quantity.amount, true), "actor", to_string(from.value),
@@ -210,7 +220,6 @@ namespace eosio {
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
     }
-
 
     void token::trnsfiopubky(const string &payee_public_key,
                              const int64_t &amount,
@@ -336,7 +345,6 @@ namespace eosio {
                      {new_account_name, true}
                     );
         }
-
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                        to_string(reg_amount) + string("}");
