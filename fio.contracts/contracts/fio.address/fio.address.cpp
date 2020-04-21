@@ -290,9 +290,9 @@ namespace fioio {
             tokenpubaddr tempStruct;
             string token;
             string chaincode;
-            bool wasFound = false;
 
             for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
+                bool wasFound = false;
                 token = tpa->token_code.c_str();
                 chaincode = tpa->chain_code.c_str();
 
