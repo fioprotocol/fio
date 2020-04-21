@@ -25,6 +25,7 @@ namespace fioio {
         tpids_table tpids;
         eosiosystem::voters_table voters;
         eosiosystem::top_producers_table topprods;
+        eosiosystem::producers_table producers;
         eosiosystem::locked_tokens_table lockedTokensTable;
         config appConfig;
 
@@ -40,6 +41,7 @@ namespace fioio {
                                                                         tpids(TPIDContract, TPIDContract.value),
                                                                         voters(AddressContract, AddressContract.value),
                                                                         topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
+                                                                        producers(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
                                                                         lockedTokensTable(SYSTEMACCOUNT,SYSTEMACCOUNT.value){
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
@@ -91,8 +93,6 @@ namespace fioio {
                             ("eosio"_n, {{_self, "active"_n}},
                              {_self, owner_account_name, owner_auth, owner_auth}
                             );
-
-
 
                     const uint64_t nmi = owner_account_name.value;
 
@@ -1054,7 +1054,7 @@ namespace fioio {
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
 
-            fio_400_assert(validateFioNameFormat(fa) || !fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
+            fio_400_assert(validateFioNameFormat(fa) && !fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            ErrorDomainAlreadyRegistered);
             fio_400_assert(isPubKeyValid(new_owner_fio_public_key), "new_owner_fio_public_key",
                            new_owner_fio_public_key,
@@ -1084,10 +1084,23 @@ namespace fioio {
             fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_fio_address",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
-            //Transfer the address
             string owner_account;
             key_to_account(new_owner_fio_public_key, owner_account);
-            const name nm = name{owner_account};
+            const name nm = accountmgnt(actor, new_owner_fio_public_key);
+
+            auto producersbyaddress = producers.get_index<"byaddress"_n>();
+            auto prod_iter = producersbyaddress.find(nameHash);
+            if(prod_iter != producersbyaddress.end()){
+                fio_400_assert(!prod_iter->is_active, "fio_address", fio_address,
+                               "FIO Address is active producer. Unregister first.", ErrorNoEndpoint);
+            }
+
+            auto proxybyaddress = voters.get_index<"byaddress"_n>();
+            auto proxy_iter = proxybyaddress.find(nameHash);
+            if(proxy_iter != proxybyaddress.end()){
+                fio_400_assert(!proxy_iter->is_proxy, "fio_address", fio_address,
+                               "FIO Address is proxy. Unregister first.", ErrorNoEndpoint);
+            }
 
             vector<tokenpubaddr> pubaddresses;
             tokenpubaddr t1;
@@ -1096,6 +1109,7 @@ namespace fioio {
             t1.chain_code = "FIO";
             pubaddresses.push_back(t1);
 
+            //Transfer the address
             namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
                 a.owner_account = nm.value;
                 a.addresses =  pubaddresses;
@@ -1138,7 +1152,10 @@ namespace fioio {
         void xferdomain(const string &fio_domain, const string &new_owner_fio_public_key, const int64_t &max_fee,
                         const string &tpid, const name &actor) {
             require_auth(actor);
+            FioAddress fa;
+            getFioAddressStruct(fio_domain, fa);
 
+            register_errors(fa, true);
             fio_400_assert(isPubKeyValid(new_owner_fio_public_key), "new_owner_fio_public_key", new_owner_fio_public_key,
                            "Invalid FIO Public Key", ErrorChainAddressEmpty);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -1168,7 +1185,7 @@ namespace fioio {
             //Transfer the domain
             string owner_account;
             key_to_account(new_owner_fio_public_key, owner_account);
-            const name nm = name{owner_account};
+            const name nm = accountmgnt(actor, new_owner_fio_public_key);
             domainsbyname.modify(domains_iter, actor, [&](struct domain &a) {
                 a.account = nm.value;
             });
