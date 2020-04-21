@@ -210,28 +210,36 @@ namespace eosio {
 
                     if (act.act.name == N(trnsfiopubky)) {
                       const auto  transferdata = act.act.data_as<eosio::trnsfiopubky>();
-                    if(filter_out.find({act.receiver, act.act.name, transferdata.actor}) == filter_out.end()) {
+                    if(filter_out.find({act.receiver, act.act.name, transferdata.actor}) == filter_out.end() &&
+                       filter_out.find({act.receiver, 0, transferdata.actor}) == filter_out.end() &&
+                       filter_out.find({transferdata.actor, 0, 0}) == filter_out.end()) {
                         result.insert(fioio::key_to_account(transferdata.payee_public_key));
                       }
                     }
 
                     if (act.act.name == N(regaddress)) {
                      const auto regdata = act.act.data_as<eosio::regaddress>();
-                     if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end()) {
-                       result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
+                     if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                        filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                        filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
+                         result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
                      }
                     }
 
                     if (act.act.name == N(regdomain)) {
                       const auto regdata = act.act.data_as<eosio::regdomain>();
-                      if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end()) {
+                      if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                         filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                         filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
                         result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
                       }
                     }
 
                     if (act.act.name == N(xferdomain)) {
                       const auto xferdata = act.act.data_as<eosio::xferdomain>();
-                      if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end()) {
+                      if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({act.receiver, 0, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
                         result.insert(fioio::key_to_account(xferdata.new_owner_fio_public_key));
                       }
                     }
