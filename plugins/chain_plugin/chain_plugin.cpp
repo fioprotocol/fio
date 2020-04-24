@@ -1800,6 +1800,178 @@ if( options.count(name) ) { \
             return result;
         } // get_pending_fio_requests
 
+
+        /***
+       * get cancelled fio requests.
+       * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+       * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+       */
+        read_only::get_cancelled_fio_requests_result
+        read_only::get_cancelled_fio_requests(const read_only::get_cancelled_fio_requests_params &p) const {
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            string account_name;
+
+            uint32_t search_results = 0;
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+            uint32_t returnCount = 0;
+            bool search_finished = false;
+
+            fioio::key_to_account(fioKey, account_name);
+
+            name account = name{account_name};
+            get_cancelled_fio_requests_result result;
+
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_system_code,
+                    .scope       = fio_system_scope,
+                    .table       = fio_address_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "4"};
+
+            get_table_rows_result names_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            FIO_404_ASSERT(!names_rows_result.rows.empty(), "No FIO Requests",
+                           fioio::ErrorNoFioRequestsFound);
+
+            for (size_t knpos = 0; knpos < names_rows_result.rows.size(); knpos++) {
+                string fio_address = names_rows_result.rows[knpos]["name"].as_string();
+                string to_fioadd = fio_address;
+                uint128_t address_hash = fioio::string_to_uint128_t(fio_address.c_str());
+                string fio_requests_lookup_table = "fioreqctxts";   // table name
+
+                std::string hexvalnamehash = "0x";
+                //now get the hex little-endian and search
+                hexvalnamehash.append(
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&address_hash),
+                                                    sizeof(address_hash)));
+
+                get_table_rows_params name_table_row_params = get_table_rows_params{
+                        .json=true,
+                        .code=fio_reqobt_code,
+                        .scope=fio_reqobt_scope,
+                        .table=fio_requests_lookup_table,
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehash,
+                        .encode_type="hex",
+                        .index_position ="3"};
+
+                get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, reqobt_abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
+
+                if (search_offset < requests_rows_result.rows.size() && !search_finished) {
+                    for (size_t pos = 0 + search_offset; pos < requests_rows_result.rows.size(); pos++) {
+                        //get all the attributes of the fio request
+                        uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
+                        string payer_address = requests_rows_result.rows[pos]["payer_fio_addr"].as_string();
+                        string payee_address = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
+                        string content = requests_rows_result.rows[pos]["content"].as_string();
+                        uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
+                        string payer_fio_public_key = requests_rows_result.rows[pos]["payer_key"].as_string();
+                        string payee_fio_public_key = requests_rows_result.rows[pos]["payee_key"].as_string();
+
+                        //query the statuses
+                        //use this id and query the fioreqstss table for status updates to this fioreqid
+                        //look up the requests for this fio name (look for matches in the tofioadd
+                        string fio_request_status_lookup_table = "fioreqstss";   // table name
+                        get_table_rows_params request_status_row_params = get_table_rows_params{
+                                .json        = true,
+                                .code        = fio_reqobt_code,
+                                .scope       = fio_reqobt_scope,
+                                .table       = fio_request_status_lookup_table,
+                                .lower_bound = boost::lexical_cast<string>(fio_request_id),
+                                .upper_bound = boost::lexical_cast<string>(fio_request_id),
+                                .key_type       = "i64",
+                                .index_position = "2"};
+                        // Do secondary key lookup
+                        get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                                request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                                    return v;
+                                });
+
+                        string status = "requested";
+
+                        if (!(request_status_rows_result.rows.empty())) {
+                            for (size_t rw = 0; rw < request_status_rows_result.rows.size(); rw++) {
+                                uint64_t reqid = request_status_rows_result.rows[rw]["fio_request_id"].as_uint64();
+                                uint64_t statusintV = request_status_rows_result.rows[rw]["status"].as_uint64();
+
+                                if (reqid == fio_request_id) {
+
+                                    if (statusintV == 3) {
+                                        status = "cancelled";
+                                    }
+                                    break; //exit the loop after finding the first.
+
+                                }
+                            }
+                        }
+
+                        if (status == "cancelled") {
+                            //convert the time_stamp to string formatted time.
+                            time_t temptime;
+                            struct tm *timeinfo;
+                            char buffer[80];
+
+                            temptime = time_stamp;
+                            timeinfo = gmtime(&temptime);
+                            strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                            request_status_record rr{fio_request_id, payer_address, payee_address, payer_fio_public_key,
+                                                     payee_fio_public_key, content, buffer, status};
+
+                            result.requests.push_back(rr);
+                        }
+
+                        returnCount++;
+                        if (search_offset > 0) { search_offset--; }
+
+                        if (returnCount == search_limit && search_limit != 0) {
+                            search_results = requests_rows_result.rows.size() - (pos + 1);
+                            search_finished = true;
+                            break;
+                        }
+
+                    } // Get request statuses
+                } else if (search_finished) {
+                    search_results += requests_rows_result.rows.size();
+                } else {
+                    if (search_offset > 0) {
+                        search_offset -= requests_rows_result.rows.size(); //set 0
+                    }
+                }
+            }
+
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+            result.more = search_results;
+            return result;
+        }
+
+
+
+
         /***
         * get sent fio requests.
         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -1925,6 +2097,8 @@ if( options.count(name) ) { \
                                         status = "rejected";
                                     } else if (statusintV == 2) {
                                         status = "sent_to_blockchain";
+                                    }else if (statusintV == 3) {
+                                        status = "cancelled";
                                     }
                                     break; //exit the loop after finding the first.
 
@@ -3436,6 +3610,61 @@ if( options.count(name) ) { \
         }
 
 /***
+* cancel funds request - This api method will invoke the fio.request.obt smart contract for cancelfndreq. this api method is
+* intended to add the json passed into this method to the block log so that it can be scraped as necessary.
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.processed (fc::variant) json blob meeting the api specification.
+*/
+        void read_write::cancel_funds_request(const cancel_funds_request_params &params,
+                                              chain::plugin_interface::next_function<cancel_funds_request_results> next) {
+            try {
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("cancel_funds_request called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.reqobt", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "cancelfndreq", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::cancel_funds_request_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        /***
 * reject funds request - This api method will invoke the fio.request.obt smart contract for rejectfndreq. this api method is
 * intended to add the json passed into this method to the block log so that it can be scraped as necessary.
 * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
@@ -3490,7 +3719,8 @@ if( options.count(name) ) { \
             } CATCH_AND_CALL(next);
         }
 
-/***
+
+        /***
 * record_obt_data - This api method will invoke the fio.request.obt smart contract for recordobt. this api method is
 * intended to add the json passed into this method to the block log so that it can be scraped as necessary.
 * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions

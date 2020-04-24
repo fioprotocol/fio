@@ -190,6 +190,12 @@ namespace fioio {
                 fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                                "No such FIO Request ", ErrorRequestContextNotFound);
 
+                //look for other statuses for this request.
+                auto statusByRequestId = fiorequestStatusTable.get_index<"byfioreqid"_n>();
+                auto fioreqstss_iter = statusByRequestId.find(requestId);
+                fio_400_assert(fioreqstss_iter == statusByRequestId.end(), "fio_request_id", fio_request_id,
+                               "Only pending requests can be responded.", ErrorRequestStatusInvalid);
+
                 fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();
                     fr.fio_request_id = requestId;
@@ -559,8 +565,151 @@ namespace fioio {
 
             send_response(response_string.c_str());
         }
-    };
 
-    EOSIO_DISPATCH(FioRequestObt, (recordobt)(newfundsreq)
-    (rejectfndreq))
+    /********
+        * this action will add a cancel status to the request for funds with the specified request id.
+        * the input fiorequest id will be verified to ensure there is a request in the contexts table matching this id
+        * before the status record is added to the index tables.
+        * @param fio_request_id this is the id of the request in the fio request contexts table.
+        * @param max_fee  this is the maximum fee that the sender of this transaction is willing to pay.
+        * @param actor  this is the string representation of the FIO account that is associated with the signer of this tx.
+        * @param tpid  this is the fio address of the domain owner associated with this request.
+        */
+    // @abi action
+    [[eosio::action]]
+    void cancelfndreq(
+            const string &fio_request_id,
+            const int64_t &max_fee,
+            const string &actor,
+            const string &tpid) {
+
+        const name aactor = name(actor.c_str());
+        require_auth(aactor);
+        fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                       "TPID must be empty or valid FIO address",
+                       ErrorPubKeyValid);
+        fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                       ErrorMaxFeeInvalid);
+
+        fio_400_assert(fio_request_id.length() > 0 && fio_request_id.length() < 16, "fio_request_id", fio_request_id, "No value specified",
+                       ErrorRequestContextNotFound);
+
+        const uint64_t currentTime = current_time();
+        uint64_t requestId;
+
+        requestId = std::atoi(fio_request_id.c_str());
+
+        auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
+        fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
+                       "No such FIO Request", ErrorRequestContextNotFound);
+
+        const uint128_t payee128FioAddHashed = fioreqctx_iter->payee_fio_address;
+        const uint32_t present_time = now();
+
+        //look for other statuses for this request.
+        auto statusByRequestId = fiorequestStatusTable.get_index<"byfioreqid"_n>();
+        auto fioreqstss_iter = statusByRequestId.find(requestId);
+        fio_400_assert(fioreqstss_iter == statusByRequestId.end(), "fio_request_id", fio_request_id,
+                       "Only pending requests can be cancelled.", ErrorRequestStatusInvalid);
+
+        auto namesbyname = fionames.get_index<"byname"_n>();
+        auto fioname_iter = namesbyname.find(payee128FioAddHashed);
+
+        fio_403_assert(fioname_iter != namesbyname.end(), ErrorSignature);
+        const uint64_t account = fioname_iter->owner_account;
+        const uint64_t payeenameexp = fioname_iter->expiration;
+        const string payeeFioAddress = fioname_iter->name;
+        FioAddress payeefa;
+        getFioAddressStruct(payeeFioAddress, payeefa);
+
+        fio_400_assert(present_time <= payeenameexp, "payee_fio_address", payeeFioAddress,
+                       "FIO Address expired", ErrorFioNameExpired);
+
+        const uint128_t domHash = string_to_uint128_hash(payeefa.fiodomain.c_str());
+        auto domainsbyname = domains.get_index<"byname"_n>();
+        auto iterdom = domainsbyname.find(domHash);
+
+        fio_400_assert(iterdom != domainsbyname.end(), "payee_fio_address", payeeFioAddress,
+                       "No such domain",
+                       ErrorDomainNotRegistered);
+
+        //add 30 days to the domain expiration, this call will work until 30 days past expire.
+        const uint64_t domexp = get_time_plus_seconds(iterdom->expiration,SECONDS30DAYS);
+
+        fio_400_assert(present_time <= domexp, "payee_fio_address", payeeFioAddress,
+                       "FIO Domain expired", ErrorFioNameExpired);
+
+        const string payee_fio_address = fioname_iter->name;
+
+        fio_403_assert(account == aactor.value, ErrorSignature);
+
+        //begin fees, bundle eligible fee logic
+        const uint128_t endpoint_hash = string_to_uint128_hash("cancel_funds_request");
+
+        auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "cancel_funds_request",
+                       "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+        const uint64_t fee_type = fee_iter->type;
+        fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                       "cancel_funds_request unexpected fee type for endpoint cancel_funds_request, expected 1",
+                       ErrorNoEndpoint);
+
+        uint64_t fee_amount = 0;
+
+        if (fioname_iter->bundleeligiblecountdown > 0) {
+            action{
+                    permission_level{_self, "active"_n},
+                    AddressContract,
+                    "decrcounter"_n,
+                    make_tuple(payee_fio_address, 1)
+            }.send();
+        } else {
+            fee_amount = fee_iter->suf_amount;
+            fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee),
+                           "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
+            process_rewards(tpid, fee_amount, get_self());
+
+            if (fee_amount > 0) {
+                INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                        (SYSTEMACCOUNT, {{_self, "active"_n}},
+                         {aactor, true}
+                        );
+            }
+        }
+        //end fees, bundle eligible fee logic
+
+        fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
+            fr.id = fiorequestStatusTable.available_primary_key();;
+            fr.fio_request_id = requestId;
+            fr.status = static_cast<int64_t >(trxstatus::cancelled);
+            fr.metadata = "";
+            fr.time_stamp = currentTime;
+        });
+
+        const string response_string = string("{\"status\": \"request_cancelled\",\"fee_collected\":") +
+                                       to_string(fee_amount) + string("}");
+
+        if (CANCELFUNDSRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(aactor, CANCELFUNDSRAM)
+            ).send();
+        }
+
+        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+                       "Transaction is too large", ErrorTransactionTooLarge);
+
+        send_response(response_string.c_str());
+    }
+};
+
+    EOSIO_DISPATCH(FioRequestObt, (recordobt)(newfundsreq)(rejectfndreq)(cancelfndreq))
 }

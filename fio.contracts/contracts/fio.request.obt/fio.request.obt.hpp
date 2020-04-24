@@ -26,7 +26,8 @@ namespace fioio {
     enum class trxstatus {
         requested = 0,
         rejected = 1,
-        sent_to_blockchain = 2
+        sent_to_blockchain = 2,
+        cancelled = 3
     };
 
     // The request context table holds the requests for funds that have been requested, it provides
