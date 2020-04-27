@@ -253,6 +253,232 @@ namespace fioio {
             return expiration_time;
         }
 
+
+        uint64_t perform_remove_address
+                (const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
+                 const uint64_t &max_fee, const FioAddress &fa,
+                 const name &actor, const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            const uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
+
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+
+            const uint32_t name_expiration = fioname_iter->expiration;
+            const uint32_t present_time = now();
+
+            const uint64_t account = fioname_iter->owner_account;
+            fio_403_assert(account == actor.value, ErrorSignature);
+            fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
+                           "FIO Address expired", ErrorFioNameExpired);
+
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            const uint32_t expiration = get_time_plus_seconds(domains_iter->expiration,SECONDS30DAYS);
+
+            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
+                           ErrorDomainExpired);
+
+            tokenpubaddr tempStruct;
+            string token;
+            string chaincode;
+            string public_address;
+
+            for(auto tpa = pubaddresses.begin(); tpa != pubaddresses.end(); ++tpa) {
+                bool wasFound = false;
+                token = tpa->token_code.c_str();
+                chaincode = tpa->chain_code.c_str();
+                public_address = tpa->public_address.c_str();
+
+
+                fio_400_assert(validateChainNameFormat(token), "token_code", tpa->token_code, "Invalid token code format",
+                               ErrorInvalidFioNameFormat);
+                fio_400_assert(validateChainNameFormat(chaincode), "chain_code", tpa->chain_code, "Invalid chain code format",
+                               ErrorInvalidFioNameFormat);
+                fio_400_assert(validatePubAddressFormat(tpa->public_address), "public_address", tpa->public_address,
+                               "Invalid public address format",
+                               ErrorChainAddressEmpty);
+
+                int idx = 0;
+                for( auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it ) {
+                    if( (it->token_code == token) && (it->chain_code == chaincode)  && it->public_address == public_address ){
+                        wasFound = true;
+                        break;
+                    }
+                    idx++;
+                }
+                fio_400_assert(wasFound, "public_address", public_address, "Invalid public address",
+                               ErrorInvalidFioNameFormat);
+
+                namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+                    a.addresses.erase(a.addresses.begin()+idx);
+                });
+
+            }
+
+            uint64_t fee_amount = 0;
+
+            //begin new fees, bundle eligible fee logic
+            const uint128_t endpoint_hash = string_to_uint128_hash("remove_pub_address");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "remove_pub_address",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            const int64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
+
+            fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                           "remove_fio_address unexpected fee type for endpoint remove_pub_address, expected 1",
+                           ErrorNoEndpoint);
+
+            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+
+            if (bundleeligiblecountdown > 0) {
+                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                    a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
+                });
+            } else {
+                fee_amount = fee_iter->suf_amount;
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                               ErrorMaxFeeExceeded);
+
+                //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
+                //or should we do as this code does and not do a transaction when the fees are 0.
+                fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+                process_rewards(tpid, reg_amount, get_self());
+
+                if (reg_amount > 0) {
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {actor, true}
+                            );
+                }
+            }
+            return fee_amount;
+        }
+
+
+        uint64_t perform_remove_all_addresses
+                (const string &fioaddress,
+                 const uint64_t &max_fee, const FioAddress &fa,
+                 const name &actor, const string &tpid) {
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            const uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
+
+            auto namesbyname = fionames.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+            fio_404_assert(fioname_iter != namesbyname.end(), "FIO Address not found", ErrorFioNameNotRegistered);
+
+            const uint32_t name_expiration = fioname_iter->expiration;
+            const uint32_t present_time = now();
+
+            const uint64_t account = fioname_iter->owner_account;
+            fio_403_assert(account == actor.value, ErrorSignature);
+            fio_400_assert(present_time <= name_expiration, "fio_address", fioaddress,
+                           "FIO Address expired", ErrorFioNameExpired);
+
+            auto domainsbyname = domains.get_index<"byname"_n>();
+            auto domains_iter = domainsbyname.find(domainHash);
+
+            fio_404_assert(domains_iter != domainsbyname.end(), "FIO Domain not found", ErrorDomainNotFound);
+
+            //add 30 days to the domain expiration, this call will work until 30 days past expire.
+            const uint32_t expiration = get_time_plus_seconds(domains_iter->expiration, SECONDS30DAYS);
+
+            fio_400_assert(present_time <= expiration, "domain", fa.fiodomain, "FIO Domain expired",
+                           ErrorDomainExpired);
+
+            int idx = 0;
+            bool wasFound = false;
+            for (auto it = fioname_iter->addresses.begin(); it != fioname_iter->addresses.end(); ++it) {
+                if ((it->token_code == "FIO") && (it->chain_code == "FIO")) {
+                    wasFound = true;
+                    break;
+                }
+                idx++;
+            }
+
+            if (!wasFound) {//remove em all
+                namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+                    a.addresses.clear();
+                });
+            } else {
+                namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+                    a.addresses.erase(a.addresses.begin() + (idx + 1), a.addresses.end());
+                });
+
+                if (idx > 0) {
+                    namesbyname.modify(fioname_iter, actor, [&](struct fioname &a) {
+                        a.addresses.erase(a.addresses.begin(), a.addresses.begin() + idx);
+                    });
+                }
+            }
+
+
+            uint64_t fee_amount = 0;
+
+            //begin new fees, bundle eligible fee logic
+            const uint128_t endpoint_hash = string_to_uint128_hash("remove_pub_address");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "remove_pub_address",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            const int64_t reg_amount = fee_iter->suf_amount;
+            const uint64_t fee_type = fee_iter->type;
+
+            fio_400_assert(fee_type == 1, "fee_type", to_string(fee_type),
+                           "remove_fio_address unexpected fee type for endpoint remove_pub_address, expected 1",
+                           ErrorNoEndpoint);
+
+            const uint64_t bundleeligiblecountdown = fioname_iter->bundleeligiblecountdown;
+
+            if (bundleeligiblecountdown > 0) {
+                namesbyname.modify(fioname_iter, _self, [&](struct fioname &a) {
+                    a.bundleeligiblecountdown = (bundleeligiblecountdown - 1);
+                });
+            } else {
+                fee_amount = fee_iter->suf_amount;
+                fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                               ErrorMaxFeeExceeded);
+
+                //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
+                //or should we do as this code does and not do a transaction when the fees are 0.
+                fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+                process_rewards(tpid, reg_amount, get_self());
+
+                if (reg_amount > 0) {
+                    INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
+                            ("eosio"_n, {{_self, "active"_n}},
+                             {actor, true}
+                            );
+                }
+            }
+            return fee_amount;
+        }
+
+
+
         uint64_t chain_data_update
          (const string &fioaddress, const vector<tokenpubaddr> &pubaddresses,
                           const uint64_t &max_fee, const FioAddress &fa,
@@ -923,6 +1149,100 @@ namespace fioio {
             send_response(response_string.c_str());
         } //addaddress
 
+        /***
+        * Given a fio user name, chain name and chain specific address will remove the specified addresses from the user's FIO fioname.
+        *
+        * @param fioaddress The FIO user name e.g. "adam@fio"
+        * @param tokencode The chain name e.g. "btc"
+        * @param pubaddress The vector of chain specific user address
+        */
+        [[eosio::action]]
+        void
+        remaddress(const string &fio_address,  const vector<tokenpubaddr> &public_addresses, const int64_t &max_fee,
+                   const name &actor, const string &tpid) {
+            require_auth(actor);
+            FioAddress fa;
+
+            getFioAddressStruct(fio_address, fa);
+
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+            fio_400_assert(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "FIO Address not found",
+                           ErrorDomainAlreadyRegistered);
+            fio_400_assert(public_addresses.size() <= 5 && public_addresses.size() > 0, "public_addresses", "public_addresses",
+                           "Min 1, Max 5 public addresses are allowed",
+                           ErrorInvalidNumberAddresses);
+
+            //we want to check pub addresses, collect fee....
+            const uint64_t fee_amount = perform_remove_address(fio_address, public_addresses, max_fee, fa, actor,tpid);
+
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                           to_string(fee_amount) + string("}");
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+                           "Transaction is too large", ErrorTransactionTooLarge);
+
+            if (ADDADDRESSRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, ADDADDRESSRAM)
+                ).send();
+            }
+
+            send_response(response_string.c_str());
+        } //remaddress
+
+        /***
+        * Given a fio address, remove all pub addresses associated with that name except the FIO pub address.
+        *
+        * @param fioaddress The FIO user name e.g. "adam@fio"
+        * @param tokencode The chain name e.g. "btc"
+        * @param pubaddress The chain specific user address
+        */
+        [[eosio::action]]
+        void
+        remalladdr(const string &fio_address,  const int64_t &max_fee,
+                   const name &actor, const string &tpid) {
+            require_auth(actor);
+            FioAddress fa;
+
+            getFioAddressStruct(fio_address, fa);
+
+            fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
+                           "TPID must be empty or valid FIO address",
+                           ErrorPubKeyValid);
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
+            fio_400_assert(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "FIO Address not found",
+                           ErrorDomainAlreadyRegistered);
+
+            const uint64_t fee_amount = perform_remove_all_addresses(fio_address, max_fee, fa, actor, tpid);
+
+            const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
+                                           to_string(fee_amount) + string("}");
+
+            fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
+                           "Transaction is too large", ErrorTransactionTooLarge);
+
+            if (ADDADDRESSRAM > 0) {
+                action(
+                        permission_level{SYSTEMACCOUNT, "active"_n},
+                        "eosio"_n,
+                        "incram"_n,
+                        std::make_tuple(actor, ADDADDRESSRAM)
+                ).send();
+            }
+
+            send_response(response_string.c_str());
+        } //remalladdr
+
+
+
         [[eosio::action]]
         void
         setdomainpub(const string &fio_domain, const int8_t is_public, const int64_t &max_fee, const name &actor,
@@ -1244,6 +1564,6 @@ namespace fioio {
         }
     };
 
-    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(regdomain)(renewdomain)(renewaddress)(setdomainpub)(burnexpired)(decrcounter)
+    EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(remaddress)(remalladdr)(regdomain)(renewdomain)(renewaddress)(setdomainpub)(burnexpired)(decrcounter)
     (bind2eosio) (xferdomain)(xferaddress))
 }

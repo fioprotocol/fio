@@ -932,6 +932,24 @@ namespace eosio {
             void add_pub_address(const add_pub_address_params &params,
                                  chain::plugin_interface::next_function<add_pub_address_results> next);
 
+            using remove_pub_address_params = fc::variant_object;
+            struct remove_pub_address_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_pub_address(const remove_pub_address_params &params,
+                                 chain::plugin_interface::next_function<remove_pub_address_results> next);
+
+            using remove_all_pub_addresses_params = fc::variant_object;
+            struct remove_all_pub_addresses_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_all_pub_addresses(const remove_all_pub_addresses_params &params,
+                                 chain::plugin_interface::next_function<remove_all_pub_addresses_results> next);
+
 
             using transfer_tokens_pub_key_params = fc::variant_object;
             struct transfer_tokens_pub_key_results {
@@ -1395,6 +1413,8 @@ FC_REFLECT(eosio::chain_apis::read_write::record_obt_data_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::submit_bundled_transaction_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
