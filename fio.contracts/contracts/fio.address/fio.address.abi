@@ -163,6 +163,54 @@
       ]
     },
     {
+      "name": "remaddress",
+      "base": "",
+      "fields": [
+        {
+          "name": "fio_address",
+          "type": "string"
+        },
+        {
+          "name": "public_addresses",
+          "type": "tokenpubaddr[]"
+        },
+        {
+          "name": "max_fee",
+          "type": "int64"
+        },
+        {
+          "name": "actor",
+          "type": "name"
+        },
+        {
+          "name": "tpid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "remalladdr",
+      "base": "",
+      "fields": [
+        {
+          "name": "fio_address",
+          "type": "string"
+        },
+        {
+          "name": "max_fee",
+          "type": "int64"
+        },
+        {
+          "name": "actor",
+          "type": "name"
+        },
+        {
+          "name": "tpid",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "regdomain",
       "base": "",
       "fields": [
@@ -358,9 +406,19 @@
       "ricardian_contract": ""
     },
     {
-      "name": "addaddress",
-      "type": "addaddress",
+       "name": "addaddress",
+       "type": "addaddress",
+       "ricardian_contract": ""
+    },
+    {
+      "name": "remaddress",
+      "type": "remaddress",
       "ricardian_contract": ""
+    },
+    {
+       "name": "remalladdr",
+       "type": "remalladdr",
+       "ricardian_contract": ""
     },
     {
       "name": "regdomain",
