@@ -109,16 +109,9 @@ namespace eosio {
                              const bool &isfee) {
 
         //get fio balance for this account,
-        uint64_t amount;
         uint32_t present_time = now();
-        accounts from_acnts(_self, tokenowner.value);
-        const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
-
-        if(acnts_iter != from_acnts.end()){
-            amount = acnts_iter->balance.amount;
-        } else{
-            amount = 0;
-        }
+        const auto my_balance = eosio::token::get_balance("fio.token"_n, tokenowner, FIOSYMBOL.code());
+        uint64_t amount = my_balance.amount;
 
         //see if the user is in the lockedtokens table, if so recompute the balance
         //based on grant type.
@@ -204,6 +197,7 @@ namespace eosio {
 
         accounts from_acnts(_self, from.value);
         const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
+
         fio_400_assert(acnts_iter != from_acnts.end(), "max_fee", to_string(quantity.amount),
                        "Insufficient funds to cover fee",
                        ErrorLowFunds);
@@ -215,6 +209,7 @@ namespace eosio {
         fio_400_assert(can_transfer(from, 0, quantity.amount, true), "actor", to_string(from.value),
                        "Funds locked",
                        ErrorInsufficientUnlockedFunds);
+
         auto payer = has_auth(to) ? to : from;
 
         sub_balance(from, quantity);
@@ -326,6 +321,15 @@ namespace eosio {
                 ("eosio"_n, {{_self, "active"_n}},
                  {actor}
                 );
+
+        accounts from_acnts(_self, actor.value);
+        const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
+        fio_400_assert(acnts_iter != from_acnts.end(), "amount", to_string(qty.amount),
+                       "Insufficient balance",
+                       ErrorLowFunds);
+        fio_400_assert(acnts_iter->balance.amount >= qty.amount, "amount", to_string(qty.amount),
+                       "Insufficient balance",
+                       ErrorLowFunds);
 
         fio_400_assert(can_transfer(actor, reg_amount, qty.amount, false), "amount", to_string(qty.amount),
                        "Insufficient balance tokens locked",

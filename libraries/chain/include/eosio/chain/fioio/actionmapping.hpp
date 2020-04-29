@@ -22,6 +22,7 @@ namespace fioio {
 
         // fio.address actions
         if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
+            action == "remaddress" || action == "remalladdr" ||
             action == "renewdomain" || action == "renewaddress" ||
             action == "setdomainpub" || action == "bind2eosio" ||
             action == "burnexpired" || action == "decrcounter" || action == "xferdomain" || action == "xferaddress" )
@@ -47,7 +48,7 @@ namespace fioio {
             action == "transfer" || action == "mintfio")
           return "fio.token";
         //fio.request.obt actions
-        if (action == "recordobt" || action == "rejectfndreq" || action == "newfundsreq")
+        if (action == "recordobt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
           return "fio.reqobt";
 
         //fio.tpid actions

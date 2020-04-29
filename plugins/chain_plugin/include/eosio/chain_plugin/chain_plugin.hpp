@@ -476,6 +476,25 @@ namespace eosio {
             get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
 
             //end get pending fio requests
+
+            //begin get cancelled fio requests
+            struct get_cancelled_fio_requests_params {
+                string fio_public_key;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+
+            struct get_cancelled_fio_requests_result {
+                vector <request_status_record> requests;
+                int block_num;
+                uint32_t more;
+            };
+
+            get_cancelled_fio_requests_result
+            get_cancelled_fio_requests(const get_cancelled_fio_requests_params &params) const;
+
+            //end get pending fio requests
+
             //begin get sent fio requests
             struct get_sent_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
@@ -913,6 +932,24 @@ namespace eosio {
             void add_pub_address(const add_pub_address_params &params,
                                  chain::plugin_interface::next_function<add_pub_address_results> next);
 
+            using remove_pub_address_params = fc::variant_object;
+            struct remove_pub_address_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_pub_address(const remove_pub_address_params &params,
+                                 chain::plugin_interface::next_function<remove_pub_address_results> next);
+
+            using remove_all_pub_addresses_params = fc::variant_object;
+            struct remove_all_pub_addresses_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_all_pub_addresses(const remove_all_pub_addresses_params &params,
+                                 chain::plugin_interface::next_function<remove_all_pub_addresses_results> next);
+
 
             using transfer_tokens_pub_key_params = fc::variant_object;
             struct transfer_tokens_pub_key_results {
@@ -1078,6 +1115,17 @@ namespace eosio {
             void reject_funds_request(const reject_funds_request_params &params,
                                       chain::plugin_interface::next_function<reject_funds_request_results> next);
             //End added for record send api method.
+
+            //begin added for cancel request
+            using cancel_funds_request_params = fc::variant_object;
+            struct cancel_funds_request_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void cancel_funds_request(const cancel_funds_request_params &params,
+                                      chain::plugin_interface::next_function<cancel_funds_request_results> next);
+            //end added for cancel request
 
             //Begin Added for record send api method
             using record_obt_data_params = fc::variant_object;
@@ -1314,6 +1362,8 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_params,
 FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_result, (rows)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(block_num)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_params, (fio_public_key)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(block_num)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(block_num)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
@@ -1358,10 +1408,13 @@ FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_address_results, (transac
 FC_REFLECT(eosio::chain_apis::read_write::set_fio_domain_public_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::cancel_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::record_obt_data_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::submit_bundled_transaction_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
