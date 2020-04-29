@@ -293,12 +293,12 @@ public:
 
     // Actions:
     [[eosio::action]]
-    void init(unsigned_int version, symbol core);
+    void init(const unsigned_int  &version, const symbol &core);
 
     //this action inits the locked token holder table.
     [[eosio::action]]
-    void addlocked(const name &owner, const int64_t amount,
-                    const int16_t locktype);
+    void addlocked(const name &owner, const int64_t &amount,
+                    const int16_t &locktype);
 
     [[eosio::action]]
     void onblock(ignore <block_header> header);
@@ -370,13 +370,13 @@ public:
     void updlbpclaim(const name &producer);
 
     [[eosio::action]]
-    void setpriv(name account, uint8_t is_priv);
+    void setpriv(const name &account,const uint8_t &is_priv);
 
     [[eosio::action]]
-    void rmvproducer(name producer);
+    void rmvproducer(const name &producer);
 
     [[eosio::action]]
-    void updtrevision(uint8_t revision);
+    void updtrevision(const uint8_t &revision);
 
     using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;
