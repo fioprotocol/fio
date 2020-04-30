@@ -219,28 +219,24 @@ namespace eosio {
 
                     if (act.act.name == N(regaddress)) {
                      const auto regdata = act.act.data_as<eosio::regaddress>();
-                     if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
-                        filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
-                        filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
-                          if (!regdata.owner_fio_public_key.empty()) {
-                         result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
-                          }  else {
-                            result.insert(regdata.actor);
+                     if (!regdata.owner_fio_public_key.empty()) {
+                       if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                          filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                          filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
+                            // owner_fio_public_key is optional action parameter, do not derive to account if it is empty, use the actor instead
+                            result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
                         }
                      }
                     }
 
                     if (act.act.name == N(regdomain)) {
                       const auto regdata = act.act.data_as<eosio::regdomain>();
-                      if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
-                         filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
-                         filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
-                           if (!regdata.owner_fio_public_key.empty()) {
+                      if (!regdata.owner_fio_public_key.empty()) {
+                        if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                           filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                           filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
                              result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
-                           } else {
-                             result.insert(regdata.actor);
-                           }
-
+                         }
                       }
                     }
 
