@@ -468,7 +468,6 @@ namespace eosio {
 
             struct get_pending_fio_requests_result {
                 vector <request_record> requests;
-                int block_num;
                 uint32_t more;
             };
 
@@ -486,7 +485,6 @@ namespace eosio {
 
             struct get_cancelled_fio_requests_result {
                 vector <request_status_record> requests;
-                int block_num;
                 uint32_t more;
             };
 
@@ -1361,11 +1359,11 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_params,
                    encode_type)(reverse)(show_payer))
 FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_result, (rows)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(block_num)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(block_num)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(block_num)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
