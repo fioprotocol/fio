@@ -692,7 +692,7 @@ namespace fioio {
             fr.time_stamp = currentTime;
         });
 
-        const string response_string = string("{\"status\": \"request_cancelled\",\"fee_collected\":") +
+        const string response_string = string("{\"status\": \"cancelled\",\"fee_collected\":") +
                                        to_string(fee_amount) + string("}");
 
         if (CANCELFUNDSRAM > 0) {
