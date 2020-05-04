@@ -74,6 +74,38 @@ namespace eosio {
         };
 
 
+        struct xferdomain {
+          string fio_domain;
+          string new_owner_fio_public_key;
+          int64_t max_fee;
+          name actor;
+          string tpid;
+
+            static account_name get_account() {
+                return N(fio.address);
+            }
+
+            static action_name get_name() {
+                return N(xferdomain);
+            }
+        };
+
+        struct xferaddress {
+          string fio_address;
+          string new_owner_fio_public_key;
+          int64_t max_fee;
+          name actor;
+          string tpid;
+
+            static account_name get_account() {
+                return N(fio.address);
+            }
+
+            static action_name get_name() {
+                return N(xferaddress);
+            }
+        };
+
         struct setcode {
             account_name account;
             uint8_t vmtype = 0;
@@ -223,3 +255,5 @@ FC_REFLECT(eosio::chain::onerror, (sender_id)(sent_trx))
 FC_REFLECT(eosio::chain::trnsfiopubky, (payee_public_key)(amount)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::regaddress, (fio_address)(owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::regdomain, (fio_domain)(owner_fio_public_key)(max_fee)(actor)(tpid))
+FC_REFLECT(eosio::chain::xferdomain, (fio_domain)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
+FC_REFLECT(eosio::chain::xferaddress, (fio_address)(new_owner_fio_public_key)(max_fee)(actor)(tpid))

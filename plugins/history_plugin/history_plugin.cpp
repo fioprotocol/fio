@@ -202,23 +202,60 @@ namespace eosio {
                         result.insert(a.actor);
                     }
                     if (act.receiver == chain::config::system_account_name && act.act.name == N(newaccount)) {
-                      const auto created = act.act.data_as<eosio::newaccount>();
-                      result.insert(created.name);
+                      const auto createddata = act.act.data_as<eosio::newaccount>();
+                      if(filter_out.find({act.receiver, act.act.name, createddata.name}) == filter_out.end()) {
+                        result.insert(createddata.name);
+                      }
                     }
 
                     if (act.act.name == N(trnsfiopubky)) {
-                      const auto created = act.act.data_as<eosio::trnsfiopubky>();
-                      result.insert(fioio::key_to_account(created.payee_public_key));
+                      const auto  transferdata = act.act.data_as<eosio::trnsfiopubky>();
+                    if(filter_out.find({act.receiver, act.act.name, transferdata.actor}) == filter_out.end() &&
+                       filter_out.find({act.receiver, 0, transferdata.actor}) == filter_out.end() &&
+                       filter_out.find({transferdata.actor, 0, 0}) == filter_out.end()) {
+                        result.insert(fioio::key_to_account(transferdata.payee_public_key));
+                      }
                     }
 
                     if (act.act.name == N(regaddress)) {
-                      const auto created = act.act.data_as<eosio::regaddress>();
-                      result.insert(fioio::key_to_account(created.owner_fio_public_key));
+                     const auto regdata = act.act.data_as<eosio::regaddress>();
+                     if (!regdata.owner_fio_public_key.empty()) {
+                       if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                          filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                          filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
+                            // owner_fio_public_key is optional action parameter, do not derive to account if it is empty, use the actor instead
+                            result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
+                        }
+                     }
                     }
 
                     if (act.act.name == N(regdomain)) {
-                      const auto created = act.act.data_as<eosio::regdomain>();
-                      result.insert(fioio::key_to_account(created.owner_fio_public_key));
+                      const auto regdata = act.act.data_as<eosio::regdomain>();
+                      if (!regdata.owner_fio_public_key.empty()) {
+                        if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                           filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                           filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
+                             result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
+                         }
+                      }
+                    }
+
+                    if (act.act.name == N(xferdomain)) {
+                      const auto xferdata = act.act.data_as<eosio::xferdomain>();
+                      if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({act.receiver, 0, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
+                        result.insert(fioio::key_to_account(xferdata.new_owner_fio_public_key));
+                      }
+                    }
+
+                    if (act.act.name == N(xferaddress)) {
+                      const auto xferdata = act.act.data_as<eosio::xferaddress>();
+                      if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({act.receiver, 0, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
+                        result.insert(fioio::key_to_account(xferdata.new_owner_fio_public_key));
+                      }
                     }
                 }
             }
