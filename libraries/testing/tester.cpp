@@ -256,7 +256,7 @@ namespace eosio {
                 unapplied_transactions_type unapplied_trxs = control->get_unapplied_transactions(); // make copy of map
                 for (const auto &entry : unapplied_trxs) {
                     auto trace = control->push_transaction(entry.second, fc::time_point::maximum(),
-                                                           DEFAULT_BILLED_CPU_TIME_US);
+                                                           DEFAULT_BILLED_CPU_TIME_US, true);
                     if (trace->except) {
                         trace->except->dynamic_rethrow_exception();
                     }
@@ -266,7 +266,7 @@ namespace eosio {
                 while ((scheduled_trxs = get_scheduled_transactions()).size() > 0) {
                     for (const auto &trx : scheduled_trxs) {
                         auto trace = control->push_scheduled_transaction(trx, fc::time_point::maximum(),
-                                                                         DEFAULT_BILLED_CPU_TIME_US);
+                                                                         DEFAULT_BILLED_CPU_TIME_US, true);
                         if (trace->except) {
                             trace->except->dynamic_rethrow_exception();
                         }
@@ -467,7 +467,7 @@ namespace eosio {
                                   fc::microseconds(deadline - fc::time_point::now());
                 transaction_metadata::start_recover_keys(mtrx, control->get_thread_pool(), control->get_chain_id(),
                                                          time_limit);
-                auto r = control->push_transaction(mtrx, deadline, billed_cpu_time_us);
+                auto r = control->push_transaction(mtrx, deadline, billed_cpu_time_us, billed_cpu_time_us > 0);
                 if (r->except_ptr) std::rethrow_exception(r->except_ptr);
                 if (r->except) throw *r->except;
                 return r;
@@ -495,7 +495,7 @@ namespace eosio {
                 auto mtrx = std::make_shared<transaction_metadata>(trx, c);
                 transaction_metadata::start_recover_keys(mtrx, control->get_thread_pool(), control->get_chain_id(),
                                                          time_limit);
-                auto r = control->push_transaction(mtrx, deadline, billed_cpu_time_us);
+                auto r = control->push_transaction(mtrx, deadline, billed_cpu_time_us, billed_cpu_time_us > 0);
                 if (no_throw) return r;
                 if (r->except_ptr) std::rethrow_exception(r->except_ptr);
                 if (r->except) throw *r->except;
