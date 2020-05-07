@@ -38,7 +38,7 @@ namespace eosio {
             bool accepted = false;
             bool implicit = false;
             bool scheduled = false;
-
+            uint32_t billed_cpu_time_us = 0;
             transaction_metadata() = delete;
 
             transaction_metadata(const transaction_metadata &) = delete;
