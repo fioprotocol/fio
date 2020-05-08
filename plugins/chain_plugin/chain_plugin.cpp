@@ -1713,7 +1713,7 @@ if( options.count(name) ) { \
                     for (size_t pos = 0 + search_offset; pos < requests_rows_result.rows.size(); pos++) {
                         //get all the attributes of the fio request
                         uint64_t fio_request_id = requests_rows_result.rows[pos]["fio_request_id"].as_uint64();
-                        string payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address_hex_str"].as_string();
+                        string payee_fio_address = requests_rows_result.rows[pos]["payee_fio_address_hex"].as_string();
                         string payee_fio_addr = requests_rows_result.rows[pos]["payee_fio_addr"].as_string();
                         string content = requests_rows_result.rows[pos]["content"].as_string();
                         uint64_t time_stamp = requests_rows_result.rows[pos]["time_stamp"].as_uint64();
