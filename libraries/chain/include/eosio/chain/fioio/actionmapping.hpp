@@ -48,7 +48,7 @@ namespace fioio {
             action == "transfer" || action == "mintfio")
           return "fio.token";
         //fio.request.obt actions
-        if (action == "recordobt" || action == "migreqtxt" || action == "migobttxt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
+        if (action == "recordobt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
           return "fio.reqobt";
 
         //fio.tpid actions

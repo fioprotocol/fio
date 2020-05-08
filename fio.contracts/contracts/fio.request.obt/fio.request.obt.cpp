@@ -23,13 +23,7 @@ namespace fioio {
     private:
         reqledgers_table ledgerTable;
         fiorequest_contexts_table fiorequestContextsTable;
-        fiorequest2_contexts_table fiorequestContextsTable2; // Temp
-
         recordobt_table recordObtTable;
-        recobt2_table recordObtTable2; // Temp
-
-        eosiosystem::producers_table producers; // Temp
-
         fiorequest_status_table fiorequestStatusTable;
         fionames_table fionames;
         domains_table domains;
@@ -48,11 +42,8 @@ namespace fioio {
                   domains(AddressContract, AddressContract.value),
                   fiofees(FeeContract, FeeContract.value),
                   clientkeys(AddressContract, AddressContract.value),
-                  producers(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
                   tpids(AddressContract, AddressContract.value),
-                  recordObtTable(_self,_self.value),
-                  fiorequestContextsTable2(_self, _self.value), //temp
-                  recordObtTable2(_self, _self.value) { //temp
+                  recordObtTable(_self,_self.value) {
             configs_singleton configsSingleton(FeeContract, FeeContract.value);
             appConfig = configsSingleton.get_or_default(config());
         }
@@ -80,7 +71,6 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            check(false, "Table migration in progress. All requests and OBT actions paused.");
             name aactor = name(actor.c_str());
             require_auth(aactor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -274,7 +264,6 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            check(false, "Table migration in progress. All requests and OBT actions paused.");
             const name aActor = name(actor.c_str());
             require_auth(aActor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -445,7 +434,6 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            check(false, "Table migration in progress. All requests and OBT actions paused.");
             const name aactor = name(actor.c_str());
             require_auth(aactor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -584,7 +572,6 @@ namespace fioio {
             const string &actor,
             const string &tpid) {
 
-        check(false, "Table migration in progress. All requests and OBT actions paused.");
         const name aactor = name(actor.c_str());
         require_auth(aactor);
         fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -713,5 +700,5 @@ namespace fioio {
     }
 };
 
-    EOSIO_DISPATCH(FioRequestObt, (migobttxt)(migreqtxt)(recordobt)(newfundsreq)(rejectfndreq)(cancelfndreq))
+    EOSIO_DISPATCH(FioRequestObt, (recordobt)(newfundsreq)(rejectfndreq)(cancelfndreq))
 }
