@@ -3,7 +3,7 @@
   "version": "eosio::abi/1.0",
   "types": [],
   "structs": [{
-                                          "name": "fioreqctxt1",
+                                          "name": "fioreqctxt",
                                           "base": "",
                                           "fields": [{
                                               "name": "fio_request_id",
