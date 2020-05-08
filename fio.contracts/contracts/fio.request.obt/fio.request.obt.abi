@@ -47,6 +47,56 @@
          }
       ]
     },{
+                            "name": "fioreqctxt2",
+                            "base": "",
+                            "fields": [{
+                                "name": "fio_request_id",
+                                "type": "uint64"
+                              },{
+                                "name": "payer_fio_addr_hex",
+                                "type": "uint128"
+                              },{
+                                "name": "payee_fio_addr_hex",
+                                "type": "uint128"
+                              },{
+                                "name": "content",
+                                "type": "string"
+                              },{
+                                "name": "time_stamp",
+                                "type": "uint64"
+                              },{
+                                "name": "payer_fio_addr",
+                                "type": "string"
+                              },{
+                                "name": "payee_fio_addr",
+                                "type": "string"
+                               },{
+                                "name": "payer_key",
+                                "type": "string"
+                               },{
+                                "name": "payee_key",
+                                "type": "string"
+                               },{
+                                "name": "payer_key_hex",
+                                "type": "uint128"
+                              },{
+                                "name": "payee_key_hex",
+                                "type": "uint128"
+                              },{
+                                "name": "futureuse_string1",
+                                "type": "string"
+                               },{
+                                "name": "futureuse_string2",
+                                "type": "string"
+                               },{
+                                "name": "futureuse_uint64",
+                                "type": "uint64"
+                              },{
+                                "name": "futureuse_uint128",
+                                "type": "uint128"
+                              }
+                            ]
+                          },{
             "name": "recordobt_info",
             "base": "",
             "fields": [{
@@ -91,6 +141,56 @@
                }
             ]
           },{
+            "name": "recobt_info2",
+            "base": "",
+            "fields": [{
+                "name": "id",
+                "type": "uint64"
+              },{
+                "name": "payer_fio_addr_hex",
+                "type": "uint128"
+              },{
+                "name": "payee_fio_addr_hex",
+                "type": "uint128"
+              },{
+                "name": "content",
+                "type": "string"
+              },{
+                "name": "time_stamp",
+                "type": "uint64"
+              },{
+                "name": "payer_fio_addr",
+                "type": "string"
+              },{
+                "name": "payee_fio_addr",
+                "type": "string"
+               },{
+                "name": "payer_key",
+                "type": "string"
+               },{
+                "name": "payee_key",
+                "type": "string"
+               },{
+                "name": "payer_key_hex",
+                "type": "uint128"
+              },{
+                "name": "payee_key_hex",
+                "type": "uint128"
+              },{
+                "name": "futureuse_string1",
+                "type": "string"
+               },{
+                "name": "futureuse_string2",
+                "type": "string"
+               },{
+                "name": "futureuse_uint64",
+                "type": "uint64"
+              },{
+                "name": "futureuse_uint128",
+                "type": "uint128"
+              }
+            ]
+          },{
       "name": "fioreqsts",
       "base": "",
       "fields": [{
@@ -111,6 +211,28 @@
         }
       ]
     },{
+                         "name": "migreqtxt",
+                             "base": "",
+                             "fields": [{
+                             "name": "amount",
+                             "type": "int16"
+                             },{
+                                         "name": "actor",
+                                         "type": "string"
+                                       }
+                               ]
+                         },{
+                                                    "name": "migobttxt",
+                                                        "base": "",
+                                                        "fields": [{
+                                                        "name": "amount",
+                                                        "type": "int16"
+                                                        },{
+                                                                   "name": "actor",
+                                                                   "type": "string"
+                                                                 }
+                                                          ]
+                                                    },{
       "name": "recordobt",
       "base": "",
       "fields": [{
@@ -196,6 +318,14 @@
          }
     ],
   "actions": [{
+                    "name": "migreqtxt",
+                    "type": "migreqtxt",
+                    "ricardian_contract": ""
+                    },{
+                                          "name": "migobttxt",
+                                          "type": "migobttxt",
+                                          "ricardian_contract": ""
+                                          },{
       "name": "recordobt",
       "type": "recordobt",
       "ricardian_contract": ""
@@ -224,6 +354,16 @@
       ],
       "type": "fioreqctxt"
     },{
+            "name": "fioreqctxts2",
+            "index_type": "i64",
+            "key_names": [
+              "fio_request_id"
+            ],
+            "key_types": [
+              "uint64"
+            ],
+            "type": "fioreqctxt2"
+          },{
             "name": "recordobts",
             "index_type": "i64",
             "key_names": [
@@ -234,6 +374,16 @@
             ],
             "type": "recordobt_info"
           },{
+                        "name": "recordobts2",
+                        "index_type": "i64",
+                        "key_names": [
+                          "id"
+                        ],
+                        "key_types": [
+                          "uint64"
+                        ],
+                        "type": "recobt_info2"
+                      },{
       "name": "fioreqstss",
       "index_type": "i64",
       "key_names": [
