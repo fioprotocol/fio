@@ -509,6 +509,7 @@ namespace eosio {
 
             get_actions_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
+            digest_type ad;
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -526,6 +527,10 @@ namespace eosio {
                 fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
                 action_trace t;
                 fc::raw::unpack(ds, t);
+
+                if (ad == t.receipt->act_digest) continue;
+
+                ad = t.receipt->act_digest;
                 if (params.pos < 0) {
                   result.actions.emplace(result.actions.begin(), ordered_action_result{
                                         action_sequence_num,
