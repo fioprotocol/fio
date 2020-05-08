@@ -35,38 +35,43 @@ namespace fioio {
     // @abi table fioreqctxts i64
     struct [[eosio::action]] fioreqctxt {
         uint64_t fio_request_id;
-        uint128_t payer_fio_address;
-        uint128_t payee_fio_address;
-        string payer_fio_address_hex_str;
-        string payee_fio_address_hex_str;
-        uint128_t payer_fio_address_with_time;
-        uint128_t payee_fio_address_with_time;
+        uint128_t payer_fio_addr_hex;
+        uint128_t payee_fio_addr_hex;
         string content;  //this content is a encrypted blob containing the details of the request.
         uint64_t time_stamp;
         string payer_fio_addr;
         string payee_fio_addr;
         string payer_key = nullptr;
         string payee_key = nullptr;
+        uint128_t payer_key_hex;
+        uint128_t payee_key_hex;
+
+        //Future use
+        string futureuse_string1 = nullptr;
+        string futureuse_string2 = nullptr;
+        uint64_t futureuse_uint64 = 0;
+        uint128_t futureuse_uint128 = 0;
 
         uint64_t primary_key() const { return fio_request_id; }
-        uint128_t by_receiver() const { return payer_fio_address; }
-        uint128_t by_originator() const { return payee_fio_address; }
-        uint128_t by_payerwtime() const { return payer_fio_address_with_time; }
-        uint128_t by_payeewtime() const { return payee_fio_address_with_time; }
+        uint128_t by_receiver() const { return payer_fio_addr_hex; }
+        uint128_t by_originator() const { return payee_fio_addr_hex; }
+        uint128_t by_payerkey() const { return payer_key_hex; }
+        uint128_t by_payeekey() const { return payee_key_hex; }
+        uint128_t by_stduint128() const { return futureuse_uint128; }
 
         EOSLIB_SERIALIZE(fioreqctxt,
-        (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)
-                (payer_fio_address_with_time)(payee_fio_address_with_time)
-                (content)(time_stamp)(payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)
+        (fio_request_id)(payer_fio_addr_hex)(payee_fio_addr_hex)(content)(time_stamp)
+                (payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)(payer_key_hex)(payee_key_hex)(futureuse_string1)
+                (futureuse_string2)(futureuse_uint64)(futureuse_uint128)
         )
     };
-
 
     typedef multi_index<"fioreqctxts"_n, fioreqctxt,
             indexed_by<"byreceiver"_n, const_mem_fun < fioreqctxt, uint128_t, &fioreqctxt::by_receiver>>,
     indexed_by<"byoriginator"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_originator>>,
-    indexed_by<"bypayerwtime"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_payerwtime>>,
-    indexed_by<"bypayeewtime"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_payeewtime>
+    indexed_by<"bypayerkey"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_payerkey>>,
+    indexed_by<"bypayeekey"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_payeekey>>,
+    indexed_by<"bystduint"_n, const_mem_fun<fioreqctxt, uint128_t, &fioreqctxt::by_stduint128>
     >>
     fiorequest_contexts_table;
 
@@ -116,37 +121,43 @@ namespace fioio {
     //this struct holds records relating to the items sent via record obt, we call them recordobt_info items.
     struct [[eosio::action]] recordobt_info {
         uint64_t id;
-        uint128_t payer_fio_address;
-        uint128_t payee_fio_address;
-        string payer_fio_address_hex_str;
-        string payee_fio_address_hex_str;
-        uint128_t payer_fio_address_with_time;
-        uint128_t payee_fio_address_with_time;
+        uint128_t payer_fio_addr_hex;
+        uint128_t payee_fio_addr_hex;
         string content;  //this content is a encrypted blob containing the details of the request.
         uint64_t time_stamp;
         string payer_fio_addr;
         string payee_fio_addr;
         string payer_key = nullptr;
         string payee_key = nullptr;
+        uint128_t payer_key_hex;
+        uint128_t payee_key_hex;
+
+        //Future use
+        string futureuse_string1 = nullptr;
+        string futureuse_string2 = nullptr;
+        uint64_t futureuse_uint64 = 0;
+        uint128_t futureuse_uint128 = 0;
 
         uint64_t primary_key() const { return id; }
-        uint128_t by_payee() const { return payee_fio_address; }
-        uint128_t by_payer() const { return payer_fio_address; }
-        uint128_t by_payeewtime() const { return payee_fio_address_with_time; }
-        uint128_t by_payerwtime() const { return payer_fio_address_with_time; }
+        uint128_t by_receiver() const { return payer_fio_addr_hex; }
+        uint128_t by_originator() const { return payee_fio_addr_hex; }
+        uint128_t by_payerkey() const { return payer_key_hex; }
+        uint128_t by_payeekey() const { return payee_key_hex; }
+        uint128_t by_stduint128() const { return futureuse_uint128; }
 
         EOSLIB_SERIALIZE(recordobt_info,
-        (id)(payer_fio_address)(payee_fio_address)(payer_fio_address_hex_str)(payee_fio_address_hex_str)
-                (payer_fio_address_with_time)(payee_fio_address_with_time)
-                (content)(time_stamp)(payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)
+        (id)(payer_fio_addr_hex)(payee_fio_addr_hex)(content)(time_stamp)
+                (payer_fio_addr)(payee_fio_addr)(payer_key)(payee_key)(payer_key_hex)(payee_key_hex)(futureuse_string1)
+                (futureuse_string2)(futureuse_uint64)(futureuse_uint128)
         )
     };
 
     typedef multi_index<"recordobts"_n, recordobt_info,
-            indexed_by<"bypayee"_n, const_mem_fun < recordobt_info, uint128_t, &recordobt_info::by_payee>>,
-    indexed_by<"bypayer"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payer>>,
-    indexed_by<"bypayerwtime"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payerwtime>>,
-    indexed_by<"bypayeewtime"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payeewtime>
+            indexed_by<"byreceiver"_n, const_mem_fun < recordobt_info, uint128_t, &recordobt_info::by_receiver>>,
+    indexed_by<"byoriginator"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_originator>>,
+    indexed_by<"bypayerkey"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payerkey>>,
+    indexed_by<"bypayeekey"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_payeekey>>,
+    indexed_by<"bystduint"_n, const_mem_fun<recordobt_info, uint128_t, &recordobt_info::by_stduint128>
     >>
     recordobt_table;
 

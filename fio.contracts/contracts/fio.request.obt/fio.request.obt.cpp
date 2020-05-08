@@ -70,30 +70,30 @@ namespace fioio {
                            "Actor not active producer", ErrorNoFioAddressProducer);
 
             uint16_t count = 0;
-            auto frt = recordObtTable.begin();
+            auto frt = recordObtTable2.begin();
 
-            while(count <= amount && frt != recordObtTable.end() ) {
+            while(count <= amount && frt != recordObtTable2.end() ) {
                 bool wasSuccessful = false;
-                for (frt = recordObtTable.begin(); frt != recordObtTable.end(); ++frt) {
-                    recordObtTable2.emplace(executor, [&](struct recobt_info2 &frc) {
+                for (frt = recordObtTable2.begin(); frt != recordObtTable2.end(); ++frt) {
+                    recordObtTable.emplace(executor, [&](struct recordobt_info &frc) {
                         frc.id = frt->id;
-                        frc.payer_fio_addr_hex = frt->payer_fio_address;
-                        frc.payee_fio_addr_hex = frt->payee_fio_address;
+                        frc.payer_fio_addr_hex = frt->payer_fio_addr_hex;
+                        frc.payee_fio_addr_hex = frt->payee_fio_addr_hex;
                         frc.content = frt->content;
                         frc.time_stamp = frt->time_stamp;
                         frc.payer_fio_addr = frt->payer_fio_addr;
                         frc.payee_fio_addr = frt->payee_fio_addr;
                         frc.payee_key = frt->payee_key;
                         frc.payer_key = frt->payer_key;
-                        frc.payer_key_hex = string_to_uint128_hash(frt->payer_key.c_str());
-                        frc.payee_key_hex = string_to_uint128_hash(frt->payee_key.c_str());
+                        frc.payer_key_hex = frt->payer_key_hex;
+                        frc.payee_key_hex = frt->payee_key_hex;
 
                         wasSuccessful = true;
                     });
                     if(wasSuccessful){ break; }
                 }
-                if(wasSuccessful && frt != recordObtTable.end()){
-                    recordObtTable.erase(frt); //  Wish deleting the iterator in the forloop was possible.
+                if(wasSuccessful && frt != recordObtTable2.end()){
+                    recordObtTable2.erase(frt); //  Wish deleting the iterator in the forloop was possible.
                     count++;
                 }
             }
@@ -113,30 +113,30 @@ namespace fioio {
                            "Actor not active producer", ErrorNoFioAddressProducer);
 
             uint16_t count = 0;
-            auto frt = fiorequestContextsTable.begin();
+            auto frt = fiorequestContextsTable2.begin();
 
-            while(count <= amount && frt != fiorequestContextsTable.end() ) {
+            while(count <= amount && frt != fiorequestContextsTable2.end() ) {
                 bool wasSuccessful = false;
-                for (frt = fiorequestContextsTable.begin(); frt != fiorequestContextsTable.end(); ++frt) {
-                    fiorequestContextsTable2.emplace(executor, [&](struct fioreqctxt2 &frc) {
+                for (frt = fiorequestContextsTable2.begin(); frt != fiorequestContextsTable2.end(); ++frt) {
+                    fiorequestContextsTable.emplace(executor, [&](struct fioreqctxt &frc) {
                         frc.fio_request_id = frt->fio_request_id;
-                        frc.payer_fio_addr_hex = frt->payer_fio_address;
-                        frc.payee_fio_addr_hex = frt->payee_fio_address;
+                        frc.payer_fio_addr_hex = frt->payer_fio_addr_hex;
+                        frc.payee_fio_addr_hex = frt->payee_fio_addr_hex;
                         frc.content = frt->content;
                         frc.time_stamp = frt->time_stamp;
                         frc.payer_fio_addr = frt->payer_fio_addr;
                         frc.payee_fio_addr = frt->payee_fio_addr;
                         frc.payee_key = frt->payee_key;
                         frc.payer_key = frt->payer_key;
-                        frc.payer_key_hex = string_to_uint128_hash(frt->payer_key.c_str());
-                        frc.payee_key_hex = string_to_uint128_hash(frt->payee_key.c_str());
+                        frc.payer_key_hex = frt->payer_key_hex;
+                        frc.payee_key_hex = frt->payee_key_hex;
 
                         wasSuccessful = true;
                     });
                     if(wasSuccessful){ break; }
                 }
-                if(wasSuccessful && frt != fiorequestContextsTable.end()){
-                    fiorequestContextsTable.erase(frt); //  Wish deleting the iterator in the forloop was possible.
+                if(wasSuccessful && frt != fiorequestContextsTable2.end()){
+                    fiorequestContextsTable2.erase(frt); //  Wish deleting the iterator in the forloop was possible.
                     count++;
                 }
             }
@@ -165,7 +165,7 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            //check(false, "Table migration in progress. All requests and OBT actions paused.");
+            check(false, "Table migration in progress. All requests and OBT actions paused.");
             name aactor = name(actor.c_str());
             require_auth(aactor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -304,27 +304,21 @@ namespace fioio {
                 const uint64_t currentTime = now();
                 const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
                 const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
-                const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
-                const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
-                const string payerwtimestr = payer_fio_address + to_string(currentTime);
-                const string payeewtimestr = payee_fio_address + to_string(currentTime);
-                const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
-                const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
+                const uint128_t payeeKeyHash = string_to_uint128_hash(payee_key.c_str());
+                const uint128_t payerKeyHash = string_to_uint128_hash(payer_key.c_str());
 
                 recordObtTable.emplace(aactor, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
-                    obtinf.payer_fio_address = fromHash;
-                    obtinf.payee_fio_address = toHash;
-                    obtinf.payer_fio_address_hex_str = fromHashStr;
-                    obtinf.payee_fio_address_hex_str = toHashStr;
-                    obtinf.payer_fio_address_with_time = payerwtime;
-                    obtinf.payee_fio_address_with_time = payeewtime;
+                    obtinf.payer_fio_addr_hex = fromHash;
+                    obtinf.payee_fio_addr_hex = toHash;
                     obtinf.content = content;
                     obtinf.time_stamp = currentTime;
                     obtinf.payer_fio_addr = payer_fio_address;
                     obtinf.payee_fio_addr = payee_fio_address;
                     obtinf.payee_key = payee_key;
                     obtinf.payer_key = payer_key;
+                    obtinf.payee_key_hex = payeeKeyHash;
+                    obtinf.payer_key_hex = payerKeyHash;
                 });
             }
 
@@ -365,7 +359,7 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            //check(false, "Table migration in progress. All requests and OBT actions paused.");
+            check(false, "Table migration in progress. All requests and OBT actions paused.");
             const name aActor = name(actor.c_str());
             require_auth(aActor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -483,27 +477,21 @@ namespace fioio {
             const uint64_t currentTime = now();
             const uint128_t toHash = string_to_uint128_hash(payee_fio_address.c_str());
             const uint128_t fromHash = string_to_uint128_hash(payer_fio_address.c_str());
-            const string payerwtimestr = payer_fio_address + to_string(currentTime);
-            const string payeewtimestr = payee_fio_address + to_string(currentTime);
-            const uint128_t payeewtime = string_to_uint128_hash(payeewtimestr.c_str());
-            const uint128_t payerwtime = string_to_uint128_hash(payerwtimestr.c_str());
-            const string toHashStr = "0x" + to_hex((char *) &toHash, sizeof(toHash));
-            const string fromHashStr = "0x" + to_hex((char *) &fromHash, sizeof(fromHash));
+            const uint128_t payeeKeyHash = string_to_uint128_hash(payee_key.c_str());
+            const uint128_t payerKeyHash = string_to_uint128_hash(payer_key.c_str());
 
             fiorequestContextsTable.emplace(aActor, [&](struct fioreqctxt &frc) {
                 frc.fio_request_id = id;
-                frc.payer_fio_address = fromHash;
-                frc.payee_fio_address = toHash;
-                frc.payer_fio_address_hex_str = fromHashStr;
-                frc.payee_fio_address_hex_str = toHashStr;
-                frc.payer_fio_address_with_time= payerwtime;
-                frc.payee_fio_address_with_time=payeewtime;
+                frc.payer_fio_addr_hex = fromHash;
+                frc.payee_fio_addr_hex = toHash;
                 frc.content = content;
                 frc.time_stamp = currentTime;
                 frc.payer_fio_addr = payer_fio_address;
                 frc.payee_fio_addr = payee_fio_address;
                 frc.payee_key = payee_key;
                 frc.payer_key = payer_key;
+                frc.payee_key_hex = payeeKeyHash;
+                frc.payer_key_hex = payerKeyHash;
             });
 
            const string response_string = string("{\"fio_request_id\":") + to_string(id) + string(",\"status\":\"requested\"") +
@@ -542,7 +530,7 @@ namespace fioio {
                 const string &actor,
                 const string &tpid) {
 
-            //check(false, "Table migration in progress. All requests and OBT actions paused.");
+            check(false, "Table migration in progress. All requests and OBT actions paused.");
             const name aactor = name(actor.c_str());
             require_auth(aactor);
             fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -563,7 +551,7 @@ namespace fioio {
             fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                            "No such FIO Request", ErrorRequestContextNotFound);
 
-            const uint128_t payer128FioAddHashed = fioreqctx_iter->payer_fio_address;
+            const uint128_t payer128FioAddHashed = fioreqctx_iter->payer_fio_addr_hex;
             const uint32_t present_time = now();
 
             auto namesbyname = fionames.get_index<"byname"_n>();
@@ -681,7 +669,7 @@ namespace fioio {
             const string &actor,
             const string &tpid) {
 
-        //check(false, "Table migration in progress. All requests and OBT actions paused.");
+        check(false, "Table migration in progress. All requests and OBT actions paused.");
         const name aactor = name(actor.c_str());
         require_auth(aactor);
         fio_400_assert(validateTPIDFormat(tpid), "tpid", tpid,
@@ -702,7 +690,7 @@ namespace fioio {
         fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                        "No such FIO Request", ErrorRequestContextNotFound);
 
-        const uint128_t payee128FioAddHashed = fioreqctx_iter->payee_fio_address;
+        const uint128_t payee128FioAddHashed = fioreqctx_iter->payee_fio_addr_hex;
         const uint32_t present_time = now();
 
         //look for other statuses for this request.
