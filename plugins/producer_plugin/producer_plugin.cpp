@@ -559,7 +559,7 @@ class producer_plugin_impl : public std::enable_shared_from_this<producer_plugin
 
       fc::time_point calculate_pending_block_time() const;
       fc::time_point calculate_block_deadline( const fc::time_point& ) const;
-      void schedule_delayed_production_loop(const std::weak_ptr<producer_plugin_impl>& weak_this, const block_timestamp_type& current_block_time);
+      void schedule_delayed_production_loop(const std::weak_ptr<producer_plugin_impl>& weak_this, optional<fc::time_point> wake_up_time);
       optional<fc::time_point> calculate_producer_wake_up_time( const block_timestamp_type& ref_block_time ) const;
 
 };
@@ -1815,7 +1815,7 @@ void producer_plugin_impl::schedule_production_loop() {
    } else if (result == start_block_result::waiting){
       if (!_producers.empty() && !production_disabled_by_policy()) {
          fc_dlog(_log, "Waiting till another block is received and scheduling Speculative/Production Change");
- schedule_delayed_production_loop(weak_from_this(), calculate_producer_wake_up_time(calculate_pending_block_time()));
+         schedule_delayed_production_loop(weak_from_this(), calculate_producer_wake_up_time(calculate_pending_block_time()));
       } else {
          fc_dlog(_log, "Waiting till another block is received");
          // nothing to do until more blocks arrive
@@ -1827,7 +1827,7 @@ void producer_plugin_impl::schedule_production_loop() {
    } else if (_pending_block_mode == pending_block_mode::speculating && !_producers.empty() && !production_disabled_by_policy()){
       fc_dlog(_log, "Speculative Block Created; Scheduling Speculative/Production Change");
       EOS_ASSERT( chain.is_building_block(), missing_pending_block_state, "speculating without pending_block_state" );
- schedule_delayed_production_loop(weak_from_this(), calculate_producer_wake_up_time(chain.pending_block_time()));
+      schedule_delayed_production_loop(weak_from_this(), calculate_producer_wake_up_time(chain.pending_block_time()));
    } else {
       fc_dlog(_log, "Speculative Block Created");
    }
@@ -1867,22 +1867,31 @@ void producer_plugin_impl::schedule_maybe_produce_block( bool exhausted ) {
          } ) );
 }
 
-void producer_plugin_impl::schedule_delayed_production_loop(const std::weak_ptr<producer_plugin_impl>& weak_this, const block_timestamp_type& current_block_time) {
+optional<fc::time_point> producer_plugin_impl::calculate_producer_wake_up_time( const block_timestamp_type& ref_block_time ) const {
    // if we have any producers then we should at least set a timer for our next available slot
    optional<fc::time_point> wake_up_time;
-   for (const auto&p: _producers) {
-      auto next_producer_block_time = calculate_next_block_time(p, current_block_time);
+   for (const auto& p : _producers) {
+      auto next_producer_block_time = calculate_next_block_time(p, ref_block_time);
       if (next_producer_block_time) {
          auto producer_wake_up_time = *next_producer_block_time - fc::microseconds(config::block_interval_us);
          if (wake_up_time) {
             // wake up with a full block interval to the deadline
-            wake_up_time = std::min<fc::time_point>(*wake_up_time, producer_wake_up_time);
+            if( producer_wake_up_time < *wake_up_time ) {
+               wake_up_time = producer_wake_up_time;
+            }
          } else {
             wake_up_time = producer_wake_up_time;
          }
       }
    }
+   if( !wake_up_time ) {
+      fc_dlog(_log, "Not Scheduling Speculative/Production, no local producers had valid wake up times");
+   }
 
+   return wake_up_time;
+}
+
+void producer_plugin_impl::schedule_delayed_production_loop(const std::weak_ptr<producer_plugin_impl>& weak_this, optional<fc::time_point> wake_up_time) {
    if (wake_up_time) {
       fc_dlog(_log, "Scheduling Speculative/Production Change at ${time}", ("time", wake_up_time));
       static const boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
@@ -1894,8 +1903,6 @@ void producer_plugin_impl::schedule_delayed_production_loop(const std::weak_ptr<
                self->schedule_production_loop();
             }
          } ) );
-   } else {
-      fc_dlog(_log, "Not Scheduling Speculative/Production, no local producers had valid wake up times");
    }
 }
 
