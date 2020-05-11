@@ -2319,6 +2319,22 @@ if( options.count(name) ) { \
             return result;
         } //get_fio_balance
 
+        read_only::get_actor_result read_only::get_actor(const read_only::get_actor_params &p) const {
+
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+
+            get_actor_result result;
+            string account_name;
+            fioio::key_to_account(p.fio_public_key, account_name);
+            result.actor = account_name;
+
+
+            return result;
+        } //get_actor
+
         /*** v1/chain/get_fee
         * Retrieves the fee associated with the specified fio address and blockchain endpoint
         * @param p
