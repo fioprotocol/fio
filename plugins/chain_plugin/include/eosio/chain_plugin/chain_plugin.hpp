@@ -549,15 +549,15 @@ namespace eosio {
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
 
-            struct fio_public_key_to_account_params {
+            struct get_actor_params {
                 fc::string fio_public_key;
             };
 
-            struct fio_public_key_to_account_result {
-                string account;
+            struct get_actor_result {
+                string actor;
             };
 
-            fio_public_key_to_account_result fio_public_key_to_account(const fio_public_key_to_account_params &params) const;
+            get_actor_result get_actor(const get_actor_params &params) const;
 
 
             void obt_data_search(uint32_t search_limit, get_obt_data_result &result, const abi_def &reqobt_abi,
@@ -1350,8 +1350,8 @@ FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbo
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance));
-FC_REFLECT(eosio::chain_apis::read_only::fio_public_key_to_account_params, (fio_public_key));
-FC_REFLECT(eosio::chain_apis::read_only::fio_public_key_to_account_result, (account));
+FC_REFLECT(eosio::chain_apis::read_only::get_actor_params, (fio_public_key));
+FC_REFLECT(eosio::chain_apis::read_only::get_actor_result, (actor));
 FC_REFLECT(eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_producers_result, (producers)(total_producer_vote_weight)(more));
 
