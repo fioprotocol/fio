@@ -1353,6 +1353,7 @@ namespace fioio {
         [[eosio::action]]
         void xferaddress(const string &fio_address, const string &new_owner_fio_public_key, const int64_t &max_fee,
                         const string &tpid, const name &actor) {
+            check(false, "Transfering a FIO address/domain is currently disabled");
             require_auth(actor);
             FioAddress fa;
             getFioAddressStruct(fio_address, fa);
@@ -1454,6 +1455,7 @@ namespace fioio {
         [[eosio::action]]
         void xferdomain(const string &fio_domain, const string &new_owner_fio_public_key, const int64_t &max_fee,
                         const string &tpid, const name &actor) {
+            check(false, "Transfering a FIO address/domain is currently disabled");
             require_auth(actor);
             FioAddress fa;
             getFioAddressStruct(fio_domain, fa);
