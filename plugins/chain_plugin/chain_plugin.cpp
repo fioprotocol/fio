@@ -2717,20 +2717,18 @@ result.balance = rVal;
 return result;
 } //get_fio_balance
 
-        read_only::fio_public_key_to_account_result read_only::fio_public_key_to_account(const read_only::fio_public_key_to_account_params &p) const {
-            string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
-            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+        read_only::get_actor_result read_only::get_actor(const read_only::get_actor_params &p) const {
+
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
+            get_actor_result result;
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
+            result.actor = account_name;
+            return result;
+        } //get_actor
 
-            fio_public_key_to_account_result r;
-            r.account = account_name;
-            return r;
-
-        } //fio_public_key_to_account
 
         /*** v1/chain/get_fee
         * Retrieves the fee associated with the specified fio address and blockchain endpoint

@@ -107,7 +107,7 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_required_keys, 200),
                                      CHAIN_RO_CALL(get_transaction_id, 200),
                                      CHAIN_RO_CALL(get_fio_balance, 200),
-                                     CHAIN_RO_CALL(fio_public_key_to_account, 200),
+                                     CHAIN_RO_CALL(get_actor, 200),
                                      CHAIN_RO_CALL(get_fio_names, 200),
                                      CHAIN_RO_CALL(get_fio_domains, 200),
                                      CHAIN_RO_CALL(get_fio_addresses, 200),
