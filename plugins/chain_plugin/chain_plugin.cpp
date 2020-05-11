@@ -2656,66 +2656,66 @@ if( options.count(name) ) { \
         } // get_fio_addresses
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
-        string fioKey = p.fio_public_key;
-        fioio::replaceFormat(fioKey);
-        FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
-        "Invalid FIO Public Key",
-        fioio::ErrorPubKeyValid);
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
 
-        get_account_results actor_lookup_results;
-        get_account_params actor_lookup_params;
-        get_fio_balance_result result;
-        vector<asset> cursor;
-        result.balance = 0;
+            get_account_results actor_lookup_results;
+            get_account_params actor_lookup_params;
+            get_fio_balance_result result;
+            vector<asset> cursor;
+            result.balance = 0;
 
-        uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-        const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
-        std::string hexvalkeyhash = "0x";
-        hexvalkeyhash.append(
-                fioio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&keyhash), sizeof(keyhash)));
 
 
-        get_table_rows_params eosio_table_row_params = get_table_rows_params{
-                .json           = true,
-                .code           = fio_system_code,
-                .scope          = fio_system_scope,
-                .table          = fio_accounts_table,
-                .lower_bound    = hexvalkeyhash,
-                .upper_bound    = hexvalkeyhash,
-                .key_type       = "hex",
-                .index_position = "2"};
+            get_table_rows_params eosio_table_row_params = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_system_code,
+                    .scope          = fio_system_scope,
+                    .table          = fio_accounts_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "2"};
 
-        get_table_rows_result account_result =
-                get_table_rows_by_seckey<index128_index, uint128_t>(
-                        eosio_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
-                            return v;
-                        });
+            get_table_rows_result account_result =
+                    get_table_rows_by_seckey<index128_index, uint128_t>(
+                            eosio_table_row_params, system_abi, [](uint128_t v) -> uint128_t {
+                                return v;
+                            });
 
-        FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found", fioio::ErrorPubAddressNotFound);
+            FIO_404_ASSERT(!account_result.rows.empty(), "Public key not found", fioio::ErrorPubAddressNotFound);
 
-        string fio_account = account_result.rows[0]["account"].as_string();
-        actor_lookup_params.account_name = fio_account;
+            string fio_account = account_result.rows[0]["account"].as_string();
+            actor_lookup_params.account_name = fio_account;
 
-    try {
-        actor_lookup_results = get_account(actor_lookup_params);
-    }
-    catch (...) {
-    FIO_404_ASSERT(false, "Public key not found", fioio::ErrorPubAddressNotFound);
-}
+            try {
+                actor_lookup_results = get_account(actor_lookup_params);
+            }
+            catch (...) {
+                FIO_404_ASSERT(false, "Public key not found", fioio::ErrorPubAddressNotFound);
+            }
 
-get_currency_balance_params balance_params;
-balance_params.code = ::eosio::string_to_name("fio.token");
-balance_params.account = ::eosio::string_to_name(fio_account.c_str());
-cursor = get_currency_balance(balance_params);
+            get_currency_balance_params balance_params;
+            balance_params.code = ::eosio::string_to_name("fio.token");
+            balance_params.account = ::eosio::string_to_name(fio_account.c_str());
+            cursor = get_currency_balance(balance_params);
 
-if (!cursor.empty()) {
-uint64_t rVal = (uint64_t) cursor[0].get_amount();
-result.balance = rVal;
-}
+            if (!cursor.empty()) {
+                uint64_t rVal = (uint64_t) cursor[0].get_amount();
+                result.balance = rVal;
+            }
 
-return result;
-} //get_fio_balance
+            return result;
+        } //get_fio_balance
 
         read_only::get_actor_result read_only::get_actor(const read_only::get_actor_params &p) const {
 
