@@ -73,8 +73,15 @@ namespace eosio {
                 flat_set<public_key_type> key_blacklist;
                 path blocks_dir = chain::config::default_blocks_dir_name;
                 path state_dir = chain::config::default_state_dir_name;
+                path history_dir = chain::config::default_history_dir_name;
+                path history_index_dir = chain::config::default_history_index_dir_name;
                 uint64_t state_size = chain::config::default_state_size;
                 uint64_t state_guard_size = chain::config::default_state_guard_size;
+                uint64_t history_size = chain::config::default_history_size;
+                uint64_t history_guard_size = chain::config::default_history_guard_size;
+                uint64_t history_index_size = chain::config::default_history_index_size;
+                uint64_t history_index_guard_size = chain::config::default_history_index_guard_size;
+
                 uint64_t reversible_cache_size = chain::config::default_reversible_cache_size;
                 uint64_t reversible_guard_size = chain::config::default_reversible_guard_size;
                 uint32_t sig_cpu_bill_pct = chain::config::default_sig_cpu_bill_pct;
@@ -182,6 +189,8 @@ namespace eosio {
 
             const chainbase::database &db() const;
 
+            const chainbase::database& hdb()const;
+            const chainbase::database& hidb()const;
             const fork_database &fork_db() const;
 
             const account_object &get_account(account_name n) const;
@@ -409,6 +418,8 @@ namespace eosio {
             friend class transaction_context;
 
             chainbase::database &mutable_db() const;
+            chainbase::database &mutable_hdb()const;
+            chainbase::database &mutable_hidb()const;
 
             std::unique_ptr<controller_impl> my;
 

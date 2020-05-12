@@ -4,18 +4,18 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
-
+#include <fio.common/keyops.hpp>
 #include <fc/io/json.hpp>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/signals2/connection.hpp>
 
 namespace eosio {
+
     using namespace chain;
     using boost::signals2::scoped_connection;
 
     static appbase::abstract_plugin &_history_plugin = app().register_plugin<history_plugin>();
-
 
     struct account_history_object : public chainbase::object<account_history_object_type, account_history_object> {
         OBJECT_CTOR(account_history_object);
@@ -23,7 +23,7 @@ namespace eosio {
         id_type id;
         account_name account; ///< the name of the account which has this action in its history
         uint64_t action_sequence_num = 0; ///< the sequence number of the relevant action (global)
-        int32_t account_sequence_num = 0; ///< the sequence number for this account (per-account)
+        int64_t account_sequence_num = 0; ///< the sequence number for this account (per-account)
     };
 
     struct action_history_object : public chainbase::object<action_history_object_type, action_history_object> {
@@ -37,6 +37,7 @@ namespace eosio {
         uint32_t block_num;
         block_timestamp_type block_time;
         transaction_id_type trx_id;
+        uint8_t use_count;
     };
 
     using account_history_id_type = account_history_object::id_type;
@@ -68,7 +69,7 @@ namespace eosio {
                     ordered_unique<tag<by_account_action_seq>,
                             composite_key<account_history_object,
                                     member<account_history_object, account_name, &account_history_object::account>,
-                                    member<account_history_object, int32_t, &account_history_object::account_sequence_num>
+                                    member<account_history_object, int64_t, &account_history_object::account_sequence_num>
                             >
                     >
             >
@@ -138,6 +139,7 @@ namespace eosio {
     class history_plugin_impl {
     public:
         bool bypass_filter = false;
+        uint64_t history_per_account = 1000;
         std::set<filter_entry> filter_on;
         std::set<filter_entry> filter_out;
         chain_plugin *chain_plug = nullptr;
@@ -199,6 +201,25 @@ namespace eosio {
                         (filter_out.find({act.receiver, act.act.name, a.actor}) == filter_out.end())) {
                         result.insert(a.actor);
                     }
+                    if (act.receiver == chain::config::system_account_name && act.act.name == N(newaccount)) {
+                      const auto created = act.act.data_as<eosio::newaccount>();
+                      result.insert(created.name);
+                    }
+
+                    if (act.act.name == N(trnsfiopubky)) {
+                      const auto created = act.act.data_as<eosio::trnsfiopubky>();
+                      result.insert(fioio::key_to_account(created.payee_public_key));
+                    }
+
+                    if (act.act.name == N(regaddress)) {
+                      const auto created = act.act.data_as<eosio::regaddress>();
+                      result.insert(fioio::key_to_account(created.owner_fio_public_key));
+                    }
+
+                    if (act.act.name == N(regdomain)) {
+                      const auto created = act.act.data_as<eosio::regdomain>();
+                      result.insert(fioio::key_to_account(created.owner_fio_public_key));
+                    }
                 }
             }
             return result;
@@ -206,12 +227,13 @@ namespace eosio {
 
         void record_account_action(account_name n, const action_trace &act) {
             auto &chain = chain_plug->chain();
-            chainbase::database &db = const_cast<chainbase::database &>( chain.db()); // Override read-only access to state DB (highly unrecommended practice!)
+            chainbase::database& db = const_cast<chainbase::database&>( chain.hidb() ); // Override read-only access to state DB (highly unrecommended practice!)
+            chainbase::database& hdb = const_cast<chainbase::database&>( chain.hdb() ); // Override read-only access to state DB (highly unrecommended practice!)
 
             const auto &idx = db.get_index<account_history_index, by_account_action_seq>();
             auto itr = idx.lower_bound(boost::make_tuple(name(n.value + 1), 0));
 
-            uint64_t asn = 0;
+            int64_t asn = 0;
             if (itr != idx.begin()) --itr;
             if (itr->account == n)
                 asn = itr->account_sequence_num + 1;
@@ -221,11 +243,28 @@ namespace eosio {
                 aho.action_sequence_num = act.receipt->global_sequence;
                 aho.account_sequence_num = asn;
             });
+
+            if ( asn >= history_per_account ) {
+              auto ahi_itr = idx.lower_bound( boost::make_tuple( n, asn - history_per_account ) );
+
+              const auto& target = hdb.get<action_history_object, by_action_sequence_num>(ahi_itr->action_sequence_num);
+              if (target.use_count == 1) {
+                auto& mutable_aho_idx = hdb.get_mutable_index<action_history_index>();
+                mutable_aho_idx.remove(target);
+              } else {
+                hdb.modify(target, [&](action_history_object& aho){
+                  aho.use_count--;
+                });
+              }
+
+              auto& mutable_idx = db.get_mutable_index<account_history_index>();
+              mutable_idx.remove(*ahi_itr);
+            }
         }
 
         void on_system_action(const action_trace &at) {
             auto &chain = chain_plug->chain();
-            chainbase::database &db = const_cast<chainbase::database &>( chain.db()); // Override read-only access to state DB (highly unrecommended practice!)
+            chainbase::database& db = const_cast<chainbase::database&>( chain.hidb() ); // Override read-only access to state DB (highly unrecommended practice!)
             if (at.act.name == N(newaccount)) {
                 const auto create = at.act.data_as<chain::newaccount>();
                 add(db, create.owner.keys, create.name, N(owner));
@@ -250,9 +289,16 @@ namespace eosio {
             if (filter(at)) {
                 //idump((fc::json::to_pretty_string(at)));
                 auto &chain = chain_plug->chain();
-                chainbase::database &db = const_cast<chainbase::database &>( chain.db()); // Override read-only access to state DB (highly unrecommended practice!)
+                chainbase::database& hdb = const_cast<chainbase::database&>( chain.hdb() ); // Override read-only access to state DB (highly unrecommended practice!)
 
-                db.create<action_history_object>([&](auto &aho) {
+                uint8_t use_count = 0;
+                auto aset = account_set( at );
+                for( auto a : aset ) {
+                   record_account_action( a, at );
+                   use_count++;
+                }
+
+                hdb.create<action_history_object>([&](auto &aho) {
                     auto ps = fc::raw::pack_size(at);
                     aho.packed_action_trace.resize(ps);
                     datastream<char *> ds(aho.packed_action_trace.data(), ps);
@@ -261,12 +307,9 @@ namespace eosio {
                     aho.block_num = chain.head_block_num() + 1;
                     aho.block_time = chain.pending_block_time();
                     aho.trx_id = at.trx_id;
+                    aho.use_count  = use_count;
                 });
 
-                auto aset = account_set(at);
-                for (auto a : aset) {
-                    record_account_action(a, at);
-                }
             }
             if (at.receiver == chain::config::system_account_name)
                 on_system_action(at);
@@ -298,6 +341,9 @@ namespace eosio {
         cfg.add_options()
                 ("filter-out,F", bpo::value<vector<string>>()->composing(),
                  "Do not track actions which match receiver:action:actor. Action and Actor both blank excludes all from Reciever. Actor blank excludes all from reciever:action. Receiver may not be blank.");
+        cfg.add_options()
+                ("history-per-account", bpo::value<uint64_t>()->default_value(1000),
+                "Maximum history limit, i.e., the number of newest history actions stored, per account.");
     }
 
     void history_plugin::plugin_initialize(const variables_map &options) {
@@ -334,16 +380,22 @@ namespace eosio {
                 }
             }
 
+            if(options.count("history-per-account"))
+              my->history_per_account = options.at( "history-per-account" ).as<uint64_t>();
+
             my->chain_plug = app().find_plugin<chain_plugin>();
             EOS_ASSERT(my->chain_plug, chain::missing_chain_plugin_exception, "");
             auto &chain = my->chain_plug->chain();
 
             chainbase::database &db = const_cast<chainbase::database &>( chain.db()); // Override read-only access to state DB (highly unrecommended practice!)
+            chainbase::database& hdb = const_cast<chainbase::database&>( chain.hdb() ); // Override read-only access to state DB (highly unrecommended practice!)
+            chainbase::database& hidb = const_cast<chainbase::database&>( chain.hidb() ); // Override read-only access to state DB (highly unrecommended practice!)
+
             // TODO: Use separate chainbase database for managing the state of the history_plugin (or remove deprecated history_plugin entirely)
-            db.add_index<account_history_index>();
-            db.add_index<action_history_index>();
-            db.add_index<account_control_history_multi_index>();
-            db.add_index<public_key_history_multi_index>();
+            hdb.add_index<action_history_index>();
+            hidb.add_index<account_history_index>();
+            hidb.add_index<account_control_history_multi_index>();
+            hidb.add_index<public_key_history_multi_index>();
 
             my->applied_transaction_connection.emplace(
                     chain.applied_transaction.connect(
@@ -363,19 +415,20 @@ namespace eosio {
 
     namespace history_apis {
         read_only::get_actions_result read_only::get_actions(const read_only::get_actions_params &params) const {
-            edump((params));
+            // edump((params));
             auto &chain = history->chain_plug->chain();
-            const auto &db = chain.db();
+            const auto& hdb  = chain.hdb();
+            const auto& hidb = chain.hidb();
             const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
 
-            const auto &idx = db.get_index<account_history_index, by_account_action_seq>();
+            const auto& idx = hidb.get_index<account_history_index, by_account_action_seq>();
 
-            int32_t start = 0;
-            int32_t pos = params.pos ? *params.pos : -1;
-            int32_t end = 0;
-            int32_t offset = params.offset ? *params.offset : -20;
+            int64_t start = 0;
+            int64_t pos = params.pos ? *params.pos : -1;
+            int64_t end = 0;
+            int64_t offset = params.offset ? *params.offset : -20;
             auto n = params.account_name;
-            idump((pos));
+            // idump((pos));
             if (pos == -1) {
                 auto itr = idx.lower_bound(boost::make_tuple(name(n.value + 1), 0));
                 if (itr == idx.begin()) {
@@ -387,7 +440,7 @@ namespace eosio {
                     pos = itr->account_sequence_num + 1;
             }
 
-            if (pos == -1) pos = 0xfffffff;
+            if (pos == -1) pos = 0xfffffffffffffff;
 
             if (offset > 0) {
                 start = pos;
@@ -399,7 +452,17 @@ namespace eosio {
             }
             EOS_ASSERT(end >= start, chain::plugin_exception, "end position is earlier than start position");
 
-            idump((start)(end));
+            // idump((start)(end));
+
+            // Find latest stored action (will have lowest available ACCOUNT seq number)
+            const auto max_itr = idx.lower_bound( boost::make_tuple( n, 0 ) );
+            const auto min_seq_number = max_itr->account_sequence_num;
+            if (min_seq_number > 0) {  // Reject outside of retention policy boundary.
+              const auto max_seq_number = min_seq_number + history->history_per_account;
+              EOS_ASSERT( start >= min_seq_number, chain::plugin_range_not_satisfiable, "start position is earlier than account retention policy (${p}). Latest available: ${l}. Requested start: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",start) );
+              // Below should actually never occur..?
+              EOS_ASSERT( end >= min_seq_number, chain::plugin_range_not_satisfiable,   "end position is earlier than account retention policy (${p}). Latest available: ${l}. Requested end: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",end) );
+            }
 
             auto start_itr = idx.lower_bound(boost::make_tuple(n, start));
             auto end_itr = idx.upper_bound(boost::make_tuple(n, end));
@@ -410,23 +473,43 @@ namespace eosio {
             get_actions_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
             while (start_itr != end_itr) {
-                const auto &a = db.get<action_history_object, by_action_sequence_num>(start_itr->action_sequence_num);
+                uint64_t action_sequence_num;
+                int64_t account_sequence_num;
+                if (params.pos < 0) {
+                --end_itr;
+                action_sequence_num = end_itr->action_sequence_num;
+                account_sequence_num = end_itr->account_sequence_num;
+                } else {
+                action_sequence_num = start_itr->action_sequence_num;
+                account_sequence_num = start_itr->account_sequence_num;
+                ++start_itr;
+                }
+
+                const auto& a = hdb.get<action_history_object, by_action_sequence_num>( action_sequence_num );
                 fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
                 action_trace t;
                 fc::raw::unpack(ds, t);
-                result.actions.emplace_back(ordered_action_result{
-                        start_itr->action_sequence_num,
-                        start_itr->account_sequence_num,
-                        a.block_num, a.block_time,
-                        chain.to_variant_with_abi(t, abi_serializer_max_time)
-                });
+                if (params.pos < 0) {
+                  result.actions.emplace(result.actions.begin(), ordered_action_result{
+                                        action_sequence_num,
+                                        account_sequence_num,
+                                        a.block_num, a.block_time,
+                                        chain.to_variant_with_abi(t, abi_serializer_max_time)
+                                        });
+                } else {
+                  result.actions.emplace_back( ordered_action_result{
+                                        action_sequence_num,
+                                        account_sequence_num,
+                                        a.block_num, a.block_time,
+                                        chain.to_variant_with_abi(t, abi_serializer_max_time)
+                                        });
+                }
 
                 end_time = fc::time_point::now();
                 if (end_time - start_time > fc::microseconds(100000)) {
                     result.time_limit_exceeded_error = true;
                     break;
                 }
-                ++start_itr;
             }
             return result;
         }
@@ -458,15 +541,19 @@ namespace eosio {
                 return (*(input_id.data() + input_id_size) & 0xF0) == (*(id.data() + input_id_size) & 0xF0);
             };
 
-            const auto &db = chain.db();
+            const auto& db = chain.hdb();
             const auto &idx = db.get_index<action_history_index, by_trx_id>();
             auto itr = idx.lower_bound(boost::make_tuple(input_id));
 
             bool in_history = (itr != idx.end() && txn_id_matched(itr->trx_id));
 
             if (!in_history && !p.block_num_hint) {
-                EOS_THROW(tx_not_found, "Transaction ${id} not found in history and no block hint was given",
-                          ("id", p.id));
+              EOS_THROW(chain::plugin_range_not_satisfiable, "Transaction ${id} not found in limited history and no block hint was given",
+                ("id",p.id));
+            }
+            if (!in_history && p.block_num_hint == 0) {  // Pro-tip, your tx is probable not in block 0... default param?
+              EOS_THROW(chain::plugin_range_not_satisfiable, "Transaction ${id} not found in limited history and block hint of 0 was given",
+                ("id",p.id));
             }
 
             get_transaction_result result;
@@ -556,9 +643,38 @@ namespace eosio {
             return result;
         }
 
+        read_only::get_block_txids_result read_only::get_block_txids(const read_only::get_block_txids_params& params ) const {
+            auto& chain = history->chain_plug->chain();
+
+            auto block_num = params.block_num;
+            get_block_txids_result result;
+            result.last_irreversible_block = chain.last_irreversible_block_num();
+
+            EOS_ASSERT(block_num != 0, chain::plugin_exception, "Asked for invalid block" );
+            EOS_ASSERT(block_num <= chain.head_block_num(), chain::plugin_exception, "Unknown block" );
+
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
+
+            auto blk = chain.fetch_block_by_number(block_num);
+            if (blk) {
+              for (const auto& receipt: blk->transactions) {
+                if (receipt.trx.contains<packed_transaction>()) {
+                  auto& pt = receipt.trx.get<packed_transaction>();
+                  const auto& id = pt.id();
+                  result.ids.push_back(id);
+                } else {
+                  auto& id = receipt.trx.get<transaction_id_type>();
+                  result.ids.push_back(id);
+                }
+              }
+            }
+            return result;
+        }
+
         read_only::get_key_accounts_results read_only::get_key_accounts(const get_key_accounts_params &params) const {
             std::set<account_name> accounts;
-            const auto &db = history->chain_plug->chain().db();
+            const auto& db = history->chain_plug->chain().hidb();
             const auto &pub_key_idx = db.get_index<public_key_history_multi_index, by_pub_key>();
             auto range = pub_key_idx.equal_range(params.public_key);
             for (auto obj = range.first; obj != range.second; ++obj)
@@ -569,7 +685,7 @@ namespace eosio {
         read_only::get_controlled_accounts_results
         read_only::get_controlled_accounts(const get_controlled_accounts_params &params) const {
             std::set<account_name> accounts;
-            const auto &db = history->chain_plug->chain().db();
+            const auto& db = history->chain_plug->chain().hidb();
             const auto &account_control_idx = db.get_index<account_control_history_multi_index, by_controlling>();
             auto range = account_control_idx.equal_range(params.controlling_account);
             for (auto obj = range.first; obj != range.second; ++obj)

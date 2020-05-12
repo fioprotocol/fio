@@ -484,6 +484,8 @@ namespace eosio {
         FC_DECLARE_DERIVED_EXCEPTION(plugin_config_exception, plugin_exception,
                                      3110006, "Incorrect plugin configuration")
 
+        FC_DECLARE_DERIVED_EXCEPTION( plugin_range_not_satisfiable, plugin_exception,
+                                     3110007, "Range Not Satisfiable" )
 
         FC_DECLARE_DERIVED_EXCEPTION(wallet_exception, chain_exception,
                                      3120000, "Wallet exception")
