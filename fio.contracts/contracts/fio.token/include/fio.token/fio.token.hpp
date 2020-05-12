@@ -158,7 +158,6 @@ namespace eosio {
                         if (payoutsDue > 6) {
                             payoutsDue = 6;
                         }
-
                     }
 
                     uint32_t numberVestingPayouts = lockiter->unlocked_period_count;

@@ -29,7 +29,7 @@ namespace eosiosystem {
         _gstate2.last_block_num = timestamp;
 
         /** until voting activated fio crosses this threshold no new rewards are paid */
-        if( _gstate.total_voted_fio < MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point()  ){
+        if( _gstate.total_voted_fio < MINVOTEDFIO && _gstate.thresh_voted_fio_time == time_point() ){
             return;
         }
 

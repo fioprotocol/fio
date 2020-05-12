@@ -176,7 +176,24 @@
                      "type": "string"
                    }
                ]
-        }
+       },{
+         "name": "cancelfndreq",
+             "base": "",
+             "fields": [{
+                     "name": "fio_request_id",
+                     "type": "string"
+                   },{
+                     "name": "max_fee",
+                     "type": "int64"
+                   },{
+                     "name": "actor",
+                     "type": "string"
+                   },{
+                     "name": "tpid",
+                     "type": "string"
+                   }
+               ]
+         }
     ],
   "actions": [{
       "name": "recordobt",
@@ -189,6 +206,10 @@
       },{
       "name": "rejectfndreq",
       "type": "rejectfndreq",
+      "ricardian_contract": ""
+      },{
+      "name": "cancelfndreq",
+      "type": "cancelfndreq",
       "ricardian_contract": ""
       }
       ],
