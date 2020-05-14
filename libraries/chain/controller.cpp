@@ -3235,6 +3235,10 @@ namespace eosio {
             my->subjective_cpu_leeway = leeway;
         }
 
+        fc::optional<fc::microseconds> controller::get_subjective_cpu_leeway() const {
+            return my->subjective_cpu_leeway;
+        }
+
         void controller::set_greylist_limit(uint32_t limit) {
             EOS_ASSERT(0 < limit && limit <= chain::config::maximum_elastic_resource_multiplier,
                        misc_exception,

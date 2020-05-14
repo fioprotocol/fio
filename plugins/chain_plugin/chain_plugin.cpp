@@ -158,6 +158,8 @@ namespace eosio {
         bfs::path blocks_dir;
         bool readonly = false;
         flat_map<uint32_t, block_id_type> loaded_checkpoints;
+        bool                             accept_transactions = false;
+        bool                             api_accept_transactions = true;
 
         fc::optional<fork_database> fork_db;
         fc::optional<block_log> block_logger;
@@ -981,10 +983,24 @@ if( options.count(name) ) { \
                 }
             }
 
-            if (options.count("read-mode")) {
-                my->chain_config->read_mode = options.at("read-mode").as<db_read_mode>();
+            if ( options.count("read-mode") ) {
+               my->chain_config->read_mode = options.at("read-mode").as<db_read_mode>();
             }
+            my->api_accept_transactions = options.at( "api-accept-transactions" ).as<bool>();
 
+            if( my->chain_config->read_mode == db_read_mode::IRREVERSIBLE || my->chain_config->read_mode == db_read_mode::READ_ONLY ) {
+               if( my->chain_config->read_mode == db_read_mode::READ_ONLY ) {
+                  wlog( "read-mode = read-only is deprecated use p2p-accept-transactions = false, api-accept-transactions = false instead." );
+               }
+               if( my->api_accept_transactions ) {
+                  my->api_accept_transactions = false;
+                  std::stringstream ss; ss << my->chain_config->read_mode;
+                  wlog( "api-accept-transactions set to false due to read-mode: ${m}", ("m", ss.str()) );
+               }
+            }
+            if( my->api_accept_transactions ) {
+               enable_accept_transactions();
+            }
             if (options.count("validation-mode")) {
                 my->chain_config->block_validation_mode = options.at("validation-mode").as<validation_mode>();
             }
@@ -1062,36 +1078,36 @@ if( options.count(name) ) { \
 
     }
 
-    void chain_plugin::plugin_startup() {
-        try {
-            try {
-                auto shutdown = []() { return app().is_quiting(); };
-                if (my->snapshot_path) {
-                    auto infile = std::ifstream(my->snapshot_path->generic_string(), (std::ios::in | std::ios::binary));
-                    auto reader = std::make_shared<istream_snapshot_reader>(infile);
-                    my->chain->startup(shutdown, reader);
-                    infile.close();
-                } else {
-                    my->chain->startup(shutdown);
-                }
-            } catch (const database_guard_exception &e) {
-                log_guard_exception(e);
-                // make sure to properly close the db
-                my->chain.reset();
-                throw;
-            }
+    void chain_plugin::plugin_startup()
+    { try {
+       EOS_ASSERT( my->chain_config->read_mode != db_read_mode::IRREVERSIBLE || !accept_transactions(), plugin_config_exception,
+                   "read-mode = irreversible. transactions should not be enabled by enable_accept_transactions" );
+       try {
+          auto shutdown = [](){ return app().is_quiting(); };
+          if (my->snapshot_path) {
+             auto infile = std::ifstream(my->snapshot_path->generic_string(), (std::ios::in | std::ios::binary));
+             auto reader = std::make_shared<istream_snapshot_reader>(infile);
+             my->chain->startup(shutdown, reader);
+             infile.close();
+          } else {
+             my->chain->startup(shutdown);
+          }
+       } catch (const database_guard_exception& e) {
+          log_guard_exception(e);
+          // make sure to properly close the db
+          my->chain.reset();
+          throw;
+       }
 
-            if (!my->readonly) {
-                ilog("starting chain in read/write mode");
-            }
+       if(!my->readonly) {
+          ilog("starting chain in read/write mode");
+       }
 
-            ilog("Blockchain started; head block is #${num}, genesis timestamp is ${ts}",
-                 ("num", my->chain->head_block_num())("ts", (std::string) my->chain_config->genesis.initial_timestamp));
+       ilog("Blockchain started; head block is #${num}, genesis timestamp is ${ts}",
+            ("num", my->chain->head_block_num())("ts", (std::string)my->chain_config->genesis.initial_timestamp));
 
-            my->chain_config.reset();
-        } FC_CAPTURE_AND_RETHROW()
-    }
-
+       my->chain_config.reset();
+    } FC_CAPTURE_AND_RETHROW() }
     void chain_plugin::plugin_shutdown() {
         my->pre_accepted_block_connection.reset();
         my->accepted_block_header_connection.reset();
@@ -1104,29 +1120,27 @@ if( options.count(name) ) { \
         my->chain.reset();
     }
 
-    chain_apis::read_write::read_write(controller &db, const fc::microseconds &abi_serializer_max_time)
-            : db(db), abi_serializer_max_time(abi_serializer_max_time) {
+    chain_apis::read_write::read_write(controller& db, const fc::microseconds& abi_serializer_max_time, bool api_accept_transactions)
+    : db(db)
+    , abi_serializer_max_time(abi_serializer_max_time)
+    , api_accept_transactions(api_accept_transactions)
+    {
     }
-
     void chain_apis::read_write::validate() const {
-      EOS_ASSERT( !db.in_immutable_mode(), missing_chain_api_plugin_exception,
-            "Not allowed, node in read-only mode" );
+       EOS_ASSERT( api_accept_transactions, missing_chain_api_plugin_exception,
+                   "Not allowed, node has api-accept-transactions = false" );
     }
 
     void chain_plugin::accept_block(const signed_block_ptr &block) {
         my->incoming_block_sync_method(block);
     }
 
-    void chain_plugin::accept_transaction(const chain::packed_transaction &trx,
-                                          next_function<chain::transaction_trace_ptr> next) {
-        my->incoming_transaction_async_method(
-                std::make_shared<transaction_metadata>(std::make_shared<packed_transaction>(trx)), false,
-                std::forward<decltype(next)>(next));
+    void chain_plugin::accept_transaction(const chain::packed_transaction& trx, next_function<chain::transaction_trace_ptr> next) {
+       my->incoming_transaction_async_method(std::make_shared<transaction_metadata>(std::make_shared<packed_transaction>(trx)), false, std::forward<decltype(next)>(next));
     }
 
-    void chain_plugin::accept_transaction(const chain::transaction_metadata_ptr &trx,
-                                          next_function<chain::transaction_trace_ptr> next) {
-        my->incoming_transaction_async_method(trx, false, std::forward<decltype(next)>(next));
+    void chain_plugin::accept_transaction(const chain::transaction_metadata_ptr& trx, next_function<chain::transaction_trace_ptr> next) {
+       my->incoming_transaction_async_method(trx, false, std::forward<decltype(next)>(next));
     }
 
     bool chain_plugin::block_is_on_preferred_chain(const block_id_type &block_id) {
@@ -1350,6 +1364,18 @@ if( options.count(name) ) { \
 
     fc::microseconds chain_plugin::get_abi_serializer_max_time() const {
         return my->abi_serializer_max_time_ms;
+    }
+
+    bool chain_plugin::api_accept_transactions() const{
+       return my->api_accept_transactions;
+    }
+
+    bool chain_plugin::accept_transactions() const {
+       return my->accept_transactions;
+    }
+
+    void chain_plugin::enable_accept_transactions() {
+       my->accept_transactions = true;
     }
 
     void chain_plugin::log_guard_exception(const chain::guard_exception &e) {
@@ -2638,7 +2664,7 @@ if( options.count(name) ) { \
                         break;
                     }
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                    if (nam.find('@') != std::string::npos) { 
+                    if (nam.find('@') != std::string::npos) {
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
 
                         temptime = namexpiration;
