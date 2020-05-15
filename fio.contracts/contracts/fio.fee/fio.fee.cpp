@@ -108,7 +108,7 @@ namespace fioio {
         * @param fee_endpoint_hash
         */
         void
-        compute_median_and_update_fees(vector <uint64_t> feevalues,  string fee_endpoint, uint128_t fee_endpoint_hash) {
+        compute_median_and_update_fees(vector <uint64_t> feevalues,  const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
             bool dbgout = false;
             //one more time
             if (feevalues.size() > 0) {
