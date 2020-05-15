@@ -67,7 +67,7 @@ namespace fioio {
             action == "setprods" || action == "setpriv" || action == "init" ||
             action == "nonce" || action == "burnaction" || action == "canceldelay" ||
             action == "crautoproxy" || action == "deleteauth" || action == "inhibitunlck" ||
-            action == "linkauth" || action == "onerror" ||
+            action == "linkauth" || action == "onerror" || action == "unlinkauth" ||
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
             action == "updatepower" ||
