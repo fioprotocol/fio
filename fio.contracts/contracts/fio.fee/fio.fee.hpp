@@ -53,7 +53,7 @@ namespace fioio {
 
     typedef multi_index<"fiofees"_n, fiofee,
             indexed_by<"byendpoint"_n, const_mem_fun < fiofee, uint128_t, &fiofee::by_endpoint>>,
-    indexed_by<"bytype"_n, const_mem_fun<fiofee, uint64_t, &fiofee::by_type>
+            indexed_by<"bytype"_n, const_mem_fun<fiofee, uint64_t, &fiofee::by_type>
     >>
     fiofee_table;
 
@@ -102,7 +102,7 @@ namespace fioio {
         uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return id; }
-        uint64_t by_endpoint() const { return end_point_hash; }
+        uint128_t by_endpoint() const { return end_point_hash; }
         uint64_t by_bpname() const { return block_producer_name.value; }
 
         EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)(lastvotetimestamp)
@@ -110,7 +110,7 @@ namespace fioio {
     };
 
     typedef multi_index<"feevotes"_n, feevote,
-            indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint64_t, &feevote::by_endpoint>>,
+            indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint128_t, &feevote::by_endpoint>>,
     indexed_by<"bybpname"_n, const_mem_fun<feevote, uint64_t, &feevote::by_bpname>>
     >
     feevotes_table;
