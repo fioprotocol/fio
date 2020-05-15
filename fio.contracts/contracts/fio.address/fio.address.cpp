@@ -17,6 +17,7 @@ namespace fioio {
     class [[eosio::contract("FioAddressLookup")]]  FioNameLookup : public eosio::contract {
 
     private:
+        const int MIN_VOTES_FOR_AVERAGING = 15;
         domains_table domains;
         fionames_table fionames;
         fiofee_table fiofees;
@@ -141,9 +142,9 @@ namespace fioio {
 
             size_t size = votes.size();
 
-            if (size == 0 ) {
+            if (size < MIN_VOTES_FOR_AVERAGING ) {
                 return DEFAULTBUNDLEAMT;
-            } else {
+            } else if (size >= MIN_VOTES_FOR_AVERAGING){
                 sort(votes.begin(), votes.end());
                 if (size % 2 == 0) {
                     return (votes[size / 2 - 1] + votes[size / 2]) / 2;
@@ -151,6 +152,7 @@ namespace fioio {
                     return votes[size / 2];
                 }
             }
+            return DEFAULTBUNDLEAMT;
         }
 
         uint32_t fio_address_update( const name &actor, const name &owner, const uint64_t max_fee, const FioAddress &fa,
