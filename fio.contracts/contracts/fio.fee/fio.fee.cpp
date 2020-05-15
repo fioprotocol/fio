@@ -37,11 +37,10 @@ namespace fioio {
         void update_fees() {
             map<string, double> producer_fee_multipliers_map;
 
-            const bool dbgout = true;
+            const bool dbgout = false;
 
             //Selecting only elected producers, create a map for each producer and its associated multiplier
             //for use in performing the multiplications later,
-            print("EDEDEDED inside update_fees", "\n");
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
 
@@ -50,7 +49,7 @@ namespace fioio {
 
                     if (voters_iter != feevoters.end()) {
                         if (dbgout) {
-                            print(" EDEDEDEDED adding producer to multiplier map", v1.c_str(), "\n");
+                            print(" adding producer to multiplier map", v1.c_str(), "\n");
                         }
                         producer_fee_multipliers_map.insert(make_pair(v1, voters_iter->fee_multiplier));
                     }
@@ -68,7 +67,6 @@ namespace fioio {
                 //if we have changed the endpoint name then we are in the next endpoints grouping,
                 // so compute median fee for this endpoint and then clear the list.
                 if (vote_item.end_point.compare(lastvalUsed) != 0) {
-                    print(" EDEDEDEDED computing median for '", lastvalUsed, "' hash is ", lastusedHash,"\n");
                     compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
 
                     feevalues.clear();
@@ -91,7 +89,6 @@ namespace fioio {
 
                     const uint64_t voted_fee = (uint64_t)(dresult);
                     feevalues.push_back(voted_fee);
-                    print(" EDEDEDEDED adding fee vote value ",voted_fee," for voter '", vote_item.block_producer_name.to_string(), "'","\n");
                 }
             }
 
@@ -112,10 +109,9 @@ namespace fioio {
         */
         void
         compute_median_and_update_fees(vector <uint64_t> feevalues,  string fee_endpoint, uint128_t fee_endpoint_hash) {
-            bool dbgout = true;
+            bool dbgout = false;
             //one more time
             if (feevalues.size() > 0) {
-                print("EDEDEDEDED inside compute median and update fees greater than zero fee values ","\n");
                 uint64_t median_fee = 0;
                 //sort it.
                 sort(feevalues.begin(), feevalues.end());
@@ -123,13 +119,13 @@ namespace fioio {
                 if ((feevalues.size() % 2) == 1) {
                     const int useIdx = (feevalues.size() / 2);
                     if (dbgout) {
-                        print(" EDEDEDEDEDE odd size is ", feevalues.size(), " using index for median ", useIdx, "\n");
+                        print(" odd size is ", feevalues.size(), " using index for median ", useIdx, "\n");
                     }
                     median_fee = feevalues[useIdx];
                 } else {//even number in the list. use the middle 2
                     const int useIdx = (feevalues.size() / 2) - 1;
                     if (dbgout) {
-                        print(" EDEDEDEDEDEDED even size is ", feevalues.size(), " using index for median ", useIdx, "\n");
+                        print(" even size is ", feevalues.size(), " using index for median ", useIdx, "\n");
                     }
                     median_fee = (feevalues[useIdx] + feevalues[useIdx + 1]) / 2;
                 }
@@ -138,14 +134,14 @@ namespace fioio {
                 auto fee_iter = feesbyendpoint.find(fee_endpoint_hash);
                 if (fee_iter != feesbyendpoint.end()) {
                     if (dbgout) {
-                        print(" EDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
+                        print(" updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     }
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
                     });
                 } else {
                     if (dbgout) {
-                        print(" EDEDEDEDEDEDEDED fee endpoint does not exist in fiofees for endpoint ", fee_endpoint,
+                        print(" fee endpoint does not exist in fiofees for endpoint ", fee_endpoint,
                               " computed median is ", median_fee, "failed to update fee" "\n");
                     }
                 }
