@@ -59,7 +59,7 @@ namespace fioio {
 
 
 
-            auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
+            auto feevotesbyendpoint = feevotes.get_index<"byendphash"_n>();
             string lastvalUsed = "";
             uint64_t lastusedHash;
             vector <uint64_t> feevalues;
@@ -111,7 +111,7 @@ namespace fioio {
         * @param fee_endpoint_hash
         */
         void
-        compute_median_and_update_fees(vector <uint64_t> feevalues, string fee_endpoint, uint128_t fee_endpoint_hash) {
+        compute_median_and_update_fees(vector <uint64_t> feevalues,  string fee_endpoint, uint128_t fee_endpoint_hash) {
             bool dbgout = true;
             //one more time
             if (feevalues.size() > 0) {
@@ -135,24 +135,18 @@ namespace fioio {
                 }
                 //update the fee.
                 auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                bool found = false;
-                for (auto &fee_iter : feesbyendpoint) {
-                   // auto fee_iter = feesbyendpoint.find(fee_endpoint_hash);
-                   if (fee_iter.end_point.compare(fee_endpoint) == 0) {
-                       if (dbgout) {
-                        print(" EDEDEDEDEDEDED updating ", fee_iter.end_point, " to have fee ", median_fee, "\n");
-                       }
-                       fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                          ff.suf_amount = median_fee;
-                       });
-                       found=true;
-                       break;
-                   }
-                }
-                if (!found){
+                auto fee_iter = feesbyendpoint.find(fee_endpoint_hash);
+                if (fee_iter != feesbyendpoint.end()) {
+                    if (dbgout) {
+                        print(" EDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
+                    }
+                    feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
+                        ff.suf_amount = median_fee;
+                    });
+                } else {
                     if (dbgout) {
                         print(" EDEDEDEDEDEDEDED fee endpoint does not exist in fiofees for endpoint ", fee_endpoint,
-                                  " computed median is ", median_fee, "failed to update fee" "\n");
+                              " computed median is ", median_fee, "failed to update fee" "\n");
                     }
                 }
             }

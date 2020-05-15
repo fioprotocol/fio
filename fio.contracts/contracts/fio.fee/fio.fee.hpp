@@ -102,17 +102,16 @@ namespace fioio {
         uint64_t lastvotetimestamp;
 
         uint64_t primary_key() const { return id; }
-        uint64_t by_bpname() const { return block_producer_name.value; }
         uint128_t by_endpoint() const { return end_point_hash; }
-
+        uint64_t by_bpname() const { return block_producer_name.value; }
 
         EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)(lastvotetimestamp)
         )
     };
 
     typedef multi_index<"feevotes"_n, feevote,
-            indexed_by<"bybpname"_n, const_mem_fun<feevote, uint64_t, &feevote::by_bpname>>,
-            indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint128_t, &feevote::by_endpoint>>
+            indexed_by<"byendphash"_n, const_mem_fun < feevote, uint128_t, &feevote::by_endpoint>>,
+            indexed_by<"bybpname"_n, const_mem_fun<feevote, uint64_t, &feevote::by_bpname>>
     >
     feevotes_table;
 } // namespace fioio
