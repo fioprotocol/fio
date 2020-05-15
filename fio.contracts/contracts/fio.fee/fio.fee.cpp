@@ -138,7 +138,7 @@ namespace fioio {
                 bool found = false;
                 for (auto &fee_iter : feesbyendpoint) {
                    // auto fee_iter = feesbyendpoint.find(fee_endpoint_hash);
-                   if (fee_iter.end_point.compare(fee_endpoint) != 0) {
+                   if (fee_iter.end_point.compare(fee_endpoint) == 0) {
                        if (dbgout) {
                         print(" EDEDEDEDEDEDED updating ", fee_iter.end_point, " to have fee ", median_fee, "\n");
                        }
