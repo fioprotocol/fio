@@ -12,7 +12,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libraries/fc/CMakeMod
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 if (UNIX AND APPLE)
-    list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/llvm@4" "/usr/local/opt/gettext")
+    list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/llvm" "/usr/local/opt/gettext")
 endif ()
 
 include(GNUInstallDirs)
@@ -27,8 +27,8 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CXX_STANDARD_REQUIRED ON)
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 0)
-set(VERSION_PATCH 2)
+set(VERSION_MINOR 1)
+set(VERSION_PATCH 0)
 #set(VERSION_SUFFIX develop)
 
 if (VERSION_SUFFIX)

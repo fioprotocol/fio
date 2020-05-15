@@ -85,7 +85,10 @@ namespace fioio {
     constexpr auto ErrorClientKeyNotFound = ident | httpDataError | 149; // Fioname not yet registered (No clientkey)
     constexpr auto ErrorTimeViolation = ident | httpDataError | 150;
     constexpr auto ErrorNoAuthWaits = ident | httpDataError | 151;
-
+    constexpr auto ErrorDomainOwner = ident | httpInvalidError | 153;
+    constexpr auto ErrorTransactionTooLarge = ident | httpDataError | 152;   // Transaction too large
+    constexpr auto ErrorRequestStatusInvalid = ident | httpDataError | 153;   // the specified request context record was not found
+  
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */

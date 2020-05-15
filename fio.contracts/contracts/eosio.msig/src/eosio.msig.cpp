@@ -123,11 +123,20 @@ namespace eosio {
         });
 
         if (PROPOSERAM > 0) {
+            //get the tx size and divide by 1000
+            int64_t bytesize = transaction_size();
+            int64_t remv = bytesize % 1000;
+            int64_t divv = bytesize / 1000;
+            if (remv > 0 ){
+                divv ++;
+            }
+            uint64_t rambump = divv * PROPOSERAM;
+            //multiply by the PROPOSERAM
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
                     "eosio"_n,
                     "incram"_n,
-                    std::make_tuple(_proposer, PROPOSERAM)
+                    std::make_tuple(_proposer, rambump)
             ).send();
         }
 
@@ -193,7 +202,7 @@ namespace eosio {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
     }
 
     /***********
@@ -235,7 +244,7 @@ namespace eosio {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
     }
 
 
@@ -279,7 +288,7 @@ namespace eosio {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
     }
 
     /******
@@ -345,7 +354,7 @@ namespace eosio {
 
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
     }
 
     /*****
@@ -377,7 +386,7 @@ namespace eosio {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
     }
 
 } /// namespace eosio

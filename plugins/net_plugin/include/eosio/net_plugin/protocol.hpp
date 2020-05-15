@@ -26,7 +26,7 @@ namespace eosio {
       chain_id_type              chain_id; ///< used to identify chain
       fc::sha256                 node_id; ///< used to identify peers and prevent self-connect
       chain::public_key_type     key; ///< authentication key; may be a producer or peer key, or empty
-      tstamp                     time;
+      tstamp                     time{0};
       fc::sha256                 token; ///< digest of time to prove we own the private key of the key above
       chain::signature_type      sig; ///< signature for the digest
       string                     p2p_address;
@@ -36,7 +36,7 @@ namespace eosio {
       block_id_type              head_id;
       string                     os;
       string                     agent;
-      int16_t                    generation;
+      int16_t                    generation{0};
    };
 
 
@@ -75,15 +75,15 @@ namespace eosio {
 
   struct go_away_message {
     go_away_message (go_away_reason r = no_reason) : reason(r), node_id() {}
-    go_away_reason reason;
+    go_away_reason reason{no_reason};
     fc::sha256 node_id; ///< for duplicate notification
   };
 
   struct time_message {
-            tstamp  org;       //!< origin timestamp
-            tstamp  rec;       //!< receive timestamp
-            tstamp  xmt;       //!< transmit timestamp
-    mutable tstamp  dst;       //!< destination timestamp
+            tstamp  org{0};       //!< origin timestamp
+            tstamp  rec{0};       //!< receive timestamp
+            tstamp  xmt{0};       //!< transmit timestamp
+    mutable tstamp  dst{0};       //!< destination timestamp
   };
 
   enum id_list_modes {
@@ -128,8 +128,8 @@ namespace eosio {
   };
 
    struct sync_request_message {
-      uint32_t start_block;
-      uint32_t end_block;
+      uint32_t start_block{0};
+      uint32_t end_block{0};
    };
 
    using net_message = static_variant<handshake_message,

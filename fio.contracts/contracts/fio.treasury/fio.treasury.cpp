@@ -103,7 +103,7 @@ public:
                                          to_string(tpids_paid) + string("}");
 
                fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-                 "Transaction is too large", ErrorTransaction);
+                 "Transaction is too large", ErrorTransactionTooLarge);
 
                 send_response(response_string.c_str());
         } //tpid_claim
@@ -114,7 +114,6 @@ public:
                 require_auth(actor);
 
                 gstate = global.get();
-
                 check( gstate.total_voted_fio >= MINVOTEDFIO || gstate.thresh_voted_fio_time != time_point() ,
                        "cannot claim rewards until the chain voting threshold is exceeded" );
 
@@ -167,31 +166,30 @@ public:
                 //*********** CREATE PAYSCHEDULE **************
                 // If there is no pay schedule then create a new one
                 if (std::distance(voteshares.begin(), voteshares.end()) == 0) { //if new payschedule
-                        //Create the payment schedule
-                        int64_t bpcounter = 0;
-                        uint64_t activecount = 0;
-                        //prototal votes returns active producers sorted beginning at the highest voted to the lowest voted
-                        // active producers  then for inactive producers lowest voted to highest voted.
-                        auto proditer = producers.get_index<"prototalvote"_n>();
-                        auto itr = proditer.begin();
+                    //Create the payment schedule
+                    int64_t bpcounter = 0;
+                    uint64_t activecount = 0;
+                    //prototal votes returns active producers sorted beginning at the highest voted to the lowest voted
+                    // active producers  then for inactive producers lowest voted to highest voted.
+                    auto proditer = producers.get_index<"prototalvote"_n>();
+                    auto itr = proditer.begin();
 
-                        int32_t prodcount = std::distance(producers.begin(), producers.end());
-                        check(prodcount > 0,"error -- no producers");
+                    int32_t prodcount = std::distance(producers.begin(), producers.end());
+                    check(prodcount > 0,"error -- no producers");
 
-                        for (int32_t idx=0;idx <prodcount; idx++) {
-                                if (itr->is_active) {
-                                        voteshares.emplace(actor, [&](auto &p) {
-                                                        p.owner = itr->owner;
-                                                        p.votes = itr->total_votes;
-                                                });
-                                        bpcounter++;
-                                }
-                                itr++;
+                    for (int32_t idx=0;idx < prodcount; idx++) {
+                        if (itr->is_active) {
+                            voteshares.emplace(actor, [&](auto &p) {
+                                p.owner = itr->owner;
+                                p.votes = itr->total_votes;
+                            });
+                            bpcounter++;
+                        }
 
-                                if (bpcounter >= MAXBPS) break;
-                        } // &itr : producers table
-
-                        //Move 1/365 of the bucketpool to the bpshare
+                        itr++;
+                        if (bpcounter >= MAXBPS) break;
+                    } // &itr : producers table
+                    //Move 1/365 of the bucketpool to the bpshare
                         bprewards.set(bpreward{bprewards.get().rewards + static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
                         bucketrewards.set(bucketpool{bucketrewards.get().rewards - static_cast<uint64_t>(bucketrewards.get().rewards / YEARDAYS)}, get_self());
 
@@ -246,7 +244,6 @@ public:
                         int64_t bpcount = std::distance(voteshares.begin(), voteshares.end());
                         int64_t abpcount = MAXACTIVEBPS;
 
-
                         if (bpcount <= MAXACTIVEBPS) abpcount = bpcount;
                         auto bprewardstat = bprewards.get();
                         uint64_t tostandbybps = static_cast<uint64_t>(bprewardstat.rewards * .60);
@@ -255,17 +252,17 @@ public:
                         bpcounter = 0;
                         auto votesharesiter = voteshares.get_index<"byvotes"_n>();
                         for (const auto &itr : votesharesiter) {
-                                if (bpcounter > (bpcount - abpcount)-1) {
-                                        voteshares.modify(itr, get_self(), [&](auto &entry) {
-                                                        entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
-                                                });
-                                }
+                            if (bpcounter > (bpcount - abpcount)-1) {
+                                voteshares.modify(itr, get_self(), [&](auto &entry) {
+                                    entry.abpayshare = static_cast<uint64_t>(toactivebps / abpcount);;
+                                });
+                            }
                                 voteshares.modify(itr, get_self(), [&](auto &entry) {
                                                 entry.sbpayshare =  static_cast<uint64_t>((tostandbybps) * (itr.votes / gstate.total_producer_vote_weight));;
                                         });
                                 bpcounter++;
                         } // &itr : voteshares
-                        
+
                         //Start 24 track for daily pay schedule
                         if (state.payschedtimer == 0){
                                 state.payschedtimer = now();
@@ -328,7 +325,7 @@ public:
                                          to_string(payout) + string("}");
 
                 fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-                 "Transaction is too large", ErrorTransaction);
+                 "Transaction is too large", ErrorTransactionTooLarge);
 
                 send_response(response_string.c_str());
         } //bpclaim

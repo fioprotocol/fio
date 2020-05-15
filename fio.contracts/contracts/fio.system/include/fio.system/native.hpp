@@ -84,12 +84,12 @@ namespace eosiosystem {
         )
     };
 
-    static const uint64_t LINKAUTHRAM = 1024; //integrated.
-    static const uint64_t REGPRODUCERRAM = 1024; //integrated.
-    static const uint64_t REGPROXYRAM = 1024;//integrated.
-    static const uint64_t VOTEPROXYRAM = 512; //integrated.
-    static const uint64_t VOTEPRODUCERRAM = 1024; //integrated.
-    static const uint64_t UPDATEAUTHRAM = 1024; //integrated.
+    static const uint64_t LINKAUTHRAM = 1024;
+    static const uint64_t REGPRODUCERRAM = 1024;
+    static const uint64_t REGPROXYRAM = 1024;
+    static const uint64_t VOTEPROXYRAM = 512;
+    static const uint64_t VOTEPRODUCERRAM = 1024;
+    static const uint64_t UPDATEAUTHRAM = 1024;
 
     /*
      * Method parameters commented out to prevent generation of code that parses input data.
@@ -113,18 +113,18 @@ namespace eosiosystem {
          *     an amount equal to the current new account creation fee.
          */
         [[eosio::action]]
-        void newaccount(name creator,
-                        name name,
-                        ignore <authority> owner,
-                        ignore <authority> active);
+        void newaccount(const name &creator,
+                        const name &name,
+                         ignore <authority> owner,
+                         ignore <authority> active);
 
 
         [[eosio::action]]
-        void updateauth(name account,
-                        name permission,
-                        name parent,
-                        authority auth,
-                        const uint64_t max_fee) {
+        void updateauth(const name &account,
+                        const name &permission,
+                        const name &parent,
+                        const authority &auth,
+                        const uint64_t &max_fee) {
             require_auth(account);
 
             //check the list of system accounts, if it is one of these do not charge the fees.
@@ -162,20 +162,28 @@ namespace eosiosystem {
                            "Waits not supported", ErrorNoAuthWaits);
 
             if (UPDATEAUTHRAM > 0) {
+                //get the tx size and divide by 1000
+                int64_t bytesize = transaction_size();
+                int64_t remv = bytesize % 1000;
+                int64_t divv = bytesize / 1000;
+                if (remv > 0 ){
+                    divv ++;
+                }
+                uint64_t rambump = divv * UPDATEAUTHRAM;
                 action(
                         permission_level{SYSTEMACCOUNT, "active"_n},
                         "eosio"_n,
                         "incram"_n,
-                        std::make_tuple(account, UPDATEAUTHRAM)
+                        std::make_tuple(account, rambump)
                 ).send();
             }
 
         }
 
         [[eosio::action]]
-        void deleteauth(name account,
-                        name permission,
-                        const uint64_t max_fee) {
+        void deleteauth(const name &account,
+                        const name &permission,
+                        const uint64_t &max_fee) {
             require_auth(account);
 
             eosio::action{
@@ -185,15 +193,15 @@ namespace eosiosystem {
             }.send();
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
+              "Transaction is too large", ErrorTransactionTooLarge);
         }
 
         [[eosio::action]]
-        void linkauth(name account,
-                      name code,
-                      name type,
-                      name requirement,
-                      uint64_t max_fee) {
+        void linkauth(const name &account,
+                      const name &code,
+                      const name &type,
+                      const name &requirement,
+                      const uint64_t &max_fee) {
 
             require_auth(account);
 
@@ -213,7 +221,7 @@ namespace eosiosystem {
             }
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-              "Transaction is too large", ErrorTransaction);
+              "Transaction is too large", ErrorTransactionTooLarge);
         }
 
         [[eosio::action]]
@@ -235,10 +243,10 @@ namespace eosiosystem {
         }
 
         [[eosio::action]]
-        void setabi(name account, const std::vector<char> &abi);
+        void setabi(const name &account, const std::vector<char> &abi);
 
         [[eosio::action]]
-        void setcode(name account, uint8_t vmtype, uint8_t vmversion, const std::vector<char> &code);
+        void setcode(const name &account, const uint8_t &vmtype, const uint8_t &vmversion, const std::vector<char> &code);
         //special note, dont add code here, setcode will not run this code.
 
         using newaccount_action = eosio::action_wrapper<"newaccount"_n, &native::newaccount>;

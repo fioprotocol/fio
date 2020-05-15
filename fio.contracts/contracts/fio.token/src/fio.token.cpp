@@ -171,7 +171,7 @@ namespace eosio {
 
         /* we permit the use of transfer from the system account to any other accounts,
          * we permit the use of transfer from the treasury account to any other accounts.
-         * we permit the use of transfer from any other accounts to the treasury account.
+         * we permit the use of transfer from any other accounts to the treasury account for fees.
          */
         if (from != SYSTEMACCOUNT && from != TREASURYACCOUNT) {
             check(to == TREASURYACCOUNT, "transfer not allowed");
@@ -194,20 +194,27 @@ namespace eosio {
         check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
         check(quantity.symbol == FIOSYMBOL, "symbol precision mismatch");
         check(memo.size() <= 256, "memo has more than 256 bytes");
+
+        accounts from_acnts(_self, from.value);
+        const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
+
+        fio_400_assert(acnts_iter != from_acnts.end(), "max_fee", to_string(quantity.amount),
+                       "Insufficient funds to cover fee",
+                       ErrorLowFunds);
+        fio_400_assert(acnts_iter->balance.amount >= quantity.amount, "max_fee", to_string(quantity.amount),
+                       "Insufficient funds to cover fee",
+                       ErrorLowFunds);
+
         //we need to check the from, check for locked amount remaining
         fio_400_assert(can_transfer(from, 0, quantity.amount, true), "actor", to_string(from.value),
                        "Funds locked",
                        ErrorInsufficientUnlockedFunds);
+
         auto payer = has_auth(to) ? to : from;
 
         sub_balance(from, quantity);
         add_balance(to, quantity, payer);
-
-        fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
-
     }
-
 
     void token::trnsfiopubky(const string &payee_public_key,
                              const int64_t &amount,
@@ -315,6 +322,15 @@ namespace eosio {
                  {actor}
                 );
 
+        accounts from_acnts(_self, actor.value);
+        const auto acnts_iter = from_acnts.find(FIOSYMBOL.code().raw());
+        fio_400_assert(acnts_iter != from_acnts.end(), "amount", to_string(qty.amount),
+                       "Insufficient balance",
+                       ErrorLowFunds);
+        fio_400_assert(acnts_iter->balance.amount >= qty.amount, "amount", to_string(qty.amount),
+                       "Insufficient balance",
+                       ErrorLowFunds);
+
         fio_400_assert(can_transfer(actor, reg_amount, qty.amount, false), "amount", to_string(qty.amount),
                        "Insufficient balance tokens locked",
                        ErrorInsufficientUnlockedFunds);
@@ -334,7 +350,6 @@ namespace eosio {
                     );
         }
 
-
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                        to_string(reg_amount) + string("}");
 
@@ -348,7 +363,7 @@ namespace eosio {
         }
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
         send_response(response_string.c_str());
 

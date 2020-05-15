@@ -69,16 +69,16 @@ namespace eosiosystem {
         set_blockchain_parameters(params);
     }
 
-    void eosiosystem::system_contract::setpriv(name account, uint8_t ispriv) {
+    void eosiosystem::system_contract::setpriv(const name &account, const uint8_t &ispriv) {
         require_auth(_self);
         set_privileged(account.value, ispriv);
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 
-    void eosiosystem::system_contract::rmvproducer(name producer) {
+    void eosiosystem::system_contract::rmvproducer(const name &producer) {
         require_auth(_self);
         auto prod = _producers.find(producer.value);
         check(prod != _producers.end(), "producer not found");
@@ -87,11 +87,11 @@ namespace eosiosystem {
         });
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 
-    void eosiosystem::system_contract::updtrevision(uint8_t revision) {
+    void eosiosystem::system_contract::updtrevision(const uint8_t &revision) {
         require_auth(_self);
         check(_gstate2.revision < 255, "can not increment revision"); // prevent wrap around
         check(revision == _gstate2.revision + 1, "can only increment revision by one");
@@ -109,10 +109,10 @@ namespace eosiosystem {
      *  who can create accounts with the creator's name as a suffix.
      *
      */
-    void eosiosystem::native::newaccount(name creator,
-                                         name newact,
-                                         ignore <authority> owner,
-                                         ignore <authority> active) {
+    void eosiosystem::native::newaccount(const name &creator,
+                                         const name &newact,
+                                          ignore <authority> owner,
+                                          ignore <authority> active) {
 
 
         require_auth(creator);
@@ -148,12 +148,12 @@ namespace eosiosystem {
         set_resource_limits(newact.value, INITIALACCOUNTRAM, -1, -1);
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
-          "Transaction is too large", ErrorTransaction);
+          "Transaction is too large", ErrorTransactionTooLarge);
 
     }
 
 
-    void eosiosystem::native::setabi(name acnt, const std::vector<char> &abi) {
+    void eosiosystem::native::setabi(const name &acnt, const std::vector<char> &abi) {
 
         require_auth(acnt);
         check((acnt == SYSTEMACCOUNT ||
@@ -184,14 +184,14 @@ namespace eosiosystem {
         }
     }
 
-    void eosiosystem::system_contract::init(unsigned_int version, symbol core) {
+    void eosiosystem::system_contract::init(const unsigned_int &version, const symbol &core) {
         require_auth(_self);
         check(version.value == 0, "unsupported version for init action");
     }
 
     //use this action to initialize the locked token holders table for the FIO protocol.
-    void eosiosystem::system_contract::addlocked(const name &owner, const int64_t amount,
-            const int16_t locktype) {
+    void eosiosystem::system_contract::addlocked(const name &owner, const int64_t &amount,
+            const int16_t &locktype) {
         require_auth(_self);
 
         check(is_account(owner),"account must pre exist");

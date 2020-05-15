@@ -133,14 +133,17 @@ namespace eosio {
         using block_stage_type = fc::static_variant<building_block, assembled_block, completed_block>;
 
         struct pending_state {
-            pending_state(maybe_session &&s, const block_header_state &prev,
+            pending_state( maybe_session&& s, maybe_session&& h, maybe_session&& hi,
+                          const block_header_state& prev,
                           block_timestamp_type when,
                           uint16_t num_prev_blocks_to_confirm,
                           const vector<digest_type> &new_protocol_feature_activations)
-                    : _db_session(move(s)), _block_stage(
+                    : _db_session( move(s) ), _hdb_session( move(h) ), _hidb_session( move(hi) ), _block_stage(
                     building_block(prev, when, num_prev_blocks_to_confirm, new_protocol_feature_activations)) {}
 
             maybe_session _db_session;
+            maybe_session _hdb_session;
+            maybe_session _hidb_session;
             block_stage_type _block_stage;
             controller::block_status _block_status = controller::block_status::incomplete;
             optional<block_id_type> _producer_block_id;
@@ -202,12 +205,16 @@ namespace eosio {
 
             void push() {
                 _db_session.push();
+                _hdb_session.push();
+                _hidb_session.push();
             }
         };
 
         struct controller_impl {
             controller &self;
             chainbase::database db;
+            chainbase::database hdb;
+            chainbase::database hidb;
             chainbase::database reversible_blocks; ///< a special database to persist blocks that have successfully been applied but are still reversible
             block_log blog;
             optional<pending_state> pending;
@@ -261,6 +268,8 @@ namespace eosio {
 
                 head = prev;
                 db.undo();
+                hdb.undo();
+                hidb.undo();
 
                 protocol_features.popped_blocks_to(prev->block_num);
             }
@@ -289,6 +298,12 @@ namespace eosio {
                       db(cfg.state_dir,
                          cfg.read_only ? database::read_only : database::read_write,
                          cfg.state_size, false, cfg.db_map_mode, cfg.db_hugepage_paths),
+                      hdb( cfg.history_dir,
+                         cfg.read_only ? database::read_only : database::read_write,
+                         cfg.history_size, false, cfg.db_map_mode, cfg.db_hugepage_paths ),
+                      hidb( cfg.history_index_dir,
+                         cfg.read_only ? database::read_only : database::read_write,
+                         cfg.history_index_size, false, cfg.db_map_mode, cfg.db_hugepage_paths ),
                       reversible_blocks(cfg.blocks_dir / config::reversible_blocks_dir_name,
                                         cfg.read_only ? database::read_only : database::read_write,
                                         cfg.reversible_cache_size, false, cfg.db_map_mode, cfg.db_hugepage_paths),
@@ -363,6 +378,12 @@ namespace eosio {
                 } catch (fc::exception &e) {
                     wlog("${details}", ("details", e.to_detail_string()));
                 } catch (...) {
+                    auto expPtr = std::current_exception();
+                    try {
+                      if(expPtr) std::rethrow_exception(expPtr);
+                    } catch(const std::exception& e) {
+                      wlog( "${details}", ("details", e.what()) );
+                    }
                     wlog("signal handler threw exception");
                 }
             }
@@ -403,6 +424,8 @@ namespace eosio {
                         emit(self.irreversible_block, *bitr);
 
                         db.commit((*bitr)->block_num);
+                        hdb.commit( (*bitr)->block_num );
+                        hidb.commit( (*bitr)->block_num );
                         root_id = (*bitr)->id;
 
                         blog.append((*bitr)->block);
@@ -448,6 +471,8 @@ namespace eosio {
                 head->activated_protocol_features = std::make_shared<protocol_feature_activation_set>();
                 head->block = std::make_shared<signed_block>(genheader.header);
                 db.set_revision(head->block_num);
+                hdb.set_revision( head->block_num );
+                hidb.set_revision( head->block_num );
                 initialize_database();
             }
 
@@ -464,13 +489,62 @@ namespace eosio {
                     ilog("existing block log, attempting to replay from ${s} to ${n} blocks",
                          ("s", start_block_num)("n", blog_head->block_num()));
                     try {
-                        while (auto next = blog.read_block_by_num(head->block_num + 1)) {
-                            replay_push_block(next, controller::block_status::irreversible);
-                            if (next->block_num() % 500 == 0) {
-                                ilog("${n} of ${head}", ("n", next->block_num())("head", blog_head->block_num()));
-                                if (shutdown()) break;
-                            }
+                      bool go = true;
+                      int count = 500;
+                      std::array<signed_block_ptr, 500> blks;
+                      std::array<signed_block_ptr, 500> blks_fut;
+
+                      for (int i = 0; i < 500; i++) {
+                        auto next = blog.read_block_by_num( head->block_num + 1 + i);
+                        if (next) {
+                          blks[i] = next;
+                        } else {
+                          go = false;
+                          count = i;
+                          break;
                         }
+                      }
+                      if (!go) {
+                        for (int i = 0; i < count; i++) {
+                          replay_push_block( (blks[i]), controller::block_status::irreversible );
+                        }
+                      }
+
+                      while( go ) {
+                         auto load = fc::time_point::now();
+                         auto fillhead = head->block_num + 500;
+                         std::future<int> res = async_thread_pool( thread_pool.get_executor(), [&blks_fut, fillhead, t=this]() {
+                           int nextcount = 500;
+                           for (int i = 0; i < 500; i++) {
+                             auto next = t->blog.read_block_by_num(fillhead + 1 + i);
+                             if (next) {
+                               blks_fut[i] = next;
+                             } else {
+                               nextcount = i;
+                               break;
+                             }
+                           }
+                           return nextcount;
+                         });
+                         auto loaded = fc::time_point::now();
+
+                         for (int i = 0; i < count; i++) {
+                           replay_push_block( (blks[i]), controller::block_status::irreversible );
+                         }
+                         auto processed = fc::time_point::now();
+                         count = res.get();
+                         auto gathered = fc::time_point::now();
+                         if (count != 500) {
+                           for (int i = 0; i < count; i++) {
+                             replay_push_block( (blks_fut[i]), controller::block_status::irreversible );
+                           }
+                           go = false;
+                         } else {
+                           std::swap(blks, blks_fut);
+                           ilog( "${n} of ${head}, thread launch: ${l} ms, wait: ${g} ms, processing: ${p} ms", ("n", (blks[count-1])->block_num()) ("head", blog_head->block_num()) ("l", (loaded-load).count()/1000) ("g", (processed-gathered).count()/1000) ("p", (processed-loaded).count()/1000));
+                         }
+                         if( shutdown() ) break;
+                       }
                     } catch (const database_guard_exception &e) {
                         except_ptr = std::current_exception();
                     }
@@ -493,8 +567,11 @@ namespace eosio {
 
                     // if the irreverible log is played without undo sessions enabled, we need to sync the
                     // revision ordinal to the appropriate expected value here.
-                    if (self.skip_db_sessions(controller::block_status::irreversible))
+                    if( self.skip_db_sessions( controller::block_status::irreversible ) ) {
                         db.set_revision(head->block_num);
+                        hdb.set_revision(head->block_num);
+                        hidb.set_revision(head->block_num);
+                    }
                 } else {
                     ilog("no irreversible blocks need to be replayed");
                 }
@@ -598,6 +675,8 @@ namespace eosio {
                 }
                 while (db.revision() > head->block_num) {
                     db.undo();
+                    hdb.undo();
+                    hidb.undo();
                 }
 
                 protocol_features.init(db);
@@ -711,6 +790,8 @@ namespace eosio {
             void clear_all_undo() {
                 // Rewind the database to the last irreversible block
                 db.undo_all();
+                hdb.undo_all();
+                hidb.undo_all();
                 /*
       FC_ASSERT(db.revision() == self.head_block_num(),
                   "Chainbase revision does not match head block num",
@@ -858,6 +939,8 @@ namespace eosio {
                 resource_limits.read_from_snapshot(snapshot);
 
                 db.set_revision(head->block_num);
+                hdb.set_revision(head->block_num);
+                hidb.set_revision(head->block_num);
             }
 
             sha256 calculate_integrity_hash() const {
@@ -1073,8 +1156,13 @@ namespace eosio {
                                        uint32_t billed_cpu_time_us, bool explicit_billed_cpu_time = false) {
                 try {
                     maybe_session undo_session;
-                    if (!self.skip_db_sessions())
-                        undo_session = maybe_session(db);
+                    maybe_session hundo_session;
+                    maybe_session hiundo_session;
+                    if ( !self.skip_db_sessions() ) {
+                       undo_session  = maybe_session(db);
+                       hundo_session = maybe_session(hdb);
+                       hiundo_session = maybe_session(hidb);
+                    }
 
                     auto gtrx = generated_transaction(gto);
 
@@ -1112,6 +1200,8 @@ namespace eosio {
                         emit(self.accepted_transaction, trx);
                         emit(self.applied_transaction, std::tie(trace, dtrx));
                         undo_session.squash();
+                        hundo_session.squash();
+                        hiundo_session.squash();
                         return trace;
                     }
 
@@ -1166,6 +1256,8 @@ namespace eosio {
 
                         trx_context.squash();
                         undo_session.squash();
+                        hundo_session.squash();
+                        hiundo_session.squash();
 
                         restore.cancel();
 
@@ -1199,6 +1291,8 @@ namespace eosio {
                             emit(self.accepted_transaction, trx);
                             emit(self.applied_transaction, std::tie(trace, dtrx));
                             undo_session.squash();
+                            hundo_session.squash();
+                            hiundo_session.squash();
                             return trace;
                         }
                         trace->elapsed = fc::time_point::now() - trx_context.start;
@@ -1243,6 +1337,8 @@ namespace eosio {
                         emit(self.applied_transaction, std::tie(trace, dtrx));
 
                         undo_session.squash();
+                        hundo_session.squash();
+                        hiundo_session.squash();
                     } else {
                         emit(self.accepted_transaction, trx);
                         emit(self.applied_transaction, std::tie(trace, dtrx));
@@ -1420,11 +1516,9 @@ namespace eosio {
                                ("db.revision()", db.revision())("controller_head_block", head->block_num)(
                                        "fork_db_head_block", fork_db.head()->block_num));
 
-                    pending.emplace(maybe_session(db), *head, when, confirm_block_count,
-                                    new_protocol_feature_activations);
+                    pending.emplace( maybe_session(db), maybe_session(hdb), maybe_session(hidb), *head, when, confirm_block_count, new_protocol_feature_activations );
                 } else {
-                    pending.emplace(maybe_session(), *head, when, confirm_block_count,
-                                    new_protocol_feature_activations);
+                    pending.emplace( maybe_session(), maybe_session(), maybe_session(), *head, when, confirm_block_count, new_protocol_feature_activations );
                 }
 
                 pending->_block_status = s;
@@ -1930,6 +2024,8 @@ namespace eosio {
 
                         if (!self.skip_db_sessions(s)) {
                             db.commit(bsp->block_num);
+                            hdb.commit(bsp->block_num);
+                            hidb.commit(bsp->block_num);
                         }
 
                     } else {
@@ -2339,8 +2435,13 @@ namespace eosio {
         }
 
         const chainbase::database &controller::db() const { return my->db; }
-
         chainbase::database &controller::mutable_db() const { return my->db; }
+
+        const chainbase::database& controller::hdb()const { return my->hdb; }
+        chainbase::database& controller::mutable_hdb()const { return my->hdb; }
+
+        const chainbase::database& controller::hidb()const { return my->hidb; }
+        chainbase::database& controller::mutable_hidb()const { return my->hidb; }
 
         const fork_database &controller::fork_db() const { return my->fork_db; }
 
@@ -2550,12 +2651,15 @@ namespace eosio {
             validate_reversible_available_size();
             my->push_block(block_state_future);
         }
+        bool controller::in_immutable_mode()const {
+            return (db_mode_is_immutable(get_read_mode()));
+        }
 
         transaction_trace_ptr controller::push_transaction(const transaction_metadata_ptr &trx, fc::time_point deadline,
                                                            uint32_t billed_cpu_time_us) {
             validate_db_available_size();
-            EOS_ASSERT(get_read_mode() != chain::db_read_mode::READ_ONLY, transaction_type_exception,
-                       "push transaction not allowed in read-only mode");
+            EOS_ASSERT( !in_immutable_mode(), transaction_type_exception,
+                       "push transaction not allowed in read-only mode" );
             EOS_ASSERT(trx && !trx->implicit && !trx->scheduled, transaction_type_exception,
                        "Implicit/Scheduled transaction not allowed");
             return my->push_transaction(trx, deadline, billed_cpu_time_us, billed_cpu_time_us > 0);
@@ -2564,6 +2668,8 @@ namespace eosio {
         transaction_trace_ptr
         controller::push_scheduled_transaction(const transaction_id_type &trxid, fc::time_point deadline,
                                                uint32_t billed_cpu_time_us) {
+            EOS_ASSERT( !in_immutable_mode(), transaction_type_exception,
+                        "push scheduled transaction not allowed in read-only mode" );
             validate_db_available_size();
             return my->push_scheduled_transaction(trxid, deadline, billed_cpu_time_us, billed_cpu_time_us > 0);
         }
@@ -3078,6 +3184,16 @@ namespace eosio {
             const auto guard = my->conf.state_guard_size;
             EOS_ASSERT(free >= guard, database_guard_exception, "database free: ${f}, guard size: ${g}",
                        ("f", free)("g", guard));
+
+            const auto hfree = hdb().get_segment_manager()->get_free_memory();
+            const auto hguard = my->conf.history_guard_size;
+            EOS_ASSERT(hfree >= hguard, database_guard_exception, "history database free: ${f}, hguard size: ${g}",
+                       ("f", hfree)("g",hguard));
+
+            const auto hifree = hidb().get_segment_manager()->get_free_memory();
+            const auto higuard = my->conf.history_index_guard_size;
+            EOS_ASSERT(hifree >= higuard, database_guard_exception, "history index database free: ${f}, higuard size: ${g}",
+                       ("f", hifree)("g",higuard));
         }
 
         void controller::validate_reversible_available_size() const {

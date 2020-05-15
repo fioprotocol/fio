@@ -22,9 +22,10 @@ namespace fioio {
 
         // fio.address actions
         if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
+            action == "remaddress" || action == "remalladdr" ||
             action == "renewdomain" || action == "renewaddress" ||
             action == "setdomainpub" || action == "bind2eosio" ||
-            action == "burnexpired" || action == "decrcounter" )
+            action == "burnexpired" || action == "decrcounter" || action == "xferdomain" || action == "xferaddress" )
           return "fio.address";
 
 
@@ -47,7 +48,7 @@ namespace fioio {
             action == "transfer" || action == "mintfio")
           return "fio.token";
         //fio.request.obt actions
-        if (action == "recordobt" || action == "rejectfndreq" || action == "newfundsreq")
+        if (action == "recordobt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
           return "fio.reqobt";
 
         //fio.tpid actions
@@ -66,7 +67,7 @@ namespace fioio {
             action == "setprods" || action == "setpriv" || action == "init" ||
             action == "nonce" || action == "burnaction" || action == "canceldelay" ||
             action == "crautoproxy" || action == "deleteauth" || action == "inhibitunlck" ||
-            action == "linkauth" || action == "onerror" ||
+            action == "linkauth" || action == "onerror" || action == "unlinkauth" ||
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
             action == "updatepower" ||
