@@ -59,9 +59,9 @@ namespace fioio {
 
 
 
-            auto feevotesbyendpoint = feevotes.get_index<"byendphash"_n>();
+            auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
-            uint64_t lastusedHash;
+            uint128_t lastusedHash;
             vector <uint64_t> feevalues;
             //traverse all of the fee votes grouped by endpoint.
             for (const auto &vote_item : feevotesbyendpoint) {

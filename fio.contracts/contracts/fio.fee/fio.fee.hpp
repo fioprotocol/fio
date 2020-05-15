@@ -110,7 +110,7 @@ namespace fioio {
     };
 
     typedef multi_index<"feevotes"_n, feevote,
-            indexed_by<"byendphash"_n, const_mem_fun < feevote, uint128_t, &feevote::by_endpoint>>,
+            indexed_by<"byendpoint"_n, const_mem_fun < feevote, uint128_t, &feevote::by_endpoint>>,
             indexed_by<"bybpname"_n, const_mem_fun<feevote, uint64_t, &feevote::by_bpname>>
     >
     feevotes_table;
