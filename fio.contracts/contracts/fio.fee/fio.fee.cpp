@@ -60,7 +60,7 @@ namespace fioio {
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
-            uint128_t lastusedHash;
+            uint64_t lastusedHash;
             vector <uint64_t> feevalues;
             //traverse all of the fee votes grouped by endpoint.
             for (const auto &vote_item : feevotesbyendpoint) {
@@ -108,7 +108,7 @@ namespace fioio {
         * @param fee_endpoint_hash
         */
         void
-        compute_median_and_update_fees(vector <uint64_t> feevalues,  const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
+        compute_median_and_update_fees(vector <uint64_t> feevalues, string fee_endpoint, uint128_t fee_endpoint_hash) {
             bool dbgout = false;
             //one more time
             if (feevalues.size() > 0) {
@@ -142,7 +142,7 @@ namespace fioio {
                 } else {
                     if (dbgout) {
                         print(" fee endpoint does not exist in fiofees for endpoint ", fee_endpoint,
-                              " computed median is ", median_fee, "failed to update fee" "\n");
+                              " computed median is ", median_fee, "\n");
                     }
                 }
             }
