@@ -28,6 +28,7 @@ namespace fioio {
     class [[eosio::contract("FioFee")]]  FioFee : public eosio::contract {
 
     private:
+        const int MIN_FEE_VOTERS_FOR_MEDIAN = 15;
         fiofee_table fiofees;
         feevoters_table feevoters;
         bundlevoters_table bundlevoters;
@@ -111,7 +112,7 @@ namespace fioio {
         compute_median_and_update_fees(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
             bool dbgout = false;
             //one more time
-            if (feevalues.size() > 0) {
+            if (feevalues.size() > MIN_FEE_VOTERS_FOR_MEDIAN) {
                 uint64_t median_fee = 0;
                 //sort it.
                 sort(feevalues.begin(), feevalues.end());
