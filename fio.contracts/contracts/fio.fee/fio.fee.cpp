@@ -68,7 +68,7 @@ namespace fioio {
                 //if we have changed the endpoint name then we are in the next endpoints grouping,
                 // so compute median fee for this endpoint and then clear the list.
                 if (vote_item.end_point.compare(lastvalUsed) != 0) {
-                    print(" EDEDEDEDED computing median for '", lastvalUsed, "'","\n");
+                    print(" EDEDEDEDED computing median for '", lastvalUsed, "' hash is ", lastusedHash,"\n");
                     compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
 
                     feevalues.clear();
