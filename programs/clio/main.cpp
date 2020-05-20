@@ -3866,18 +3866,45 @@ int main(int argc, char **argv) {
     regadd_action->add_option("tpid", tpid,
                                localized("The TPID (Technology Provider ID) receiving a portion of fees"));
 
-     regadd_action->set_callback([&] {
+    regadd_action->set_callback([&] {
 
-       auto regadd = fc::mutable_variant_object
+     auto regadd = fc::mutable_variant_object
                ("fio_address", fio_address)
                ("actor", name(actor))
                ("owner_fio_public_key", owner_fio_public_key)
                ("max_fee", max_fee)
                ("tpid", tpid);
 
-       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
+     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
                variant_to_bin(N(fio.address), N(regaddress), regadd)}});
      });
+
+     string fio_domain;
+
+     auto regdomain_action = fioaddress->add_subcommand("regdomain", localized("Register address action"));
+     add_standard_transaction_options(regdomain_action, "sender@active");
+     regdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
+     regdomain_action->add_option("fio_address", fio_address,
+                                localized("The FIO Domain to register"))->required();
+     regdomain_action->add_option("max_fee", max_fee,
+                                localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
+     regdomain_action->add_option("owner_fio_public_key", owner_fio_public_key,
+                                localized("The FIO public key of the new owner (optional)"));
+     regdomain_action->add_option("tpid", tpid,
+                                localized("The TPID (Technology Provider ID) receiving a portion of fees"));
+
+     regdomain_action->set_callback([&] {
+
+     auto regdomain = fc::mutable_variant_object
+                ("fio_domain", fio_address)
+                ("actor", name(actor))
+                ("owner_fio_public_key", owner_fio_public_key)
+                ("max_fee", max_fee)
+                ("tpid", tpid);
+
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regdomain",
+                variant_to_bin(N(fio.address), N(regdomain), regdomain)}});
+      });
 
     // multisig subcommand
     auto msig = app.add_subcommand("multisig", localized("Multisig contract commands"), false);
