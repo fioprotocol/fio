@@ -3855,7 +3855,7 @@ int main(int argc, char **argv) {
     string tpid;
     uint64_t max_fee;
     auto regadd_action = fioaddress->add_subcommand("regaddress", localized("Register address action"));
-     add_standard_transaction_options(regadd_action, "sender@active");    
+     add_standard_transaction_options(regadd_action, "sender@active");
     regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
     regadd_action->add_option("fio_address", fio_address,
                                localized("The FIO Address to register"))->required();
@@ -3875,7 +3875,7 @@ int main(int argc, char **argv) {
                ("max_fee", max_fee)
                ("tpid", tpid);
 
-       send_actions({chain::action{get_account_permissions(tx_permission), "fio.address", "regaddress",
+       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
                variant_to_bin(N(fio.address), N(regaddress), regadd)}});
      });
 
