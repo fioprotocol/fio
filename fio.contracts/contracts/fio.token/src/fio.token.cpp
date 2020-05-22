@@ -309,7 +309,7 @@ namespace eosio {
         }
 
         fio_fees(actor, asset{(int64_t) reg_amount, FIOSYMBOL});
-        process_rewards(tpid, reg_amount, get_self());
+        process_rewards(tpid, reg_amount,get_self(), actor);
 
         require_recipient(actor);
 

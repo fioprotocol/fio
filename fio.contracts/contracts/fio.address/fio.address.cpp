@@ -360,7 +360,7 @@ namespace fioio {
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-                process_rewards(tpid, reg_amount, get_self());
+                process_rewards(tpid, reg_amount,get_self(), actor);
 
                 if (reg_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -467,7 +467,7 @@ namespace fioio {
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-                process_rewards(tpid, reg_amount, get_self());
+                process_rewards(tpid, reg_amount,get_self(), actor);
 
                 if (reg_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -592,7 +592,7 @@ namespace fioio {
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
                 fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-                process_rewards(tpid, reg_amount, get_self());
+                process_rewards(tpid, reg_amount,get_self(), actor);
 
                 if (reg_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -684,7 +684,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-            processbucketrewards(tpid, reg_amount, get_self());
+            processbucketrewar ds(tpid, reg_amount, get_self(), actor);
 
             if (REGADDRESSRAM > 0) {
                 action(
@@ -756,7 +756,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-            processbucketrewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self(), actor);
 
             const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
                                    timebuffer + string("\",\"fee_collected\":") +
@@ -829,7 +829,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-            processbucketrewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self(),actor);
 
             const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
@@ -931,7 +931,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-            processbucketrewards(tpid, reg_amount, get_self());
+            processbucketrewards(tpid, reg_amount, get_self(),actor);
 
             const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
 
@@ -1291,7 +1291,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-            process_rewards(tpid, reg_amount, get_self());
+            process_rewards(tpid, reg_amount,get_self(), actor);
             if (reg_amount > 0) {
                 //MAS-522 remove staking from voting.
                 INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -1434,7 +1434,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(fee_amount, FIOSYMBOL));
-            processbucketrewards(tpid, fee_amount, get_self());
+            processbucketrewards(tpid, fee_amount, get_self(), actor);
 
             if (XFERRAM > 0) {
                 action(
@@ -1510,7 +1510,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(fee_amount, FIOSYMBOL));
-            processbucketrewards(tpid, fee_amount, get_self());
+            processbucketrewards(tpid, fee_amount, get_self(), actor);
 
             if (XFERRAM > 0) {
                 action(
