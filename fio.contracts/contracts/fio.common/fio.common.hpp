@@ -72,6 +72,23 @@ namespace fioio {
         }
     }
 
+
+    inline bool isFIOSystem(const name &actor){
+        return
+            (actor == fioio::MSIGACCOUNT ||
+             actor == fioio::WRAPACCOUNT ||
+             actor == fioio::SYSTEMACCOUNT ||
+             actor == fioio::ASSERTACCOUNT ||
+             actor == fioio::REQOBTACCOUNT ||
+             actor == fioio::FeeContract ||
+             actor == fioio::AddressContract ||
+             actor == fioio::TPIDContract ||
+             actor == fioio::TokenContract ||
+             actor == fioio::TREASURYACCOUNT ||
+             actor == fioio::FIOSYSTEMACCOUNT ||
+             actor == fioio::FIOACCOUNT);
+    }
+
     static constexpr uint64_t string_to_uint64_hash(const char *str) {
 
         uint32_t len = 0;
@@ -250,6 +267,7 @@ namespace fioio {
 
 
     void processbucketrewards(const string &tpid, const uint64_t &amount, const name &auth, const name &actor) {
+
 
         action(
                 permission_level{auth, "active"_n},
