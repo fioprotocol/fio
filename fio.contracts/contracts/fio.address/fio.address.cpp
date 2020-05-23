@@ -684,7 +684,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(actor, asset(reg_amount, FIOSYMBOL));
-            processbucketrewards(tpid, reg_amount, get_self(), actor);
+            processbucketrewards(tpid, reg_amount, get_self(), nm);
 
             if (REGADDRESSRAM > 0) {
                 action(
