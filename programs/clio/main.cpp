@@ -3212,6 +3212,181 @@ int main(int argc, char **argv) {
    });
    */
 
+
+       // Register FIO address
+       string actor;
+       string fio_address;
+       string owner_fio_public_key;
+       string tpid;
+       uint64_t max_fee = 80000000000LL;
+       auto regadd_action = create->add_subcommand("address", localized("Register address action"));
+       add_standard_transaction_options(regadd_action, "sender@active");
+       regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
+       regadd_action->add_option("fio_address", fio_address,
+                                  localized("The FIO Address to register"))->required();
+       regadd_action->add_option("owner_fio_public_key", owner_fio_public_key,
+                                  localized("The FIO public key of the new owner (optional)"));
+       regadd_action->add_option("tpid", tpid,
+                                  localized("The TPID (Technology Provider ID)"));
+       regadd_action->add_option("max_fee", max_fee,
+                                  localized("the max fee desired in smallest units of FIO (SUFs)"));
+       regadd_action->set_callback([&] {
+
+        auto regaddress = fc::mutable_variant_object
+                  ("fio_address", fio_address)
+                  ("actor", name(actor))
+                  ("owner_fio_public_key", owner_fio_public_key)
+                  ("max_fee", max_fee)
+                  ("tpid", tpid);
+
+        send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
+                  variant_to_bin(N(fio.address), N(regaddress), regaddress)}});
+        });
+
+        string fio_domain;
+
+        auto regdomain_action = create->add_subcommand("domain", localized("Register domain action"));
+        add_standard_transaction_options(regdomain_action, "sender@active");
+        regdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
+        regdomain_action->add_option("fio_address", fio_address,
+                                   localized("The FIO Domain to register"))->required();
+        regdomain_action->add_option("owner_fio_public_key", owner_fio_public_key,
+                                   localized("The FIO public key of the new owner (optional)"));
+        regdomain_action->add_option("tpid", tpid,
+                                   localized("The TPID (Technology Provider ID)"));
+        regdomain_action->add_option("max_fee", max_fee,
+                                   localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+        regdomain_action->set_callback([&] {
+
+        auto regdomain = fc::mutable_variant_object
+                   ("fio_domain", fio_domain)
+                   ("actor", name(actor))
+                   ("owner_fio_public_key", owner_fio_public_key)
+                   ("max_fee", max_fee)
+                   ("tpid", tpid);
+
+         send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regdomain",
+                   variant_to_bin(N(fio.address), N(regdomain), regdomain)}});
+         });
+
+
+    // domain subcommand
+    auto domain = app.add_subcommand("domain", localized("FIO Address contract commands"), false);
+    domain->require_subcommand();
+
+    auto renewdomain_action = domain->add_subcommand("renew", localized("Renew domain action"));
+    add_standard_transaction_options(renewdomain_action, "sender@active");
+    renewdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
+    renewdomain_action->add_option("fio_domain", fio_domain,
+                               localized("The FIO Domain to renew"))->required();
+    renewdomain_action->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"));
+    renewdomain_action->add_option("tpid", tpid,
+                               localized("The TPID (Technology Provider ID)"));
+
+    renewdomain_action->set_callback([&] {
+
+    auto renewdomain = fc::mutable_variant_object
+               ("fio_domain", fio_domain)
+               ("actor", name(actor))
+               ("max_fee", max_fee)
+               ("tpid", tpid);
+
+     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "renewdomain",
+               variant_to_bin(N(fio.address), N(renewdomain), renewdomain)}});
+     });
+
+     bool set_public = false;
+
+     auto domainpub_action = domain->add_subcommand("set_public", localized("Set domain to public"));
+     add_standard_transaction_options(domainpub_action, "sender@active");
+     domainpub_action->add_option("fio_domain", actor, localized("domain (string)"))->required();
+     domainpub_action->add_option("set_public", set_public,
+                                localized("is public (true/false)"))->required();
+
+     domainpub_action->set_callback([&] {
+
+     auto setdomainpub = fc::mutable_variant_object
+                ("fio_domain", fio_domain)
+                ("public", set_public);
+
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "renewdomain",
+                variant_to_bin(N(fio.address), N(setdomainpub), setdomainpub)}});
+      });
+
+// address subcommand
+
+    auto address = app.add_subcommand("address", localized("FIO Address contract commands"), false);
+        address->require_subcommand();
+// renew address subcommand
+    auto renewaddress_action = address->add_subcommand("renew", localized("Renew address action"));
+    add_standard_transaction_options(renewaddress_action, "sender@active");
+    renewaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
+    renewaddress_action->add_option("fio_address", fio_address,
+                               localized("The FIO address to renew"))->required();
+    renewaddress_action->add_option("tpid", tpid,
+                               localized("The TPID (Technology Provider ID)"));
+    renewaddress_action->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+    renewaddress_action->set_callback([&] {
+
+    auto renewaddress = fc::mutable_variant_object
+               ("fio_address", fio_address)
+               ("actor", name(actor))
+               ("max_fee", max_fee)
+               ("tpid", tpid);
+
+     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "renewaddress",
+               variant_to_bin(N(fio.address), N(renewaddress), renewaddress)}});
+     });
+
+// remove all subcommand
+     auto removeall_action = address->add_subcommand("remove_all", localized("Remove all addresses action"));
+     add_standard_transaction_options(removeall_action, "sender@active");
+     removeall_action->add_option("actor", actor, localized("actor (string)"))->required();
+     removeall_action->add_option("fio_address", fio_address,
+                                localized("The FIO address to remove all addresses from"))->required();
+     removeall_action->add_option("tpid", tpid,
+                                      localized("The TPID (Technology Provider ID)"));
+     removeall_action->add_option("max_fee", max_fee,
+                                localized("the max fee desired in smallest units of FIO (SUFs)"));
+     removeall_action->set_callback([&] {
+
+     auto remalladdr = fc::mutable_variant_object
+                ("fio_address", fio_address)
+                ("max_fee", max_fee)
+                ("tpid", tpid)
+                ("actor", actor);
+
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "remalladdr",
+                variant_to_bin(N(fio.address), N(remalladdr), remalladdr)}});
+      });
+
+// transfer address
+
+    auto transferaddress_action = address->add_subcommand("transfer", localized("Transfer address action"));
+    add_standard_transaction_options(transferaddress_action, "sender@active");
+    transferaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
+    transferaddress_action->add_option("fio_address", fio_address,
+                               localized("The FIO Domain to renew"))->required();
+    transferaddress_action->add_option("tpid", tpid,
+                               localized("The TPID (Technology Provider ID)"));
+    transferaddress_action->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"));
+    transferaddress_action->set_callback([&] {
+
+    auto transferaddress = fc::mutable_variant_object
+               ("fio_address", fio_address)
+               ("actor", name(actor))
+               ("max_fee", max_fee)
+               ("tpid", tpid);
+
+     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "transferaddress",
+               variant_to_bin(N(fio.address), N(transferaddress), transferaddress)}});
+     });
+
     // set subcommand
     auto setSubcommand = app.add_subcommand("set", localized("Set or update blockchain state"));
     setSubcommand->require_subcommand();
@@ -3842,69 +4017,6 @@ int main(int argc, char **argv) {
         auto trxs_result = call(push_txns_func, trx_var);
         std::cout << fc::json::to_pretty_string(trxs_result) << std::endl;
     });
-
-
-    // fioaddress subcommand
-    auto fioaddress = app.add_subcommand("fioaddress", localized("FIOAddress contract commands"), false);
-    fioaddress->require_subcommand();
-
-    // Register FIO address
-    string actor;
-    string fio_address;
-    string owner_fio_public_key;
-    string tpid;
-    uint64_t max_fee;
-    auto regadd_action = fioaddress->add_subcommand("regaddress", localized("Register address action"));
-     add_standard_transaction_options(regadd_action, "sender@active");
-    regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
-    regadd_action->add_option("fio_address", fio_address,
-                               localized("The FIO Address to register"))->required();
-    regadd_action->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
-    regadd_action->add_option("owner_fio_public_key", owner_fio_public_key,
-                               localized("The FIO public key of the new owner (optional)"));
-    regadd_action->add_option("tpid", tpid,
-                               localized("The TPID (Technology Provider ID) receiving a portion of fees"));
-
-    regadd_action->set_callback([&] {
-
-     auto regadd = fc::mutable_variant_object
-               ("fio_address", fio_address)
-               ("actor", name(actor))
-               ("owner_fio_public_key", owner_fio_public_key)
-               ("max_fee", max_fee)
-               ("tpid", tpid);
-
-     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
-               variant_to_bin(N(fio.address), N(regaddress), regadd)}});
-     });
-
-     string fio_domain;
-
-     auto regdomain_action = fioaddress->add_subcommand("regdomain", localized("Register address action"));
-     add_standard_transaction_options(regdomain_action, "sender@active");
-     regdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
-     regdomain_action->add_option("fio_address", fio_address,
-                                localized("The FIO Domain to register"))->required();
-     regdomain_action->add_option("max_fee", max_fee,
-                                localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
-     regdomain_action->add_option("owner_fio_public_key", owner_fio_public_key,
-                                localized("The FIO public key of the new owner (optional)"));
-     regdomain_action->add_option("tpid", tpid,
-                                localized("The TPID (Technology Provider ID) receiving a portion of fees"));
-
-     regdomain_action->set_callback([&] {
-
-     auto regdomain = fc::mutable_variant_object
-                ("fio_domain", fio_address)
-                ("actor", name(actor))
-                ("owner_fio_public_key", owner_fio_public_key)
-                ("max_fee", max_fee)
-                ("tpid", tpid);
-
-      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regdomain",
-                variant_to_bin(N(fio.address), N(regdomain), regdomain)}});
-      });
 
     // multisig subcommand
     auto msig = app.add_subcommand("multisig", localized("Multisig contract commands"), false);
