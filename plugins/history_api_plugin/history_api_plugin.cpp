@@ -47,7 +47,8 @@ namespace eosio {
                                                         CHAIN_RO_CALL(get_transaction),
                                                         CHAIN_RO_CALL(get_block_txids),
                                                         CHAIN_RO_CALL(get_key_accounts),
-                                                        CHAIN_RO_CALL(get_controlled_accounts)
+                                                        CHAIN_RO_CALL(get_controlled_accounts),
+                                                        CHAIN_RO_CALL(get_transfers)
                                                 });
     }
 
