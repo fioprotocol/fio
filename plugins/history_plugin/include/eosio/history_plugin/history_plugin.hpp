@@ -182,7 +182,9 @@ FC_REFLECT(eosio::history_apis::read_only::get_actions_result,
 FC_REFLECT(eosio::history_apis::read_only::get_transfers_params, (account_name)(pos)(offset))
 FC_REFLECT(eosio::history_apis::read_only::get_transfers_result,
            (transfers)(last_irreversible_block)(time_limit_exceeded_error))
-FC_REFLECT(eosio::history_apis::read_only::transfer_information,)
+FC_REFLECT(eosio::history_apis::read_only::transfer_information, (block_height)
+          (block_time)(receiver)(sender)(payee_public_key)(transfer_amount)(fee_amount)
+          (transaction_total)(memo)(action)(tpid)(transaction_id) )
 FC_REFLECT(eosio::history_apis::read_only::ordered_action_result,
            (global_action_seq)(account_action_seq)(block_num)(block_time)(action_trace))
 
