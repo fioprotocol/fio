@@ -570,7 +570,12 @@ namespace eosiosystem {
             });
         }
 
+        //note -- we can call these lock token computations like this
+        //only because token locks are exclusive, meaning an account CANNOT have
+        //multiple locked token grants.
         eosio::token::computeremaininglockedtokens(actor,true);
+        eosio::token::computegenerallockedtokens(actor,true);
+
         sort(producers_accounts.begin(),producers_accounts.end());
 
         update_votes(actor, proxy, producers_accounts, true);
@@ -710,7 +715,11 @@ namespace eosiosystem {
             });
         }
 
+        //note -- we can call these lock token computations like this
+        //only because token locks are exclusive, meaning an account CANNOT have
+        //multiple locked token grants.
         eosio::token::computeremaininglockedtokens(actor,true);
+        eosio::token::computegenerallockedtokens(actor,true);
 
         update_votes(actor, proxy_name, producers, true);
 
@@ -779,7 +788,11 @@ namespace eosiosystem {
 
     void system_contract::unlocktokens(const name &actor){
         require_auth(TokenContract);
+        //note -- we can call these lock token computations like this
+        //only because token locks are exclusive, meaning an account CANNOT have
+        //multiple locked token grants.
         eosio::token::computeremaininglockedtokens(actor,true);
+        eosio::token::computegenerallockedtokens(actor,true);
     }
 
     uint64_t system_contract::get_votable_balance(const name &tokenowner){

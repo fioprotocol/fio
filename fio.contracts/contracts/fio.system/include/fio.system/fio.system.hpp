@@ -115,7 +115,8 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
     )
 };
 
-//begin locked token holders table
+
+//these locks are used for investors and emplyees and members who have grants upon integration.
 //this table holds the list of FIO accounts that hold locked FIO tokens
 struct [[eosio::table, eosio::contract("fio.system")]] locked_token_holder_info {
     name owner;
@@ -137,8 +138,40 @@ struct [[eosio::table, eosio::contract("fio.system")]] locked_token_holder_info 
 
 typedef eosio::multi_index<"lockedtokens"_n, locked_token_holder_info>
 locked_tokens_table;
-//end locked token holders table.
 
+//begin general locks, these locks are used to hold tokens granted by any fio user
+//to any other fio user.
+struct lockperiods {
+    int64_t duration = 0; //duration in seconds. each duration is seconds after grant creation.
+    double percent; //this is the percent to be unlocked
+    EOSLIB_SERIALIZE( lockperiods, (duration)(percent))
+};
+
+struct [[eosio::table, eosio::contract("fio.system")]] locked_tokens_info {
+    int64_t id; //this is the identifier of the lock, primary key
+    name owner_account; //this is the account that owns the lock, secondary key
+    int64_t lock_amount = 0; //this is the amount of the lock in FIO SUF
+    int32_t payouts_performed = 0; //this is the number of payouts performed thus far.
+    int32_t can_vote = 0; //this is the flag indicating if the lock is votable/proxy-able
+    std::vector<lockperiods> periods;// this is the locking periods for the lock
+    int64_t remaining_lock_amount = 0; //this is the amount remaining in the lock in FIO SUF, get decremented as unlocking occurs.
+    uint32_t timestamp = 0; //this is the time of creation of the lock, locking periods are relative to this time.
+
+    uint64_t primary_key() const { return id; }
+    uint64_t by_owner() const{return owner_account.value;}
+
+    EOSLIB_SERIALIZE( locked_tokens_info, (id)(owner_account)
+            (lock_amount)(payouts_performed)(can_vote)(periods)(remaining_lock_amount)(timestamp)
+    )
+
+};
+
+typedef eosio::multi_index<"locktokens"_n, locked_tokens_info,
+    indexed_by<"byowner"_n, const_mem_fun < locked_tokens_info, uint64_t, &locked_tokens_info::by_owner> >
+
+>
+general_locks_table;
+//end general locks
 
 //Top producers that are calculated every block in update_elected_producers
 struct [[eosio::table, eosio::contract("fio.system")]] top_prod_info {
@@ -262,6 +295,7 @@ private:
     producers_table _producers;
     top_producers_table _topprods;
     locked_tokens_table _lockedtokens;
+    general_locks_table _generallockedtokens;
    //MAS-522 eliminate producers2 producers_table2 _producers2;
     global_state_singleton _global;
     global_state2_singleton _global2;
@@ -299,6 +333,9 @@ public:
     [[eosio::action]]
     void addlocked(const name &owner, const int64_t &amount,
                     const int16_t &locktype);
+
+    [[eosio::action]]
+    void addgenlocked(const name &owner, const vector<lockperiods> &periods, const bool &canvote,const int64_t &amount);
 
     [[eosio::action]]
     void onblock(ignore <block_header> header);
