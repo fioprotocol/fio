@@ -609,7 +609,7 @@ namespace eosio {
 
             get_actions_result action_result;
             get_transfers_result result;
-
+            result.last_irreversible_block = chain.last_irreversible_block_num();
             action_result.last_irreversible_block = chain.last_irreversible_block_num();
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
@@ -656,9 +656,35 @@ namespace eosio {
                     ti.sender = transferdata.from.to_string();
                     ti.receiver = transferdata.to.to_string();
                     ti.payee_public_key = "";
-                    ti.fee_amount = 0;
+                    ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
                     ti.transaction_total = transferdata.quantity.get_amount();
                     ti.transfer_amount = transferdata.quantity.get_amount() ;
+                  }
+                  if (t.act.name == N(xferdomain)) {
+                    const auto transferdata = t.act.data_as<eosio::xferdomain>();
+                    ti.action = "xferdomain";
+                    ti.tpid = transferdata.tpid;
+                    ti.memo = std::string("Transferred domain " ) + transferdata.fio_domain;
+                    ti.sender = transferdata.actor.to_string();
+                    ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
+                    ti.payee_public_key = transferdata.new_owner_fio_public_key;
+                    ti.fee_amount = transferdata.max_fee;
+                    //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
+                    ti.transaction_total = ti.fee_amount;
+                    ti.transfer_amount = 0;
+                  }
+                  if (t.act.name == N(xferaddress)) {
+                    const auto transferdata = t.act.data_as<eosio::xferaddress>();
+                    ti.action = "xferaddress";
+                    ti.tpid = transferdata.tpid;
+                    ti.memo = std::string("Transferred address " ) + transferdata.fio_address;
+                    ti.sender = transferdata.actor.to_string();
+                    ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
+                    ti.payee_public_key = transferdata.new_owner_fio_public_key;
+                    ti.fee_amount = transferdata.max_fee;
+                    //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
+                    ti.transaction_total = ti.fee_amount;
+                    ti.transfer_amount = 0;
                   }
                   if (params.pos < 0) {
 
