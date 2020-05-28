@@ -607,9 +607,10 @@ namespace eosio {
             auto start_time = fc::time_point::now();
             auto end_time = start_time;
 
+            get_actions_result action_result;
             get_transfers_result result;
-            result.last_irreversible_block = chain.last_irreversible_block_num();
-            digest_type ad;
+
+            action_result.last_irreversible_block = chain.last_irreversible_block_num();
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -627,34 +628,73 @@ namespace eosio {
                 fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
                 action_trace t;
                 fc::raw::unpack(ds, t);
-                if (ad == t.receipt->act_digest) {
-                  if (t.receipt->receiver != params.account_name) {
-                    continue;
+                if (t.receipt->receiver == params.account_name) { // skip emplacing results where receiver field does not match account_name parameter
+
+                  transfer_information ti;
+                  ti.transaction_id = t.trx_id;
+                  ti.block_height = t.block_num;
+                  ti.block_time = t.block_time;
+
+                  if (t.act.name == N(trnsfiopubky)) {
+                    const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
+                    ti.action = "trnsfiopubky";
+                    ti.tpid = transferdata.tpid;
+                    ti.memo = "";
+                    ti.sender = transferdata.actor.to_string();
+                    ti.receiver = fioio::key_to_account(transferdata.payee_public_key);
+                    ti.payee_public_key = transferdata.payee_public_key;
+                    ti.fee_amount = transferdata.max_fee;
+                    //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
+                    ti.transaction_total = transferdata.max_fee + transferdata.amount; //max_fee temporary
+                    ti.transfer_amount = transferdata.amount ;
                   }
-                }
-                ad = t.receipt->act_digest;
-                if (params.pos < 0) {
-                  result.actions.emplace(result.actions.begin(), ordered_action_result{
+                  if (t.act.name == N(transfer)) {
+                    const auto transferdata = t.act.data_as<eosio::transfer>();
+                    ti.action = "transfer";
+                    ti.tpid = "";
+                    ti.memo = transferdata.memo;
+                    ti.sender = transferdata.from.to_string();
+                    ti.receiver = transferdata.to.to_string();
+                    ti.payee_public_key = "";
+                    ti.fee_amount = 0;
+                    ti.transaction_total = transferdata.quantity.get_amount();
+                    ti.transfer_amount = transferdata.quantity.get_amount() ;
+                  }
+                  if (params.pos < 0) {
+
+                    result.transfers.emplace(result.transfers.begin(), ti );
+
+                  } else {
+
+                    result.transfers.emplace_back( ti );
+
+                  /*
+                  action_result.actions.emplace(action_result.actions.begin(), ordered_action_result{
                                         action_sequence_num,
                                         account_sequence_num,
                                         a.block_num, a.block_time,
                                         chain.to_variant_with_abi(t, abi_serializer_max_time)
                                         });
                 } else {
-                  result.actions.emplace_back( ordered_action_result{
+                  action_result.actions.emplace_back( ordered_action_result{
                                         action_sequence_num,
                                         account_sequence_num,
                                         a.block_num, a.block_time,
                                         chain.to_variant_with_abi(t, abi_serializer_max_time)
-                                        });
-                }
+                                      }); */
+                  }
 
-                end_time = fc::time_point::now();
-                if (end_time - start_time > fc::microseconds(100000)) {
-                    result.time_limit_exceeded_error = true;
-                    break;
+                  /* DISABLING THE LOOKUP TIME LIMIT
+                  end_time = fc::time_point::now();
+                  if (end_time - start_time > fc::microseconds(100000)) {
+                      action_result.time_limit_exceeded_error = true;
+                      break;
+                  }
+                  */
+
                 }
             }
+
             return result;
         } //get actions
         read_only::get_transaction_result read_only::get_transaction(const read_only::get_transaction_params &p) const {

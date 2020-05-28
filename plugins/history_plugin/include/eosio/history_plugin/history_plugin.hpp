@@ -58,8 +58,23 @@ namespace eosio {
                 optional<int64_t> offset; ///< the number of actions relative to pos, negative numbers return [pos-offset,pos), positive numbers return [pos,pos+offset)
             };
 
+            struct transfer_information {
+              uint32_t block_height;
+              chain::block_timestamp_type block_time;
+              string receiver;
+              string sender;
+              string payee_public_key;
+              uint64_t transfer_amount;
+              uint64_t fee_amount;
+              uint64_t transaction_total;
+              string memo;
+              string action;
+              string tpid;
+              string transaction_id;
+            };
+
             struct get_transfers_result {
-                vector<ordered_action_result> actions;
+                vector<transfer_information> transfers;
                 uint32_t last_irreversible_block;
                 optional<bool> time_limit_exceeded_error;
             };
@@ -166,7 +181,8 @@ FC_REFLECT(eosio::history_apis::read_only::get_actions_result,
            (actions)(last_irreversible_block)(time_limit_exceeded_error))
 FC_REFLECT(eosio::history_apis::read_only::get_transfers_params, (account_name)(pos)(offset))
 FC_REFLECT(eosio::history_apis::read_only::get_transfers_result,
-           (actions)(last_irreversible_block)(time_limit_exceeded_error))
+           (transfers)(last_irreversible_block)(time_limit_exceeded_error))
+FC_REFLECT(eosio::history_apis::read_only::transfer_information,)
 FC_REFLECT(eosio::history_apis::read_only::ordered_action_result,
            (global_action_seq)(account_action_seq)(block_num)(block_time)(action_trace))
 
