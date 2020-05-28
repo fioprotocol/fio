@@ -140,6 +140,8 @@ namespace eosio {
                                                          chain_apis::read_write::remove_all_pub_addresses_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_tokens_pub_key,
                                                          chain_apis::read_write::transfer_tokens_pub_key_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(transfer_locked_tokens,
+                                                         chain_apis::read_write::transfer_locked_tokens_results, 202),
                                      CHAIN_RW_CALL_ASYNC(burn_expired,
                                                          chain_apis::read_write::burn_expired_results, 202),
                                      CHAIN_RW_CALL_ASYNC(unregister_producer,

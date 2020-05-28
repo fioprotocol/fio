@@ -69,7 +69,7 @@ namespace eosio {
         struct request_record {
             uint64_t fio_request_id;     // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
-            string payee_fio_address;     // receiver FIO address e.g. jane.xyz
+            string payee_fio_address;     // receiver FIO address e.g. jane.xyzc
             string payer_fio_public_key;
             string payee_fio_public_key;
             string content;             // this is encrypted content
@@ -968,6 +968,15 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function<transfer_tokens_pub_key_results> next);
 
+            using transfer_locked_tokens_params = fc::variant_object;
+            struct transfer_locked_tokens_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void transfer_locked_tokens(const transfer_locked_tokens_params &params,
+                                         chain::plugin_interface::next_function<transfer_locked_tokens_results> next);
+
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
             struct renew_fio_domain_results {
@@ -1424,6 +1433,7 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::transfer_locked_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed));

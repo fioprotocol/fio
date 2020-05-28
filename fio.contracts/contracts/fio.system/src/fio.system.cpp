@@ -215,7 +215,7 @@ namespace eosiosystem {
             const int64_t &amount) {
 
         print(" calling addgenlocked for account ",owner,"\n");
-        require_auth(_self);
+        require_auth(TokenContract);
 
 
         check(is_account(owner),"account must pre exist");
@@ -241,7 +241,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
 // native.hpp (newaccount definition is actually in fio.system.cpp)
 (newaccount)(updateauth)(deleteauth)(linkauth)(unlinkauth)(canceldelay)(onerror)(setabi)
         // fio.system.cpp
-        (init)(addlocked)(setparams)(setpriv)
+        (init)(addlocked)(addgenlocked)(setparams)(setpriv)
         (rmvproducer)(updtrevision)
         // delegate_bandwidth.cpp
         (updatepower)

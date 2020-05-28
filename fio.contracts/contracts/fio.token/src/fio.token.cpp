@@ -430,6 +430,8 @@ namespace eosio {
         //check for pre existing account is done here.
         transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,true);
 
+        print("EDEDEDEDEDEDEDEDED calling addgenlocked ","\n");
+
         INLINE_ACTION_SENDER(eosiosystem::system_contract, addgenlocked)
                 ("eosio"_n, {{_self, "active"_n}},
                  {results.owner,periods,can_vote,amount}
@@ -473,5 +475,5 @@ namespace eosio {
     }
 } /// namespace eosio
 
-EOSIO_DISPATCH( eosio::token, (create)(issue)(mintfio)(transfer)(trnsfiopubky)
+EOSIO_DISPATCH( eosio::token, (create)(issue)(mintfio)(transfer)(trnsfiopubky)(trnsloctoks)
 (retire))
