@@ -288,6 +288,8 @@ namespace eosio {
         //unlocking schedule, it will update the locktokens table if the doupdate
         //is set to true.
         static uint64_t computegenerallockedtokens(const name &actor, bool doupdate) {
+
+            print("EDEDEDEDEDED calling computegenerallockedtokens for actor ",actor,"\n");
             uint32_t present_time = now();
 
             eosiosystem::general_locks_table generalLockTokensTable(SYSTEMACCOUNT, SYSTEMACCOUNT.value);
@@ -306,6 +308,7 @@ namespace eosio {
                         }
 
                     }
+                    print("EDEDEDEDEDED  computegenerallockedtokens ",payoutsDue," payouts are due to actor " ,actor ,"\n");
 
                     uint64_t amountpay = 0;
                     uint64_t newlockedamount = lockiter->remaining_lock_amount;
@@ -317,8 +320,12 @@ namespace eosio {
                            //special note -- we allow 3 decimal places for precision. this needs enforced
                            //in the input validation of these values.
                            percentperblock = (int)(lockiter->periods[i].percent * 1000);
-                           amountpay += (lockiter->lock_amount * lockiter->periods[i].percent)/100000;
+                           int64_t amountadded = (lockiter->lock_amount * lockiter->periods[i].percent)/100000;
+                           print("EDEDEDEDEDED  computegenerallockedtokens unlocking ",amountadded," for actor " ,actor ,"\n");
+                           amountpay += amountadded;
                        }
+
+                        print("EDEDEDEDEDED  computegenerallockedtokens unlocking total amount ",amountpay," for actor " ,actor ,"\n");
 
                         if (newlockedamount > amountpay) {
                             newlockedamount -= amountpay;
@@ -340,6 +347,9 @@ namespace eosio {
                                   amount, "\n");
                             newlockedamount = amount;
                         }
+
+                        print("EDEDEDEDEDED  computegenerallockedtokens setting new locked amount",newlockedamount," for actor " ,actor ,"\n");
+
                         //update the locked table.
                         locks_by_owner.modify(lockiter, SYSTEMACCOUNT, [&](auto &av) {
                             av.remaining_lock_amount = newlockedamount;
@@ -350,9 +360,11 @@ namespace eosio {
                     return newlockedamount;
 
                 } else {
+                    print("EDEDEDEDEDED  computegenerallockedtokens using remaining locked amount ",lockiter->remaining_lock_amount, " for actor ",actor,"\n");
                     return lockiter->remaining_lock_amount;
                 }
             }
+            print("EDEDEDEDEDED  computegenerallockedtokens NO locked tokens for actor ",actor,"\n");
             return 0;
         }
 

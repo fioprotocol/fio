@@ -423,6 +423,11 @@ namespace eosio {
                              const name &actor,
                              const string &tpid) {
 
+        //todo : add in validations and auth checks.
+
+        print("EDEDEDEDEDEDEDEDEDED calling trnsloctoks ");
+
+        //check for pre existing account is done here.
         transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,true);
 
         INLINE_ACTION_SENDER(eosiosystem::system_contract, addgenlocked)
