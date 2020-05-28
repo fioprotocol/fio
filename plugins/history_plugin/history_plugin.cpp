@@ -643,9 +643,8 @@ namespace eosio {
                     ti.sender = transferdata.actor.to_string();
                     ti.receiver = fioio::key_to_account(transferdata.payee_public_key);
                     ti.payee_public_key = transferdata.payee_public_key;
-                    ti.fee_amount = transferdata.max_fee;
-                    //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
-                    ti.transaction_total = transferdata.max_fee + transferdata.amount; //max_fee temporary
+                    ti.fee_amount = boost::lexical_cast<uint64_t>(t.receipt->response.substr(t.receipt->response.find("d\\\""), t.receipt->response.find("\"}")));
+                    ti.transaction_total = ti.fee_amount + transferdata.amount;
                     ti.transfer_amount = transferdata.amount ;
                   } else if (t.act.name == N(transfer)) {
                     const auto transferdata = t.act.data_as<eosio::transfer>();
@@ -666,7 +665,7 @@ namespace eosio {
                     ti.sender = transferdata.actor.to_string();
                     ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
                     ti.payee_public_key = transferdata.new_owner_fio_public_key;
-                    ti.fee_amount = transferdata.max_fee;
+                    ti.fee_amount = boost::lexical_cast<uint64_t>(t.receipt->response.substr(t.receipt->response.find("d\\\""), t.receipt->response.find("\"}")));
                     //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
                     ti.transaction_total = ti.fee_amount;
                     ti.transfer_amount = 0;
@@ -678,7 +677,7 @@ namespace eosio {
                     ti.sender = transferdata.actor.to_string();
                     ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
                     ti.payee_public_key = transferdata.new_owner_fio_public_key;
-                    ti.fee_amount = transferdata.max_fee;
+                    ti.fee_amount = boost::lexical_cast<uint64_t>(t.receipt->response.substr(t.receipt->response.find("d\\\""), t.receipt->response.find("\"}")));
                     //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
                     ti.transaction_total = ti.fee_amount;
                     ti.transfer_amount = 0;
