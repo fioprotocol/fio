@@ -647,8 +647,7 @@ namespace eosio {
                     //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
                     ti.transaction_total = transferdata.max_fee + transferdata.amount; //max_fee temporary
                     ti.transfer_amount = transferdata.amount ;
-                  }
-                  if (t.act.name == N(transfer)) {
+                  } else if (t.act.name == N(transfer)) {
                     const auto transferdata = t.act.data_as<eosio::transfer>();
                     ti.action = "transfer";
                     ti.tpid = "";
@@ -659,8 +658,7 @@ namespace eosio {
                     ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
                     ti.transaction_total = transferdata.quantity.get_amount();
                     ti.transfer_amount = transferdata.quantity.get_amount() ;
-                  }
-                  if (t.act.name == N(xferdomain)) {
+                  } else if (t.act.name == N(xferdomain)) {
                     const auto transferdata = t.act.data_as<eosio::xferdomain>();
                     ti.action = "xferdomain";
                     ti.tpid = transferdata.tpid;
@@ -672,8 +670,7 @@ namespace eosio {
                     //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
                     ti.transaction_total = ti.fee_amount;
                     ti.transfer_amount = 0;
-                  }
-                  if (t.act.name == N(xferaddress)) {
+                  } else if (t.act.name == N(xferaddress)) {
                     const auto transferdata = t.act.data_as<eosio::xferaddress>();
                     ti.action = "xferaddress";
                     ti.tpid = transferdata.tpid;
@@ -685,7 +682,9 @@ namespace eosio {
                     //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
                     ti.transaction_total = ti.fee_amount;
                     ti.transfer_amount = 0;
-                  }
+                  } else {
+                    continue; // Do not process any other transaction types
+                   }
                   if (params.pos < 0) {
 
                     result.transfers.emplace(result.transfers.begin(), ti );
