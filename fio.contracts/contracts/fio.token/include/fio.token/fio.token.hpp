@@ -10,7 +10,7 @@
 
 #include <fio.common/fio.common.hpp>
 #include <fio.address/fio.address.hpp>
-#include <fio.system/fio.system.hpp>
+#include <fio.system/include/fio.system/fio.system.hpp>
 #include <fio.fee/fio.fee.hpp>
 #include <fio.tpid/fio.tpid.hpp>
 
@@ -73,9 +73,9 @@ namespace eosio {
                           const string &tpid);
 
         [[eosio::action]]
-        void token::trnsloctoks(const string &payee_public_key,
+        void trnsloctoks(const string &payee_public_key,
                                 const bool &can_vote,
-                                const vector<lockperiods> periods,
+                                const vector<eosiosystem::lockperiods> periods,
                                 const int64_t &amount,
                                 const int64_t &max_fee,
                                 const name &actor,
@@ -107,12 +107,18 @@ namespace eosio {
             uint64_t primary_key() const { return balance.symbol.code().raw(); }
         };
 
+
         struct [[eosio::table]] currency_stats {
             asset supply;
             asset max_supply;
             name issuer = SYSTEMACCOUNT;
 
             uint64_t primary_key() const { return supply.symbol.code().raw(); }
+        };
+
+        struct transfer_pub_key_results {
+            uint64_t fee = 0;
+            name owner;
         };
 
         typedef eosio::multi_index<"accounts"_n, account> accounts;
@@ -127,11 +133,12 @@ namespace eosio {
 
         bool can_transfer_general(const name &tokenowner,const uint64_t &transferamount);
 
-        uint64_t transfer_public_key(const string &payee_public_key,
+        transfer_pub_key_results transfer_public_key(const string &payee_public_key,
                                         const int64_t &amount,
                                         const int64_t &max_fee,
                                         const name &actor,
-                                        const string &tpid);
+                                        const string &tpid,
+                                        const bool &errorifaccountexists);
 
     public:
 
@@ -147,6 +154,8 @@ namespace eosio {
             string public_key;
             bool existing;
         };
+
+
 
         //this will compute the present unlocked tokens for this user based on the
         //unlocking schedule, it will update the lockedtokens table if the doupdate

@@ -181,11 +181,12 @@ namespace eosio {
         }
     }
 
-    uint64_t token::transfer_public_key(const string &payee_public_key,
+    eosio::token::transfer_pub_key_results token::transfer_public_key(const string &payee_public_key,
                              const int64_t &amount,
                              const int64_t &max_fee,
                              const name &actor,
-                             const string &tpid) {
+                             const string &tpid,
+                             const bool &errorifaccountexists) {
 
         require_auth(actor);
         asset qty;
@@ -232,6 +233,11 @@ namespace eosio {
         name new_account_name = name(payee_account.c_str());
         bool accountExists = is_account(new_account_name);
 
+        if (errorifaccountexists){
+            fio_400_assert(!(accountExists), "payee_public_key", payee_public_key,
+                           "Locked tokens can only be transferred to new account",
+                           ErrorPubKeyValid);
+        }
         auto other = eosionames.find(new_account_name.value);
 
         if (other == eosionames.end()) { //the name is not in the table.
@@ -329,7 +335,10 @@ namespace eosio {
             ).send();
         }
 
-        return reg_amount;
+        transfer_pub_key_results results;
+        results.fee = reg_amount;
+        results.owner = new_account_name;
+        return results;
     }
 
     void token::transfer(name from,
@@ -394,10 +403,10 @@ namespace eosio {
                              const name &actor,
                              const string &tpid) {
 
-        uint64_t fee = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid);
+        transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,false);
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
-                                       to_string(fee) + string("}");
+                                       to_string(results.fee) + string("}");
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransactionTooLarge);
@@ -408,16 +417,21 @@ namespace eosio {
 
     void token::trnsloctoks(const string &payee_public_key,
                              const bool &can_vote,
-                             const vector<lockperiods> periods,
+                             const vector<eosiosystem::lockperiods> periods,
                              const int64_t &amount,
                              const int64_t &max_fee,
                              const name &actor,
                              const string &tpid) {
 
-        uint64_t fee = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid);
+        transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,true);
+
+        INLINE_ACTION_SENDER(eosiosystem::system_contract, addgenlocked)
+                ("eosio"_n, {{_self, "active"_n}},
+                 {results.owner,periods,can_vote,amount}
+                );
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
-                                       to_string(fee) + string("}");
+                                       to_string(results.fee) + string("}");
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
                        "Transaction is too large", ErrorTransactionTooLarge);
