@@ -965,6 +965,12 @@ namespace eosiosystem {
     void system_contract::setautoproxy(const name &proxy,const name &owner)
     {
         require_auth(TPIDContract);
+
+
+        fio_400_assert(!(isFIOSystem(owner)), "owner", "setautoproxy",
+                       "Auto proxy cannot be to a system account", ErrorActorIsSystemAccount);
+        fio_400_assert(!(isFIOSystem(proxy)), "proxy", "setautoproxy",
+                "proxy cannot be a from system account", ErrorActorIsSystemAccount);
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
@@ -983,7 +989,17 @@ namespace eosiosystem {
 
     void system_contract::crautoproxy(const name &proxy,const name &owner)
     {
+        bool debug = false;
         require_auth(TPIDContract);
+        if (debug) {
+            print("calling create auto proxy ", proxy, " owner ", owner, "\n");
+        }
+
+        fio_400_assert(!(isFIOSystem(owner)), "owner", "setautoproxy",
+                "Auto proxy cannot be to a system account", ErrorActorIsSystemAccount);
+        fio_400_assert(!(isFIOSystem(proxy)), "proxy", "setautoproxy",
+                "proxy cannot be a from system account", ErrorActorIsSystemAccount);
+
         //first verify that the proxy exists and is registered as a proxy.
         //look it up and check it.
         //if its there then emplace the owner record into the voting_info table with is_auto_proxy set.
@@ -992,6 +1008,9 @@ namespace eosiosystem {
 
         if (itervi != votersbyowner.end() &&
            itervi->is_proxy) {
+            if (debug) {
+                print("create auto proxy found the proxy ", proxy, "\n");
+            }
 
             auto itervoter = votersbyowner.find(owner.value);
             if (itervoter == votersbyowner.end()) {
@@ -1006,6 +1025,11 @@ namespace eosiosystem {
                 votersbyowner.modify(itervoter, _self, [&](struct voter_info &a) {
                     a.proxy = proxy;
                 });
+            }
+        }
+        else{
+            if (debug) {
+                print("create auto proxy didnt find the proxy ", proxy, "\n");
             }
         }
     }

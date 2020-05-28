@@ -72,6 +72,23 @@ namespace fioio {
         }
     }
 
+
+    inline bool isFIOSystem(const name &actor){
+        return
+            (actor == fioio::MSIGACCOUNT ||
+             actor == fioio::WRAPACCOUNT ||
+             actor == fioio::SYSTEMACCOUNT ||
+             actor == fioio::ASSERTACCOUNT ||
+             actor == fioio::REQOBTACCOUNT ||
+             actor == fioio::FeeContract ||
+             actor == fioio::AddressContract ||
+             actor == fioio::TPIDContract ||
+             actor == fioio::TokenContract ||
+             actor == fioio::TREASURYACCOUNT ||
+             actor == fioio::FIOSYSTEMACCOUNT ||
+             actor == fioio::FIOACCOUNT);
+    }
+
     static constexpr uint64_t string_to_uint64_hash(const char *str) {
 
         uint32_t len = 0;
@@ -188,10 +205,10 @@ namespace fioio {
 
     typedef singleton<"bounties"_n, bounty> bounties_table;
 
-    void process_rewards(const string &tpid, const uint64_t &amount, const name &actor) {
+    void process_rewards(const string &tpid, const uint64_t &amount, const name &auth, const name &actor) {
 
         action(
-                permission_level{actor, "active"_n},
+                permission_level{auth, "active"_n},
                 TREASURYACCOUNT,
                 "fdtnrwdupdat"_n,
                 std::make_tuple((uint64_t)(static_cast<double>(amount) * .05))
@@ -225,14 +242,14 @@ namespace fioio {
             }
 
             action(
-                    permission_level{actor, "active"_n},
+                    permission_level{auth, "active"_n},
                     TPIDContract,
                     "updatetpid"_n,
                     std::make_tuple(tpid, actor, (amount / 10) + bamount)
             ).send();
 
             action(
-                    permission_level{actor, "active"_n},
+                    permission_level{auth, "active"_n},
                     TREASURYACCOUNT,
                     "bprewdupdate"_n,
                     std::make_tuple((uint64_t)(static_cast<double>(amount) * .85))
@@ -240,7 +257,7 @@ namespace fioio {
 
         } else {
             action(
-                    permission_level{actor, "active"_n},
+                    permission_level{auth, "active"_n},
                     TREASURYACCOUNT,
                     "bprewdupdate"_n,
                     std::make_tuple((uint64_t)(static_cast<double>(amount) * .95))
@@ -249,10 +266,11 @@ namespace fioio {
     }
 
 
-    void processbucketrewards(const string &tpid, const uint64_t &amount, const name &actor) {
+    void processbucketrewards(const string &tpid, const uint64_t &amount, const name &auth, const name &actor) {
+
 
         action(
-                permission_level{actor, "active"_n},
+                permission_level{auth, "active"_n},
                 TREASURYACCOUNT,
                 "fdtnrwdupdat"_n,
                 std::make_tuple((uint64_t)(static_cast<double>(amount) * .05))
@@ -285,7 +303,7 @@ namespace fioio {
             }
 
             action(
-                    permission_level{actor, "active"_n},
+                    permission_level{auth, "active"_n},
                     TPIDContract,
                     "updatetpid"_n,
                     std::make_tuple(tpid, actor, (amount / 10) + bamount)
@@ -293,7 +311,7 @@ namespace fioio {
 
 
             action(
-                    permission_level{actor, "active"_n},
+                    permission_level{auth, "active"_n},
                     TREASURYACCOUNT,
                     "bppoolupdate"_n,
                     std::make_tuple((uint64_t)(static_cast<double>(amount) * .85))
@@ -301,7 +319,7 @@ namespace fioio {
         } else {
 
             action(
-                    permission_level{actor, "active"_n},
+                    permission_level{auth, "active"_n},
                     TREASURYACCOUNT,
                     "bppoolupdate"_n,
                     std::make_tuple((uint64_t)(static_cast<double>(amount) * .95))
