@@ -168,10 +168,14 @@ namespace eosio {
         //get fio balance for this account,
         uint32_t present_time = now();
         const auto my_balance = eosio::token::get_balance("fio.token"_n, tokenowner, FIOSYMBOL.code());
+
         uint64_t amount = my_balance.amount;
+        print("EDEDEDEDED can transfer general balance is ", amount, "\n");
 
         //recompute the remaining locked amount based on vesting.
         uint64_t lockedTokenAmount = computegenerallockedtokens(tokenowner, false);
+
+        print("EDEDEDEDEDEDEDEDED locked amount is ",lockedTokenAmount,"\n");
         //subtract the lock amount from the balance
         if (lockedTokenAmount < amount) {
             amount -= lockedTokenAmount;
