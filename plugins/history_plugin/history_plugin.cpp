@@ -567,12 +567,12 @@ namespace eosio {
             const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
 
             const auto& idx = hidb.get_index<account_history_index, by_account_action_seq>();
-
+            account_name account_name = fioio::key_to_account(params.fio_public_key);
             int64_t start = 0;
             int64_t pos = params.pos ? *params.pos : -1;
             int64_t end = 0;
             int64_t offset = params.offset ? *params.offset : -20;
-            auto n = params.account_name;
+            auto n = account_name;
             // idump((pos));
             if (pos == -1) {
                 auto itr = idx.lower_bound(boost::make_tuple(name(n.value + 1), 0));
@@ -636,7 +636,7 @@ namespace eosio {
                 fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
                 action_trace t;
                 fc::raw::unpack(ds, t);
-                if (t.receipt->receiver == params.account_name) { // skip emplacing results where receiver field does not match account_name parameter
+                if (t.receipt->receiver == account_name) { // skip emplacing results where receiver field does not match account_name parameter
 
                   transfer_information ti;
                   ti.transaction_id = t.trx_id;
@@ -647,9 +647,9 @@ namespace eosio {
                     const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
                     ti.action = "trnsfiopubky";
                     ti.tpid = transferdata.tpid;
-                    ti.memo = "";
-                    ti.sender = transferdata.actor.to_string();
-                    ti.receiver = fioio::key_to_account(transferdata.payee_public_key);
+                    ti.note = "FIO Transfer";
+                    ti.payer = transferdata.actor.to_string();
+                    ti.payee = fioio::key_to_account(transferdata.payee_public_key);
                     ti.payee_public_key = transferdata.payee_public_key;
                     ti.fee_amount = extract_fee(t);
                     ti.transaction_total = ti.fee_amount + transferdata.amount;
@@ -658,35 +658,13 @@ namespace eosio {
                     const auto transferdata = t.act.data_as<eosio::transfer>();
                     ti.action = "transfer";
                     ti.tpid = "";
-                    ti.memo = transferdata.memo;
-                    ti.sender = transferdata.from.to_string();
-                    ti.receiver = transferdata.to.to_string();
+                    ti.note = transferdata.memo;
+                    ti.payer = transferdata.from.to_string();
+                    ti.payee = transferdata.to.to_string();
                     ti.payee_public_key = "";
                     ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
                     ti.transaction_total = transferdata.quantity.get_amount();
                     ti.transfer_amount = transferdata.quantity.get_amount() ;
-                  } else if (t.act.name == N(xferdomain)) {
-                    const auto transferdata = t.act.data_as<eosio::xferdomain>();
-                    ti.action = "xferdomain";
-                    ti.tpid = transferdata.tpid;
-                    ti.memo = std::string("Transferred domain " ) + transferdata.fio_domain;
-                    ti.sender = transferdata.actor.to_string();
-                    ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
-                    ti.payee_public_key = transferdata.new_owner_fio_public_key;
-                    ti.fee_amount = extract_fee(t);
-                    ti.transaction_total = ti.fee_amount;
-                    ti.transfer_amount = 0;
-                  } else if (t.act.name == N(xferaddress)) {
-                    const auto transferdata = t.act.data_as<eosio::xferaddress>();
-                    ti.action = "xferaddress";
-                    ti.tpid = transferdata.tpid;
-                    ti.memo = std::string("Transferred address " ) + transferdata.fio_address;
-                    ti.sender = transferdata.actor.to_string();
-                    ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
-                    ti.payee_public_key = transferdata.new_owner_fio_public_key;
-                    ti.fee_amount = extract_fee(t);
-                    ti.transaction_total = ti.fee_amount;
-                    ti.transfer_amount = 0;
                   } else {
                     continue; // Do not process any other transaction types
                    }
