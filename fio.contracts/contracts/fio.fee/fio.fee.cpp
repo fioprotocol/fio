@@ -251,7 +251,6 @@ namespace fioio {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             }
-            update_fees();
 
             const string response_string = string("{\"status\": \"OK\"}");
 
@@ -393,8 +392,6 @@ namespace fioio {
                     f.lastvotetimestamp = nowtime;
                 });
             }
-
-            update_fees();
 
             const string response_string = string("{\"status\": \"OK\"}");
 
