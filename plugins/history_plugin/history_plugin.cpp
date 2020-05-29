@@ -122,6 +122,14 @@ namespace eosio {
         }
     }
 
+    //Used to retrieve the fee paid from action_trace.receipt->response
+    static const uint64_t extract_fee (const action_trace &t) {
+      const string &extract = t.receipt->response.substr(t.receipt->response.find("d\":") + 3,
+            std::numeric_limits<unsigned long long>::max());
+      const string &fee = extract.substr(0, extract.find("}"));
+      return boost::lexical_cast<uint64_t>(fee);
+    }
+
     struct filter_entry {
         name receiver;
         name action;
@@ -643,7 +651,7 @@ namespace eosio {
                     ti.sender = transferdata.actor.to_string();
                     ti.receiver = fioio::key_to_account(transferdata.payee_public_key);
                     ti.payee_public_key = transferdata.payee_public_key;
-                    ti.fee_amount = boost::lexical_cast<uint64_t>(t.receipt->response.substr(t.receipt->response.find("d\\\""), t.receipt->response.find("\"}")));
+                    ti.fee_amount = extract_fee(t);
                     ti.transaction_total = ti.fee_amount + transferdata.amount;
                     ti.transfer_amount = transferdata.amount ;
                   } else if (t.act.name == N(transfer)) {
@@ -665,8 +673,7 @@ namespace eosio {
                     ti.sender = transferdata.actor.to_string();
                     ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
                     ti.payee_public_key = transferdata.new_owner_fio_public_key;
-                    ti.fee_amount = boost::lexical_cast<uint64_t>(t.receipt->response.substr(t.receipt->response.find("d\\\""), t.receipt->response.find("\"}")));
-                    //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
+                    ti.fee_amount = extract_fee(t);
                     ti.transaction_total = ti.fee_amount;
                     ti.transfer_amount = 0;
                   } else if (t.act.name == N(xferaddress)) {
@@ -677,8 +684,7 @@ namespace eosio {
                     ti.sender = transferdata.actor.to_string();
                     ti.receiver = fioio::key_to_account(transferdata.new_owner_fio_public_key);
                     ti.payee_public_key = transferdata.new_owner_fio_public_key;
-                    ti.fee_amount = boost::lexical_cast<uint64_t>(t.receipt->response.substr(t.receipt->response.find("d\\\""), t.receipt->response.find("\"}")));
-                    //ti.fee_amount = t.receipt->response; // this needs parsed for fee paid value
+                    ti.fee_amount = extract_fee(t);
                     ti.transaction_total = ti.fee_amount;
                     ti.transfer_amount = 0;
                   } else {
@@ -720,7 +726,10 @@ namespace eosio {
             }
 
             return result;
-        } //get actions
+
+        }
+
+         //get actions
         read_only::get_transaction_result read_only::get_transaction(const read_only::get_transaction_params &p) const {
             auto &chain = history->chain_plug->chain();
             const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
