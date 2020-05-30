@@ -195,6 +195,7 @@ namespace eosio {
         require_auth(actor);
         asset qty;
 
+        print("EDEDEDEDEDEDED calling transfer pub key with actor ", actor, " amount ", amount,"\n");
         fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
 
@@ -342,6 +343,7 @@ namespace eosio {
         transfer_pub_key_results results;
         results.fee = reg_amount;
         results.owner = new_account_name;
+
         return results;
     }
 

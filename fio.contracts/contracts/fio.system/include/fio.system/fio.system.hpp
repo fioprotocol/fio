@@ -141,6 +141,11 @@ locked_tokens_table;
 
 //begin general locks, these locks are used to hold tokens granted by any fio user
 //to any other fio user.
+struct glockresult {
+    bool lockfound = false; //did we find a general lock.
+    uint64_t amount; //amount votable
+    EOSLIB_SERIALIZE( glockresult, (lockfound)(amount))
+};
 struct lockperiods {
     int64_t duration = 0; //duration in seconds. each duration is seconds after grant creation.
     double percent; //this is the percent to be unlocked
@@ -453,6 +458,8 @@ private:
     void update_elected_producers(const block_timestamp& timestamp);
 
     uint64_t get_votable_balance(const name &tokenowner);
+
+    glockresult get_general_votable_balance(const name &tokenowner);
 
     void unlock_tokens(const name &actor);
 

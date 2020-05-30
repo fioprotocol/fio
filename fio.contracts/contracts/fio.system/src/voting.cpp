@@ -537,7 +537,7 @@ namespace eosiosystem {
             uint128_t domainHash = string_to_uint128_hash(fa.fiodomain.c_str());
 
             auto fioname_iter = namesbyname.find(nameHash);
-            fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fio_address,
+            fio_400_assert(fioname_iter != namesbyname.end(), "fio_address", fa.fioaddress,
                            "FIO Address not registered", ErrorFioNameNotReg);
 
             uint32_t name_expiration = fioname_iter->expiration;
@@ -548,7 +548,7 @@ namespace eosiosystem {
 
             auto domains_iter = domainsbyname.find(domainHash);
 
-            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fio_address,
+            fio_400_assert(domains_iter != domainsbyname.end(), "fio_address", fa.fiodomain,
                            "FIO Address not registered", ErrorFioNameNotReg);
 
             uint32_t expiration = domains_iter->expiration;
@@ -845,6 +845,41 @@ namespace eosiosystem {
         return amount;
     }
 
+    glockresult system_contract::get_general_votable_balance(const name &tokenowner){
+
+        glockresult res;
+        //get fio balance for this account,
+        uint32_t present_time = now();
+        const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, FIOSYMBOL.code() );
+        uint64_t amount = my_balance.amount;
+
+        auto locks_by_owner = _generallockedtokens.get_index<"byowner"_n>();
+        auto lockiter = locks_by_owner.find(tokenowner.value);
+        if(lockiter != locks_by_owner.end()){
+            print("EDEDEDEDED found lock tokens for account ",tokenowner,"\n");
+            res.lockfound = true;
+            //if can vote --
+            if (lockiter->can_vote == 1){
+                print("EDEDEDEDED  lock tokens can vote returning amount ", amount,"\n");
+                res.amount = amount;
+            }else{
+                if (amount > lockiter->remaining_lock_amount) {
+                    print("EDEDEDEDED  lock tokens cannot vote returning amount ", amount, " minus ",lockiter->remaining_lock_amount," \n");
+                    res.amount =  amount - lockiter->remaining_lock_amount;
+                }else{
+                    print("EDEDEDEDED  amount > remaining return 0 "," \n");
+                    res.amount = 0;
+                }
+            }
+        }
+        if (!res.lockfound){
+            print("EDEDEDEDED  lock tokens not found return amount ", amount," \n");
+         res.amount = amount;
+        }
+        return res;
+    }
+
+
     void system_contract::update_votes(
             const name &voter_name,
             const name &proxy,
@@ -865,8 +900,15 @@ namespace eosiosystem {
         check(voter != votersbyowner.end(), "user must vote before votes can be updated");
         check(!proxy || !voter->is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
+
         //change to get_unlocked_balance() Ed 11/25/2019
-        uint64_t amount = get_votable_balance(voter->owner);
+        uint64_t amount = 0;
+        glockresult res = get_general_votable_balance(voter->owner);
+        if(res.lockfound){
+            amount = res.amount;
+        }else {
+           amount = get_votable_balance(voter->owner);
+        }
 
         //on the first vote we update the total voted fio.
 
@@ -1276,8 +1318,13 @@ namespace eosiosystem {
     void system_contract::propagate_weight_change(const voter_info &voter) {
         check(!voter.proxy || !voter.is_proxy, "account registered as a proxy is not allowed to use a proxy");
 
-        //changed to get_unlocked_balance() Ed 11/25/2019
-        uint64_t amount = get_votable_balance(voter.owner);
+        uint64_t amount = 0;
+        glockresult res = get_general_votable_balance(voter.owner);
+        if(res.lockfound){
+            amount = res.amount;
+        }else {
+            amount = get_votable_balance(voter.owner);
+        }
         //instead of staked we use the voters current FIO balance MAS-522 eliminate stake from voting.
         auto new_weight = (double)amount;
         if (voter.is_proxy) {

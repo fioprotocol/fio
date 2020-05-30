@@ -320,7 +320,7 @@ namespace eosio {
                            //special note -- we allow 3 decimal places for precision. this needs enforced
                            //in the input validation of these values.
                            percentperblock = (int)(lockiter->periods[i].percent * 1000);
-                           int64_t amountadded = (lockiter->lock_amount * lockiter->periods[i].percent)/100000;
+                           int64_t amountadded = (lockiter->lock_amount * percentperblock)/100000;
                            print("EDEDEDEDEDED  computegenerallockedtokens unlocking ",amountadded," for actor " ,actor ,"\n");
                            amountpay += amountadded;
                        }
