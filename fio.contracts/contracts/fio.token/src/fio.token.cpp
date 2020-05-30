@@ -165,17 +165,21 @@ namespace eosio {
     }
 
     bool token::can_transfer_general(const name &tokenowner, const uint64_t &transferamount) {
+        bool dbg = true;
         //get fio balance for this account,
         uint32_t present_time = now();
         const auto my_balance = eosio::token::get_balance("fio.token"_n, tokenowner, FIOSYMBOL.code());
 
         uint64_t amount = my_balance.amount;
-        print("EDEDEDEDED can transfer general balance is ", amount, "\n");
+        if (dbg) {
+            print("can_transfer_general can transfer general balance is ", amount, "\n");
+        }
 
         //recompute the remaining locked amount based on vesting.
         uint64_t lockedTokenAmount = computegenerallockedtokens(tokenowner, false);
-
-        print("EDEDEDEDEDEDEDEDED locked amount is ",lockedTokenAmount,"\n");
+        if (dbg) {
+            print("can_transfer_general locked amount is ", lockedTokenAmount, "\n");
+        }
         //subtract the lock amount from the balance
         if (lockedTokenAmount < amount) {
             amount -= lockedTokenAmount;
@@ -195,7 +199,6 @@ namespace eosio {
         require_auth(actor);
         asset qty;
 
-        print("EDEDEDEDEDEDED calling transfer pub key with actor ", actor, " amount ", amount,"\n");
         fio_400_assert(isPubKeyValid(payee_public_key), "payee_public_key", payee_public_key,
                        "Invalid FIO Public Key", ErrorPubKeyValid);
 
@@ -431,12 +434,18 @@ namespace eosio {
 
         //todo : add in validations and auth checks.
 
-        print("EDEDEDEDEDEDEDEDEDED calling trnsloctoks ");
+        bool dbg = true;
+
+        if (dbg) {
+            print(" calling trnsloctoks ");
+        }
 
         //check for pre existing account is done here.
         transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,true);
 
-        print("EDEDEDEDEDEDEDEDED calling addgenlocked ","\n");
+        if (dbg) {
+            print("trnsloctoks calling addgenlocked ", "\n");
+        }
 
         INLINE_ACTION_SENDER(eosiosystem::system_contract, addgenlocked)
                 ("eosio"_n, {{_self, "active"_n}},

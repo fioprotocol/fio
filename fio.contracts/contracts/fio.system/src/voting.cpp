@@ -848,6 +848,7 @@ namespace eosiosystem {
     glockresult system_contract::get_general_votable_balance(const name &tokenowner){
 
         glockresult res;
+        bool dbg = true;
         //get fio balance for this account,
         uint32_t present_time = now();
         const auto my_balance = eosio::token::get_balance("fio.token"_n,tokenowner, FIOSYMBOL.code() );
@@ -856,24 +857,35 @@ namespace eosiosystem {
         auto locks_by_owner = _generallockedtokens.get_index<"byowner"_n>();
         auto lockiter = locks_by_owner.find(tokenowner.value);
         if(lockiter != locks_by_owner.end()){
-            print("EDEDEDEDED found lock tokens for account ",tokenowner,"\n");
+            if (dbg) {
+                print("get_general_votable_balance found lock tokens for account ", tokenowner, "\n");
+            }
             res.lockfound = true;
             //if can vote --
             if (lockiter->can_vote == 1){
-                print("EDEDEDEDED  lock tokens can vote returning amount ", amount,"\n");
+                if (dbg) {
+                    print("get_general_votable_balance  lock tokens can vote returning amount ", amount,"\n");
+                }
                 res.amount = amount;
             }else{
                 if (amount > lockiter->remaining_lock_amount) {
-                    print("EDEDEDEDED  lock tokens cannot vote returning amount ", amount, " minus ",lockiter->remaining_lock_amount," \n");
+                    if (dbg) {
+                        print("get_general_votable_balance  lock tokens cannot vote returning amount ", amount, " minus ",
+                              lockiter->remaining_lock_amount, " \n");
+                    }
                     res.amount =  amount - lockiter->remaining_lock_amount;
                 }else{
-                    print("EDEDEDEDED  amount > remaining return 0 "," \n");
+                    if (dbg) {
+                        print("get_general_votable_balance  amount > remaining return 0 ", " \n");
+                    }
                     res.amount = 0;
                 }
             }
         }
         if (!res.lockfound){
-            print("EDEDEDEDED  lock tokens not found return amount ", amount," \n");
+            if(dbg) {
+                print(" lock tokens not found return amount ", amount, " \n");
+            }
          res.amount = amount;
         }
         return res;
