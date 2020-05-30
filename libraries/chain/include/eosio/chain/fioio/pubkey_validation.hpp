@@ -39,13 +39,4 @@ namespace fioio {
 
         return true;
     }
-
-    inline bool replaceFormat(string& str) {
-        std::string from = "PUB_K1_";
-        size_t start_pos = str.find(from);
-        if(start_pos == std::string::npos)
-            return false;
-        str.replace(start_pos, from.length(), "FIO");
-        return true;
-    }
 }

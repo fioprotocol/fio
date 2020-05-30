@@ -170,7 +170,7 @@ namespace fioio {
                                ErrorMaxFeeExceeded);
 
                 fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
-                process_rewards(tpid, fee_amount, get_self());
+                process_rewards(tpid, fee_amount, get_self(), aactor);
 
                 if (fee_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -371,7 +371,7 @@ namespace fioio {
                                ErrorMaxFeeExceeded);
 
                 fio_fees(aActor, asset(fee_amount, FIOSYMBOL));
-                process_rewards(tpid, fee_amount, get_self());
+                process_rewards(tpid, fee_amount, get_self(),aActor);
 
                 if (fee_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -529,7 +529,7 @@ namespace fioio {
                                ErrorMaxFeeExceeded);
 
                 fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
-                process_rewards(tpid, fee_amount, get_self());
+                process_rewards(tpid, fee_amount, get_self(), aactor);
 
                 if (fee_amount > 0) {
                     INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
@@ -673,7 +673,7 @@ namespace fioio {
                            ErrorMaxFeeExceeded);
 
             fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
-            process_rewards(tpid, fee_amount, get_self());
+            process_rewards(tpid, fee_amount, get_self(), aactor);
 
             if (fee_amount > 0) {
                 INLINE_ACTION_SENDER(eosiosystem::system_contract, updatepower)
