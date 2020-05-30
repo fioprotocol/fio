@@ -210,7 +210,7 @@ namespace eosiosystem {
             });
     }
 
-   
+
     void eosiosystem::system_contract::addgenlocked(const name &owner, const vector<lockperiods> &periods, const bool &canvote,
             const int64_t &amount) {
 

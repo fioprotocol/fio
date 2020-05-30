@@ -301,7 +301,6 @@ namespace eosio {
             if (lockiter != locks_by_owner.end()) {
 
                 if (lockiter->payouts_performed < lockiter->periods.size()) {
-                    //to shorten the vesting schedule adapt these variables.
                     uint32_t secondsSinceGrant = (present_time - lockiter->timestamp);
 
                     uint32_t payoutsDue = 0;
