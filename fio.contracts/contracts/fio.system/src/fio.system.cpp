@@ -210,7 +210,7 @@ namespace eosiosystem {
             });
     }
 
-    //use this action to initialize the locked token holders table for the FIO protocol.
+   
     void eosiosystem::system_contract::addgenlocked(const name &owner, const vector<lockperiods> &periods, const bool &canvote,
             const int64_t &amount) {
 
