@@ -74,7 +74,7 @@ namespace eosio {
 
         [[eosio::action]]
         void trnsloctoks(const string &payee_public_key,
-                                const bool &can_vote,
+                                const int32_t &can_vote,
                                 const vector<eosiosystem::lockperiods> periods,
                                 const int64_t &amount,
                                 const int64_t &max_fee,

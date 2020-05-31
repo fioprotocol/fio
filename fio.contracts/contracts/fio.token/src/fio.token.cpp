@@ -425,7 +425,7 @@ namespace eosio {
     }
 
     void token::trnsloctoks(const string &payee_public_key,
-                             const int &can_vote,
+                             const int32_t &can_vote,
                              const vector<eosiosystem::lockperiods> periods,
                              const int64_t &amount,
                              const int64_t &max_fee,
@@ -447,7 +447,7 @@ namespace eosio {
         fio_400_assert(totp == 100.0, "unlock_periods", "Invalid unlock periods",
                        "Invalid total percentage for unlock periods", ErrorInvalidUnlockPeriods);
 
-        fio_400_assert((can_vote == 0)||(can_vote == 1), "can_vote", can_vote,
+        fio_400_assert(((can_vote == 0)||(can_vote == 1)), "can_vote", to_string(can_vote),
                        "Invalid can_vote value", ErrorInvalidValue);
 
 
