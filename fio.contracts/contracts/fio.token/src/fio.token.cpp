@@ -432,7 +432,21 @@ namespace eosio {
                              const name &actor,
                              const string &tpid) {
 
-        //todo : add in validations and auth checks.
+        fio_400_assert(((periods.size()) >= 1 && (periods.size() <= 365)), "unlock_periods", "Invalid unlock periods",
+                       "Invalid number of unlock periods", ErrorTransactionTooLarge);
+        double totp = 0.0;
+        double tv = 0.0;
+        for(int i=0;i<periods.size();i++){
+            fio_400_assert(periods[i].percent > 0.0, "unlock_periods", "Invalid unlock periods",
+                           "Invalid percentage value in unlock periods", ErrorTransactionTooLarge);
+            tv = periods[i].percent - (double(int(periods[i].percent * 1000.0)))/1000.0;
+            fio_400_assert(tv == 0.0, "unlock_periods", "Invalid unlock periods",
+                           "Invalid precision for percentage in unlock periods", ErrorTransactionTooLarge);
+            totp += periods[i].percent;
+        }
+        fio_400_assert(totp == 100.0, "unlock_periods", "Invalid unlock periods",
+                       "Invalid total percentage for unlock periods", ErrorTransactionTooLarge);
+
 
         bool dbg = true;
 
