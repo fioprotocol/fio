@@ -1613,6 +1613,8 @@ if( options.count(name) ) { \
         const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
         const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
         const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
+        const name fio_code = N(eosio);    // FIO system account, init in the top of this class
+        const string fio_scope = "eosio";   // FIO system scope
 
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
@@ -1621,9 +1623,70 @@ if( options.count(name) ) { \
         const name fio_domains_table = N(domains); // FIO Domains Table
         const name fio_chains_table = N(chains); // FIO Chains Table
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
+        const name fio_locks_table = N(locktokens); // FIO locktokens Table
 
         const uint16_t FEEMAXLENGTH = 32;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
+
+        /***
+      * get locks.
+      * @param p Input fio_public_key, the public key of the user..
+      * @return lock info on match.
+      */
+        read_only::get_locks_result
+        read_only::get_locks(const read_only::get_locks_params &p) const {
+            string fioKey = p.fio_public_key;
+            fioio::replaceFormat(fioKey);
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+
+            name account = name{account_name};
+            get_locks_result result;
+
+            const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_code);
+
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_code,
+                    .scope       = fio_scope,
+                    .table       = fio_locks_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, system_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            FIO_404_ASSERT(!rows_result.rows.empty(), "No lock tokens in account",
+                           fioio::ErrorNoGeneralLocksFound);
+
+            FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
+                           fioio::ErrorUnexpectedNumberResults);
+
+
+            result.lock_amount = rows_result.rows[0]["lock_amount"].as_uint64();
+            result.remaining_lock_amount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+            result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
+            result.payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
+            result.can_vote = rows_result.rows[0]["payouts_performed"].as_uint64();
+
+            for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
+                uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                double percent = rows_result.rows[0]["periods"][i]["percent"].as_uint64();
+                lockperiods lp{duration, percent};
+                result.unlock_periods.push_back(lp);
+            }
+
+            return result;
+        }
 
         /***
         * get pending fio requests.
@@ -2709,9 +2772,40 @@ if( options.count(name) ) { \
             balance_params.account = ::eosio::string_to_name(fio_account.c_str());
             cursor = get_currency_balance(balance_params);
 
+            //get lock tokens, subtract remaining lock amount if it exists
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name account = name{account_name};
+            const abi_def sys_abi = eosio::chain_apis::get_abi(db, fio_code);
+
+            get_table_rows_params table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_code,
+                    .scope       = fio_scope,
+                    .table       = fio_locks_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    table_row_params, sys_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            uint64_t lockamount = 0;
+            if (!rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                lockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+            }
+
             if (!cursor.empty()) {
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
+                result.available = rVal - lockamount;
             }
 
             return result;
