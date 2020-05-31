@@ -1696,7 +1696,6 @@ if( options.count(name) ) { \
         read_only::get_pending_fio_requests_result
         read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
@@ -1872,7 +1871,6 @@ if( options.count(name) ) { \
         read_only::get_cancelled_fio_requests_result
         read_only::get_cancelled_fio_requests(const read_only::get_cancelled_fio_requests_params &p) const {
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
@@ -2043,7 +2041,6 @@ if( options.count(name) ) { \
         read_only::get_sent_fio_requests_result
         read_only::get_sent_fio_requests(const read_only::get_sent_fio_requests_params &p) const {
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
@@ -2207,7 +2204,6 @@ if( options.count(name) ) { \
         read_only::get_obt_data_result
         read_only::get_obt_data(const read_only::get_obt_data_params &p) const {
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
@@ -2453,7 +2449,6 @@ if( options.count(name) ) { \
             // assert if empty chain key
             get_fio_names_result result;
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
 
             //first check the pub key for validity.
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
@@ -2720,7 +2715,6 @@ if( options.count(name) ) { \
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
