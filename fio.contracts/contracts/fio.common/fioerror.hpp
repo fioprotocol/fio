@@ -90,6 +90,7 @@ namespace fioio {
     constexpr auto ErrorRequestStatusInvalid = ident | httpDataError | 153;   // the specified request context record was not found
     constexpr auto ErrorActorIsSystemAccount = ident | httpDataError | 154;   // the specified actor is a FIO system account
     constexpr auto ErrorInvalidUnlockPeriods = ident | httpDataError | 155;   //Invalid unlock periods.
+    constexpr auto ErrorInvalidValue = ident | httpDataError | 155;   //Invalid value.
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values

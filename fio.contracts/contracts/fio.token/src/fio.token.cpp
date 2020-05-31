@@ -425,7 +425,7 @@ namespace eosio {
     }
 
     void token::trnsloctoks(const string &payee_public_key,
-                             const bool &can_vote,
+                             const int &can_vote,
                              const vector<eosiosystem::lockperiods> periods,
                              const int64_t &amount,
                              const int64_t &max_fee,
@@ -438,14 +438,17 @@ namespace eosio {
         double tv = 0.0;
         for(int i=0;i<periods.size();i++){
             fio_400_assert(periods[i].percent > 0.0, "unlock_periods", "Invalid unlock periods",
-                           "Invalid percentage value in unlock periods", ErrorTransactionTooLarge);
+                           "Invalid percentage value in unlock periods", ErrorInvalidUnlockPeriods);
             tv = periods[i].percent - (double(int(periods[i].percent * 1000.0)))/1000.0;
             fio_400_assert(tv == 0.0, "unlock_periods", "Invalid unlock periods",
-                           "Invalid precision for percentage in unlock periods", ErrorTransactionTooLarge);
+                           "Invalid precision for percentage in unlock periods", ErrorInvalidUnlockPeriods);
             totp += periods[i].percent;
         }
         fio_400_assert(totp == 100.0, "unlock_periods", "Invalid unlock periods",
-                       "Invalid total percentage for unlock periods", ErrorTransactionTooLarge);
+                       "Invalid total percentage for unlock periods", ErrorInvalidUnlockPeriods);
+
+        fio_400_assert((can_vote == 0)||(can_vote == 1), "can_vote", can_vote,
+                       "Invalid can_vote value", ErrorInvalidValue);
 
 
         bool dbg = true;
