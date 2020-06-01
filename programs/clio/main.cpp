@@ -648,7 +648,6 @@ create_transfer(const string &contract, const name &sender, const name &recipien
     };
 }
 
-
 chain::action create_setabi(const name &account, const bytes &abi) {
     return action{
             get_account_permissions(tx_permission, {account, config::active_name}),
@@ -1716,7 +1715,6 @@ struct list_bw_subcommand {
     }
 };
 
-/*
 struct buyram_subcommand {
     string from_str;
     string receiver_str;
@@ -1766,7 +1764,6 @@ struct sellram_subcommand {
         });
     }
 };
-*/
 
 struct claimrewards_subcommand {
     string owner;
@@ -3844,68 +3841,6 @@ int main(int argc, char **argv) {
     });
 
 
-    // fioaddress subcommand
-    auto fioaddress = app.add_subcommand("fioaddress", localized("FIOAddress contract commands"), false);
-    fioaddress->require_subcommand();
-
-    // Register FIO address
-    string actor;
-    string fio_address;
-    string owner_fio_public_key;
-    string tpid;
-    uint64_t max_fee;
-    auto regadd_action = fioaddress->add_subcommand("regaddress", localized("Register address action"));
-     add_standard_transaction_options(regadd_action, "sender@active");
-    regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
-    regadd_action->add_option("fio_address", fio_address,
-                               localized("The FIO Address to register"))->required();
-    regadd_action->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
-    regadd_action->add_option("owner_fio_public_key", owner_fio_public_key,
-                               localized("The FIO public key of the new owner (optional)"));
-    regadd_action->add_option("tpid", tpid,
-                               localized("The TPID (Technology Provider ID) receiving a portion of fees"));
-
-    regadd_action->set_callback([&] {
-
-     auto regadd = fc::mutable_variant_object
-               ("fio_address", fio_address)
-               ("actor", name(actor))
-               ("owner_fio_public_key", owner_fio_public_key)
-               ("max_fee", max_fee)
-               ("tpid", tpid);
-
-     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
-               variant_to_bin(N(fio.address), N(regaddress), regadd)}});
-     });
-
-     string fio_domain;
-
-     auto regdomain_action = fioaddress->add_subcommand("regdomain", localized("Register address action"));
-     add_standard_transaction_options(regdomain_action, "sender@active");
-     regdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
-     regdomain_action->add_option("fio_address", fio_address,
-                                localized("The FIO Domain to register"))->required();
-     regdomain_action->add_option("max_fee", max_fee,
-                                localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
-     regdomain_action->add_option("owner_fio_public_key", owner_fio_public_key,
-                                localized("The FIO public key of the new owner (optional)"));
-     regdomain_action->add_option("tpid", tpid,
-                                localized("The TPID (Technology Provider ID) receiving a portion of fees"));
-
-     regdomain_action->set_callback([&] {
-
-     auto regdomain = fc::mutable_variant_object
-                ("fio_domain", fio_address)
-                ("actor", name(actor))
-                ("owner_fio_public_key", owner_fio_public_key)
-                ("max_fee", max_fee)
-                ("tpid", tpid);
-
-      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regdomain",
-                variant_to_bin(N(fio.address), N(regdomain), regdomain)}});
-      });
-
     // multisig subcommand
     auto msig = app.add_subcommand("multisig", localized("Multisig contract commands"), false);
     msig->require_subcommand();
@@ -3917,7 +3852,7 @@ int main(int argc, char **argv) {
     string proposed_transaction;
     string proposed_contract;
     string proposed_action;
-
+    uint64_t max_fee;
     string proposer;
 
     unsigned int proposal_expiration_hours = 24;
