@@ -167,7 +167,7 @@ bfs::path determine_home_directory() {
 }
 
 string url = "http://127.0.0.1:8888/";
-string default_wallet_url = "unix://" + (determine_home_directory() / "eosio-wallet" /
+string default_wallet_url = "unix://" + (determine_home_directory() / "fio-wallet" /
                                          (string(key_store_executable_name) + ".sock")).string();
 string wallet_url; //to be set to default_wallet_url in main
 bool no_verify = false;
@@ -996,7 +996,7 @@ void ensure_keosd_running(CLI::App *app) {
         binPath.remove_filename();
     binPath.append(key_store_executable_name); // if clio and keosd are in the same installation directory
     if (!boost::filesystem::exists(binPath)) {
-        binPath.remove_filename().remove_filename().append("keosd").append(key_store_executable_name);
+        binPath.remove_filename().remove_filename().append("fio-wallet").append(key_store_executable_name);
     }
 
     if (boost::filesystem::exists(binPath)) {

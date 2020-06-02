@@ -1,5 +1,5 @@
 add_subdirectory(nodeos)
 add_subdirectory(clio)
-add_subdirectory(keosd)
+add_subdirectory(fio-wallet)
 add_subdirectory(eosio-launcher)
 add_subdirectory(eosio-blocklog)
