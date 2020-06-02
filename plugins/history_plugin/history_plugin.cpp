@@ -509,6 +509,7 @@ namespace eosio {
 
             get_actions_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
+            digest_type ad;
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -549,9 +550,114 @@ namespace eosio {
                 }
             }
             return result;
-        }
+        } //get actions
 
+        read_only::get_transfers_result read_only::get_transfers(const read_only::get_transfers_params &params) const {
+            // edump((params));
+            auto &chain = history->chain_plug->chain();
+            const auto& hdb  = chain.hdb();
+            const auto& hidb = chain.hidb();
+            const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
 
+            const auto& idx = hidb.get_index<account_history_index, by_account_action_seq>();
+
+            int64_t start = 0;
+            int64_t pos = params.pos ? *params.pos : -1;
+            int64_t end = 0;
+            int64_t offset = params.offset ? *params.offset : -20;
+            auto n = params.account_name;
+            // idump((pos));
+            if (pos == -1) {
+                auto itr = idx.lower_bound(boost::make_tuple(name(n.value + 1), 0));
+                if (itr == idx.begin()) {
+                    if (itr->account == n)
+                        pos = itr->account_sequence_num + 1;
+                } else if (itr != idx.begin()) --itr;
+
+                if (itr->account == n)
+                    pos = itr->account_sequence_num + 1;
+            }
+
+            if (pos == -1) pos = 0xfffffffffffffff;
+
+            if (offset > 0) {
+                start = pos;
+                end = start + offset;
+            } else {
+                start = pos + offset;
+                if (start > pos) start = 0;
+                end = pos;
+            }
+            EOS_ASSERT(end >= start, chain::plugin_exception, "end position is earlier than start position");
+
+            // idump((start)(end));
+
+            // Find latest stored action (will have lowest available ACCOUNT seq number)
+            const auto max_itr = idx.lower_bound( boost::make_tuple( n, 0 ) );
+            const auto min_seq_number = max_itr->account_sequence_num;
+            if (min_seq_number > 0) {  // Reject outside of retention policy boundary.
+              const auto max_seq_number = min_seq_number + history->history_per_account;
+              EOS_ASSERT( start >= min_seq_number, chain::plugin_range_not_satisfiable, "start position is earlier than account retention policy (${p}). Latest available: ${l}. Requested start: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",start) );
+              // Below should actually never occur..?
+              EOS_ASSERT( end >= min_seq_number, chain::plugin_range_not_satisfiable,   "end position is earlier than account retention policy (${p}). Latest available: ${l}. Requested end: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",end) );
+            }
+
+            auto start_itr = idx.lower_bound(boost::make_tuple(n, start));
+            auto end_itr = idx.upper_bound(boost::make_tuple(n, end));
+
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
+
+            get_transfers_result result;
+            result.last_irreversible_block = chain.last_irreversible_block_num();
+            digest_type ad;
+            while (start_itr != end_itr) {
+                uint64_t action_sequence_num;
+                int64_t account_sequence_num;
+                if (params.pos < 0) {
+                --end_itr;
+                action_sequence_num = end_itr->action_sequence_num;
+                account_sequence_num = end_itr->account_sequence_num;
+                } else {
+                action_sequence_num = start_itr->action_sequence_num;
+                account_sequence_num = start_itr->account_sequence_num;
+                ++start_itr;
+                }
+
+                const auto& a = hdb.get<action_history_object, by_action_sequence_num>( action_sequence_num );
+                fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
+                action_trace t;
+                fc::raw::unpack(ds, t);
+                if (ad == t.receipt->act_digest) {
+                  if (t.receipt->receiver != params.account_name) {
+                    continue;
+                  }
+                }
+                ad = t.receipt->act_digest;
+                if (params.pos < 0) {
+                  result.actions.emplace(result.actions.begin(), ordered_action_result{
+                                        action_sequence_num,
+                                        account_sequence_num,
+                                        a.block_num, a.block_time,
+                                        chain.to_variant_with_abi(t, abi_serializer_max_time)
+                                        });
+                } else {
+                  result.actions.emplace_back( ordered_action_result{
+                                        action_sequence_num,
+                                        account_sequence_num,
+                                        a.block_num, a.block_time,
+                                        chain.to_variant_with_abi(t, abi_serializer_max_time)
+                                        });
+                }
+
+                end_time = fc::time_point::now();
+                if (end_time - start_time > fc::microseconds(100000)) {
+                    result.time_limit_exceeded_error = true;
+                    break;
+                }
+            }
+            return result;
+        } //get actions
         read_only::get_transaction_result read_only::get_transaction(const read_only::get_transaction_params &p) const {
             auto &chain = history->chain_plug->chain();
             const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
