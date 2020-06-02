@@ -633,7 +633,7 @@ chain::action create_open(const string &contract, const name &owner, symbol sym,
     };
 }
 
-chain::action
+/* chain::action
 create_transfer(const string &contract, const name &sender, const name &recipient, asset amount, const string &memo) {
 
     auto transfer = fc::mutable_variant_object
@@ -646,7 +646,7 @@ create_transfer(const string &contract, const name &sender, const name &recipien
             get_account_permissions(tx_permission, {sender, config::active_name}),
             contract, "transfer", variant_to_bin(contract, N(transfer), transfer)
     };
-}
+} */
 
 
 chain::action create_setabi(const name &account, const bytes &abi) {
@@ -1100,19 +1100,19 @@ struct create_account_subcommand {
                                   localized("The active public key or permission level for the new account"));
 
         if (!simple) {
-            createAccount->add_option("--stake-net", stake_net,
-                                      (localized("The amount of tokens delegated for net bandwidth")))->required();
-            createAccount->add_option("--stake-cpu", stake_cpu,
-                                      (localized("The amount of tokens delegated for CPU bandwidth")))->required();
-            createAccount->add_option("--buy-ram-kbytes", buy_ram_bytes_in_kbytes,
-                                      (localized(
-                                              "The amount of RAM bytes to purchase for the new account in kibibytes (KiB)")));
-            createAccount->add_option("--buy-ram-bytes", buy_ram_bytes,
-                                      (localized("The amount of RAM bytes to purchase for the new account in bytes")));
-            createAccount->add_option("--buy-ram", buy_ram_eos,
-                                      (localized("The amount of RAM bytes to purchase for the new account in tokens")));
-            createAccount->add_flag("--transfer", transfer,
-                                    (localized("Transfer voting power and right to unstake tokens to receiver")));
+      //      createAccount->add_option("--stake-net", stake_net,
+      //                                (localized("The amount of tokens delegated for net bandwidth")))->required();
+      //      createAccount->add_option("--stake-cpu", stake_cpu,
+      //                                (localized("The amount of tokens delegated for CPU bandwidth")))->required();
+      //      createAccount->add_option("--buy-ram-kbytes", buy_ram_bytes_in_kbytes,
+      //                                (localized(
+      //                                        "The amount of RAM bytes to purchase for the new account in kibibytes (KiB)")));
+      //      createAccount->add_option("--buy-ram-bytes", buy_ram_bytes,
+      //                                (localized("The amount of RAM bytes to purchase for the new account in bytes")));
+      //      createAccount->add_option("--buy-ram", buy_ram_eos,
+      //                                (localized("The amount of RAM bytes to purchase for the new account in tokens")));
+      //      createAccount->add_flag("--transfer", transfer,
+      //                              (localized("Transfer voting power and right to unstake tokens to receiver")));
         }
 
         add_standard_transaction_options(createAccount, "creator@active");
@@ -3215,10 +3215,11 @@ int main(int argc, char **argv) {
 
        // Register FIO address
        string actor;
-       string fio_address;
-       string owner_fio_public_key;
        string tpid;
        uint64_t max_fee = 80000000000LL;
+       string fio_address;
+       string owner_fio_public_key;
+
        auto regadd_action = create->add_subcommand("address", localized("Register address action"));
        add_standard_transaction_options(regadd_action, "sender@active");
        regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
@@ -3315,6 +3316,29 @@ int main(int argc, char **argv) {
                 variant_to_bin(N(fio.address), N(setdomainpub), setdomainpub)}});
       });
 
+      // transfer domain
+      auto transferdomain_action = domain->add_subcommand("transfer", localized("Transfer domain action"));
+      add_standard_transaction_options(transferdomain_action, "sender@active");
+      transferdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
+      transferdomain_action->add_option("fio_domain", fio_address,
+                                 localized("The FIO Domain to transfer"))->required();
+      transferdomain_action->add_option("tpid", tpid,
+                                 localized("The TPID (Technology Provider ID)"));
+      transferdomain_action->add_option("max_fee", max_fee,
+                                 localized("the max fee desired in smallest units of FIO (SUFs)"));
+      transferdomain_action->set_callback([&] {
+
+      auto transferdomain = fc::mutable_variant_object
+                 ("fio_address", fio_address)
+                 ("actor", name(actor))
+                 ("max_fee", max_fee)
+                 ("tpid", tpid);
+
+       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "xferaddress",
+                 variant_to_bin(N(fio.address), N(xferdomain), transferdomain)}});
+     });
+
+
 // address subcommand
 
     auto address = app.add_subcommand("address", localized("FIO Address contract commands"), false);
@@ -3342,7 +3366,7 @@ int main(int argc, char **argv) {
                variant_to_bin(N(fio.address), N(renewaddress), renewaddress)}});
      });
 
-// remove all subcommand
+     // remove all subcommand
      auto removeall_action = address->add_subcommand("remove_all", localized("Remove all addresses action"));
      add_standard_transaction_options(removeall_action, "sender@active");
      removeall_action->add_option("actor", actor, localized("actor (string)"))->required();
@@ -3364,28 +3388,28 @@ int main(int argc, char **argv) {
                 variant_to_bin(N(fio.address), N(remalladdr), remalladdr)}});
       });
 
-// transfer address
+      // transfer address
+      auto transferaddress_action = address->add_subcommand("transfer", localized("Transfer address action"));
+      add_standard_transaction_options(transferaddress_action, "sender@active");
+      transferaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
+      transferaddress_action->add_option("fio_address", fio_address,
+                                 localized("The FIO Domain to transfer"))->required();
+      transferaddress_action->add_option("tpid", tpid,
+                                 localized("The TPID (Technology Provider ID)"));
+      transferaddress_action->add_option("max_fee", max_fee,
+                                 localized("the max fee desired in smallest units of FIO (SUFs)"));
+      transferaddress_action->set_callback([&] {
 
-    auto transferaddress_action = address->add_subcommand("transfer", localized("Transfer address action"));
-    add_standard_transaction_options(transferaddress_action, "sender@active");
-    transferaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
-    transferaddress_action->add_option("fio_address", fio_address,
-                               localized("The FIO Domain to renew"))->required();
-    transferaddress_action->add_option("tpid", tpid,
-                               localized("The TPID (Technology Provider ID)"));
-    transferaddress_action->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"));
-    transferaddress_action->set_callback([&] {
+      auto transferaddress = fc::mutable_variant_object
+                 ("fio_address", fio_address)
+                 ("actor", name(actor))
+                 ("max_fee", max_fee)
+                 ("tpid", tpid);
 
-    auto transferaddress = fc::mutable_variant_object
-               ("fio_address", fio_address)
-               ("actor", name(actor))
-               ("max_fee", max_fee)
-               ("tpid", tpid);
+       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "xferaddress",
+                 variant_to_bin(N(fio.address), N(xferaddress), transferaddress)}});
+       });
 
-     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "transferaddress",
-               variant_to_bin(N(fio.address), N(transferaddress), transferaddress)}});
-     });
 
     // set subcommand
     auto setSubcommand = app.add_subcommand("set", localized("Set or update blockchain state"));
@@ -3573,36 +3597,28 @@ int main(int argc, char **argv) {
     auto setActionPermission = set_action_permission_subcommand(setAction);
 
     // Transfer subcommand
-    string con = "fio.token";
-    string sender;
-    string recipient;
-    string amount;
-    string memo;
-    bool pay_ram = false;
-    auto transfer = app.add_subcommand("transfer", localized("Transfer tokens from account to account"), false);
-    transfer->add_option("sender", sender, localized("The account sending tokens"))->required();
-    transfer->add_option("recipient", recipient, localized("The account receiving tokens"))->required();
-    transfer->add_option("amount", amount, localized("The amount of tokens to send"))->required();
-    transfer->add_option("memo", memo, localized("The memo for the transfer"));
-    transfer->add_option("--contract,-c", con, localized("The contract which controls the token"));
-    transfer->add_flag("--pay-ram-to-open", pay_ram, localized("Pay ram to open recipient's token balance row"));
+    string payee_public_key;
+    int64_t amount;
 
+    auto transfer = app.add_subcommand("transfer", localized("Transfer FIO tokens. "), false);
     add_standard_transaction_options(transfer, "sender@active");
+    transfer->add_option("payee_public_key", payee_public_key, localized("The account sending tokens"))->required();
+    transfer->add_option("amount", amount, localized("The amount of tokens to send"))->required();
+    transfer->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
+    transfer->add_option("actor", actor, localized("actor (string)"))->required();
+    transfer->add_option("tpid", tpid,
+                               localized("The TPID (Technology Provider ID)"));
     transfer->set_callback([&] {
-        if (tx_force_unique && memo.size() == 0) {
-            // use the memo to add a nonce
-            memo = generate_nonce_string();
-            tx_force_unique = false;
-        }
+    auto transferobj = fc::mutable_variant_object
+               ("payee_public_key", fio_address)
+               ("amount", amount)
+               ("actor", name(actor))
+               ("max_fee", max_fee)
+               ("tpid", tpid);
 
-        auto transfer_amount = to_asset(con, amount);
-        auto transfer = create_transfer(con, sender, recipient, transfer_amount, memo);
-        if (!pay_ram) {
-            send_actions({transfer});
-        } else {
-            auto open_ = create_open(con, recipient, transfer_amount.get_symbol(), sender);
-            send_actions({open_, transfer});
-        }
+     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.token", "trnsfiopubky",
+               variant_to_bin(N(fio.token), N(trnsfiopubky), transferobj)}});
     });
 
     // Net subcommand
