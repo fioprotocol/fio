@@ -1636,7 +1636,6 @@ if( options.count(name) ) { \
         read_only::get_locks_result
         read_only::get_locks(const read_only::get_locks_params &p) const {
             string fioKey = p.fio_public_key;
-            fioio::replaceFormat(fioKey);
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
