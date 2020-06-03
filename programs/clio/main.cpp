@@ -3339,20 +3339,98 @@ int main(int argc, char **argv) {
      });
 
 
+// request subcommand
+
+  auto request = app.add_subcommand("request", localized("FIO Request contract commands"), false);
+
+       request->require_subcommand();
+  string payer_fio_address;
+  string payee_fio_address;
+  string content;
+  string fio_request_id;
+// new funds request
+
+    auto newfunds_action = request->add_subcommand("new", localized("New funds request action"));
+    add_standard_transaction_options(newfunds_action, "sender@active");
+    newfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
+
+    newfunds_action->add_option("payer_fio_address", payer_fio_address, localized("Payer's FIO Address"))->required();
+    newfunds_action->add_option("payee_fio_address", payee_fio_address, localized("Payee's FIO Address"))->required();
+    newfunds_action->add_option("content", content, localized("Request content"))->required();
+    newfunds_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+    newfunds_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+    newfunds_action->set_callback([&] {
+
+      auto newfunds = fc::mutable_variant_object
+                ("payer_fio_address", payer_fio_address)
+                ("payee_fio_address", payee_fio_address)
+                ("actor", actor)
+                ("tpid", tpid)
+                ("max_fee", max_fee);
+
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.reqobt", "newfundsreq",
+                variant_to_bin(N(fio.reqobt), N(newfundsreq), newfunds)}});
+
+    });
+
+    // reject funds request
+
+        auto rejectfunds_action = request->add_subcommand("reject", localized("Reject funds request action"));
+        add_standard_transaction_options(rejectfunds_action, "sender@active");
+        rejectfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
+        rejectfunds_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
+        rejectfunds_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+        rejectfunds_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+        rejectfunds_action->set_callback([&] {
+
+          auto rejectfunds = fc::mutable_variant_object
+                    ("fio_request_id", fio_request_id)
+                    ("actor", actor)
+                    ("tpid", tpid)
+                    ("max_fee", max_fee);
+
+          send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.reqobt", "rejectfndreq",
+                    variant_to_bin(N(fio.reqobt), N(rejectfndreq), rejectfunds)}});
+
+        });
+
+
+        // cancel funds request
+
+        auto cancelfunds_action = request->add_subcommand("cancel", localized("Cancel funds request action"));
+        add_standard_transaction_options(cancelfunds_action, "sender@active");
+        cancelfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
+        cancelfunds_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
+        cancelfunds_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+        cancelfunds_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+        cancelfunds_action->set_callback([&] {
+
+          auto cancelfunds = fc::mutable_variant_object
+                    ("fio_request_id", fio_request_id)
+                    ("actor", actor)
+                    ("tpid", tpid)
+                    ("max_fee", max_fee);
+
+          send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.reqobt", "cancelfndreq",
+                    variant_to_bin(N(fio.reqobt), N(cancelfndreq), cancelfunds)}});
+
+        });
+
+
 // address subcommand
 
     auto address = app.add_subcommand("address", localized("FIO Address contract commands"), false);
-        address->require_subcommand();
+         address->require_subcommand();
 // renew address subcommand
     auto renewaddress_action = address->add_subcommand("renew", localized("Renew address action"));
     add_standard_transaction_options(renewaddress_action, "sender@active");
     renewaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
-    renewaddress_action->add_option("fio_address", fio_address,
-                               localized("The FIO address to renew"))->required();
-    renewaddress_action->add_option("tpid", tpid,
-                               localized("The TPID (Technology Provider ID)"));
-    renewaddress_action->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"));
+    renewaddress_action->add_option("fio_address", fio_address,localized("The FIO address to renew"))->required();
+    renewaddress_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+    renewaddress_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
 
     renewaddress_action->set_callback([&] {
 
@@ -3595,6 +3673,34 @@ int main(int argc, char **argv) {
 
     // set action permission
     auto setActionPermission = set_action_permission_subcommand(setAction);
+
+    // set record command
+
+    auto recordobt_action = setSubcommand->add_subcommand("record", localized("Record on blockchain transaction"));
+    add_standard_transaction_options(recordobt_action, "sender@active");
+    recordobt_action->add_option("actor", actor, localized("actor (string)"))->required();
+    recordobt_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
+    recordobt_action->add_option("payer_fio_address", payer_fio_address, localized("Payer's FIO Address"))->required();
+    recordobt_action->add_option("payee_fio_address", payee_fio_address, localized("Payee's FIO Address"))->required();
+    recordobt_action->add_option("content", content, localized("Request content"))->required();
+    recordobt_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+    recordobt_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+    recordobt_action->set_callback([&] {
+
+      auto recordobt = fc::mutable_variant_object
+                ("fio_request_id", fio_request_id)
+                ("payer_fio_address", payer_fio_address)
+                ("payee_fio_address", payee_fio_address)
+                ("actor", actor)
+                ("tpid", tpid)
+                ("max_fee", max_fee);
+
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.reqobt", "recordobt",
+                variant_to_bin(N(fio.reqobt), N(recordobt), recordobt)}});
+
+    });
+
 
     // Transfer subcommand
     string payee_public_key;
