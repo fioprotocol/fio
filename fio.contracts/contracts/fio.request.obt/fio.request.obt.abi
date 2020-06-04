@@ -222,7 +222,18 @@
           "type": "uint64"
         }
       ]
-    },{
+    },,{
+            "name": "fioreqsts",
+            "base": "",
+            "fields": [{
+                "name": "account",
+                "type": "uint64"
+              },{
+                "name": "transactions",
+                "type": "ledgerItems[]"
+              }
+            ]
+          },{
                          "name": "migreqtxt",
                              "base": "",
                              "fields": [{
@@ -405,7 +416,17 @@
         "uint64"
       ],
       "type": "fioreqsts"
-    }
+    },{
+           "name": "reqledgers",
+           "index_type": "i64",
+           "key_names": [
+             "account"
+           ],
+           "key_types": [
+             "uint64"
+           ],
+           "type": "reqledger"
+         }
   ],
   "ricardian_clauses": [],
   "error_messages": [],
