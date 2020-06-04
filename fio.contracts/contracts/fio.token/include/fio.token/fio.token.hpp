@@ -116,11 +116,6 @@ namespace eosio {
             uint64_t primary_key() const { return supply.symbol.code().raw(); }
         };
 
-        struct transfer_pub_key_results {
-            uint64_t fee = 0;
-            name owner;
-        };
-
         typedef eosio::multi_index<"accounts"_n, account> accounts;
         typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 
@@ -133,11 +128,12 @@ namespace eosio {
 
         bool can_transfer_general(const name &tokenowner,const uint64_t &transferamount);
 
-        transfer_pub_key_results transfer_public_key(const string &payee_public_key,
+        name transfer_public_key(const string &payee_public_key,
                                         const int64_t &amount,
                                         const int64_t &max_fee,
                                         const name &actor,
                                         const string &tpid,
+                                        const int64_t &feeamount,
                                         const bool &errorifaccountexists);
 
     public:

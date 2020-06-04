@@ -189,11 +189,12 @@ namespace eosio {
         }
     }
 
-    eosio::token::transfer_pub_key_results token::transfer_public_key(const string &payee_public_key,
+    name token::transfer_public_key(const string &payee_public_key,
                              const int64_t &amount,
                              const int64_t &max_fee,
                              const name &actor,
                              const string &tpid,
+                             const int64_t &feeamount,
                              const bool &errorifaccountexists) {
 
         require_auth(actor);
@@ -217,12 +218,14 @@ namespace eosio {
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value.",
                        ErrorMaxFeeInvalid);
 
-        uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
+        /*
+
+        uint128_t endpoint_hash = fioio::string_to_uint128_hash(feeendpoint);
 
         auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", feeendpoint,
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -232,8 +235,12 @@ namespace eosio {
                        "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
                        ErrorNoEndpoint);
 
+
+
+
         fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
+                       */
 
         string payee_account;
         fioio::key_to_account(payee_public_key, payee_account);
@@ -287,8 +294,8 @@ namespace eosio {
                                       fioio::ErrorPubAddressExist);
         }
 
-        fio_fees(actor, asset{(int64_t) reg_amount, FIOSYMBOL});
-        process_rewards(tpid, reg_amount,get_self(), new_account_name);
+        fio_fees(actor, asset{(int64_t) feeamount, FIOSYMBOL});
+        process_rewards(tpid, feeamount,get_self(), new_account_name);
 
         require_recipient(actor);
 
@@ -310,7 +317,7 @@ namespace eosio {
                        "Insufficient balance",
                        ErrorLowFunds);
 
-        fio_400_assert(can_transfer(actor, reg_amount, qty.amount, false), "amount", to_string(qty.amount),
+        fio_400_assert(can_transfer(actor, feeamount, qty.amount, false), "amount", to_string(qty.amount),
                        "Insufficient balance tokens locked",
                        ErrorInsufficientUnlockedFunds);
 
@@ -333,7 +340,6 @@ namespace eosio {
                     );
         }
 
-
         if (TRANSFERPUBKEYRAM > 0) {
             action(
                     permission_level{SYSTEMACCOUNT, "active"_n},
@@ -343,11 +349,7 @@ namespace eosio {
             ).send();
         }
 
-        transfer_pub_key_results results;
-        results.fee = reg_amount;
-        results.owner = new_account_name;
-
-        return results;
+        return new_account_name;
     }
 
     void token::transfer(name from,
@@ -412,10 +414,29 @@ namespace eosio {
                              const name &actor,
                              const string &tpid) {
 
-        transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,false);
+       uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
+
+       auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+       auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+       fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
+                      "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+       uint64_t reg_amount = fee_iter->suf_amount;
+       uint64_t fee_type = fee_iter->type;
+
+       fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                      "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
+                      ErrorNoEndpoint);
+
+       fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                      ErrorMaxFeeExceeded);
+
+        //do the transfer
+        transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,reg_amount,false);
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
-                                       to_string(results.fee) + string("}");
+                                       to_string(reg_amount) + string("}");
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
           "Transaction is too large", ErrorTransactionTooLarge);
@@ -436,6 +457,7 @@ namespace eosio {
                        "Invalid number of unlock periods", ErrorTransactionTooLarge);
         double totp = 0.0;
         double tv = 0.0;
+        int64_t longestperiod = 0;
         for(int i=0;i<periods.size();i++){
             fio_400_assert(periods[i].percent > 0.0, "unlock_periods", "Invalid unlock periods",
                            "Invalid percentage value in unlock periods", ErrorInvalidUnlockPeriods);
@@ -443,6 +465,9 @@ namespace eosio {
             fio_400_assert(tv == 0.0, "unlock_periods", "Invalid unlock periods",
                            "Invalid precision for percentage in unlock periods", ErrorInvalidUnlockPeriods);
             totp += periods[i].percent;
+            if (periods[i].duration > longestperiod){
+                longestperiod = periods[i].duration;
+            }
         }
         fio_400_assert(totp == 100.0, "unlock_periods", "Invalid unlock periods",
                        "Invalid total percentage for unlock periods", ErrorInvalidUnlockPeriods);
@@ -457,8 +482,33 @@ namespace eosio {
             print(" calling trnsloctoks ");
         }
 
+        uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_locked_tokens");
+
+        auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_locked_tokens",
+                       "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+        uint64_t reg_amount = fee_iter->suf_amount;
+        uint64_t fee_type = fee_iter->type;
+
+        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                       "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
+                       ErrorNoEndpoint);
+
+        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                       ErrorMaxFeeExceeded);
+
+        int64_t ninetydayperiods = longestperiod / (SECONDSPERDAY * 90);
+        int64_t rem = longestperiod % (SECONDSPERDAY * 90);
+        if (rem > 0){
+            ninetydayperiods++;
+        }
+        reg_amount = ninetydayperiods * reg_amount;
+
         //check for pre existing account is done here.
-        transfer_pub_key_results results = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,true);
+        name owner = transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,reg_amount,true);
 
         if (dbg) {
             print("trnsloctoks calling addgenlocked ", "\n");
@@ -466,11 +516,11 @@ namespace eosio {
 
         INLINE_ACTION_SENDER(eosiosystem::system_contract, addgenlocked)
                 ("eosio"_n, {{_self, "active"_n}},
-                 {results.owner,periods,can_vote,amount}
+                 {owner,periods,can_vote,amount}
                 );
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
-                                       to_string(results.fee) + string("}");
+                                       to_string(reg_amount) + string("}");
 
         fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
                        "Transaction is too large", ErrorTransactionTooLarge);
