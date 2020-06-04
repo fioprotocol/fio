@@ -30,6 +30,11 @@ namespace fioio {
         cancelled = 3
     };
 
+    struct ledgerItems {
+        std::vector<uint64_t> fio_request_ids;
+        std::vector<uint64_t> recordobt_ids;
+    };
+
     // The request context table holds the requests for funds that have been requested, it provides
     // searching by id, payer and payee.
     // @abi table fioreqctxts i64
@@ -225,4 +230,16 @@ namespace fioio {
             indexed_by<"byfioreqid"_n, const_mem_fun < fioreqsts, uint64_t, &fioreqsts::by_fioreqid> >
     >
     fiorequest_status_table;
+
+    struct [[eosio::action]] reqledger {
+
+        uint64_t account;
+        ledgerItems transactions;
+
+        uint64_t primary_key() const { return account; }
+
+        EOSLIB_SERIALIZE(reqledger, (account)(transactions))
+    };
+
+    typedef multi_index<"reqledgers"_n, reqledger> reqledgers_table;
 }

@@ -21,6 +21,7 @@ namespace fioio {
     class [[eosio::contract("FioRequestObt")]]  FioRequestObt : public eosio::contract {
 
     private:
+        reqledgers_table ledgerTable;
         fiorequest_contexts_table fiorequestContextsTable;
         fiorequest2_contexts_table fiorequestContextsTable2; // Temp
 
@@ -40,6 +41,7 @@ namespace fioio {
     public:
         explicit FioRequestObt(name s, name code, datastream<const char *> ds)
                 : contract(s, code, ds),
+                  ledgerTable(_self, _self.value),
                   fiorequestContextsTable(_self, _self.value),
                   fiorequestStatusTable(_self, _self.value),
                   fionames(AddressContract, AddressContract.value),
@@ -75,6 +77,35 @@ namespace fioio {
             while(count <= amount && frt != recordObtTable2.end() ) {
                 bool wasSuccessful = false;
                 for (frt = recordObtTable2.begin(); frt != recordObtTable2.end(); ++frt) {
+                    string payer_acct;
+                    string payee_acct;
+                    key_to_account(frt->payer_key, payer_acct);
+                    key_to_account(frt->payee_key, payee_acct);
+                    auto ledg_iter = ledgerTable.find(name(payer_acct.c_str()).value);
+                    auto ledg_iter2 = ledgerTable.find(name(payee_acct.c_str()).value);
+
+                    if (ledg_iter == ledgerTable.end()) {
+                        ledgerTable.emplace(executor,[&](struct reqledger &req) {
+                            req.account = name(payer_acct.c_str()).value;
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->id);
+                        });
+                    } else {
+                        ledgerTable.modify(ledg_iter, _self, [&](struct reqledger &req) {
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->id);
+                        });
+                    }
+
+                    if (ledg_iter2 == ledgerTable.end()) {
+                        ledgerTable.emplace(executor,[&](struct reqledger &req) {
+                            req.account = name(payee_acct.c_str()).value;
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->id);
+                        });
+                    } else {
+                        ledgerTable.modify(ledg_iter2, _self, [&](struct reqledger &req) {
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->id);
+                        });
+                    }
+
                     recordObtTable.emplace(executor, [&](struct recordobt_info &frc) {
                         frc.id = frt->id;
                         frc.payer_fio_addr_hex = frt->payer_fio_addr_hex;
@@ -118,6 +149,35 @@ namespace fioio {
             while(count <= amount && frt != fiorequestContextsTable2.end() ) {
                 bool wasSuccessful = false;
                 for (frt = fiorequestContextsTable2.begin(); frt != fiorequestContextsTable2.end(); ++frt) {
+                    string payer_acct;
+                    string payee_acct;
+                    key_to_account(frt->payer_key, payer_acct);
+                    key_to_account(frt->payee_key, payee_acct);
+                    auto ledg_iter = ledgerTable.find(name(payer_acct.c_str()).value);
+                    auto ledg_iter2 = ledgerTable.find(name(payee_acct.c_str()).value);
+
+                    if (ledg_iter == ledgerTable.end()) {
+                        ledgerTable.emplace(executor,[&](struct reqledger &req) {
+                            req.account = name(payer_acct.c_str()).value;
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->fio_request_id);
+                        });
+                    } else {
+                        ledgerTable.modify(ledg_iter, _self, [&](struct reqledger &req) {
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->fio_request_id);
+                        });
+                    }
+
+                    if (ledg_iter2 == ledgerTable.end()) {
+                        ledgerTable.emplace(executor,[&](struct reqledger &req) {
+                            req.account = name(payee_acct.c_str()).value;
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->fio_request_id);
+                        });
+                    } else {
+                        ledgerTable.modify(ledg_iter2, _self, [&](struct reqledger &req) {
+                            req.transactions.recordobt_ids.insert(req.transactions.recordobt_ids.begin(), frt->fio_request_id);
+                        });
+                    }
+
                     fiorequestContextsTable.emplace(executor, [&](struct fioreqctxt &frc) {
                         frc.fio_request_id = frt->fio_request_id;
                         frc.payer_fio_addr_hex = frt->payer_fio_addr_hex;
