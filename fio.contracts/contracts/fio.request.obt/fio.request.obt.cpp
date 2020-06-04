@@ -85,8 +85,8 @@ namespace fioio {
                         frc.payee_fio_addr = frt->payee_fio_addr;
                         frc.payee_key = frt->payee_key;
                         frc.payer_key = frt->payer_key;
-                        frc.payer_key_hex = string_to_uint128_hash(frt->payee_key.c_str());
-                        frc.payee_key_hex = string_to_uint128_hash(frt->payer_key.c_str());
+                        frc.payer_key_hex = string_to_uint128_hash(frt->payer_key.c_str());
+                        frc.payee_key_hex = string_to_uint128_hash(frt->payee_key.c_str());
 
                         wasSuccessful = true;
                     });
@@ -128,8 +128,8 @@ namespace fioio {
                         frc.payee_fio_addr = frt->payee_fio_addr;
                         frc.payee_key = frt->payee_key;
                         frc.payer_key = frt->payer_key;
-                        frc.payer_key_hex = string_to_uint128_hash(frt->payee_key.c_str());
-                        frc.payee_key_hex = string_to_uint128_hash(frt->payer_key.c_str());
+                        frc.payer_key_hex = string_to_uint128_hash(frt->payer_key.c_str());
+                        frc.payee_key_hex = string_to_uint128_hash(frt->payee_key.c_str());
 
                         wasSuccessful = true;
                     });
