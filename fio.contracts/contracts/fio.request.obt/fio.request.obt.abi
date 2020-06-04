@@ -222,15 +222,26 @@
           "type": "uint64"
         }
       ]
-    },,{
-            "name": "fioreqsts",
+    },{
+                 "name": "ledgerItems",
+                 "base": "",
+                 "fields": [{
+                     "name": "fio_request_ids",
+                     "type": "uint64[]"
+                   },{
+                     "name": "recordobt_ids",
+                     "type": "uint64[]"
+                   }
+                 ]
+               },{
+            "name": "reqledger",
             "base": "",
             "fields": [{
                 "name": "account",
                 "type": "uint64"
               },{
                 "name": "transactions",
-                "type": "ledgerItems[]"
+                "type": "ledgerItems"
               }
             ]
           },{
