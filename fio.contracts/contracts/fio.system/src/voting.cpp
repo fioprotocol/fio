@@ -888,7 +888,7 @@ namespace eosiosystem {
                 propagate_weight_change(*old_proxy);
             } else {
                 for (const auto &p : voter->producers) {
-                    auto &d = producer_deltas[p];
+                    auto &d = producer_deltas[p.producer];
                     d.first -= voter->last_vote_weight;
                     d.second = false;
                 }
@@ -942,9 +942,18 @@ namespace eosiosystem {
 
         update_total_votepay_share(ct, -total_inactive_vpay_share, delta_change_rate);
 
+
+        vector<producername> producers_addresses;
+
+          auto namesbyname = _fionames.get_index<"byname"_n>();
+        for (const auto &p : producers) {
+          auto res = namesbyname.find(p.value);
+          producers_addresses.push_back(producername{p, res->name});
+        }
+
         votersbyowner.modify(voter, same_payer, [&](auto &av) {
             av.last_vote_weight = new_vote_weight;
-            av.producers = producers;
+            av.producers = producers_addresses;
             av.proxy = proxy;
         });
     }
@@ -1291,7 +1300,7 @@ namespace eosiosystem {
                 double total_inactive_vpay_share = 0;
                 for (auto acnt : voter.producers) {
                     auto prodbyowner = _producers.get_index<"byowner"_n>();
-                    auto prod =  prodbyowner.find(acnt.value);
+                    auto prod =  prodbyowner.find(acnt.producer.value);
                     check(prod != prodbyowner.end(), "producer not found"); //data corruption
                     const double init_total_votes = prod->total_votes;
                     prodbyowner.modify(prod, same_payer, [&](auto &p) {

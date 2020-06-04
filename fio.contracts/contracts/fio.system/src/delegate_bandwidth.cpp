@@ -77,8 +77,12 @@ namespace eosiosystem {
             });
              return;
         }
+        vector<name> producers;
+        for (const auto &p : voter_itr->producers) {
+          producers.push_back(p.producer);
+        }
         if (voter_itr->producers.size() || voter_itr->proxy) {
-            update_votes(voter, voter_itr->proxy, voter_itr->producers, false);
+            update_votes(voter, voter_itr->proxy, producers, false);
         }
     }
 

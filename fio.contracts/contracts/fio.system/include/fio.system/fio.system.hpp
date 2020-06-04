@@ -202,6 +202,11 @@ typedef eosio::multi_index<"producers"_n, producer_info,
 producers_table;
 
 
+struct producername {
+  name producer;
+  string fioaddress;
+};
+
 struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     uint64_t id; //one up id is primary key.
     string fioaddress;  //this is the fio address to be used for bundled fee collection
@@ -211,7 +216,7 @@ struct [[eosio::table, eosio::contract("fio.system")]] voter_info {
     uint128_t addresshash; //this is the hash of the fio address for searching
     name owner;     /// the voter
     name proxy;     /// the proxy set by the voter, if any
-    std::vector <name> producers; /// the producers approved by this voter if no proxy set
+    std::vector <producername> producers; /// the producers approved by this voter if no proxy set
     /**
      *  Every time a vote is cast we must first "undo" the last vote weight, before casting the
      *  new vote weight.  Vote weight is calculated as:
@@ -418,7 +423,6 @@ private:
     uint64_t get_votable_balance(const name &tokenowner);
 
     void unlock_tokens(const name &actor);
-
 
     void update_votes(const name &voter, const name &proxy, const std::vector <name> &producers, const bool &voting);
 
