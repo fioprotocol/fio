@@ -217,31 +217,7 @@ namespace eosio {
 
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value.",
                        ErrorMaxFeeInvalid);
-
-        /*
-
-        uint128_t endpoint_hash = fioio::string_to_uint128_hash(feeendpoint);
-
-        auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
-        auto fee_iter = fees_by_endpoint.find(endpoint_hash);
-
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", feeendpoint,
-                       "FIO fee not found for endpoint", ErrorNoEndpoint);
-
-        uint64_t reg_amount = fee_iter->suf_amount;
-        uint64_t fee_type = fee_iter->type;
-
-        fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                       "transfer_tokens_pub_key unexpected fee type for endpoint transfer_tokens_pub_key, expected 0",
-                       ErrorNoEndpoint);
-
-
-
-
-        fio_400_assert(max_fee >= reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
-                       ErrorMaxFeeExceeded);
-                       */
-
+        
         string payee_account;
         fioio::key_to_account(payee_public_key, payee_account);
 
