@@ -241,6 +241,8 @@ namespace fioio {
                     });
                 }
 
+                print("test");
+
                 recordObtTable.emplace(aactor, [&](struct recordobt_info &obtinf) {
                     obtinf.id = id;
                     obtinf.payer_fio_addr_hex = fromHash;
