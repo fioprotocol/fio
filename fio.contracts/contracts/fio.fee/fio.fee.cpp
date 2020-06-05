@@ -86,7 +86,6 @@ namespace fioio {
                     //result is negative.
                     const double dresult = producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
                                      (double) vote_item.suf_amount;
-                    fio_403_assert(dresult > 0, ErrorInvalidMultiplier);
 
                     const uint64_t voted_fee = (uint64_t)(dresult);
                     feevalues.push_back(voted_fee);
