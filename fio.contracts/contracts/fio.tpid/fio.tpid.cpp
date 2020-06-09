@@ -1,6 +1,6 @@
 /** FioTPID implementation file
  *  Description:
- *  @author Adam Androulidakis
+ *  @author Adam Androulidakis, Ed Rotthoff
  *  @modifedby
  *  @file fio.tpid.cpp
  *  @license FIO Foundation ( https://github.com/fioprotocol/fio/blob/master/LICENSE ) Dapix
@@ -17,6 +17,7 @@ private:
         fionames_table fionames;
         eosiosystem::voters_table voters;
         bounties_table bounties;
+        bool debugout = false;
 
 public:
         using contract::contract;
@@ -67,6 +68,9 @@ public:
                 const auto tpidsbyname = tpids.get_index<"byname"_n>();
                 auto iter = tpidsbyname.find(hashname);
                 if (iter != tpidsbyname.end()) {
+                    if (debugout) {
+                        print("process auto proxy found tpid ", tpid, "\n");
+                    }
                         //tpid exists, use the info to find the owner of the tpid
                         auto namesbyname = fionames.get_index<"byname"_n>();
                         auto iternm = namesbyname.find(iter->fioaddhash);
@@ -75,6 +79,11 @@ public:
                                 //do the auto proxy
                                 autoproxy(proxy_name, owner);
                         }
+                }
+                else{
+                    if (debugout) {
+                        print("process auto proxy did not find tpid ", tpid, "\n");
+                    }
                 }
         }
 
@@ -88,6 +97,9 @@ public:
                 eosio_assert(has_auth(AddressContract) || has_auth(TokenContract) || has_auth(TREASURYACCOUNT) ||
                              has_auth("fio.reqobt"_n) || has_auth("eosio"_n),
                              "missing required authority of fio.address, fio.treasury, fio.token, eosio or fio.reqobt");
+            if (debugout) {
+                print("update tpid calling updatetpid with tpid ", tpid, " owner ", owner, "\n");
+            }
                 const auto tpidhash = string_to_uint128_hash(tpid.c_str());
                 auto tpidsbyname = tpids.get_index<"byname"_n>();
                 if (tpidsbyname.find(tpidhash) == tpidsbyname.end()) {
@@ -100,8 +112,8 @@ public:
                                         f.rewards = 0;
                                 });
 
-                        process_auto_proxy(tpid, owner);
                 }
+                process_auto_proxy(tpid, owner);
                 //Update existing tpid amount or amount of tpid that was just created before
                 tpidsbyname.modify(tpidsbyname.find(tpidhash), get_self(), [&](struct tpid &f) {
                                 f.rewards += amount;
