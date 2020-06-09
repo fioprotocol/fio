@@ -619,6 +619,8 @@ namespace eosio {
             get_transfers_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
             action_result.last_irreversible_block = chain.last_irreversible_block_num();
+            fc::sha256 previoustrxid;
+            bool subtransfer = false;
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -644,6 +646,7 @@ namespace eosio {
                   ti.block_time = t.block_time;
 
                   if (t.act.name == N(trnsfiopubky)) {
+                    previoustrxid = t.trx_id;
                     const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
                     ti.action = "trnsfiopubky";
                     ti.tpid = transferdata.tpid;
@@ -653,8 +656,9 @@ namespace eosio {
                     ti.payee_public_key = transferdata.payee_public_key;
                     ti.fee_amount = extract_fee(t);
                     ti.transaction_total = ti.fee_amount + transferdata.amount;
-                    ti.transfer_amount = transferdata.amount ;
-                  } else if (t.act.name == N(transfer)) {
+                    ti.transfer_amount = transferdata.amount;
+                    subtransfer = true;
+                  } else if (t.act.name == N(transfer) && previoustrxid != t.trx_id && !subtransfer) {
                     const auto transferdata = t.act.data_as<eosio::transfer>();
                     ti.action = "transfer";
                     ti.tpid = "";
@@ -666,6 +670,7 @@ namespace eosio {
                     ti.transaction_total = transferdata.quantity.get_amount();
                     ti.transfer_amount = transferdata.quantity.get_amount() ;
                   } else {
+                    subtransfer = false;
                     continue; // Do not process any other transaction types
                    }
                   if (params.pos < 0) {
