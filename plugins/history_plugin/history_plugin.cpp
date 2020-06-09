@@ -620,7 +620,6 @@ namespace eosio {
             result.last_irreversible_block = chain.last_irreversible_block_num();
             action_result.last_irreversible_block = chain.last_irreversible_block_num();
             fc::sha256 previoustrxid;
-            bool subtransfer = false;
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -644,58 +643,44 @@ namespace eosio {
                   ti.transaction_id = t.trx_id;
                   ti.block_height = t.block_num;
                   ti.block_time = t.block_time;
-
-                  if (t.act.name == N(trnsfiopubky)) {
-                    previoustrxid = t.trx_id;
-                    const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
-                    ti.action = "trnsfiopubky";
-                    ti.tpid = transferdata.tpid;
-                    ti.note = "FIO Transfer";
-                    ti.payer = transferdata.actor.to_string();
-                    ti.payee = fioio::key_to_account(transferdata.payee_public_key);
-                    ti.payee_public_key = transferdata.payee_public_key;
-                    ti.fee_amount = extract_fee(t);
-                    ti.transaction_total = ti.fee_amount + transferdata.amount;
-                    ti.transfer_amount = transferdata.amount;
-                    subtransfer = true;
-                  } else if (t.act.name == N(transfer) && previoustrxid != t.trx_id && !subtransfer) {
-                    const auto transferdata = t.act.data_as<eosio::transfer>();
-                    ti.action = "transfer";
-                    ti.tpid = "";
-                    ti.note = transferdata.memo;
-                    ti.payer = transferdata.from.to_string();
-                    ti.payee = transferdata.to.to_string();
-                    ti.payee_public_key = "";
-                    ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
-                    ti.transaction_total = transferdata.quantity.get_amount();
-                    ti.transfer_amount = transferdata.quantity.get_amount() ;
-                  } else {
-                    subtransfer = false;
-                    continue; // Do not process any other transaction types
-                   }
-                  if (params.pos < 0) {
-
-                    result.transfers.emplace(result.transfers.begin(), ti );
-
-                  } else {
-
-                    result.transfers.emplace_back( ti );
-
-                  /*
-                  action_result.actions.emplace(action_result.actions.begin(), ordered_action_result{
-                                        action_sequence_num,
-                                        account_sequence_num,
-                                        a.block_num, a.block_time,
-                                        chain.to_variant_with_abi(t, abi_serializer_max_time)
-                                        });
-                } else {
-                  action_result.actions.emplace_back( ordered_action_result{
-                                        action_sequence_num,
-                                        account_sequence_num,
-                                        a.block_num, a.block_time,
-                                        chain.to_variant_with_abi(t, abi_serializer_max_time)
-                                      }); */
+                  if(previoustrxid != t.trx_id) {
+                    if (t.act.name == N(trnsfiopubky)) {
+                      const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
+                      ti.action = "trnsfiopubky";
+                      ti.tpid = transferdata.tpid;
+                      ti.note = "FIO Transfer";
+                      ti.payer = transferdata.actor.to_string();
+                      ti.payee = fioio::key_to_account(transferdata.payee_public_key);
+                      ti.payee_public_key = transferdata.payee_public_key;
+                      ti.fee_amount = extract_fee(t);
+                      ti.transaction_total = ti.fee_amount + transferdata.amount;
+                      ti.transfer_amount = transferdata.amount;
+                      if (params.pos < 0) {
+                        result.transfers.emplace(result.transfers.begin(), ti );
+                      } else {
+                        result.transfers.emplace_back( ti );
+                      }
+                    }
+                    else if (t.act.name == N(transfer)) {
+                      const auto transferdata = t.act.data_as<eosio::transfer>();
+                      ti.action = "transfer";
+                      ti.tpid = "";
+                      ti.note = transferdata.memo;
+                      ti.payer = transferdata.from.to_string();
+                      ti.payee = transferdata.to.to_string();
+                      ti.payee_public_key = "";
+                      ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
+                      ti.transaction_total = transferdata.quantity.get_amount();
+                      ti.transfer_amount = transferdata.quantity.get_amount();
+                      if (params.pos < 0) {
+                        result.transfers.emplace(result.transfers.begin(), ti );
+                      } else {
+                        result.transfers.emplace_back( ti );
+                      }
+                    }
                   }
+                  previoustrxid = t.trx_id;
+                }
 
                   /* DISABLING THE LOOKUP TIME LIMIT
                   end_time = fc::time_point::now();
@@ -705,11 +690,9 @@ namespace eosio {
                   }
                   */
 
-                }
-            }
+                } // while
 
             return result;
-
         }
 
          //get actions
