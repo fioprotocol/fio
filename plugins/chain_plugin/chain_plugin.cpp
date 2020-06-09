@@ -1644,10 +1644,15 @@ if( options.count(name) ) { \
 
             uint32_t search_limit = p.limit;
             uint32_t search_offset = p.offset;
+            uint32_t records_returned = 0;
+            uint32_t records_size = 0;
+
+            get_pending_fio_requests_result result;
+            string fio_requests_lookup_table = "fioreqctxts";   // table name
 
             string account;
             fioio::key_to_account(p.fio_public_key, account);
-            string ledger_table = "reqledger";   // table name
+            string ledger_table = "reqledgers";   // table name
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
 
             get_table_rows_params fio_table_row_params1 = get_table_rows_params{
@@ -1655,80 +1660,80 @@ if( options.count(name) ) { \
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = ledger_table,
-                    .lower_bound    = account,
-                    .upper_bound    = account,
+                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
+                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
                     .key_type       = "i64",
                     .index_position = "1"};
 
             get_table_rows_result ledger_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
 
-            auto temp = ledger_result.rows[0]["transactions"]["fio_request_ids"];
-            FIO_404_ASSERT(!(temp.size() == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+            if (!ledger_result.rows.empty()) {
+                records_size = ledger_result.rows[0]["transactions"]["fio_request_ids"].size();
+                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
-            get_pending_fio_requests_result result;
-            string fio_requests_lookup_table = "fioreqctxts";   // table name
+                for(size_t i = 0; i < records_size; i++) {
+                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                            .json           = true,
+                            .code           = fio_reqobt_code,
+                            .scope          = fio_reqobt_scope,
+                            .table          = fio_requests_lookup_table,
+                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["fio_request_ids"][i].as_uint64()),
+                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["fio_request_ids"][i].as_uint64()),
+                            .key_type       = "i64",
+                            .index_position = "1"};
 
-            for(size_t i = 0; i < temp.size(); i++) {
-                get_table_rows_params fio_table_row_params2 = get_table_rows_params{
-                        .json           = true,
-                        .code           = fio_reqobt_code,
-                        .scope          = fio_reqobt_scope,
-                        .table          = fio_requests_lookup_table,
-                        .lower_bound    = boost::lexical_cast<string>(temp[i].as_uint64()),
-                        .upper_bound    = boost::lexical_cast<string>(temp[i].as_uint64()),
-                        .key_type       = "i64",
-                        .index_position = "1"};
+                    get_table_rows_result requests_rows_result =
+                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
 
-                get_table_rows_result requests_rows_result =
-                        get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+                    //get all the attributes of the fio request
+                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
+                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
+                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[0]["content"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[0]["time_stamp"].as_uint64();
+                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
+                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
 
-                //get all the attributes of the fio request
-                uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
-                string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
-                string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
-                string content = requests_rows_result.rows[0]["content"].as_string();
-                uint64_t time_stamp = requests_rows_result.rows[0]["time_stamp"].as_uint64();
-                string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
-                string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
+                    //convert the time_stamp to string formatted time.
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
 
-                //convert the time_stamp to string formatted time.
-                time_t temptime;
-                struct tm *timeinfo;
-                char buffer[80];
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                temptime = time_stamp;
-                timeinfo = gmtime(&temptime);
-                strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                    request_record rr{fio_request_id, payer_fio_addr,
+                                      payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
 
-                request_record rr{fio_request_id, payer_fio_addr,
-                                  payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
+                    string fio_request_status_lookup_table = "fioreqstss";   // table name
 
-                string fio_request_status_lookup_table = "fioreqstss";   // table name
+                    get_table_rows_params request_status_row_params = get_table_rows_params{
+                            .json        = true,
+                            .code        = fio_reqobt_code,
+                            .scope       = fio_reqobt_scope,
+                            .table       = fio_request_status_lookup_table,
+                            .lower_bound = boost::lexical_cast<string>(fio_request_id),
+                            .upper_bound = boost::lexical_cast<string>(fio_request_id),
+                            .key_type       = "i64",
+                            .index_position = "2"};
 
-                get_table_rows_params request_status_row_params = get_table_rows_params{
-                        .json        = true,
-                        .code        = fio_reqobt_code,
-                        .scope       = fio_reqobt_scope,
-                        .table       = fio_request_status_lookup_table,
-                        .lower_bound = boost::lexical_cast<string>(fio_request_id),
-                        .upper_bound = boost::lexical_cast<string>(fio_request_id),
-                        .key_type       = "i64",
-                        .index_position = "2"};
+                    get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                            request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
+                                return v;
+                            });
 
-                get_table_rows_result request_status_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                        request_status_row_params, reqobt_abi, [](uint64_t v) -> uint64_t {
-                            return v;
-                        });
-
-                //if there are no statuses for this record then add it to the results
-                if (request_status_rows_result.rows.empty()) {
-                    result.requests.push_back(rr);
+                    //if there are no statuses for this record then add it to the results
+                    if (request_status_rows_result.rows.empty()) {
+                        result.requests.push_back(rr);
+                    }
+                    records_returned++;
                 }
             }
 
             FIO_404_ASSERT(!(result.requests.size() == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
-            result.more = temp.size();
+            result.more = records_size - records_returned;
             return result;
         } // get_pending_fio_requests
 
