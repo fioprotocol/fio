@@ -440,6 +440,8 @@ namespace eosio {
             tv = periods[i].percent - (double(int(periods[i].percent * 1000.0)))/1000.0;
             fio_400_assert(tv == 0.0, "unlock_periods", "Invalid unlock periods",
                            "Invalid precision for percentage in unlock periods", ErrorInvalidUnlockPeriods);
+            fio_400_assert(periods[i].duration > 0, "unlock_periods", "Invalid unlock periods",
+                           "Invalid duration value in unlock periods", ErrorInvalidUnlockPeriods);
             totp += periods[i].percent;
             if (periods[i].duration > longestperiod){
                 longestperiod = periods[i].duration;
