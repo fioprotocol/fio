@@ -5368,11 +5368,11 @@ if( options.count(name) ) { \
                                                                        shorten_abi_errors);
                     }
                 }
-            const abi_def system_abi = eosio::chain_apis::get_abi(db,boost::lexical_cast<string>((uint64_t)config::system_account_name));
+            const abi_def system_abi = eosio::chain_apis::get_abi(db,"eosio");
             get_table_rows_params voter_table = get_table_rows_params{
                     .json        = true,
-                    .code        = boost::lexical_cast<string>((uint64_t)config::system_account_name),
-                    .scope       = boost::lexical_cast<string>((uint64_t)config::system_account_name),
+                    .code        = "eosio",
+                    .scope       = "eosio",
                     .table       = "voters",
                     .lower_bound = boost::lexical_cast<string>(params.account_name.value),
                     .upper_bound = boost::lexical_cast<string>(params.account_name.value),
