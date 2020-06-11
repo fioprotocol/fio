@@ -945,7 +945,7 @@ namespace eosiosystem {
 
         vector<producername> producers_addresses;
 
-          auto namesbyname = _fionames.get_index<"byname"_n>();
+          auto namesbyname = _fionames.get_index<"byowner"_n>();
         for (const auto &p : producers) {
           auto res = namesbyname.find(p.value);
           producers_addresses.push_back(producername{p, res->name});
