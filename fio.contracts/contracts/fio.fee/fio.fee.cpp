@@ -430,7 +430,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(account, asset(reg_amount, FIOSYMBOL));
+            fio_fees(account, asset(reg_amount, FIOSYMBOL), "MANDATORYFEE");
             processrewardsnotpid(reg_amount, get_self());
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
@@ -477,7 +477,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(account, asset(reg_amount, FIOSYMBOL));
+            fio_fees(account, asset(reg_amount, FIOSYMBOL), "BYTEMANDFEE");
             processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }

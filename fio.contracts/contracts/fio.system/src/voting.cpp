@@ -245,7 +245,7 @@ namespace eosiosystem {
         fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
-        fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+        fio_fees(actor, asset(reg_amount, FIOSYMBOL), "REGPRODUCER");
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
@@ -337,7 +337,7 @@ namespace eosiosystem {
                        ErrorMaxFeeExceeded);
 
 
-        fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+        fio_fees(actor, asset(reg_amount, FIOSYMBOL), "UNREGPROD");
         processrewardsnotpid(reg_amount, get_self());
 
         //end new fees, logic for Mandatory fees.
@@ -595,7 +595,7 @@ namespace eosiosystem {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL), "VOTEPRODUCER");
             processrewardsnotpid(fee_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
@@ -734,7 +734,7 @@ namespace eosiosystem {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL), "VOTEPROXY");
             processrewardsnotpid(fee_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
@@ -1097,7 +1097,7 @@ namespace eosiosystem {
         reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
 
-        fio_fees(actor, reg_fee_asset);
+        fio_fees(actor, reg_fee_asset, "UNREGPROXY");
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
@@ -1175,7 +1175,7 @@ namespace eosiosystem {
         reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
 
-        fio_fees(actor, reg_fee_asset);
+        fio_fees(actor, reg_fee_asset, "REGPROXY");
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 

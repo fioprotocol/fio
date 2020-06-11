@@ -169,7 +169,7 @@ namespace fioio {
                 fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
+                fio_fees(aactor, asset(fee_amount, FIOSYMBOL),"RECORDOBT");
                 process_rewards(tpid, fee_amount, get_self(), aactor);
 
                 if (fee_amount > 0) {
@@ -370,7 +370,7 @@ namespace fioio {
                 fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                fio_fees(aActor, asset(fee_amount, FIOSYMBOL));
+                fio_fees(aActor, asset(fee_amount, FIOSYMBOL), "NEWFUNDSREQ");
                 process_rewards(tpid, fee_amount, get_self(),aActor);
 
                 if (fee_amount > 0) {
@@ -528,7 +528,7 @@ namespace fioio {
                                "Fee exceeds supplied maximum.",
                                ErrorMaxFeeExceeded);
 
-                fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
+                fio_fees(aactor, asset(fee_amount, FIOSYMBOL), "REJECTFNDREQ");
                 process_rewards(tpid, fee_amount, get_self(), aactor);
 
                 if (fee_amount > 0) {
@@ -672,7 +672,7 @@ namespace fioio {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(aactor, asset(fee_amount, FIOSYMBOL));
+            fio_fees(aactor, asset(fee_amount, FIOSYMBOL), "CANCELFNDREQ");
             process_rewards(tpid, fee_amount, get_self(), aactor);
 
             if (fee_amount > 0) {

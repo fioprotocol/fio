@@ -62,12 +62,12 @@ namespace fioio {
         return 0;
     }
 
-    void fio_fees(const name &actor, const asset &fee) {
+    void fio_fees(const name &actor, const asset &fee, const string &act) {
         if (fee.amount > 0) {
             action(permission_level{SYSTEMACCOUNT, "active"_n},
                    TokenContract, "transfer"_n,
                    make_tuple(actor, TREASURYACCOUNT, fee,
-                              string("FIO API fees. Thank you."))
+                              string("FIO API fees: ") + act + string(". Thank you!"))
             ).send();
         }
     }

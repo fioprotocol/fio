@@ -359,7 +359,7 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+                fio_fees(actor, asset(reg_amount, FIOSYMBOL), "REMADDRESS");
                 process_rewards(tpid, reg_amount,get_self(), actor);
 
                 if (reg_amount > 0) {
@@ -466,7 +466,7 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+                fio_fees(actor, asset(reg_amount, FIOSYMBOL), "REMALLADDR");
                 process_rewards(tpid, reg_amount,get_self(), actor);
 
                 if (reg_amount > 0) {
@@ -591,7 +591,7 @@ namespace fioio {
 
                 //NOTE -- question here, should we always record the transfer for the fees, even when its zero,
                 //or should we do as this code does and not do a transaction when the fees are 0.
-                fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+                fio_fees(actor, asset(reg_amount, FIOSYMBOL), "ADDADDRESS");
                 process_rewards(tpid, reg_amount,get_self(), actor);
 
                 if (reg_amount > 0) {
@@ -683,7 +683,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+            fio_fees(actor, asset(reg_amount, FIOSYMBOL), "REGADDRESS");
             processbucketrewards(tpid, reg_amount, get_self(), nm);
 
             if (REGADDRESSRAM > 0) {
@@ -755,7 +755,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+            fio_fees(actor, asset(reg_amount, FIOSYMBOL), "REGDOMAIN");
             processbucketrewards(tpid, reg_amount, get_self(), actor);
 
             const string response_string = string("{\"status\": \"OK\",\"expiration\":\"") +
@@ -828,7 +828,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+            fio_fees(actor, asset(reg_amount, FIOSYMBOL), "RENEWDOMAIN");
             processbucketrewards(tpid, reg_amount, get_self(),actor);
 
             const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
@@ -930,7 +930,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+            fio_fees(actor, asset(reg_amount, FIOSYMBOL), "RENEWADDRESS");
             processbucketrewards(tpid, reg_amount, get_self(),actor);
 
             const uint64_t new_expiration_time = get_time_plus_one_year(expiration_time);
@@ -1290,7 +1290,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)fee_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(reg_amount, FIOSYMBOL));
+            fio_fees(actor, asset(reg_amount, FIOSYMBOL), "SETDOMAINPUB");
             process_rewards(tpid, reg_amount,get_self(), actor);
             if (reg_amount > 0) {
                 //MAS-522 remove staking from voting.
@@ -1433,7 +1433,7 @@ namespace fioio {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL), "XFERADDRESS");
             processbucketrewards(tpid, fee_amount, get_self(), actor);
 
             if (XFERRAM > 0) {
@@ -1509,7 +1509,7 @@ namespace fioio {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(fee_amount, FIOSYMBOL));
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL), "XFERDOMAIN");
             processbucketrewards(tpid, fee_amount, get_self(), actor);
 
             if (XFERRAM > 0) {

@@ -308,7 +308,7 @@ namespace eosio {
                                       fioio::ErrorPubAddressExist);
         }
 
-        fio_fees(actor, asset{(int64_t) reg_amount, FIOSYMBOL});
+        fio_fees(actor, asset{(int64_t) reg_amount, FIOSYMBOL}, "TRNSFIOPUBKY");
         process_rewards(tpid, reg_amount,get_self(), new_account_name);
 
         require_recipient(actor);
