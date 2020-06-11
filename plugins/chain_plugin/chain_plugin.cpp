@@ -5377,7 +5377,7 @@ if( options.count(name) ) { \
                     .lower_bound = boost::lexical_cast<string>(params.account_name.value),
                     .upper_bound = boost::lexical_cast<string>(params.account_name.value),
                     .key_type       = "i64",
-                    .index_position = "2"
+                    .index_position = "3"
             };
 
             get_table_rows_result voter_result = get_table_rows_by_seckey<index64_index, uint64_t>(
@@ -5386,7 +5386,9 @@ if( options.count(name) ) { \
                     });
                     if (!voter_result.rows.empty()) {
                       result.voter_info = voter_result.rows[0];
+                      std::cout<<std::endl<<"RESULT FOUND";
                     }
+
             }
             return result;
         }
