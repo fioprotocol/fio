@@ -39,6 +39,29 @@
 #define MAXACTIVEBPS 21
 #define DEFAULTBUNDLEAMT 100
 
+#define REGISTER_ADDRESS_ENDPOINT "register_fio_address"
+#define REGISTER_DOMAIN_ENDPOINT "register_fio_domain"
+#define RENEW_ADDRESS_ENDPOINT "renew_fio_address"
+#define RENEW_DOMAIN_ENDPOINT "renew_fio_domain"
+#define TRANSFER_ADDRESS_ENDPOINT "transfer_fio_address"
+#define TRANSFER_DOMAIN_ENDPOINT "transfer_fio_domain"
+#define REMOVE_ALL_PUB_ENDPOINT "remove_all_pub_addresses"
+#define REMOVE_PUB_ADDRESS_ENDPOINT "remove_pub_address"
+#define REGISTER_PRODUCER_ENDPOINT "register_producer"
+#define ADD_PUB_ADDRESS_ENDPOINT "add_pub_address"
+#define UNREGISTER_PRODUCER_ENDPOINT "unregister_producer"
+#define VOTE_PRODUCER_ENDPOINT "vote_producer"
+#define VOTE_PROXY_ENDPOINT "proxy_vote"
+#define UNREGISTER_PROXY_ENDPOINT "unregister_proxy"
+#define REGISTER_PROXY_ENDPOINT "register_proxy"
+#define TRANSFER_LOCKED_TOKENS_ENDPOINT "transfer_locked_tokens"
+#define TRANSFER_TOKENS_PUBKEY_ENDPOINT "transfer_tokens_pub_key"
+#define SET_DOMAIN_PUBLIC "set_fio_domain_public"
+#define CANCEL_FUNDS_REQUEST_ENDPOINT "cancel_funds_request"
+#define REJECT_FUNDS_REQUEST_ENDPOINT "reject_funds_request"
+#define NEW_FUNDS_REQUEST_ENDPOINT "new_funds_request"
+#define RECORD_OBT_DATA_ENDPOINT "record_obt_data"
+
 namespace fioio {
 
     using namespace eosio;
@@ -67,7 +90,7 @@ namespace fioio {
             action(permission_level{SYSTEMACCOUNT, "active"_n},
                    TokenContract, "transfer"_n,
                    make_tuple(actor, TREASURYACCOUNT, fee,
-                              string("FIO API fees: ") + act + string(". Thank you!"))
+                              string("FIO API fees: ") + act)
             ).send();
         }
     }

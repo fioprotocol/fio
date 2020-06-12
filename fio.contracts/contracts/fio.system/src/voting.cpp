@@ -226,12 +226,12 @@ namespace eosiosystem {
 
         //TODO: REFACTOR FEE ( PROXY / PRODUCER )
         //begin new fees, logic for Mandatory fees.
-        uint128_t endpoint_hash = string_to_uint128_hash("register_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash(REGISTER_PRODUCER_ENDPOINT);
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", REGISTER_PRODUCER_ENDPOINT,
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -245,7 +245,7 @@ namespace eosiosystem {
         fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                        ErrorMaxFeeExceeded);
 
-        fio_fees(actor, asset(reg_amount, FIOSYMBOL), "REGPRODUCER");
+        fio_fees(actor, asset(reg_amount, FIOSYMBOL), REGISTER_PRODUCER_ENDPOINT);
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
@@ -317,12 +317,12 @@ namespace eosiosystem {
         });
 
         //begin new fees, logic for Mandatory fees.
-        uint128_t endpoint_hash = string_to_uint128_hash("unregister_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash(UNREGISTER_PRODUCER_ENDPOINT);
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "unregister_producer",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", UNREGISTER_PRODUCER_ENDPOINT,
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -337,7 +337,7 @@ namespace eosiosystem {
                        ErrorMaxFeeExceeded);
 
 
-        fio_fees(actor, asset(reg_amount, FIOSYMBOL), "UNREGPROD");
+        fio_fees(actor, asset(reg_amount, FIOSYMBOL), UNREGISTER_PRODUCER_ENDPOINT);
         processrewardsnotpid(reg_amount, get_self());
 
         //end new fees, logic for Mandatory fees.
@@ -575,7 +575,7 @@ namespace eosiosystem {
 
         update_votes(actor, proxy, producers_accounts, true);
 
-        uint128_t endpoint_hash = string_to_uint128_hash("vote_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash(VOTE_PRODUCER_ENDPOINT);
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
@@ -595,7 +595,7 @@ namespace eosiosystem {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(fee_amount, FIOSYMBOL), "VOTEPRODUCER");
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL), VOTE_PRODUCER_ENDPOINT);
             processrewardsnotpid(fee_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
@@ -714,7 +714,7 @@ namespace eosiosystem {
 
         update_votes(actor, proxy_name, producers, true);
 
-        uint128_t endpoint_hash = string_to_uint128_hash("vote_producer");
+        uint128_t endpoint_hash = string_to_uint128_hash(VOTE_PROXY_ENDPOINT);
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
@@ -734,7 +734,7 @@ namespace eosiosystem {
                            "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(actor, asset(fee_amount, FIOSYMBOL), "VOTEPROXY");
+            fio_fees(actor, asset(fee_amount, FIOSYMBOL), VOTE_PROXY_ENDPOINT);
             processrewardsnotpid(fee_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
@@ -1074,12 +1074,12 @@ namespace eosiosystem {
         regiproxy(actor,fio_address,false);
 
         //begin new fees, logic for Mandatory fees.
-        uint128_t endpoint_hash = string_to_uint128_hash("unregister_proxy");
+        uint128_t endpoint_hash = string_to_uint128_hash(UNREGISTER_PROXY_ENDPOINT);
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "unregister_proxy",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", UNREGISTER_PROXY_ENDPOINT,
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -1097,7 +1097,7 @@ namespace eosiosystem {
         reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
 
-        fio_fees(actor, reg_fee_asset, "UNREGPROXY");
+        fio_fees(actor, reg_fee_asset, UNREGISTER_PROXY_ENDPOINT);
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 
@@ -1152,12 +1152,12 @@ namespace eosiosystem {
         regiproxy(actor,fio_address,true);
 
         //begin new fees, logic for Mandatory fees.
-        uint128_t endpoint_hash = string_to_uint128_hash("register_proxy");
+        uint128_t endpoint_hash = string_to_uint128_hash(REGISTER_PROXY_ENDPOINT);
 
         auto fees_by_endpoint = _fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
         //if the fee isnt found for the endpoint, then 400 error.
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_proxy",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", REGISTER_PROXY_ENDPOINT,
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -1175,7 +1175,7 @@ namespace eosiosystem {
         reg_fee_asset.symbol = symbol("FIO",9);
         reg_fee_asset.amount = reg_amount;
 
-        fio_fees(actor, reg_fee_asset, "REGPROXY");
+        fio_fees(actor, reg_fee_asset, REGISTER_PROXY_ENDPOINT);
         processrewardsnotpid(reg_amount, get_self());
         //end new fees, logic for Mandatory fees.
 

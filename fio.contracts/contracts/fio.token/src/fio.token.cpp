@@ -243,12 +243,12 @@ namespace eosio {
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value.",
                        ErrorMaxFeeInvalid);
 
-        uint128_t endpoint_hash = fioio::string_to_uint128_hash("transfer_tokens_pub_key");
+        uint128_t endpoint_hash = fioio::string_to_uint128_hash(TRANSFER_TOKENS_PUBKEY_ENDPOINT);
 
         auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
         auto fee_iter = fees_by_endpoint.find(endpoint_hash);
 
-        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "transfer_tokens_pub_key",
+        fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", TRANSFER_TOKENS_PUBKEY_ENDPOINT,
                        "FIO fee not found for endpoint", ErrorNoEndpoint);
 
         uint64_t reg_amount = fee_iter->suf_amount;
@@ -308,7 +308,7 @@ namespace eosio {
                                       fioio::ErrorPubAddressExist);
         }
 
-        fio_fees(actor, asset{(int64_t) reg_amount, FIOSYMBOL}, "TRNSFIOPUBKY");
+        fio_fees(actor, asset{(int64_t) reg_amount, FIOSYMBOL}, TRANSFER_TOKENS_PUBKEY_ENDPOINT);
         process_rewards(tpid, reg_amount,get_self(), new_account_name);
 
         require_recipient(actor);

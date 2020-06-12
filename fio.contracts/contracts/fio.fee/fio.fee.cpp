@@ -416,7 +416,7 @@ namespace fioio {
 
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", end_point,
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             const uint64_t reg_amount = fee_iter->suf_amount;
@@ -430,7 +430,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(account, asset(reg_amount, FIOSYMBOL), "MANDATORYFEE");
+            fio_fees(account, asset(reg_amount, FIOSYMBOL), end_point);
             processrewardsnotpid(reg_amount, get_self());
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
@@ -455,7 +455,7 @@ namespace fioio {
 
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", end_point,
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
@@ -477,7 +477,7 @@ namespace fioio {
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
                            ErrorMaxFeeExceeded);
 
-            fio_fees(account, asset(reg_amount, FIOSYMBOL), "BYTEMANDFEE");
+            fio_fees(account, asset(reg_amount, FIOSYMBOL), end_point);
             processrewardsnotpid(reg_amount, get_self());
             //end new fees, logic for Mandatory fees.
         }
