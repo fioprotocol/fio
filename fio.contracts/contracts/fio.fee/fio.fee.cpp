@@ -67,6 +67,10 @@ namespace fioio {
             }
 
 
+            //400 error if fees to process is empty.
+            fio_400_assert(fees_to_process.size() > 0, "compute fees", "compute fees",
+                           "No Work.", ErrorNoWork);
+
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
