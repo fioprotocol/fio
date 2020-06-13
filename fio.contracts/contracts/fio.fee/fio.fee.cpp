@@ -74,7 +74,7 @@ namespace fioio {
                            "No Work.", ErrorNoWork);
 
             int feevotestoprocess = (num_voters * fees_to_process.size());
-            int numberiterations = (feevotestoprocess % NUMBER_FEEVOTERS_TO_PROCESS > 0) ? (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS)+1 : (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS);
+            int numberiterations = ((feevotestoprocess % NUMBER_FEEVOTERS_TO_PROCESS) > 0) ? (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS)+1 : (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS);
             int numberfeestoprocess = (numberiterations == 1) ? fees_to_process.size() : NUMBER_FEEVOTERS_TO_PROCESS/num_voters;
 
             if(fees_to_process.size() > numberfeestoprocess) {
