@@ -55,19 +55,6 @@ namespace eosiosystem {
             //invoke the fee computation.
 
         }
-
-        /* this needs testing, until tested we will remove it.
-        if (timestamp.slot - _gstate.last_fee_update.slot > 126) {
-
-          action(permission_level{get_self(), "active"_n},
-                 "fio.fee"_n, "updatefees"_n,
-                 make_tuple(_self)
-          ).send();
-
-          _gstate.last_fee_update = timestamp;
-
-        }
-         */
     }
 
     void system_contract::resetclaim(const name &producer) {
