@@ -73,24 +73,13 @@ namespace fioio {
             fio_400_assert(fees_to_process.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
-            print("EDEDEDEDEDD number voters ", num_voters," number fees to process ",fees_to_process.size(),"\n");
-
             int feevotestoprocess = (num_voters * fees_to_process.size());
-            int numberiterations = feevotestoprocess / 400;
-            int rem = feevotestoprocess % 400;
-            if (rem > 0){
-                numberiterations++;
-            }
-            print("EDEDEDEDEDD number iterations ", numberiterations,"\n");
+            int numberiterations = (feevotestoprocess % 400 > 0) ? (feevotestoprocess / 400)+1 : (feevotestoprocess / 400);
             int numberfeestoprocess = (numberiterations == 1) ? fees_to_process.size() : 400/num_voters;
-            print("EDEDEDEDEDD number fees to process this iteration ", numberfeestoprocess,"\n");
 
             if(fees_to_process.size() > numberfeestoprocess) {
                 fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess,fees_to_process.end());
             }
-
-
-
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
@@ -174,7 +163,6 @@ namespace fioio {
                     if (dbgout) {
                         print(" updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     }
-                    print("EDEDEDED  updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
                         ff.votes_pending.emplace(false);
