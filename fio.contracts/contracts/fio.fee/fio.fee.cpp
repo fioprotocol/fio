@@ -82,7 +82,7 @@ namespace fioio {
                 numberiterations++;
             }
             print("EDEDEDEDEDD number iterations ", numberiterations,"\n");
-            int numberfeestoprocess = fees_to_process.size() / numberiterations;
+            int numberfeestoprocess = (numberiterations == 1) ? fees_to_process.size() : 400;
             print("EDEDEDEDEDD number fees to process this iteration ", numberfeestoprocess,"\n");
 
             if(fees_to_process.size() > numberfeestoprocess) {
