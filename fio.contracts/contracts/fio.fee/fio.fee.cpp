@@ -431,6 +431,7 @@ namespace fioio {
                     });
 
                 }
+                votebyname_iter++;
             }
 
                 const string response_string = string("{\"status\": \"OK\"}");
