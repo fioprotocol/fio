@@ -127,7 +127,7 @@ namespace fioio {
         */
         void
         compute_median_and_update_fees(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
-            bool dbgout = false;
+            bool dbgout = true;
             //one more time
             if (feevalues.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
                 uint64_t median_fee = 0;
