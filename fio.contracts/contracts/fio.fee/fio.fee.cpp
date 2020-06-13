@@ -43,6 +43,7 @@ namespace fioio {
 
             //Selecting only elected producers, create a map for each producer and its associated multiplier
             //for use in performing the multiplications later,
+            int num_voters = 0;
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
 
@@ -53,6 +54,7 @@ namespace fioio {
                             print(" adding producer to multiplier map", topprod->producer.to_string(), "\n");
                         }
                         producer_fee_multipliers_map.insert(make_pair(topprod->producer.value, voters_iter->fee_multiplier));
+                        num_voters++;
                     }
                 topprod++;
             }
@@ -70,6 +72,15 @@ namespace fioio {
             //400 error if fees to process is empty.
             fio_400_assert(fees_to_process.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
+
+            int numberiterations = (num_voters * fees_to_process.size()) / 400;
+            int numberfeestoprocess = fees_to_process.size() / numberiterations;
+
+            if(fees_to_process.size() > numberfeestoprocess) {
+                fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess+1,fees_to_process.end());
+            }
+
+
 
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
@@ -127,7 +138,7 @@ namespace fioio {
         */
         void
         compute_median_and_update_fees(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
-            bool dbgout = true;
+            bool dbgout = false;
             //one more time
             if (feevalues.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
                 uint64_t median_fee = 0;
