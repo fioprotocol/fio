@@ -86,7 +86,7 @@ namespace fioio {
             print("EDEDEDEDEDD number fees to process this iteration ", numberfeestoprocess,"\n");
 
             if(fees_to_process.size() > numberfeestoprocess) {
-                fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess+1,fees_to_process.end());
+                fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess,fees_to_process.end());
             }
 
 
@@ -174,6 +174,7 @@ namespace fioio {
                     if (dbgout) {
                         print(" updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     }
+                    print("EDEDEDED  updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
                         ff.votes_pending.emplace(false);
