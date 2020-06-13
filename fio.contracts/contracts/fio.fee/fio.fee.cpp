@@ -36,7 +36,8 @@ namespace fioio {
         eosiosystem::top_producers_table topprods;
 
         void update_fees() {
-            map<string, double> producer_fee_multipliers_map;
+            map<uint64_t, double> producer_fee_multipliers_map;
+            vector<uint128_t> fees_to_process; //hashes for endpoints to process.
 
             const bool dbgout = false;
 
@@ -46,14 +47,22 @@ namespace fioio {
             while (topprod != topprods.end()) {
 
                     auto voters_iter = feevoters.find(topprod->producer.value);
-                    const string v1 = topprod->producer.to_string();
 
                     if (voters_iter != feevoters.end()) {
                         if (dbgout) {
-                            print(" adding producer to multiplier map", v1.c_str(), "\n");
+                            print(" adding producer to multiplier map", topprod->producer.to_string(), "\n");
                         }
-                        producer_fee_multipliers_map.insert(make_pair(v1, voters_iter->fee_multiplier));
+                        producer_fee_multipliers_map.insert(make_pair(topprod->producer.value, voters_iter->fee_multiplier));
                     }
+                topprod++;
+            }
+
+            auto fee = fiofees.begin();
+            while (fee != fiofees.end()) {
+
+               if(fee->votes_pending.value()){
+                   fees_to_process.push_back(fee->end_point_hash);
+               }
                 topprod++;
             }
 
@@ -69,32 +78,36 @@ namespace fioio {
                 // so compute median fee for this endpoint and then clear the list.
                 if (vote_item.end_point.compare(lastvalUsed) != 0) {
                     compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
-
                     feevalues.clear();
                 }
                 lastvalUsed = vote_item.end_point;
                 lastusedHash = vote_item.end_point_hash;
 
-                //if the vote item block producer name is in the multiplier map, then multiply
-                //the suf amount by the multiplier and add it to the list of feevalues to be
-                //averaged
-                if (producer_fee_multipliers_map.find(vote_item.block_producer_name.to_string()) !=
-                    producer_fee_multipliers_map.end()) {
+                if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
+                    //if the vote item block producer name is in the multiplier map, then multiply
+                    //the suf amount by the multiplier and add it to the list of feevalues to be
+                    //averaged
+                    if (producer_fee_multipliers_map.find(vote_item.block_producer_name.value) !=
+                        producer_fee_multipliers_map.end()) {
 
-                    //note -- we protect against both overflow and negative values here, an
-                    //overflow error should result computing the dresult,and we check if the
-                    //result is negative.
-                    const double dresult = producer_fee_multipliers_map[vote_item.block_producer_name.to_string()] *
-                                     (double) vote_item.suf_amount;
+                        //note -- we protect against both overflow and negative values here, an
+                        //overflow error should result computing the dresult,and we check if the
+                        //result is negative.
+                        const double dresult = producer_fee_multipliers_map[vote_item.block_producer_name.value] *
+                                               (double) vote_item.suf_amount;
 
-                    const uint64_t voted_fee = (uint64_t)(dresult);
-                    feevalues.push_back(voted_fee);
+                        const uint64_t voted_fee = (uint64_t)(dresult);
+                        feevalues.push_back(voted_fee);
+                    }
                 }
             }
 
-            //compute the median on the remaining feevalues, this remains to be
-            //processed after we have gone through the loop.
-            compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+
+            if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
+                //compute the median on the remaining feevalues, this remains to be
+                //processed after we have gone through the loop.
+                compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+            }
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
@@ -138,6 +151,7 @@ namespace fioio {
                     }
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
+                        ff.votes_pending.emplace(false);
                     });
                 } else {
                     if (dbgout) {
@@ -191,7 +205,9 @@ namespace fioio {
                 const uint128_t endPointHash = string_to_uint128_hash(feeval.end_point.c_str());
 
                 auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                fio_400_assert(feesbyendpoint.find(endPointHash) != feesbyendpoint.end(), "end_point", feeval.end_point,
+                auto fees_iter = feesbyendpoint.find(endPointHash);
+
+                fio_400_assert(fees_iter != feesbyendpoint.end(), "end_point", feeval.end_point,
                                "invalid end_point", ErrorEndpointNotFound);
 
                 fio_400_assert(feeval.value >= 0, "fee_value", feeval.end_point,
@@ -245,6 +261,10 @@ namespace fioio {
                         fv.end_point_hash = endPointHash;
                         fv.suf_amount = feeval.value;
                         fv.lastvotetimestamp = nowtime;
+                    });
+
+                    feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
+                        a.votes_pending.emplace(true);
                     });
                 } else {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
@@ -392,7 +412,28 @@ namespace fioio {
                 });
             }
 
-            const string response_string = string("{\"status\": \"OK\"}");
+            //get all voted fees and set votes pending.
+            auto feevotesbybpname = feevotes.get_index<"bybpname"_n>();
+            auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+
+            while (votebyname_iter != feevotesbybpname.end()) {
+                if (votebyname_iter->block_producer_name.value != aactor.value) {
+                    //if the bp name changes we have exited the items of interest, so quit.
+                    break;
+                } else {
+                    auto fee_iter = fees_by_endpoint.find(votebyname_iter->end_point_hash);
+                    fio_400_assert((fee_iter != fees_by_endpoint.end()), "end point", votebyname_iter->end_point,
+                                   " Fee lookup error",
+                                   ErrorNoFeesFoundForEndpoint);
+                    fees_by_endpoint.modify(fee_iter, _self, [&](struct fiofee &a) {
+                        a.votes_pending.emplace(true);
+                    });
+
+                }
+            }
+
+                const string response_string = string("{\"status\": \"OK\"}");
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
@@ -512,6 +553,7 @@ namespace fioio {
                     feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
                         a.type = type;
                         a.suf_amount = suf_amount;
+                        //leave votes_pending as is, if votes are pending they need processed.
                     });
             } else {
                 fiofees.emplace(get_self(), [&](struct fiofee &f) {
@@ -520,6 +562,7 @@ namespace fioio {
                     f.end_point_hash = endPointHash;
                     f.type = type;
                     f.suf_amount = suf_amount;
+                    f.votes_pending.emplace(false);
                 });
             }
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
