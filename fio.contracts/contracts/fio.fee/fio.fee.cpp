@@ -38,6 +38,7 @@ namespace fioio {
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
+            int NUMBER_FEEVOTERS_TO_PROCESS = 400;
 
             const bool dbgout = false;
 
@@ -68,14 +69,13 @@ namespace fioio {
                 fee++;
             }
 
-
             //400 error if fees to process is empty.
             fio_400_assert(fees_to_process.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
             int feevotestoprocess = (num_voters * fees_to_process.size());
-            int numberiterations = (feevotestoprocess % 400 > 0) ? (feevotestoprocess / 400)+1 : (feevotestoprocess / 400);
-            int numberfeestoprocess = (numberiterations == 1) ? fees_to_process.size() : 400/num_voters;
+            int numberiterations = (feevotestoprocess % NUMBER_FEEVOTERS_TO_PROCESS > 0) ? (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS)+1 : (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS);
+            int numberfeestoprocess = (numberiterations == 1) ? fees_to_process.size() : NUMBER_FEEVOTERS_TO_PROCESS/num_voters;
 
             if(fees_to_process.size() > numberfeestoprocess) {
                 fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess,fees_to_process.end());
