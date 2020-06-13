@@ -316,15 +316,6 @@ namespace eosio {
                     );
         }
 
-        if (TRANSFERPUBKEYRAM > 0) {
-            action(
-                    permission_level{SYSTEMACCOUNT, "active"_n},
-                    "eosio"_n,
-                    "incram"_n,
-                    std::make_tuple(actor, TRANSFERPUBKEYRAM)
-            ).send();
-        }
-
         return new_account_name;
     }
 
@@ -411,6 +402,15 @@ namespace eosio {
         //do the transfer
         transfer_public_key(payee_public_key,amount,max_fee,actor,tpid,reg_amount,false);
 
+        if (TRANSFERPUBKEYRAM > 0) {
+            action(
+                    permission_level{SYSTEMACCOUNT, "active"_n},
+                    "eosio"_n,
+                    "incram"_n,
+                    std::make_tuple(actor, TRANSFERPUBKEYRAM)
+            ).send();
+        }
+
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                        to_string(reg_amount) + string("}");
 
@@ -496,6 +496,16 @@ namespace eosio {
                 ("eosio"_n, {{_self, "active"_n}},
                  {owner,periods,can_vote,amount}
                 );
+
+        int64_t raminc = 1024 + (64 * periods.size());
+
+        action(
+                permission_level{SYSTEMACCOUNT, "active"_n},
+                "eosio"_n,
+                "incram"_n,
+                std::make_tuple(actor, raminc)
+                ).send();
+
 
         const string response_string = string("{\"status\": \"OK\",\"fee_collected\":") +
                                        to_string(reg_amount) + string("}");
