@@ -35,7 +35,7 @@ namespace fioio {
         feevotes_table feevotes;
         eosiosystem::top_producers_table topprods;
 
-        void update_fees() {
+        uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
 
@@ -106,7 +106,6 @@ namespace fioio {
                 }
             }
 
-
             if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
                 //compute the median on the remaining feevalues, this remains to be
                 //processed after we have gone through the loop.
@@ -115,6 +114,8 @@ namespace fioio {
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
+
+            return fees_to_process.size();
         }
 
         /*******
@@ -298,8 +299,10 @@ namespace fioio {
       */
         [[eosio::action]]
         void updatefees() {
-            require_auth(SYSTEMACCOUNT);
-            update_fees();
+            uint32_t numberprocessed = update_fees();
+            const string response_string = string("{\"status\": \"OK\",\"fees_processed\":") +
+                                           to_string(numberprocessed) + string("}");
+            send_response(response_string.c_str());
         }
 
        /********
