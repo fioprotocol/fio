@@ -63,7 +63,7 @@ namespace fioio {
                if(fee->votes_pending.value()){
                    fees_to_process.push_back(fee->end_point_hash);
                }
-                topprod++;
+                fee++;
             }
 
 
