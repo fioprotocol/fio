@@ -73,8 +73,12 @@ namespace fioio {
             fio_400_assert(fees_to_process.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
+            print("EDEDEDEDEDD number voters ", num_voters," number fees to process ",fees_to_process.size(),"\n");
+
             int numberiterations = (num_voters * fees_to_process.size()) / 400;
+            print("EDEDEDEDEDD number iterations ", numberiterations,"\n");
             int numberfeestoprocess = fees_to_process.size() / numberiterations;
+            print("EDEDEDEDEDD number fees to process this iteration ", numberfeestoprocess,"\n");
 
             if(fees_to_process.size() > numberfeestoprocess) {
                 fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess+1,fees_to_process.end());
