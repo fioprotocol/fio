@@ -41,7 +41,7 @@ namespace fioio {
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
             vector<string> fee_endpoints;
 
-            int NUMBER_FEEVOTERS_TO_PROCESS = 400;
+            int NUMBER_FEEVOTERS_TO_PROCESS = 100;
 
             //create a map for each top 21 producer and its associated multiplier
             int num_voters = 0;
