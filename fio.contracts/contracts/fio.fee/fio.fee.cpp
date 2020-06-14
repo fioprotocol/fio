@@ -292,7 +292,7 @@ namespace fioio {
 
 
             const string response_string = string("{\"status\": \"OK\"") +
-                                           string("\",\"fee_collected\":") +
+                                           string(",\"fee_collected\":") +
                                            to_string(reg_amount) + string("}");
 
             if (SETFEEVOTERAM > 0) {
@@ -489,7 +489,7 @@ namespace fioio {
 
 
             const string response_string = string("{\"status\": \"OK\"") +
-                                           string("\",\"fee_collected\":") +
+                                           string(",\"fee_collected\":") +
                                            to_string(reg_amount) + string("}");
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
