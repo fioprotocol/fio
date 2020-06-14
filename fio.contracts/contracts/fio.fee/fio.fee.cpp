@@ -34,6 +34,7 @@ namespace fioio {
         bundlevoters_table bundlevoters;
         feevotes_table feevotes;
         eosiosystem::top_producers_table topprods;
+        eosiosystem::producers_table prods;
 
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
@@ -185,7 +186,8 @@ namespace fioio {
                   bundlevoters(_self, _self.value),
                   feevoters(_self, _self.value),
                   feevotes(_self, _self.value),
-                  topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value) {
+                  topprods(SYSTEMACCOUNT, SYSTEMACCOUNT.value),
+                  prods(SYSTEMACCOUNT,SYSTEMACCOUNT.value){
         }
 
         /*********
@@ -199,17 +201,21 @@ namespace fioio {
          */
         // @abi action
         [[eosio::action]]
-        void setfeevote(const vector <feevalue> &fee_values, const string &actor) {
+        void setfeevote(const vector <feevalue> &fee_values, const uint64_t &max_fee, const string &actor) {
 
             name aactor = name(actor.c_str());
             require_auth(aactor);
 
             bool dbgout = false;
 
+            auto prodsbyowner = prods.get_index<"byowner"_n>();
             //check that the producer is active block producer
-            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
+            fio_400_assert(((prodsbyowner.find(aactor.value) != prodsbyowner.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             const uint32_t nowtime = now();
 
@@ -284,6 +290,30 @@ namespace fioio {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
             }
+
+            //begin new fees, logic for Mandatory fees.
+            uint128_t endpoint_hash = string_to_uint128_hash("submit_fee_ratios");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(aactor, asset(reg_amount, FIOSYMBOL));
+            processrewardsnotpid(reg_amount, get_self());
+            //end new fees, logic for Mandatory fees.
 
             const string response_string = string("{\"status\": \"OK\"}");
 
@@ -390,20 +420,26 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void setfeemult(
-                double multiplier,
+                const double &multiplier,
+                const uint64_t &max_fee,
                 const string &actor
         ) {
 
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
+            auto prodsbyowner = prods.get_index<"byowner"_n>();
+            //check that the producer is active block producer
+            fio_400_assert(((prodsbyowner.find(aactor.value) != prodsbyowner.end())), "actor", actor,
                            " Not an active BP",
                            ErrorFioNameNotReg);
 
             fio_400_assert(multiplier > 0, "multiplier", to_string(multiplier),
                            " Must be positive",
                            ErrorFioNameNotReg);
+
+            fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
+                           ErrorMaxFeeInvalid);
 
             const uint32_t nowtime = now();
 
@@ -449,6 +485,29 @@ namespace fioio {
                 }
                 votebyname_iter++;
             }
+
+            //begin new fees, logic for Mandatory fees.
+            uint128_t endpoint_hash = string_to_uint128_hash("submit_fee_multiplier");
+
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(aactor, asset(reg_amount, FIOSYMBOL));
+            processrewardsnotpid(reg_amount, get_self());
+            //end new fees, logic for Mandatory fees.
 
                 const string response_string = string("{\"status\": \"OK\"}");
 
