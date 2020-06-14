@@ -112,7 +112,11 @@ namespace fioio {
 
                         const uint64_t voted_fee = (uint64_t)(dresult);
                         feevalues.push_back(voted_fee);
+                    }else{
+                        print("EDEDEDEDEDED NO fee multiplier found for ",vote_item.block_producer_name.to_string(),"\n");
                     }
+                }else{
+                    print("EDEDEDEDEDED NOT process ",lastvalUsed,"\n");
                 }
             }
 
@@ -164,6 +168,7 @@ namespace fioio {
                     if (dbgout) {
                         print(" updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     }
+                    print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
                         ff.votes_pending.emplace(false);
