@@ -39,9 +39,9 @@ namespace fioio {
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
-            int NUMBER_FEEVOTERS_TO_PROCESS = 100;
+            int NUMBER_FEEVOTERS_TO_PROCESS = 50;
 
-            const bool dbgout = true;
+            const bool dbgout = false;
 
             //Selecting only elected producers, create a map for each producer and its associated multiplier
             //for use in performing the multiplications later,
