@@ -39,6 +39,8 @@ namespace fioio {
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
+            vector<string> fee_endpoints;
+
             int NUMBER_FEEVOTERS_TO_PROCESS = 50;
 
             const bool dbgout = false;
@@ -65,6 +67,7 @@ namespace fioio {
 
                if(fee->votes_pending){
                    fees_to_process.push_back(fee->end_point_hash);
+                   fee_endpoints.push_back(fee->end_point);
                }
                 fee++;
             }
@@ -79,13 +82,61 @@ namespace fioio {
 
             if(fees_to_process.size() > numberfeestoprocess) {
                 fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess,fees_to_process.end());
+                fee_endpoints.erase(fee_endpoints.begin()+numberfeestoprocess,fee_endpoints.end());
             }
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
+            auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
+
             string lastvalUsed = "";
             uint128_t lastusedHash;
             uint64_t lastfid;
             vector <uint64_t> feevalues;
+
+            for(int i=0;i<fees_to_process.size();i++){
+                feevalues.clear();
+                auto vote_iter = feevotesbyendpoint.find(fees_to_process[i]);
+                //build fee values.
+                while ( vote_iter != feevotesbyendpoint.end()) {
+                    if (producer_fee_multipliers_map.find(vote_iter->block_producer_name.value) !=
+                        producer_fee_multipliers_map.end()) {
+                        //note -- we protect against both overflow and negative values here, an
+                        //overflow error should result computing the dresult,and we check if the
+                        //result is negative.
+                        const double dresult = producer_fee_multipliers_map[vote_iter->block_producer_name.value] *
+                                (double) vote_iter->suf_amount;
+                        const uint64_t voted_fee = (uint64_t)(dresult);
+                        feevalues.push_back(voted_fee);
+                    }
+                    vote_iter++;
+                }
+                print("EDEDEDEDED count ",feevalues.size()," for ",fee_endpoints[i],"\n");
+                //compute median
+                int64_t median_fee = compute_median_and_update_fees(feevalues, fee_endpoints[i], fees_to_process[i]);
+
+                //set it.
+                if (median_fee > 0) {
+                    //update the fee.
+                    auto fee_iter = feesbyendpoint.find(fees_to_process[i]);
+                    if (fee_iter != feesbyendpoint.end()) {
+                        print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
+                              "\n");
+                        feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
+                            ff.suf_amount = median_fee;
+                            ff.votes_pending = false;
+                        });
+
+                    } else {
+                        if (dbgout) {
+                            print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
+                                  " computed median is ", median_fee, " failed to update fee", "\n");
+                        }
+                    }
+                }
+            }
+
+            /*
+            auto vote_iter = feevotesbyendpoint.find()
             //traverse all of the fee votes grouped by endpoint.
             for (const auto &vote_item : feevotesbyendpoint) {
                 if (producer_fee_multipliers_map.find(vote_item.block_producer_name.value) !=
@@ -159,6 +210,7 @@ namespace fioio {
                     }
                 }
             }
+             */
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
