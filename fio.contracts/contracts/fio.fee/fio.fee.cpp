@@ -95,9 +95,12 @@ namespace fioio {
 
             for(int i=0;i<fees_to_process.size();i++){
                 feevalues.clear();
-                auto vote_iter = feevotesbyendpoint.find(fees_to_process[i]);
+                auto vote_iter = feevotesbyendpoint.lower_bound(fees_to_process[i]);
                 //build fee values.
                 while ( vote_iter != feevotesbyendpoint.end()) {
+                    if(vote_iter->end_point_hash != fees_to_process[i]){
+                        break;
+                    }
                     if (producer_fee_multipliers_map.find(vote_iter->block_producer_name.value) !=
                         producer_fee_multipliers_map.end()) {
                         //note -- we protect against both overflow and negative values here, an
