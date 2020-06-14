@@ -39,7 +39,7 @@ namespace fioio {
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
-            int NUMBER_FEEVOTERS_TO_PROCESS = 200;
+            int NUMBER_FEEVOTERS_TO_PROCESS = 100;
 
             const bool dbgout = true;
 
@@ -48,7 +48,6 @@ namespace fioio {
             int num_voters = 0;
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
-
                     auto voters_iter = feevoters.find(topprod->producer.value);
 
                     if (voters_iter != feevoters.end()) {
@@ -112,8 +111,6 @@ namespace fioio {
 
                         const uint64_t voted_fee = (uint64_t)(dresult);
                         feevalues.push_back(voted_fee);
-                    }else{
-                        print("EDEDEDEDEDED NO fee multiplier found for ",vote_item.block_producer_name.to_string(),"\n");
                     }
                 }
             }
@@ -167,6 +164,8 @@ namespace fioio {
                         print(" updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                     }
                     print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
+
+
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
                         ff.votes_pending.emplace(false);
