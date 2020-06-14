@@ -43,8 +43,7 @@ namespace fioio {
 
             int NUMBER_FEEVOTERS_TO_PROCESS = 400;
 
-            //Selecting only elected producers, create a map for each producer and its associated multiplier
-            //for use in performing the multiplications later,
+            //create a map for each top 21 producer and its associated multiplier
             int num_voters = 0;
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
@@ -59,7 +58,6 @@ namespace fioio {
             //get all the fees needing processing.
             auto fee = fiofees.begin();
             while (fee != fiofees.end()) {
-
                if(fee->votes_pending.value()){
                    fee_hashes.push_back(fee->end_point_hash);
                    fee_endpoints.push_back(fee->end_point);
@@ -71,11 +69,12 @@ namespace fioio {
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
+            //figure out how many to process this work iteration.
             int feevotestoprocess = (num_voters * fee_hashes.size());
             int numberiterations = ((feevotestoprocess % NUMBER_FEEVOTERS_TO_PROCESS) > 0) ? (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS)+1 : (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS);
             int numberfeestoprocess = (numberiterations == 1) ? fee_hashes.size() : NUMBER_FEEVOTERS_TO_PROCESS/num_voters;
 
-            //limit the amount of fees to process
+            //only process how many you need to process.
             if(fee_hashes.size() > numberfeestoprocess) {
                 fee_hashes.erase(fee_hashes.begin()+numberfeestoprocess,fee_hashes.end());
                 fee_endpoints.erase(fee_endpoints.begin()+numberfeestoprocess,fee_endpoints.end());
@@ -120,8 +119,6 @@ namespace fioio {
                     }
                 }
             }
-
-
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
 
