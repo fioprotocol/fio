@@ -38,12 +38,10 @@ namespace fioio {
 
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
-            vector<uint128_t> fees_to_process; //hashes for endpoints to process.
+            vector<uint128_t> fee_hashes; //hashes for endpoints to process.
             vector<string> fee_endpoints;
 
             int NUMBER_FEEVOTERS_TO_PROCESS = 400;
-
-            const bool dbgout = false;
 
             //Selecting only elected producers, create a map for each producer and its associated multiplier
             //for use in performing the multiplications later,
@@ -51,54 +49,48 @@ namespace fioio {
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
                     auto voters_iter = feevoters.find(topprod->producer.value);
-
                     if (voters_iter != feevoters.end()) {
-                        if (dbgout) {
-                            print(" adding producer to multiplier map", topprod->producer.to_string(), "\n");
-                        }
                         producer_fee_multipliers_map.insert(make_pair(topprod->producer.value, voters_iter->fee_multiplier));
                         num_voters++;
                     }
                 topprod++;
             }
 
+            //get all the fees needing processing.
             auto fee = fiofees.begin();
             while (fee != fiofees.end()) {
 
                if(fee->votes_pending.value()){
-                   fees_to_process.push_back(fee->end_point_hash);
+                   fee_hashes.push_back(fee->end_point_hash);
                    fee_endpoints.push_back(fee->end_point);
                }
                 fee++;
             }
 
             //400 error if fees to process is empty.
-            fio_400_assert(fees_to_process.size() > 0, "compute fees", "compute fees",
+            fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
-            int feevotestoprocess = (num_voters * fees_to_process.size());
+            int feevotestoprocess = (num_voters * fee_hashes.size());
             int numberiterations = ((feevotestoprocess % NUMBER_FEEVOTERS_TO_PROCESS) > 0) ? (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS)+1 : (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS);
-            int numberfeestoprocess = (numberiterations == 1) ? fees_to_process.size() : NUMBER_FEEVOTERS_TO_PROCESS/num_voters;
+            int numberfeestoprocess = (numberiterations == 1) ? fee_hashes.size() : NUMBER_FEEVOTERS_TO_PROCESS/num_voters;
 
-            if(fees_to_process.size() > numberfeestoprocess) {
-                fees_to_process.erase(fees_to_process.begin()+numberfeestoprocess,fees_to_process.end());
+            //limit the amount of fees to process
+            if(fee_hashes.size() > numberfeestoprocess) {
+                fee_hashes.erase(fee_hashes.begin()+numberfeestoprocess,fee_hashes.end());
                 fee_endpoints.erase(fee_endpoints.begin()+numberfeestoprocess,fee_endpoints.end());
             }
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-
-            string lastvalUsed = "";
-            uint128_t lastusedHash;
-            uint64_t lastfid;
             vector <uint64_t> feevalues;
 
-            for(int i=0;i<fees_to_process.size();i++){
+            for(int i=0;i<fee_hashes.size();i++){
                 feevalues.clear();
-                auto vote_iter = feevotesbyendpoint.lower_bound(fees_to_process[i]);
+                auto vote_iter = feevotesbyendpoint.lower_bound(fee_hashes[i]);
                 //build fee values.
                 while ( vote_iter != feevotesbyendpoint.end()) {
-                    if(vote_iter->end_point_hash != fees_to_process[i]){
+                    if(vote_iter->end_point_hash != fee_hashes[i]){
                         break;
                     }
                     if (producer_fee_multipliers_map.find(vote_iter->block_producer_name.value) !=
@@ -114,107 +106,26 @@ namespace fioio {
                     vote_iter++;
                 }
                 //compute median
-                int64_t median_fee = compute_median_and_update_fees(feevalues, fee_endpoints[i], fees_to_process[i]);
+                int64_t median_fee = compute_median(feevalues, fee_endpoints[i], fee_hashes[i]);
                 //set it.
                 if (median_fee > 0) {
                     //update the fee.
-                    auto fee_iter = feesbyendpoint.find(fees_to_process[i]);
+                    auto fee_iter = feesbyendpoint.find(fee_hashes[i]);
                     if (fee_iter != feesbyendpoint.end()) {
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
                             ff.votes_pending.emplace(false);
                         });
 
-                    } else {
-                        if (dbgout) {
-                            print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
-                                  " computed median is ", median_fee, " failed to update fee", "\n");
-                        }
                     }
                 }
             }
 
-            /*
-            auto vote_iter = feevotesbyendpoint.find()
-            //traverse all of the fee votes grouped by endpoint.
-            for (const auto &vote_item : feevotesbyendpoint) {
-                if (producer_fee_multipliers_map.find(vote_item.block_producer_name.value) !=
-                    producer_fee_multipliers_map.end()) {
-                    //if we have changed the endpoint name then we are in the next endpoints grouping,
-                    // so compute median fee for this endpoint and then clear the list.
-                    if (vote_item.end_point.compare(lastvalUsed) != 0) {
-                        int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
-
-                        if (median_fee > 0) {
-                            //update the fee.
-                            auto fee_iter = fiofees.find(vote_item.fee_id);
-                            if (fee_iter != fiofees.end()) {
-                                print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
-                                      "\n");
-                                fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                                    ff.suf_amount = median_fee;
-                                    ff.votes_pending = false;
-                                });
-
-                            } else {
-                                if (dbgout) {
-                                    print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
-                                          " computed median is ", median_fee, " failed to update fee", "\n");
-                                }
-                            }
-                        }
-
-                        feevalues.clear();
-                    }
-                    lastvalUsed = vote_item.end_point;
-                    lastusedHash = vote_item.end_point_hash;
-                    lastfid = vote_item.fee_id;
-
-
-                    if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
-                        //note -- we protect against both overflow and negative values here, an
-                        //overflow error should result computing the dresult,and we check if the
-                        //result is negative.
-                        const double dresult = producer_fee_multipliers_map[vote_item.block_producer_name.value] *
-                                               (double) vote_item.suf_amount;
-
-                        const uint64_t voted_fee = (uint64_t)(dresult);
-                        feevalues.push_back(voted_fee);
-
-                    }
-                }
-
-            }
-
-            if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
-                //compute the median on the remaining feevalues, this remains to be
-                //processed after we have gone through the loop.
-                int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
-                if (median_fee > 0) {
-                    //update the fee.
-                    auto fee_iter = fiofees.find(lastfid);
-                    if (fee_iter != fiofees.end()) {
-                        print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
-                              "\n");
-                        fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                            ff.suf_amount = median_fee;
-                            ff.votes_pending = false;
-                        });
-
-                    } else {
-                        if (dbgout) {
-                            print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
-                                  " computed median is ", median_fee, " failed to update fee", "\n");
-                        }
-                    }
-                }
-            }
-             */
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
 
-            return fees_to_process.size();
+            return fee_hashes.size();
         }
 
         /*******
@@ -225,8 +136,7 @@ namespace fioio {
         * @param fee_endpoint_hash
         */
         int64_t
-        compute_median_and_update_fees(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
-            bool dbgout = false;
+        compute_median(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
             //one more time
             if (feevalues.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
                 uint64_t median_fee = 0;
@@ -235,18 +145,11 @@ namespace fioio {
                 //if the number of values is odd use the middle one.
                 if ((feevalues.size() % 2) == 1) {
                     const int useIdx = (feevalues.size() / 2);
-                    if (dbgout) {
-                        print(" odd size is ", feevalues.size(), " using index for median ", useIdx, "\n");
-                    }
                     median_fee = feevalues[useIdx];
                 } else {//even number in the list. use the middle 2
                     const int useIdx = (feevalues.size() / 2) - 1;
-                    if (dbgout) {
-                        print(" even size is ", feevalues.size(), " using index for median ", useIdx, "\n");
-                    }
                     median_fee = (feevalues[useIdx] + feevalues[useIdx + 1]) / 2;
                 }
-
                 return median_fee;
             }
             return -1;
