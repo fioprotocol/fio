@@ -272,7 +272,7 @@ namespace fioio {
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "submit_fee_ratios",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
@@ -280,7 +280,7 @@ namespace fioio {
 
             //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           "submit_fee_ratios unexpected fee type for endpoint submit_fee_ratios, expected 0",
                            ErrorNoEndpoint);
 
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
@@ -461,12 +461,13 @@ namespace fioio {
                 votebyname_iter++;
             }
 
+
             //begin new fees, logic for Mandatory fees.
             uint128_t endpoint_hash = string_to_uint128_hash("submit_fee_multiplier");
 
             auto fee_iter = fees_by_endpoint.find(endpoint_hash);
             //if the fee isnt found for the endpoint, then 400 error.
-            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "register_producer",
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "submit_fee_multiplier",
                            "FIO fee not found for endpoint", ErrorNoEndpoint);
 
             uint64_t reg_amount = fee_iter->suf_amount;
@@ -474,7 +475,7 @@ namespace fioio {
 
             //if its not a mandatory fee then this is an error.
             fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
-                           "register_producer unexpected fee type for endpoint register_producer, expected 0",
+                           "submit_fee_multiplier unexpected fee type for endpoint submit_fee_multiplier, expected 0",
                            ErrorNoEndpoint);
 
             fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
