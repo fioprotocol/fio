@@ -258,9 +258,11 @@ namespace fioio {
                         fv.lastvotetimestamp = nowtime;
                     });
 
-                    feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
-                        a.votes_pending.emplace(true);
-                    });
+                    if(topprods.find(aactor.value) != topprods.end()) {
+                        feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
+                            a.votes_pending.emplace(true);
+                        });
+                    }
                 } else {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
                 }
@@ -446,21 +448,24 @@ namespace fioio {
             auto votebyname_iter = feevotesbybpname.lower_bound(aactor.value);
             auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
 
-            while (votebyname_iter != feevotesbybpname.end()) {
-                if (votebyname_iter->block_producer_name.value != aactor.value) {
-                    //if the bp name changes we have exited the items of interest, so quit.
-                    break;
-                } else {
-                    auto fee_iter = fees_by_endpoint.find(votebyname_iter->end_point_hash);
-                    fio_400_assert((fee_iter != fees_by_endpoint.end()), "end point", votebyname_iter->end_point,
-                                   " Fee lookup error",
-                                   ErrorNoFeesFoundForEndpoint);
-                    fees_by_endpoint.modify(fee_iter, _self, [&](struct fiofee &a) {
-                        a.votes_pending.emplace(true);
-                    });
+            if(topprods.find(aactor.value) != topprods.end()) {
 
+                while (votebyname_iter != feevotesbybpname.end()) {
+                    if (votebyname_iter->block_producer_name.value != aactor.value) {
+                        //if the bp name changes we have exited the items of interest, so quit.
+                        break;
+                    } else {
+                        auto fee_iter = fees_by_endpoint.find(votebyname_iter->end_point_hash);
+                        fio_400_assert((fee_iter != fees_by_endpoint.end()), "end point", votebyname_iter->end_point,
+                                       " Fee lookup error",
+                                       ErrorNoFeesFoundForEndpoint);
+                        fees_by_endpoint.modify(fee_iter, _self, [&](struct fiofee &a) {
+                            a.votes_pending.emplace(true);
+                        });
+
+                    }
+                    votebyname_iter++;
                 }
-                votebyname_iter++;
             }
 
 
