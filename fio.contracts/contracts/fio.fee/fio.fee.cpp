@@ -201,7 +201,7 @@ namespace fioio {
          */
         // @abi action
         [[eosio::action]]
-        void setfeevote(const vector <feevalue> &fee_values, const uint64_t &max_fee, const string &actor) {
+        void setfeevote(const vector <feevalue> &fee_values, const int64_t &max_fee, const string &actor) {
 
             name aactor = name(actor.c_str());
             require_auth(aactor);
@@ -421,7 +421,7 @@ namespace fioio {
         [[eosio::action]]
         void setfeemult(
                 const double &multiplier,
-                const uint64_t &max_fee,
+                const int64_t &max_fee,
                 const string &actor
         ) {
 

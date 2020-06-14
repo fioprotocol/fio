@@ -22,6 +22,7 @@
         "base": "",
         "fields": [
             {"name":"fee_ratios", "type":"feevalue[]"},
+            {"name":"max_fee", "type":"int64"},
             {"name":"actor", "type":"string"}
         ]
       },{
@@ -36,6 +37,7 @@
         "base": "",
         "fields": [
             {"name":"multiplier", "type":"float64"},
+            {"name":"max_fee", "type":"int64"},
             {"name":"actor", "type":"string"}
         ]
       },{
