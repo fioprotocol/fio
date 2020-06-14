@@ -197,32 +197,6 @@ namespace fioio {
                 }
 
                 return median_fee;
-                /*
-                //update the fee.
-                auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                auto fee_iter = feesbyendpoint.find(fee_endpoint_hash);
-                if (fee_iter != feesbyendpoint.end()) {
-                    if (dbgout) {
-                        print(" updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
-                    }
-                    print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
-
-
-                    feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                        ff.suf_amount = median_fee;
-                       // ff.votes_pending.emplace(false);
-                    });
-                    feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                        //ff.suf_amount = median_fee;
-                        ff.votes_pending.emplace(false);
-                    });
-                } else {
-                    if (dbgout) {
-                        print(" fee endpoint does not exist in fiofees for endpoint ", fee_endpoint,
-                              " computed median is ", median_fee, " failed to update fee", "\n");
-                    }
-                }
-                 */
             }
             return -1;
         }
