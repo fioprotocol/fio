@@ -39,7 +39,7 @@ namespace fioio {
         uint32_t update_fees() {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
-            int NUMBER_FEEVOTERS_TO_PROCESS = 400;
+            int NUMBER_FEEVOTERS_TO_PROCESS = 200;
 
             const bool dbgout = false;
 
