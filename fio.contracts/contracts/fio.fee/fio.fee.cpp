@@ -100,7 +100,7 @@ namespace fioio {
                             print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
                                   "\n");
                             feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                                ff.suf_amount = median_fee;
+                              //  ff.suf_amount = median_fee;
                                 ff.votes_pending.emplace(false);
                             });
 
@@ -147,7 +147,7 @@ namespace fioio {
                     if (fee_iter != feesbyendpoint.end()) {
                         print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                            ff.suf_amount = median_fee;
+                           // ff.suf_amount = median_fee;
                             ff.votes_pending.emplace(false);
                         });
 

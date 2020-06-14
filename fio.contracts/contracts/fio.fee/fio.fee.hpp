@@ -43,7 +43,7 @@ namespace fioio {
         uint64_t type;      // this is the fee type from the feetype enumeration.
         uint64_t suf_amount;
         eosio::binary_extension<bool> votes_pending = false;
-        
+
         uint64_t primary_key() const { return fee_id; }
         uint128_t by_endpoint() const { return end_point_hash; }
         uint64_t by_type() const { return type; }
