@@ -168,7 +168,7 @@ namespace fioio {
 
                     feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                         ff.suf_amount = median_fee;
-                        ff.votes_pending.emplace(false);
+                       // ff.votes_pending.emplace(false);
                     });
                 } else {
                     if (dbgout) {
