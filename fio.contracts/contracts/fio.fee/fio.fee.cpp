@@ -63,7 +63,7 @@ namespace fioio {
             auto fee = fiofees.begin();
             while (fee != fiofees.end()) {
 
-               if(fee->votes_pending.value()){
+               if(fee->votes_pending){
                    fees_to_process.push_back(fee->end_point_hash);
                }
                 fee++;
@@ -103,7 +103,7 @@ namespace fioio {
                                       "\n");
                                 fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
                                     ff.suf_amount = median_fee;
-                                    ff.votes_pending.emplace(false);
+                                    ff.votes_pending = false;
                                 });
 
                             } else {
@@ -148,7 +148,7 @@ namespace fioio {
                               "\n");
                         fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
-                            ff.votes_pending.emplace(false);
+                            ff.votes_pending = false;
                         });
 
                     } else {
@@ -310,7 +310,7 @@ namespace fioio {
                     });
 
                     feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
-                        a.votes_pending.emplace(true);
+                        a.votes_pending = true;
                     });
                 } else {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
@@ -505,7 +505,7 @@ namespace fioio {
                                    " Fee lookup error",
                                    ErrorNoFeesFoundForEndpoint);
                     fees_by_endpoint.modify(fee_iter, _self, [&](struct fiofee &a) {
-                        a.votes_pending.emplace(true);
+                        a.votes_pending = true;
                     });
 
                 }
@@ -664,7 +664,7 @@ namespace fioio {
                     f.end_point_hash = endPointHash;
                     f.type = type;
                     f.suf_amount = suf_amount;
-                    f.votes_pending.emplace(false);
+                    f.votes_pending = false;
                 });
             }
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
