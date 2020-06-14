@@ -101,12 +101,13 @@ namespace fioio {
         uint128_t end_point_hash;
         uint64_t suf_amount;
         uint64_t lastvotetimestamp;
+        uint64_t fee_id;
 
         uint64_t primary_key() const { return id; }
         uint128_t by_endpoint() const { return end_point_hash; }
         uint64_t by_bpname() const { return block_producer_name.value; }
 
-        EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)(lastvotetimestamp)
+        EOSLIB_SERIALIZE(feevote, (id)(block_producer_name)(end_point)(end_point_hash)(suf_amount)(lastvotetimestamp)(fee_id)
         )
     };
 

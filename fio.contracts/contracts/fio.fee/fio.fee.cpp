@@ -84,50 +84,44 @@ namespace fioio {
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             string lastvalUsed = "";
             uint128_t lastusedHash;
+            uint64_t lastfid;
             vector <uint64_t> feevalues;
             //traverse all of the fee votes grouped by endpoint.
             for (const auto &vote_item : feevotesbyendpoint) {
-                //if we have changed the endpoint name then we are in the next endpoints grouping,
-                // so compute median fee for this endpoint and then clear the list.
-                if (vote_item.end_point.compare(lastvalUsed) != 0) {
-                    int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+                if (producer_fee_multipliers_map.find(vote_item.block_producer_name.value) !=
+                    producer_fee_multipliers_map.end()) {
+                    //if we have changed the endpoint name then we are in the next endpoints grouping,
+                    // so compute median fee for this endpoint and then clear the list.
+                    if (vote_item.end_point.compare(lastvalUsed) != 0) {
+                        int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
 
-                    if (median_fee > 0) {
-                        //update the fee.
-                        auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                        auto fee_iter = feesbyendpoint.find(lastusedHash);
-                        if (fee_iter != feesbyendpoint.end()) {
-                            print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
-                                  "\n");
-                            feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                              //  ff.suf_amount = median_fee;
-                                ff.votes_pending.emplace(false);
-                            });
-                            feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                                ff.suf_amount = median_fee;
-                                //ff.votes_pending.emplace(false);
-                            });
+                        if (median_fee > 0) {
+                            //update the fee.
+                            auto fee_iter = fiofees.find(vote_item.fee_id);
+                            if (fee_iter != fiofees.end()) {
+                                print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
+                                      "\n");
+                                fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
+                                    ff.suf_amount = median_fee;
+                                    ff.votes_pending.emplace(false);
+                                });
 
-                        } else {
-                            if (dbgout) {
-                                print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
-                                      " computed median is ", median_fee, " failed to update fee", "\n");
+                            } else {
+                                if (dbgout) {
+                                    print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
+                                          " computed median is ", median_fee, " failed to update fee", "\n");
+                                }
                             }
                         }
+
+                        feevalues.clear();
                     }
+                    lastvalUsed = vote_item.end_point;
+                    lastusedHash = vote_item.end_point_hash;
+                    lastfid = vote_item.fee_id;
 
-                    feevalues.clear();
-                }
-                lastvalUsed = vote_item.end_point;
-                lastusedHash = vote_item.end_point_hash;
 
-                if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
-                    //if the vote item block producer name is in the multiplier map, then multiply
-                    //the suf amount by the multiplier and add it to the list of feevalues to be
-                    //averaged
-                    if (producer_fee_multipliers_map.find(vote_item.block_producer_name.value) !=
-                        producer_fee_multipliers_map.end()) {
-
+                    if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
                         //note -- we protect against both overflow and negative values here, an
                         //overflow error should result computing the dresult,and we check if the
                         //result is negative.
@@ -136,8 +130,10 @@ namespace fioio {
 
                         const uint64_t voted_fee = (uint64_t)(dresult);
                         feevalues.push_back(voted_fee);
+
                     }
                 }
+
             }
 
             if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
@@ -146,17 +142,13 @@ namespace fioio {
                 int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
                 if (median_fee > 0) {
                     //update the fee.
-                    auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-                    auto fee_iter = feesbyendpoint.find(lastusedHash);
-                    if (fee_iter != feesbyendpoint.end()) {
-                        print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
-                        feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
-                           // ff.suf_amount = median_fee;
-                            ff.votes_pending.emplace(false);
-                        });
-                        feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
+                    auto fee_iter = fiofees.find(lastfid);
+                    if (fee_iter != fiofees.end()) {
+                        print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
+                              "\n");
+                        fiofees.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
-                            //ff.votes_pending.emplace(false);
+                            ff.votes_pending.emplace(false);
                         });
 
                     } else {
@@ -261,6 +253,7 @@ namespace fioio {
 
                 fio_400_assert(fees_iter != feesbyendpoint.end(), "end_point", feeval.end_point,
                                "invalid end_point", ErrorEndpointNotFound);
+                const auto feeid = fees_iter->fee_id;
 
                 fio_400_assert(feeval.value >= 0, "fee_value", feeval.end_point,
                                "invalid fee value", ErrorFeeInvalid);
@@ -313,6 +306,7 @@ namespace fioio {
                         fv.end_point_hash = endPointHash;
                         fv.suf_amount = feeval.value;
                         fv.lastvotetimestamp = nowtime;
+                        fv.fee_id = feeid;
                     });
 
                     feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
