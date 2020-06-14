@@ -65,7 +65,7 @@ namespace fioio {
             auto fee = fiofees.begin();
             while (fee != fiofees.end()) {
 
-               if(fee->votes_pending){
+               if(fee->votes_pending.value()){
                    fees_to_process.push_back(fee->end_point_hash);
                    fee_endpoints.push_back(fee->end_point);
                }
@@ -113,20 +113,16 @@ namespace fioio {
                     }
                     vote_iter++;
                 }
-                print("EDEDEDEDED count ",feevalues.size()," for ",fee_endpoints[i],"\n");
                 //compute median
                 int64_t median_fee = compute_median_and_update_fees(feevalues, fee_endpoints[i], fees_to_process[i]);
-
                 //set it.
                 if (median_fee > 0) {
                     //update the fee.
                     auto fee_iter = feesbyendpoint.find(fees_to_process[i]);
                     if (fee_iter != feesbyendpoint.end()) {
-                        print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
-                              "\n");
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
-                            ff.votes_pending = false;
+                            ff.votes_pending.emplace(false);
                         });
 
                     } else {
@@ -308,7 +304,6 @@ namespace fioio {
 
                 fio_400_assert(fees_iter != feesbyendpoint.end(), "end_point", feeval.end_point,
                                "invalid end_point", ErrorEndpointNotFound);
-                const auto feeid = fees_iter->fee_id;
 
                 fio_400_assert(feeval.value >= 0, "fee_value", feeval.end_point,
                                "invalid fee value", ErrorFeeInvalid);
@@ -361,11 +356,10 @@ namespace fioio {
                         fv.end_point_hash = endPointHash;
                         fv.suf_amount = feeval.value;
                         fv.lastvotetimestamp = nowtime;
-                        fv.fee_id = feeid;
                     });
 
                     feesbyendpoint.modify(fees_iter, _self, [&](struct fiofee &a) {
-                        a.votes_pending = true;
+                        a.votes_pending.emplace(true);
                     });
                 } else {
                     fio_400_assert(false, "", "", "Too soon since last call", ErrorTimeViolation);
@@ -560,7 +554,7 @@ namespace fioio {
                                    " Fee lookup error",
                                    ErrorNoFeesFoundForEndpoint);
                     fees_by_endpoint.modify(fee_iter, _self, [&](struct fiofee &a) {
-                        a.votes_pending = true;
+                        a.votes_pending.emplace(true);
                     });
 
                 }
@@ -719,7 +713,7 @@ namespace fioio {
                     f.end_point_hash = endPointHash;
                     f.type = type;
                     f.suf_amount = suf_amount;
-                    f.votes_pending = false;
+                    f.votes_pending.emplace(false);
                 });
             }
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),

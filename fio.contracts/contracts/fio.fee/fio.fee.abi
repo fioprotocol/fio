@@ -71,7 +71,7 @@
            {"name":"end_point_hash", "type":"uint128"},
            {"name":"type", "type":"uint64"},
            {"name":"suf_amount", "type":"uint64"},
-           {"name":"votes_pending", "type":"bool"}
+           {"name":"votes_pending", "type":"bool$"}
 
         ]
      },{
