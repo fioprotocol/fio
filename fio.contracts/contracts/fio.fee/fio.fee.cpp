@@ -41,7 +41,7 @@ namespace fioio {
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
             int NUMBER_FEEVOTERS_TO_PROCESS = 200;
 
-            const bool dbgout = false;
+            const bool dbgout = true;
 
             //Selecting only elected producers, create a map for each producer and its associated multiplier
             //for use in performing the multiplications later,
@@ -115,8 +115,6 @@ namespace fioio {
                     }else{
                         print("EDEDEDEDEDED NO fee multiplier found for ",vote_item.block_producer_name.to_string(),"\n");
                     }
-                }else{
-                    print("EDEDEDEDEDED NOT process ",lastvalUsed,"\n");
                 }
             }
 
