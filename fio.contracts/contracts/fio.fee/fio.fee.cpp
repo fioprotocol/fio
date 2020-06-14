@@ -90,7 +90,28 @@ namespace fioio {
                 //if we have changed the endpoint name then we are in the next endpoints grouping,
                 // so compute median fee for this endpoint and then clear the list.
                 if (vote_item.end_point.compare(lastvalUsed) != 0) {
-                    compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+                    int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+
+                    if (median_fee > 0) {
+                        //update the fee.
+                        auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
+                        auto fee_iter = feesbyendpoint.find(lastusedHash);
+                        if (fee_iter != feesbyendpoint.end()) {
+                            print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee,
+                                  "\n");
+                            feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
+                                ff.suf_amount = median_fee;
+                                ff.votes_pending.emplace(false);
+                            });
+
+                        } else {
+                            if (dbgout) {
+                                print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
+                                      " computed median is ", median_fee, " failed to update fee", "\n");
+                            }
+                        }
+                    }
+
                     feevalues.clear();
                 }
                 lastvalUsed = vote_item.end_point;
@@ -118,7 +139,25 @@ namespace fioio {
             if (find(fees_to_process.begin(), fees_to_process.end(), lastusedHash) != fees_to_process.end()) {
                 //compute the median on the remaining feevalues, this remains to be
                 //processed after we have gone through the loop.
-                compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+                int64_t median_fee = compute_median_and_update_fees(feevalues, lastvalUsed, lastusedHash);
+                if (median_fee > 0) {
+                    //update the fee.
+                    auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
+                    auto fee_iter = feesbyendpoint.find(lastusedHash);
+                    if (fee_iter != feesbyendpoint.end()) {
+                        print(" EDEDEDEDEDEDEDED updating ", fee_iter->end_point, " to have fee ", median_fee, "\n");
+                        feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
+                            ff.suf_amount = median_fee;
+                            ff.votes_pending.emplace(false);
+                        });
+
+                    } else {
+                        if (dbgout) {
+                            print(" fee endpoint does not exist in fiofees for endpoint ", lastvalUsed,
+                                  " computed median is ", median_fee, " failed to update fee", "\n");
+                        }
+                    }
+                }
             }
 
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
@@ -134,7 +173,7 @@ namespace fioio {
         * @param fee_endpoint
         * @param fee_endpoint_hash
         */
-        void
+        int64_t
         compute_median_and_update_fees(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
             bool dbgout = false;
             //one more time
@@ -156,6 +195,9 @@ namespace fioio {
                     }
                     median_fee = (feevalues[useIdx] + feevalues[useIdx + 1]) / 2;
                 }
+
+                return median_fee;
+                /*
                 //update the fee.
                 auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
                 auto fee_iter = feesbyendpoint.find(fee_endpoint_hash);
@@ -180,7 +222,9 @@ namespace fioio {
                               " computed median is ", median_fee, " failed to update fee", "\n");
                     }
                 }
+                 */
             }
+            return -1;
         }
 
     public:

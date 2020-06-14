@@ -22,6 +22,13 @@ namespace fioio {
         // then a fee is applied. the number of free transactions is determined by votes of the block producers.
     };
 
+    struct feehashvalue {
+        uint128_t end_point_hash;
+        uint64_t value;   //this it the value of the fee in FIO SUFs (Smallest unit of FIO).
+
+        EOSLIB_SERIALIZE( feehashvalue, (end_point_hash)(value))
+    };
+
     struct feevalue {
         string end_point; //this is the name of the endpoint, which is by convention the same as the
                           //url to which the signed transaction is sent.
