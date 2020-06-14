@@ -41,7 +41,7 @@ namespace fioio {
             vector<uint128_t> fees_to_process; //hashes for endpoints to process.
             vector<string> fee_endpoints;
 
-            int NUMBER_FEEVOTERS_TO_PROCESS = 50;
+            int NUMBER_FEEVOTERS_TO_PROCESS = 400;
 
             const bool dbgout = false;
 
