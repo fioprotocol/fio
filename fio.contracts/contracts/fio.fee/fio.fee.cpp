@@ -36,38 +36,73 @@ namespace fioio {
         eosiosystem::top_producers_table topprods;
         eosiosystem::producers_table prods;
 
+        struct bpfeevotes {
+            vector<uint64_t> votesufs;
+            string end_point = "";
+            name producer;
+        };
+
         uint32_t update_fees() {
-            map<uint64_t, double> producer_fee_multipliers_map;
+            map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash;
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
             vector<string> fee_endpoints;
             
-           int NUMBER_FEES_TO_PROCESS = 3;
-
-            //create a map for each top 21 producer and its associated multiplier
-            int num_voters = 0;
-            auto topprod = topprods.begin();
-            while (topprod != topprods.end()) {
-                    auto voters_iter = feevoters.find(topprod->producer.value);
-                    if (voters_iter != feevoters.end()) {
-                        producer_fee_multipliers_map.insert(make_pair(topprod->producer.value, voters_iter->fee_multiplier));
-                        num_voters++;
-                    }
-                topprod++;
-            }
+            int NUMBER_FEES_TO_PROCESS = 3;
 
             //get the fees needing processing.
             auto fee = fiofees.begin();
             while (fee != fiofees.end()) {
-               if(fee->votes_pending.value()){
-                   fee_hashes.push_back(fee->end_point_hash);
-                   fee_endpoints.push_back(fee->end_point);
-                   //this check added to eliminate the computations of howm many to process.
-                   if (fee_hashes.size() == NUMBER_FEES_TO_PROCESS){
-                       break;
-                   }
-               }
+                if(fee->votes_pending.value()){
+                    fee_hashes.push_back(fee->end_point_hash);
+                    fee_endpoints.push_back(fee->end_point);
+                    //this check added to eliminate the computations of howm many to process.
+                    if (fee_hashes.size() == NUMBER_FEES_TO_PROCESS){
+                        break;
+                    }
+                }
                 fee++;
             }
+
+            //create a map for each top 21 producer and its associated multiplier
+            int num_voters = 0;
+            auto topprod = topprods.begin();
+            auto feevotesbybp = feevotes.get_index<"bybpname"_n>();
+
+            while (topprod != topprods.end()) {
+                auto voters_iter = feevoters.find(topprod->producer.value);
+                fio_400_assert(voters_iter != feevoters.end(), "compute fees", "compute fees",
+                               "Failed to find BP in feevoters table.", ErrorNoWork);
+                auto feevote_iter = feevotesbybp.find(topprod->producer.value);
+                fio_400_assert(feevote_iter != feevotesbybp.end(), "compute fees", "compute fees",
+                               "Failed to find BP in feevotes table.", ErrorNoWork);
+                //loop aver the fee votes of this BP, add to the list of votes.
+                while(feevote_iter != feevotesbybp.end()) {
+                    //if its in the list to process.
+                    if((std::find (fee_hashes.begin(), fee_hashes.end(), feevote_iter->end_point_hash)) != fee_hashes.end()) {
+                        const double dresult = voters_iter->fee_multiplier * (double) feevote_iter->suf_amount;
+                        const uint64_t voted_fee = (uint64_t)(dresult);
+
+                        auto fveh_iter = feevotes_by_endpoint_hash.find(feevote_iter->end_point_hash);
+                        if ( fveh_iter == feevotes_by_endpoint_hash.end()) {
+                            vector <uint64_t> t;
+                            t.push_back(voted_fee);
+                            bpfeevotes blockproducerfeevote{
+                                    t,
+                                    feevote_iter->end_point,
+                                    topprod->producer
+                            };
+                            print("EDEDED added first vote for endpoint ", feevote_iter->end_point," for producer ", topprod->producer.to_string(),"\n");
+                        } else {
+                            print("EDEDED added vote for producer ", topprod->producer.to_string(),"\n");
+                            fveh_iter->second.votesufs.push_back(voted_fee);
+                        }
+                    }
+                    feevote_iter++;
+                }
+                num_voters++;
+                topprod++;
+            }
+
 
             //400 error if fees to process is empty.
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
@@ -75,37 +110,22 @@ namespace fioio {
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-            vector <uint64_t> feevalues;
 
             for(int i=0;i<fee_hashes.size();i++){
-                feevalues.clear();
-                auto vote_iter = feevotesbyendpoint.lower_bound(fee_hashes[i]);
-                //build fee values.
-                while ( vote_iter != feevotesbyendpoint.end()) {
-                    if(vote_iter->end_point_hash != fee_hashes[i]){
-                        break;
-                    }
-                    if (producer_fee_multipliers_map.find(vote_iter->block_producer_name.value) !=
-                        producer_fee_multipliers_map.end()) {
-                        //note -- we protect against both overflow and negative values here, an
-                        //overflow error should result computing the dresult,and we check if the
-                        //result is negative.
-                        const double dresult = producer_fee_multipliers_map[vote_iter->block_producer_name.value] *
-                                (double) vote_iter->suf_amount;
-                        const uint64_t voted_fee = (uint64_t)(dresult);
-                        feevalues.push_back(voted_fee);
-                    }
-                    vote_iter++;
-                }
+
+                auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[i]);
+                fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
+                               "Failed to find endpoint hash in feevotes_by_endpoint_hash.", ErrorNoWork);
+                bpfeevotes bpfv = fveh_iter->second;
 
                 int64_t median_fee = -1;
-                if (feevalues.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
-                    sort(feevalues.begin(), feevalues.end());
-                    int size = feevalues.size();
-                    if (feevalues.size() % 2 == 0) {
-                        median_fee = (feevalues[size / 2 - 1] + feevalues[size / 2]) / 2;
+                if (bpfv.votesufs.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
+                    sort(bpfv.votesufs.begin(), bpfv.votesufs.end());
+                    int size = bpfv.votesufs.size();
+                    if (bpfv.votesufs.size() % 2 == 0) {
+                        median_fee = (bpfv.votesufs[size / 2 - 1] + bpfv.votesufs[size / 2]) / 2;
                     } else {
-                        median_fee = feevalues[size / 2];
+                        median_fee = bpfv.votesufs[size / 2];
                     }
                 }
 
@@ -114,6 +134,7 @@ namespace fioio {
                     //update the fee.
                     auto fee_iter = feesbyendpoint.find(fee_hashes[i]);
                     if (fee_iter != feesbyendpoint.end()) {
+                        print("EDEDED setting fee for ",fee_endpoints[i]," to be ",median_fee,"\n");
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
                             ff.votes_pending.emplace(false);
