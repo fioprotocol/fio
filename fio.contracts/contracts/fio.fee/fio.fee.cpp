@@ -42,7 +42,7 @@ namespace fioio {
             vector<string> fee_endpoints;
 
            // int NUMBER_FEEVOTERS_TO_PROCESS = 60;
-           int NUMBER_FEES_TO_PROCESS = 4;
+           int NUMBER_FEES_TO_PROCESS = 3;
 
             //create a map for each top 21 producer and its associated multiplier
             int num_voters = 0;
