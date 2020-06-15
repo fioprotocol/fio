@@ -91,9 +91,9 @@ namespace fioio {
                                     feevote_iter->end_point,
                                     topprod->producer
                             };
-                            print("EDEDED added first vote for endpoint ", feevote_iter->end_point," for producer ", topprod->producer.to_string(),"\n");
+                          //  print("EDEDED added first vote for endpoint ", feevote_iter->end_point," for producer ", topprod->producer.to_string(),"\n");
                         } else {
-                            print("EDEDED added vote for producer ", topprod->producer.to_string(),"\n");
+                          //  print("EDEDED added vote for producer ", topprod->producer.to_string(),"\n");
                             fveh_iter->second.votesufs.push_back(voted_fee);
                         }
                     }
