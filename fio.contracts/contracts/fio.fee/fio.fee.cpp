@@ -74,7 +74,6 @@ namespace fioio {
             }
 
             //create a map for each top 21 producer and its associated multiplier
-            int num_voters = 0;
             auto feevote_iter = feevotes.begin();
 
             while (feevote_iter != feevotes.end()) {
@@ -99,10 +98,11 @@ namespace fioio {
                             fveh_iter->second.votesufs.push_back(voted_fee);
                         }
                     }
-                    feevote_iter++;
+
                 }
-                num_voters++;
-                topprod++;
+
+                feevote_iter++;
+
             }
 
 
