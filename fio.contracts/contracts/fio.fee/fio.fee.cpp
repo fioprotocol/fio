@@ -110,8 +110,18 @@ namespace fioio {
                     }
                     vote_iter++;
                 }
-                //compute median
-                int64_t median_fee = compute_median(feevalues, fee_endpoints[i], fee_hashes[i]);
+
+                int64_t median_fee = -1;
+                if (feevalues.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
+                    sort(feevalues.begin(), feevalues.end());
+                    int size = feevalues.size();
+                    if (feevalues.size() % 2 == 0) {
+                        median_fee = (feevalues[size / 2 - 1] + feevalues[size / 2]) / 2;
+                    } else {
+                        median_fee = feevalues[size / 2];
+                    }
+                }
+
                 //set it.
                 if (median_fee > 0) {
                     //update the fee.
@@ -129,33 +139,6 @@ namespace fioio {
               "Transaction is too large", ErrorTransactionTooLarge);
 
             return fee_hashes.size();
-        }
-
-        /*******
-        * This method will compute the median fee from the fee votes that are cast.
-        *
-        * @param feevalues
-        * @param fee_endpoint
-        * @param fee_endpoint_hash
-        */
-        int64_t
-        compute_median(vector <uint64_t> feevalues, const string &fee_endpoint, const uint128_t &fee_endpoint_hash) {
-            //one more time
-            if (feevalues.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
-                uint64_t median_fee = 0;
-                //sort it.
-                sort(feevalues.begin(), feevalues.end());
-                //if the number of values is odd use the middle one.
-                if ((feevalues.size() % 2) == 1) {
-                    const int useIdx = (feevalues.size() / 2);
-                    median_fee = feevalues[useIdx];
-                } else {//even number in the list. use the middle 2
-                    const int useIdx = (feevalues.size() / 2) - 1;
-                    median_fee = (feevalues[useIdx] + feevalues[useIdx + 1]) / 2;
-                }
-                return median_fee;
-            }
-            return -1;
         }
 
     public:
