@@ -92,6 +92,7 @@ namespace fioio {
                                     feevote_iter->end_point,
                                     topprod->producer
                             };
+                            feevotes_by_endpoint_hash.insert(make_pair(feevote_iter->end_point_hash, blockproducerfeevote));
                             print("EDEDED added first vote for endpoint ", feevote_iter->end_point," for producer ", topprod->producer.to_string(),"\n");
                         } else {
                             print("EDEDED added vote for producer ", topprod->producer.to_string(),"\n");
