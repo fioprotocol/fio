@@ -64,6 +64,11 @@ namespace fioio {
                 fee++;
             }
 
+            //400 error if fees to process is empty.
+            fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
+                           "No Work.", ErrorNoWork);
+
+            //build multiplier map.
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
                 auto voters_iter = feevoters.find(topprod->producer.value);
@@ -73,7 +78,7 @@ namespace fioio {
                 topprod++;
             }
 
-            //create a map for each top 21 producer and its associated multiplier
+            //build map of votes of top 21 producers for fees being processed.
             auto feevote_iter = feevotes.begin();
 
             while (feevote_iter != feevotes.end()) {
@@ -93,9 +98,7 @@ namespace fioio {
                                     topprod->producer
                             };
                             feevotes_by_endpoint_hash.insert(make_pair(feevote_iter->end_point_hash, blockproducerfeevote));
-                            print("EDEDED added first vote for endpoint ", feevote_iter->end_point," for producer ", topprod->producer.to_string(),"\n");
-                        } else {
-                            print("EDEDED added vote for producer ", topprod->producer.to_string(),"\n");
+                             } else {
                             fveh_iter->second.votesufs.push_back(voted_fee);
                         }
                     }
@@ -106,12 +109,7 @@ namespace fioio {
 
             }
 
-
-            //400 error if fees to process is empty.
-            fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
-                           "No Work.", ErrorNoWork);
-
-            auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
+            //process the votes, compute the median, set the resulting fee.
             auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
 
             for(int i=0;i<fee_hashes.size();i++){
@@ -137,7 +135,6 @@ namespace fioio {
                     //update the fee.
                     auto fee_iter = feesbyendpoint.find(fee_hashes[i]);
                     if (fee_iter != feesbyendpoint.end()) {
-                        print("EDEDED setting fee for ",fee_endpoints[i]," to be ",median_fee,"\n");
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
                             ff.votes_pending.emplace(false);
