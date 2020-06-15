@@ -40,8 +40,7 @@ namespace fioio {
             map<uint64_t, double> producer_fee_multipliers_map;
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
             vector<string> fee_endpoints;
-
-           // int NUMBER_FEEVOTERS_TO_PROCESS = 60;
+            
            int NUMBER_FEES_TO_PROCESS = 3;
 
             //create a map for each top 21 producer and its associated multiplier
@@ -73,18 +72,6 @@ namespace fioio {
             //400 error if fees to process is empty.
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
-
-            //compute how many to process, we eliminate this in search of saving more compute cycles.
-            //figure out how many to process this work iteration.
-            //int feevotestoprocess = (num_voters * fee_hashes.size());
-            //int numberiterations = ((feevotestoprocess % NUMBER_FEEVOTERS_TO_PROCESS) > 0) ? (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS)+1 : (feevotestoprocess / NUMBER_FEEVOTERS_TO_PROCESS);
-            //int numberfeestoprocess = (numberiterations == 1) ? fee_hashes.size() : NUMBER_FEEVOTERS_TO_PROCESS/num_voters;
-
-            //only process how many you need to process.
-            //if(fee_hashes.size() > numberfeestoprocess) {
-            //    fee_hashes.erase(fee_hashes.begin()+numberfeestoprocess,fee_hashes.end());
-            //    fee_endpoints.erase(fee_endpoints.begin()+numberfeestoprocess,fee_endpoints.end());
-            //}
 
             auto feevotesbyendpoint = feevotes.get_index<"byendpoint"_n>();
             auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
