@@ -55,7 +55,6 @@ namespace fioio {
                 if(fee->votes_pending.value()){
                     fee_hashes.push_back(fee->end_point_hash);
                     fee_endpoints.push_back(fee->end_point);
-                    //this check added to eliminate the computations of howm many to process.
                     if (fee_hashes.size() == NUMBER_FEES_TO_PROCESS){
                         break;
                     }
