@@ -648,7 +648,6 @@ create_transfer(const string &contract, const name &sender, const name &recipien
     };
 } */
 
-
 chain::action create_setabi(const name &account, const bytes &abi) {
     return action{
             get_account_permissions(tx_permission, {account, config::active_name}),
@@ -1716,7 +1715,6 @@ struct list_bw_subcommand {
     }
 };
 
-/*
 struct buyram_subcommand {
     string from_str;
     string receiver_str;
@@ -1766,7 +1764,6 @@ struct sellram_subcommand {
         });
     }
 };
-*/
 
 struct claimrewards_subcommand {
     string owner;
@@ -4151,7 +4148,7 @@ int main(int argc, char **argv) {
     string proposed_transaction;
     string proposed_contract;
     string proposed_action;
-
+    uint64_t max_fee;
     string proposer;
 
     unsigned int proposal_expiration_hours = 24;
