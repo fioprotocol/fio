@@ -683,7 +683,7 @@ namespace eosio {
                 }
 
                   end_time = fc::time_point::now();
-                  if (end_time - start_time > (fc::microseconds(100000) * 3)) {
+                  if (end_time - start_time > (fc::microseconds(100000 * 3))) {
                       action_result.time_limit_exceeded_error = true;
                       break;
                   }
