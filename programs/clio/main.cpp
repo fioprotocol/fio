@@ -1785,6 +1785,24 @@ struct claimrewards_subcommand {
     }
 };
 
+struct tpidclaim_subcommand {
+    string actor;
+    tpidclaim_subcommand(CLI::App *actionRoot) {
+        auto tpidclaim = actionRoot->add_subcommand("tpidclaim", localized("Pay top 100 TPIDs"));
+        tpidclaim->add_option("actor", actor, localized("The actor signing transaction to tpidclaim"))->required();
+       add_standard_transaction_options(tpidclaim, "owner@active");
+
+        tpidclaim->set_callback([this] {
+            fc::variant act_payload = fc::mutable_variant_object()
+                    ("actor", actor);
+            auto accountPermissions = get_account_permissions(tx_permission, {actor, config::active_name});
+            send_actions(
+                    {create_action(accountPermissions, N(fio.treasury), N(tpidclaim), act_payload)});
+        });
+    }
+};
+
+
 struct regproxy_subcommand {
     string proxy;
 
@@ -4679,7 +4697,7 @@ int main(int argc, char **argv) {
     auto listProducers = list_producers_subcommand(system);
 
     auto claimRewards = claimrewards_subcommand(system);
-
+    auto tpidClaim = tpidclaim_subcommand(system);
     auto regProxy = regproxy_subcommand(system);
     auto unregProxy = unregproxy_subcommand(system);
 
