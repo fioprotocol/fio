@@ -78,7 +78,7 @@ namespace fioio {
                 topprod++;
             }
 
-            //build map of votes of top 21 producers for fees being processed. 3X
+            //build map of votes of top 21 producers for fees being processed. then compute median and set the fee.
             for (int hix=0;hix<fee_hashes.size();hix++) {
                 auto votesbyendpoint = feevotes.get_index<"byendpoint"_n>();
                 auto feevote_iter = votesbyendpoint.lower_bound(fee_hashes[hix]);
@@ -129,8 +129,7 @@ namespace fioio {
                         median_fee = bpfv.votesufs[size / 2];
                     }
                 }
-
-
+                
                 //set it.
                 if (median_fee > 0) {
                     auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
