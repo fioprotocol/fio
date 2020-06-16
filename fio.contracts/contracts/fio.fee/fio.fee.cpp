@@ -75,45 +75,42 @@ namespace fioio {
                 if (voters_iter != feevoters.end()) {
                     mult_by_producer.insert(make_pair(topprod->producer.value, voters_iter->fee_multiplier));
                 }
+
+                //new code, build the votes by BP.
+                auto votesbybpname = feevotes.get_index<"bybpname"_n>();
+                auto bpvote_iter = votesbybpname.lower_bound(topprod->producer.value);
+                while (bpvote_iter != votesbybpname.end()) {
+                    if (bpvote_iter->block_producer_name != topprod->producer) {
+                        break;
+                    }
+                    //if its in the list to process.
+                    if ((std::find(fee_hashes.begin(), fee_hashes.end(), bpvote_iter->end_point_hash)) !=
+                        fee_hashes.end()) {
+                        const double dresult = mult_by_producer[bpvote_iter->block_producer_name.value] *
+                                               (double) bpvote_iter->suf_amount;
+                        const uint64_t voted_fee = (uint64_t)(dresult);
+
+                        auto fveh_iter = feevotes_by_endpoint_hash.find(bpvote_iter->end_point_hash);
+                        if (fveh_iter == feevotes_by_endpoint_hash.end()) {
+                            vector <uint64_t> t;
+                            t.push_back(voted_fee);
+                            bpfeevotes blockproducerfeevote{
+                                    t,
+                                    bpvote_iter->end_point,
+                                    topprod->producer
+                            };
+                            feevotes_by_endpoint_hash.insert(
+                                    make_pair(bpvote_iter->end_point_hash, blockproducerfeevote));
+                        } else {
+                            fveh_iter->second.votesufs.push_back(voted_fee);
+                        }
+                    }
+                }
                 topprod++;
             }
 
             //build map of votes of top 21 producers for fees being processed. then compute median and set the fee.
             for (int hix=0;hix<fee_hashes.size();hix++) {
-                auto votesbyendpoint = feevotes.get_index<"byendpoint"_n>();
-                auto feevote_iter = votesbyendpoint.lower_bound(fee_hashes[hix]);
-                while (feevote_iter != votesbyendpoint.end()) {
-                    if(feevote_iter->end_point_hash != fee_hashes[hix]){
-                        break;
-                    }
-                    if (topprods.find(feevote_iter->block_producer_name.value) != topprods.end()) {
-                        //if its in the list to process.
-                        if ((std::find(fee_hashes.begin(), fee_hashes.end(), feevote_iter->end_point_hash)) !=
-                            fee_hashes.end()) {
-                            const double dresult = mult_by_producer[feevote_iter->block_producer_name.value] *
-                                                   (double) feevote_iter->suf_amount;
-                            const uint64_t voted_fee = (uint64_t)(dresult);
-
-                            auto fveh_iter = feevotes_by_endpoint_hash.find(feevote_iter->end_point_hash);
-                            if (fveh_iter == feevotes_by_endpoint_hash.end()) {
-                                vector <uint64_t> t;
-                                t.push_back(voted_fee);
-                                bpfeevotes blockproducerfeevote{
-                                        t,
-                                        feevote_iter->end_point,
-                                        topprod->producer
-                                };
-                                feevotes_by_endpoint_hash.insert(
-                                        make_pair(feevote_iter->end_point_hash, blockproducerfeevote));
-                            } else {
-                                fveh_iter->second.votesufs.push_back(voted_fee);
-                            }
-                        }
-
-                    }
-                    feevote_iter++;
-                }
-
                 auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[hix]);
                 fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
                                "Failed to find endpoint hash in feevotes_by_endpoint_hash.", ErrorNoWork);
@@ -129,7 +126,7 @@ namespace fioio {
                         median_fee = bpfv.votesufs[size / 2];
                     }
                 }
-                
+
                 //set it.
                 if (median_fee > 0) {
                     auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
