@@ -67,7 +67,6 @@ namespace fioio {
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
-            //build multiplier map.   searching all multiplier values posted for e
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
                 auto voters_iter = feevoters.find(topprod->producer.value);
@@ -100,6 +99,7 @@ namespace fioio {
                                 fveh_iter->second.votesufs.push_back(voted_fee);
                             }
                         }
+                        bpvote_iter++;
                     }
                 }
                 topprod++;
