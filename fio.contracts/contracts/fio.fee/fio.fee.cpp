@@ -43,9 +43,8 @@ namespace fioio {
         };
 
         uint32_t update_fees() {
-            map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash;
+            map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash; //this is the map of computed fees that are voted
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
-            vector<string> fee_endpoints;
             
             int NUMBER_FEES_TO_PROCESS = 3;
 
@@ -54,7 +53,6 @@ namespace fioio {
             while (fee != fiofees.end()) {
                 if(fee->votes_pending.value()){
                     fee_hashes.push_back(fee->end_point_hash);
-                    fee_endpoints.push_back(fee->end_point);
                     //only get the specified number of fees to process.
                     if (fee_hashes.size() == NUMBER_FEES_TO_PROCESS){
                         break;
