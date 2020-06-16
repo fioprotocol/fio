@@ -67,6 +67,7 @@ namespace fioio {
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
+            //build the voting map from the top 21 BP votes.
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
                 auto voters_iter = feevoters.find(topprod->producer.value);
@@ -105,7 +106,7 @@ namespace fioio {
                 topprod++;
             }
 
-            //build map of votes of top 21 producers for fees being processed. then compute median and set the fee.
+            //compute the median and set it
             for (int hix=0;hix<fee_hashes.size();hix++) {
                 auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[hix]);
                 fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
