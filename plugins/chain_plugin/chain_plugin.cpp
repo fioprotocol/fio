@@ -2633,7 +2633,7 @@ if( options.count(name) ) { \
                         break;
                     }
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                    if (nam.find('@') != std::string::npos) { 
+                    if (nam.find('@') != std::string::npos) {
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
 
                         temptime = namexpiration;
@@ -5369,18 +5369,26 @@ if( options.count(name) ) { \
                     }
                 }
 
-                t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-                        boost::make_tuple(config::system_account_name, config::system_account_name, N(voters)));
-                if (t_id != nullptr) {
-                    const auto &idx = d.get_index<key_value_index, by_scope_primary>();
-                    auto it = idx.find(boost::make_tuple(t_id->id, params.account_name));
-                    if (it != idx.end()) {
-                        vector<char> data;
-                        copy_inline_row(*it, data);
-                        result.voter_info = abis.binary_to_variant("voter_info", data, abi_serializer_max_time,
-                                                                   shorten_abi_errors);
-                    }
-                }
+                const abi_def system_abi = eosio::chain_apis::get_abi(db,"eosio");
+                get_table_rows_params voter_table = get_table_rows_params{
+                        .json        = true,
+                        .code        = "eosio",
+                        .scope       = "eosio",
+                        .table       = "voters",
+                        .lower_bound = boost::lexical_cast<string>(params.account_name.value),
+                        .upper_bound = boost::lexical_cast<string>(params.account_name.value),
+                        .key_type       = "i64",
+                        .index_position = "3"
+                };
+
+                get_table_rows_result voter_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                        voter_table, system_abi, [](uint64_t v) -> uint64_t {
+                            return v;
+                        });
+                        if (!voter_result.rows.empty()) {
+                          result.voter_info = voter_result.rows[0];
+                          std::cout<<std::endl<<"RESULT FOUND";
+                        }
             }
             return result;
         }
