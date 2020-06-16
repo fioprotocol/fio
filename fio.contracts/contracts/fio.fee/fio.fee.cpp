@@ -55,6 +55,7 @@ namespace fioio {
                 if(fee->votes_pending.value()){
                     fee_hashes.push_back(fee->end_point_hash);
                     fee_endpoints.push_back(fee->end_point);
+                    //only get the specified number of fees to process.
                     if (fee_hashes.size() == NUMBER_FEES_TO_PROCESS){
                         break;
                     }
@@ -62,29 +63,34 @@ namespace fioio {
                 fee++;
             }
 
-            //400 error if fees to process is empty.
+            //throw a 400 error if fees to process is empty.
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
             //build the voting map from the top 21 BP votes.
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
+                //get the fee voters record of this BP.
                 auto voters_iter = feevoters.find(topprod->producer.value);
+                //if there is no fee voters record, then there is not a multiplier, skip this BP.
                 if (voters_iter != feevoters.end()) {
-                    //new code, build the votes by BP.
+                    //get all the fee votes made by this BP.
                     auto votesbybpname = feevotes.get_index<"bybpname"_n>();
                     auto bpvote_iter = votesbybpname.lower_bound(topprod->producer.value);
                     while (bpvote_iter != votesbybpname.end()) {
+                        //if the BP name changes, then exit the loop, we processed all votes for this BP
                         if (bpvote_iter->block_producer_name != topprod->producer) {
                             break;
                         }
-                        //if its in the list to process.
+                        //if its in the list of endpoints to process. then add the computed sufs to the list
+                        //for this endpoint.
                         if ((std::find(fee_hashes.begin(), fee_hashes.end(), bpvote_iter->end_point_hash)) !=
                             fee_hashes.end()) {
                             const double dresult = voters_iter->fee_multiplier * (double) bpvote_iter->suf_amount;
                             const uint64_t voted_fee = (uint64_t)(dresult);
 
                             auto fveh_iter = feevotes_by_endpoint_hash.find(bpvote_iter->end_point_hash);
+                            //if its not in the map yet, then add it to the map.
                             if (fveh_iter == feevotes_by_endpoint_hash.end()) {
                                 vector <uint64_t> t;
                                 t.push_back(voted_fee);
@@ -96,6 +102,7 @@ namespace fioio {
                                 feevotes_by_endpoint_hash.insert(
                                         make_pair(bpvote_iter->end_point_hash, blockproducerfeevote));
                             } else {
+                                //just add this vote sufs to the list for averaging.
                                 fveh_iter->second.votesufs.push_back(voted_fee);
                             }
                         }
@@ -106,12 +113,14 @@ namespace fioio {
             }
 
             //compute the median and set it
+            //loop over the endpoints to be processed.
             for (int hix=0;hix<fee_hashes.size();hix++) {
                 auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[hix]);
                 fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
                                "Failed to find endpoint hash in feevotes_by_endpoint_hash.", ErrorNoWork);
                 bpfeevotes bpfv = fveh_iter->second;
 
+                //compute the median from teh votesufs.
                 int64_t median_fee = -1;
                 if (bpfv.votesufs.size() >= MIN_FEE_VOTERS_FOR_MEDIAN) {
                     sort(bpfv.votesufs.begin(), bpfv.votesufs.end());
@@ -123,7 +132,7 @@ namespace fioio {
                     }
                 }
 
-                //set it.
+                //set median as the new fee amount.
                 if (median_fee > 0) {
                     auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
                     //update the fee.
