@@ -113,6 +113,7 @@ namespace fioio {
             //compute the median and set it
             //loop over the endpoints to be processed.
             for (int hix=0;hix<fee_hashes.size();hix++) {
+                //get the bp fee votes for this endpoint.
                 auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[hix]);
                 fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
                                "Failed to find endpoint hash in feevotes_by_endpoint_hash.", ErrorNoWork);
