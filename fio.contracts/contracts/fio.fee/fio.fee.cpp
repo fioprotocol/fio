@@ -68,7 +68,7 @@ namespace fioio {
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
 
-            //build multiplier map.
+            //build multiplier map.   searching all multiplier values posted for e
             auto topprod = topprods.begin();
             while (topprod != topprods.end()) {
                 auto voters_iter = feevoters.find(topprod->producer.value);
@@ -78,7 +78,7 @@ namespace fioio {
                 topprod++;
             }
 
-            //build map of votes of top 21 producers for fees being processed.
+            //build map of votes of top 21 producers for fees being processed. 3X
             for (int hix=0;hix<fee_hashes.size();hix++) {
                 auto votesbyendpoint = feevotes.get_index<"byendpoint"_n>();
                 auto feevote_iter = votesbyendpoint.lower_bound(fee_hashes[hix]);
@@ -113,14 +113,8 @@ namespace fioio {
                     }
                     feevote_iter++;
                 }
-            }
 
-            //process the votes, compute the median, set the resulting fee.
-            auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
-
-            for(int i=0;i<fee_hashes.size();i++){
-
-                auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[i]);
+                auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[hix]);
                 fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
                                "Failed to find endpoint hash in feevotes_by_endpoint_hash.", ErrorNoWork);
                 bpfeevotes bpfv = fveh_iter->second;
@@ -136,10 +130,12 @@ namespace fioio {
                     }
                 }
 
+
                 //set it.
                 if (median_fee > 0) {
+                    auto feesbyendpoint = fiofees.get_index<"byendpoint"_n>();
                     //update the fee.
-                    auto fee_iter = feesbyendpoint.find(fee_hashes[i]);
+                    auto fee_iter = feesbyendpoint.find(fee_hashes[hix]);
                     if (fee_iter != feesbyendpoint.end()) {
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
@@ -149,6 +145,7 @@ namespace fioio {
                     }
                 }
             }
+
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
 
