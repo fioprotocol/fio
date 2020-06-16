@@ -603,7 +603,7 @@ namespace eosio {
             const auto max_itr = idx.lower_bound( boost::make_tuple( n, 0 ) );
             const auto min_seq_number = max_itr->account_sequence_num;
             if (min_seq_number > 0) {  // Reject outside of retention policy boundary.
-              const auto max_seq_number = min_seq_number + history->history_per_account;
+              const auto max_seq_number = min_seq_number + history->history_per_account * 3;
               EOS_ASSERT( start >= min_seq_number, chain::plugin_range_not_satisfiable, "start position is earlier than account retention policy (${p}). Latest available: ${l}. Requested start: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",start) );
               // Below should actually never occur..?
               EOS_ASSERT( end >= min_seq_number, chain::plugin_range_not_satisfiable,   "end position is earlier than account retention policy (${p}). Latest available: ${l}. Requested end: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",end) );
@@ -682,13 +682,12 @@ namespace eosio {
                   previoustrxid = t.trx_id;
                 }
 
-                  /* DISABLING THE LOOKUP TIME LIMIT
                   end_time = fc::time_point::now();
-                  if (end_time - start_time > fc::microseconds(100000)) {
+                  if (end_time - start_time > (fc::microseconds(100000) * 3)) {
                       action_result.time_limit_exceeded_error = true;
                       break;
                   }
-                  */
+
 
                 } // while
 
