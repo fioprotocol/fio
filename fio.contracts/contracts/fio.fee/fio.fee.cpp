@@ -75,6 +75,8 @@ namespace fioio {
                 fee++;
             }
 
+            print("EDEDEDED got through fee table","\n");
+
             //throw a 400 error if fees to process is empty.
             fio_400_assert(fee_hashes.size() > 0, "compute fees", "compute fees",
                            "No Work.", ErrorNoWork);
@@ -123,6 +125,10 @@ namespace fioio {
                 }
                 topprod++;
             }
+
+
+
+            print("EDEDEDED got through compute votes","\n");
 
             //compute the median and set it
             //loop over the endpoints to be processed.
