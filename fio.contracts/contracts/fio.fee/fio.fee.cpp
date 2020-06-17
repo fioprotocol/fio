@@ -109,7 +109,6 @@ namespace fioio {
                             auto fveh_iter = feevotes_by_endpoint_hash.find(bpvote_iter->end_point_hash);
                             //if its not in the map yet, then add it to the map.
                             if (fveh_iter == feevotes_by_endpoint_hash.end()) {
-                                print("hey eric, added the endpoint ",bpvote_iter->end_point,"\n");
                                 vector <uint64_t> t;
                                 t.push_back(voted_fee);
                                 bpfeevotes blockproducerfeevote{
@@ -134,6 +133,7 @@ namespace fioio {
                 topprod++;
             }
 
+            int processed_fees = 0;
             //compute the median and set it
             //loop over the endpoints to be processed.
             for (int hix=0;hix<fee_hashes.size();hix++) {
@@ -166,6 +166,7 @@ namespace fioio {
                             ff.suf_amount = median_fee;
                             ff.votes_pending.emplace(false);
                         });
+                        processed_fees++;
 
                     }
                 }
@@ -174,7 +175,7 @@ namespace fioio {
             fio_400_assert(transaction_size() <= MAX_TRX_SIZE, "transaction_size", std::to_string(transaction_size()),
               "Transaction is too large", ErrorTransactionTooLarge);
 
-            return fee_hashes.size();
+            return processed_fees;
         }
 
     public:
