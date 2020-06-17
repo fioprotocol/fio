@@ -60,7 +60,7 @@ namespace fioio {
             map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash; //this is the map of computed fees that are voted
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
             
-            int NUMBER_FEES_TO_PROCESS = 2;
+            int NUMBER_FEES_TO_PROCESS = 5;
 
             //get the fees needing processing.
             auto fee = fiofees.begin();
@@ -89,6 +89,7 @@ namespace fioio {
                     //get all the fee votes made by this BP.
                     auto votesbybpname = feevotes.get_index<"bybpname"_n>();
                     auto bpvote_iter = votesbybpname.lower_bound(topprod->producer.value);
+                    int countem = 0;
                     while (bpvote_iter != votesbybpname.end()) {
                         //if the BP name changes, then exit the loop, we processed all votes for this BP
                         if (bpvote_iter->block_producer_name != topprod->producer) {
@@ -116,6 +117,10 @@ namespace fioio {
                             } else {
                                 //just add this vote sufs to the list for averaging.
                                 fveh_iter->second.votesufs.push_back(voted_fee);
+                            }
+                            countem++;
+                            if (countem == fee_hashes.size()){
+                                break;
                             }
                         }
                         bpvote_iter++;
