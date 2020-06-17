@@ -157,6 +157,7 @@ namespace fioio {
                     //update the fee.
                     auto fee_iter = feesbyendpoint.find(fee_hashes[hix]);
                     if (fee_iter != feesbyendpoint.end()) {
+                        print("EDEDEDED updated fee and votes_pending ", median_fee, "\n");
                         feesbyendpoint.modify(fee_iter, _self, [&](struct fiofee &ff) {
                             ff.suf_amount = median_fee;
                             ff.votes_pending.emplace(false);
