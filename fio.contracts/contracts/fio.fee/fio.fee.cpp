@@ -60,7 +60,7 @@ namespace fioio {
             map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash; //this is the map of computed fees that are voted
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
             
-            int NUMBER_FEES_TO_PROCESS = 5;
+            int NUMBER_FEES_TO_PROCESS = 10;
 
             //get the fees needing processing.
             auto fee = fiofees.begin();
