@@ -42,6 +42,20 @@ namespace fioio {
             name producer;
         };
 
+
+        vector<name> getTopProds(){
+            int NUMBER_TO_SELECT = 42;
+            auto idx = prods.get_index<"prototalvote"_n>();
+
+            std::vector< name > topprods;
+            topprods.reserve(NUMBER_TO_SELECT);
+
+            for( auto it = idx.cbegin(); it != idx.cend() && topprods.size() < NUMBER_TO_SELECT && 0 < it->total_votes && it->active(); ++it ) {
+                topprods.push_back(it->owner);
+            }
+            return topprods;
+        }
+
         uint32_t update_fees() {
             map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash; //this is the map of computed fees that are voted
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
@@ -180,18 +194,16 @@ namespace fioio {
 
             name aactor = name(actor.c_str());
             require_auth(aactor);
-
             bool dbgout = false;
 
-            auto prodsbyowner = prods.get_index<"byowner"_n>();
-            //check that the producer is active block producer
-            fio_400_assert(((prodsbyowner.find(aactor.value) != prodsbyowner.end())), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
+
+            //check that the actor is in the top42.
+            vector<name> top_prods = getTopProds();
+            fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
+                top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
-
             const uint32_t nowtime = now();
 
             //check the submitted fee values.
@@ -407,11 +419,10 @@ namespace fioio {
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            auto prodsbyowner = prods.get_index<"byowner"_n>();
-            //check that the producer is active block producer
-            fio_400_assert(((prodsbyowner.find(aactor.value) != prodsbyowner.end())), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
+            //check that the actor is in the top42.
+            vector<name> top_prods = getTopProds();
+            fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
+                           top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
 
             fio_400_assert(multiplier > 0, "multiplier", to_string(multiplier),
                            " Must be positive",
