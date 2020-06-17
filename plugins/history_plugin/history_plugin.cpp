@@ -641,8 +641,10 @@ namespace eosio {
 
                   transfer_information ti;
                   ti.transaction_id = t.trx_id;
-                  ti.block_height = t.block_num;
+                  ti.block_num = t.block_num;
                   ti.block_time = t.block_time;
+                  ti.global_action_seq = action_sequence_num;
+                  ti.account_action_seq = account_sequence_num;
                   if(previoustrxid != t.trx_id) {
                     if (t.act.name == N(trnsfiopubky)) {
                       const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();

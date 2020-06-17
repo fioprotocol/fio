@@ -59,7 +59,9 @@ namespace eosio {
             };
 
             struct transfer_information {
-              uint32_t block_height;
+              uint64_t global_action_seq;
+              uint64_t account_action_seq;
+              uint32_t block_num;
               chain::block_timestamp_type block_time;
               string payer;
               string payee;
@@ -182,7 +184,7 @@ FC_REFLECT(eosio::history_apis::read_only::get_actions_result,
 FC_REFLECT(eosio::history_apis::read_only::get_transfers_params, (fio_public_key)(pos)(offset))
 FC_REFLECT(eosio::history_apis::read_only::get_transfers_result,
            (transfers)(last_irreversible_block)(time_limit_exceeded_error))
-FC_REFLECT(eosio::history_apis::read_only::transfer_information, (block_height)
+FC_REFLECT(eosio::history_apis::read_only::transfer_information, (global_action_seq)(account_action_seq)(block_num)
           (block_time)(payer)(payee)(payee_public_key)(transfer_amount)(fee_amount)
           (transaction_total)(note)(action)(tpid)(transaction_id) )
 FC_REFLECT(eosio::history_apis::read_only::ordered_action_result,
