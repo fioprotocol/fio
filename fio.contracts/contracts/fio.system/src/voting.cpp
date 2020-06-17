@@ -493,6 +493,8 @@ namespace eosiosystem {
     void system_contract::voteproducer(const std::vector<string> &producers, const string &fio_address, const name &actor, const int64_t &max_fee) {
         require_auth(actor);
 
+        print("EDEDEDEDED called vote producer","\n");
+
         fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                        ErrorMaxFeeInvalid);
         name proxy;
