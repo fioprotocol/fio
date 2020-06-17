@@ -59,6 +59,7 @@ namespace fioio {
         uint32_t update_fees() {
             map<uint128_t, bpfeevotes> feevotes_by_endpoint_hash; //this is the map of computed fees that are voted
             vector<uint128_t> fee_hashes; //hashes for endpoints to process.
+            vector<string> fee_endpoints;
             
             int NUMBER_FEES_TO_PROCESS = 10;
 
@@ -67,6 +68,7 @@ namespace fioio {
             while (fee != fiofees.end()) {
                 if(fee->votes_pending.value()){
                     fee_hashes.push_back(fee->end_point_hash);
+                    fee_endpoints.push_back(fee->end_point);
                     //only get the specified number of fees to process.
                     if (fee_hashes.size() == NUMBER_FEES_TO_PROCESS){
                         break;
@@ -107,6 +109,7 @@ namespace fioio {
                             auto fveh_iter = feevotes_by_endpoint_hash.find(bpvote_iter->end_point_hash);
                             //if its not in the map yet, then add it to the map.
                             if (fveh_iter == feevotes_by_endpoint_hash.end()) {
+                                print("hey eric, added the endpoint ",bpvote_iter->end_point,"\n");
                                 vector <uint64_t> t;
                                 t.push_back(voted_fee);
                                 bpfeevotes blockproducerfeevote{
@@ -136,8 +139,9 @@ namespace fioio {
             for (int hix=0;hix<fee_hashes.size();hix++) {
                 //get the bp fee votes for this endpoint.
                 auto fveh_iter = feevotes_by_endpoint_hash.find(fee_hashes[hix]);
+
                 fio_400_assert(fveh_iter != feevotes_by_endpoint_hash.end(), "compute fees", "compute fees",
-                               "Failed to find endpoint hash in feevotes_by_endpoint_hash.", ErrorNoWork);
+                               "Failed to find endpoint hash for "+fee_endpoints[hix]+" in feevotes_by_endpoint_hash.", ErrorNoWork);
                 bpfeevotes bpfv = fveh_iter->second;
 
                 //compute the median from teh votesufs.
