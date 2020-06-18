@@ -637,7 +637,6 @@ namespace eosio {
                 fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
                 action_trace t;
                 fc::raw::unpack(ds, t);
-                if (t.receipt->receiver == account_name) { // skip emplacing results where receiver field does not match account_name parameter
 
                   transfer_information ti;
                   ti.transaction_id = t.trx_id;
@@ -648,22 +647,26 @@ namespace eosio {
                   if(previoustrxid != t.trx_id) {
                     if (t.act.name == N(trnsfiopubky)) {
                       const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
-                      ti.action = "trnsfiopubky";
-                      ti.tpid = transferdata.tpid;
-                      ti.note = "FIO Transfer";
-                      ti.payer = transferdata.actor.to_string();
-                      ti.payee = fioio::key_to_account(transferdata.payee_public_key);
-                      ti.payee_public_key = transferdata.payee_public_key;
-                      ti.fee_amount = extract_fee(t);
-                      ti.transaction_total = ti.fee_amount + transferdata.amount;
-                      ti.transfer_amount = transferdata.amount;
-                      if (params.pos < 0) {
-                        result.transfers.emplace(result.transfers.begin(), ti );
-                      } else {
-                        result.transfers.emplace_back( ti );
+                      const auto paccount = fioio::key_to_account(transferdata.payee_public_key);
+                      if (t.receipt->receiver == account_name || t.receipt->receiver == paccount) {
+                        ti.action = "trnsfiopubky";
+                        ti.tpid = transferdata.tpid;
+                        ti.note = "FIO Transfer";
+                        ti.payer = transferdata.actor.to_string();
+                        ti.payee = paccount;
+                        ti.payee_public_key = transferdata.payee_public_key;
+                        ti.fee_amount = extract_fee(t);
+                        ti.transaction_total = ti.fee_amount + transferdata.amount;
+                        ti.transfer_amount = transferdata.amount;
+                        if (params.pos < 0) {
+                          result.transfers.emplace(result.transfers.begin(), ti );
+                        } else {
+                          result.transfers.emplace_back( ti );
+                        }
                       }
+
                     }
-                    else if (t.act.name == N(transfer)) {
+                    else if (t.act.name == N(transfer) && t.receipt->receiver == account_name) {
                       const auto transferdata = t.act.data_as<eosio::transfer>();
                       ti.action = "transfer";
                       ti.tpid = "";
@@ -682,7 +685,6 @@ namespace eosio {
                     }
                   }
                   previoustrxid = t.trx_id;
-                }
 
                   end_time = fc::time_point::now();
                   if (end_time - start_time > (fc::microseconds(100000 * 3))) {
