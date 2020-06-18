@@ -5387,7 +5387,6 @@ if( options.count(name) ) { \
                         });
                         if (!voter_result.rows.empty()) {
                           result.voter_info = voter_result.rows[0];
-                          std::cout<<std::endl<<"RESULT FOUND";
                         }
             }
             return result;
