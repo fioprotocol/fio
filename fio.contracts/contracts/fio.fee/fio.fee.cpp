@@ -210,9 +210,9 @@ namespace fioio {
 
 
             //check that the actor is in the top42.
-          //  vector<name> top_prods = getTopProds();
-         //   fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
-         //       top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
+            vector<name> top_prods = getTopProds();
+            fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
+                top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
 
             fio_400_assert(max_fee >= 0, "max_fee", to_string(max_fee), "Invalid fee value",
                            ErrorMaxFeeInvalid);
@@ -432,9 +432,9 @@ namespace fioio {
             require_auth(aactor);
 
             //check that the actor is in the top42.
-           // vector<name> top_prods = getTopProds();
-          //  fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
-           //                top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
+            vector<name> top_prods = getTopProds();
+            fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
+                           top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
 
             fio_400_assert(multiplier > 0, "multiplier", to_string(multiplier),
                            " Must be positive",
