@@ -356,15 +356,18 @@ namespace fioio {
         // @abi action
         [[eosio::action]]
         void bundlevote(
-                int64_t bundled_transactions,
+                const int64_t &bundled_transactions,
+                const int64_t &max_fee,
                 const string &actor
         ) {
             const name aactor = name(actor.c_str());
             require_auth(aactor);
 
-            fio_400_assert(((topprods.find(aactor.value) != topprods.end())), "actor", actor,
-                           " Not an active BP",
-                           ErrorFioNameNotReg);
+            //check that the actor is in the top42.
+            vector<name> top_prods = getTopProds();
+            fio_400_assert((std::find(top_prods.begin(), top_prods.end(), aactor)) !=
+                           top_prods.end(), "actor", actor," Not a top 42 BP",ErrorFioNameNotReg);
+
 
             fio_400_assert(bundled_transactions > 0, "bundled_transactions", to_string(bundled_transactions),
                            " Must be positive",
@@ -392,6 +395,30 @@ namespace fioio {
                     f.lastvotetimestamp = nowtime;
                 });
             }
+
+            //begin new fees, logic for Mandatory fees.
+            uint128_t endpoint_hash = string_to_uint128_hash("submit_bundled_transaction");
+
+            auto fees_by_endpoint = fiofees.get_index<"byendpoint"_n>();
+            auto fee_iter = fees_by_endpoint.find(endpoint_hash);
+            //if the fee isnt found for the endpoint, then 400 error.
+            fio_400_assert(fee_iter != fees_by_endpoint.end(), "endpoint_name", "submit_bundled_transaction",
+                           "FIO fee not found for endpoint", ErrorNoEndpoint);
+
+            uint64_t reg_amount = fee_iter->suf_amount;
+            uint64_t fee_type = fee_iter->type;
+
+            //if its not a mandatory fee then this is an error.
+            fio_400_assert(fee_type == 0, "fee_type", to_string(fee_type),
+                           "submit_bundled_transaction unexpected fee type for endpoint submit_bundled_transaction, expected 0",
+                           ErrorNoEndpoint);
+
+            fio_400_assert(max_fee >= (int64_t)reg_amount, "max_fee", to_string(max_fee), "Fee exceeds supplied maximum.",
+                           ErrorMaxFeeExceeded);
+
+            fio_fees(aactor, asset(reg_amount, FIOSYMBOL));
+            processrewardsnotpid(reg_amount, get_self());
+            //end new fees, logic for Mandatory fees.
 
             const string response_string = string("{\"status\": \"OK\"}");
 

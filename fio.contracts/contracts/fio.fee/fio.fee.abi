@@ -30,6 +30,7 @@
         "base": "",
         "fields": [
             {"name":"bundled_transactions", "type":"int64"},
+            {"name":"max_fee", "type":"int64"},
             {"name":"actor", "type":"string"}
         ]
       },{
