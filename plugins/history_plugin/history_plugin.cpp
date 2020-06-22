@@ -619,6 +619,7 @@ namespace eosio {
             get_transfers_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
             action_result.last_irreversible_block = chain.last_irreversible_block_num();
+            bool subtransfer = false;
             fc::sha256 previoustrxid;
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
@@ -644,7 +645,7 @@ namespace eosio {
                   ti.block_time = t.block_time;
                   ti.global_action_seq = action_sequence_num;
                   ti.account_action_seq = account_sequence_num;
-                  if(previoustrxid != t.trx_id) {
+                  if(previoustrxid != t.trx_id && !subtransfer) {
                     if (t.act.name == N(trnsfiopubky)) {
                       const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
                       const auto paccount = fioio::key_to_account(transferdata.payee_public_key);
@@ -658,15 +659,17 @@ namespace eosio {
                         ti.fee_amount = extract_fee(t);
                         ti.transaction_total = ti.fee_amount + transferdata.amount;
                         ti.transfer_amount = transferdata.amount;
+                        subtransfer = true;
                         if (params.pos < 0) {
                           result.transfers.emplace(result.transfers.begin(), ti );
                         } else {
                           result.transfers.emplace_back( ti );
                         }
+
                       }
 
                     }
-                    else if (t.act.name == N(transfer) && t.receipt->receiver == account_name) {
+                    else if (t.act.name == N(transfer) && t.receipt->receiver == account_name && subtransfer) {
                       const auto transferdata = t.act.data_as<eosio::transfer>();
                       ti.action = "transfer";
                       ti.tpid = "";
@@ -677,8 +680,9 @@ namespace eosio {
                       ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
                       ti.transaction_total = transferdata.quantity.get_amount();
                       ti.transfer_amount = transferdata.quantity.get_amount();
+                      subtransfer = false;
                       if (params.pos < 0) {
-                        result.transfers.emplace(result.transfers.begin(), ti );
+                          result.transfers.emplace(result.transfers.begin(), ti );
                       } else {
                         result.transfers.emplace_back( ti );
                       }
