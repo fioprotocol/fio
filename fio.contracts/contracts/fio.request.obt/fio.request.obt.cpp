@@ -189,6 +189,11 @@ namespace fioio {
                 auto fioreqctx_iter = fiorequestContextsTable.find(requestId);
                 fio_400_assert(fioreqctx_iter != fiorequestContextsTable.end(), "fio_request_id", fio_request_id,
                                "No such FIO Request ", ErrorRequestContextNotFound);
+                
+                string payer_account;
+                key_to_account(fioreqctx_iter->payer_key, payer_account);
+                name payer_acct = name(payer_account.c_str());
+                fio_403_assert(aactor == payer_acct, ErrorSignature);
 
                 fiorequestStatusTable.emplace(aactor, [&](struct fioreqsts &fr) {
                     fr.id = fiorequestStatusTable.available_primary_key();
