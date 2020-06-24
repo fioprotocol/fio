@@ -2108,10 +2108,13 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[0]["fio_data_type"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[0]["init_time"].as_uint64();
 
                     if (statusint == 2 || statusint == 4) {
                         string status = "sent_to_blockchain";
-                        uint64_t time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
+                        if(statusint == 2) {
+                            time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
+                        }
 
                         //convert the time_stamp to string formatted time.
                         time_t temptime;

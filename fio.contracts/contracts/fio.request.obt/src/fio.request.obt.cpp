@@ -179,23 +179,44 @@ namespace fioio {
                 }
             }
             //end fees, bundle eligible fee logic
-            uint64_t requestId;
-            requestId = std::atoi(fio_request_id.c_str());
-
-            auto trxtByRequestId = fioTransactionsTable.get_index<"byrequestid"_n>();
-            auto fioreqctx_iter = trxtByRequestId.find(requestId);
-
-            fio_400_assert(fioreqctx_iter != trxtByRequestId.end(), "fio_request_id", fio_request_id,
-                           "No such FIO Request", ErrorRequestContextNotFound);
-            fio_400_assert(fioreqctx_iter->fio_data_type != 0, "fio_request_id", fio_request_id,
-                           "Only pending requests can be responded.", ErrorRequestStatusInvalid);
-
-
             if (fio_request_id.length() > 0) {
+                uint64_t requestId;
+                requestId = std::atoi(fio_request_id.c_str());
+
+                auto trxtByRequestId = fioTransactionsTable.get_index<"byrequestid"_n>();
+                auto fioreqctx_iter = trxtByRequestId.find(requestId);
+
+                fio_400_assert(fioreqctx_iter != trxtByRequestId.end(), "fio_request_id", fio_request_id,
+                               "No such FIO Request", ErrorRequestContextNotFound);
+
+                string payer_account;
+                key_to_account(fioreqctx_iter->payer_key, payer_account);
+                name payer_acct = name(payer_account.c_str());
+                fio_403_assert(aactor == payer_acct, ErrorSignature);
+
+                fio_400_assert(fioreqctx_iter->fio_data_type == 0, "fio_request_id", fio_request_id,
+                               "Only pending requests can be responded.", ErrorRequestStatusInvalid);
+
                 trxtByRequestId.modify(fioreqctx_iter, _self, [&](struct fiotrxt &fr) {
                     fr.fio_data_type = static_cast<int64_t>(trxstatus::sent_to_blockchain);
                     fr.content = content;
-                    fr.update_time = present_time;
+                    fr.update_time = current_time();
+                });
+
+                string payee_acct;
+                key_to_account(payee_key, payee_acct);
+                auto ledg_iter = ledgerTable.find(name(payer_account.c_str()).value);
+                auto trxt_vec = ledg_iter->transactions.pending_action_ids;
+                auto ledg_iter2 = ledgerTable.find(name(payee_acct.c_str()).value);
+
+                trxt_vec.erase(std::remove(trxt_vec.begin(), trxt_vec.end(), requestId), trxt_vec.end());
+                ledgerTable.modify(ledg_iter, _self, [&](struct reqledger &req) {
+                    req.transactions.pending_action_ids = trxt_vec;
+                    req.transactions.obt_action_ids.insert(req.transactions.obt_action_ids.begin(), requestId);
+                });
+
+                ledgerTable.modify(ledg_iter2, _self, [&](struct reqledger &req) {
+                    req.transactions.obt_action_ids.insert(req.transactions.obt_action_ids.begin(), requestId);
                 });
             } else {
                 const uint64_t id = fioTransactionsTable.available_primary_key();
@@ -239,7 +260,7 @@ namespace fioio {
                     obtinf.payee_fio_addr_hex = toHash;
                     obtinf.content = content;
                     obtinf.fio_data_type = static_cast<int64_t>(trxstatus::obt_action);
-                    obtinf.init_time = present_time;
+                    obtinf.init_time = now();
                     obtinf.payer_fio_addr = payer_fio_address;
                     obtinf.payee_fio_addr = payee_fio_address;
                     obtinf.payee_key = payee_key;
@@ -664,7 +685,7 @@ namespace fioio {
             const uint64_t id = fioreqctx_iter->id;
             const uint32_t present_time = now();
 
-            fio_400_assert(fioreqctx_iter->fio_data_type != 0, "fio_request_id", fio_request_id,
+            fio_400_assert(fioreqctx_iter->fio_data_type == 0, "fio_request_id", fio_request_id,
                            "Only pending requests can be cancelled.", ErrorRequestStatusInvalid);
 
             auto namesbyname = fionames.get_index<"byname"_n>();
@@ -746,7 +767,7 @@ namespace fioio {
             auto ledg_iter2 = ledgerTable.find(name(payee_acct.c_str()).value);
             auto trxt_vec = ledg_iter->transactions.pending_action_ids;
 
-            trxt_vec.erase(std::remove(trxt_vec.begin(), trxt_vec.end(), requestId), trxt_vec.end());
+            trxt_vec.erase(std::remove(trxt_vec.begin(), trxt_vec.end(), id), trxt_vec.end());
 
             ledgerTable.modify(ledg_iter, _self, [&](struct reqledger &req) {
                 req.transactions.pending_action_ids = trxt_vec;
