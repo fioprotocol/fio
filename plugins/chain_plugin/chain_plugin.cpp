@@ -1735,7 +1735,7 @@ if( options.count(name) ) { \
             if (!ledger_result.rows.empty()) {
                 records_size = ledger_result.rows[0]["transactions"]["pending_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; }
-                if(search_offset > records_size){ record_size = 0; }
+                if(search_offset > records_size){ records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
@@ -1882,7 +1882,7 @@ if( options.count(name) ) { \
             if (!ledger_result.rows.empty()) {
                 records_size = ledger_result.rows[0]["transactions"]["cancelled_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
-                if(search_offset > records_size){ record_size = 0; }
+                if(search_offset > records_size){ records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
@@ -1981,7 +1981,7 @@ if( options.count(name) ) { \
             if (!ledger_result.rows.empty()) {
                 records_size = ledger_result.rows[0]["transactions"]["sent_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
-                if(search_offset > records_size){ record_size = 0; }
+                if(search_offset > records_size){ records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
@@ -2084,7 +2084,7 @@ if( options.count(name) ) { \
             if (!ledger_result.rows.empty()) {
                 records_size = ledger_result.rows[0]["transactions"]["obt_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
-                if(search_offset > records_size){ record_size = 0; }
+                if(search_offset > records_size){ records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
