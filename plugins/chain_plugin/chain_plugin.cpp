@@ -1714,6 +1714,8 @@ if( options.count(name) ) { \
             get_pending_fio_requests_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
 
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
             string account;
             fioio::key_to_account(p.fio_public_key, account);
             string ledger_table = "reqledgers";   // table name
@@ -1775,6 +1777,11 @@ if( options.count(name) ) { \
 
                     result.requests.push_back(rr);
                     records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
+                    }
                 }
             }
 
@@ -1861,6 +1868,8 @@ if( options.count(name) ) { \
             get_cancelled_fio_requests_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
 
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
             string account;
             fioio::key_to_account(p.fio_public_key, account);
             string ledger_table = "reqledgers";   // table name
@@ -1925,6 +1934,11 @@ if( options.count(name) ) { \
                                                  payee_fio_public_key, content, buffer, status};
                         result.requests.push_back(rr);
                         records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1960,6 +1974,8 @@ if( options.count(name) ) { \
             get_sent_fio_requests_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
 
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
             string account;
             fioio::key_to_account(p.fio_public_key, account);
             string ledger_table = "reqledgers";   // table name
@@ -2034,6 +2050,11 @@ if( options.count(name) ) { \
                                              payee_fio_public_key, content, buffer, status};
                     result.requests.push_back(rr);
                     records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
+                    }
                 }
             }
 
@@ -2063,6 +2084,8 @@ if( options.count(name) ) { \
             get_obt_data_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
 
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
             string account;
             fioio::key_to_account(p.fio_public_key, account);
             string ledger_table = "reqledgers";   // table name
@@ -2130,6 +2153,11 @@ if( options.count(name) ) { \
                                                  payee_fio_public_key, content, fio_request_id, buffer, status};
                         result.obt_data_records.push_back(rr);
                         records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
