@@ -663,12 +663,13 @@ namespace eosio {
                         } else {
                           result.transfers.emplace_back( ti );
                         }
-
                       }
-
                     }
-                    else if (t.act.name == N(transfer) && t.receipt->receiver == account_name) {
+                    else if (t.act.name == N(transfer)) {
                       const auto transferdata = t.act.data_as<eosio::transfer>();
+                      if (t.receipt->receiver == account_name ||
+                         transferdata.to.to_string() == account_name ||
+                         transferdata.from.to_string() == account_name) {
                       ti.action = "transfer";
                       ti.tpid = "";
                       ti.note = transferdata.memo;
@@ -684,6 +685,7 @@ namespace eosio {
                         result.transfers.emplace_back( ti );
                       }
                     }
+                  }
                   previoustrxid = t.trx_id;
 
                   end_time = fc::time_point::now();
