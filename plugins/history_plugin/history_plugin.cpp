@@ -647,8 +647,9 @@ namespace eosio {
                     if (t.act.name == N(trnsfiopubky)) {
                       const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
                       const auto paccount = fioio::key_to_account(transferdata.payee_public_key);
-                      if (previoustrxid != t.trx_id && (t.receipt->receiver == account_name ||
-                        account_name == paccount || t.receipt->receiver == paccount)) {
+                      if ( previoustrxid != t.trx_id && (t.receipt->receiver == account_name ||
+                        account_name == paccount || t.receipt->receiver == paccount ||
+                        transferdata.actor.to_string() == account_name)) {
                         ti.action = "trnsfiopubky";
                         ti.tpid = transferdata.tpid;
                         ti.note = "FIO Transfer";
@@ -680,7 +681,6 @@ namespace eosio {
                         ti.fee_amount = transferdata.quantity.get_amount();
                       } else {
                           ti.transfer_amount = transferdata.quantity.get_amount(); //transfer amount is optional result and only set in cases where transfer is not fee to fio.treasury
-                          ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
                       }
                       ti.transaction_total = transferdata.quantity.get_amount();
 
