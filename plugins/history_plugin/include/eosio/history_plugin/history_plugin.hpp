@@ -66,7 +66,7 @@ namespace eosio {
               string payer;
               string payee;
               string payee_public_key;
-              uint64_t transfer_amount;
+              optional<uint64_t> transfer_amount;
               uint64_t fee_amount;
               uint64_t transaction_total;
               string note;

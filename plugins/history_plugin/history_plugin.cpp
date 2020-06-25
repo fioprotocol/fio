@@ -676,9 +676,14 @@ namespace eosio {
                       ti.payer = transferdata.from.to_string();
                       ti.payee = transferdata.to.to_string();
                       ti.payee_public_key = "";
-                      ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
+                      if (ti.payee == "fio.treasury") {
+                        ti.fee_amount = transferdata.quantity.get_amount();
+                      } else {
+                          ti.transfer_amount = transferdata.quantity.get_amount(); //transfer amount is optional result and only set in cases where transfer is not fee to fio.treasury
+                          ti.fee_amount = 0; // there is no fee for C2U/U2C transfers
+                      }
                       ti.transaction_total = transferdata.quantity.get_amount();
-                      ti.transfer_amount = transferdata.quantity.get_amount();
+
                       if (params.pos < 0) {
                           result.transfers.emplace(result.transfers.begin(), ti );
                       } else {
