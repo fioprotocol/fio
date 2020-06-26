@@ -226,7 +226,7 @@ namespace eosiosystem {
             a.owner_account = owner;
             a.lock_amount = amount;
             a.payouts_performed = 0;
-            a.can_vote = canvote;
+            a.can_vote = canvote?1:0;
             a.periods = periods;
             a.remaining_lock_amount = amount;
             a.timestamp = now();

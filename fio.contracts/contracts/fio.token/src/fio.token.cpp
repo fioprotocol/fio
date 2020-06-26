@@ -492,9 +492,10 @@ namespace eosio {
             print("trnsloctoks calling addgenlocked ", "\n");
         }
 
+        bool canvote = (can_vote == 1);
         INLINE_ACTION_SENDER(eosiosystem::system_contract, addgenlocked)
                 ("eosio"_n, {{_self, "active"_n}},
-                 {owner,periods,can_vote,amount}
+                 {owner,periods,canvote,amount}
                 );
 
         int64_t raminc = 1024 + (64 * periods.size());
