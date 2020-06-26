@@ -90,7 +90,7 @@ namespace fioio {
             action(permission_level{SYSTEMACCOUNT, "active"_n},
                    TokenContract, "transfer"_n,
                    make_tuple(actor, TREASURYACCOUNT, fee,
-                              string("FIO API fees: ") + act)
+                              string("FIO fee: ") + act)
             ).send();
         }
     }
