@@ -15,6 +15,7 @@
 
 using boost::container::flat_set;
 
+
 namespace eosio {
     namespace chain {
 
@@ -55,12 +56,42 @@ namespace eosio {
             try {
                 try {
                     receiver_account = &db.get<account_metadata_object, by_name>(receiver);
+                    const account_object *code_accnt = db.find<account_object, by_name>(act->account);
+
                     privileged = receiver_account->is_privileged();
                     auto native = control.find_apply_handler(receiver, act->account, act->name);
                     if (act->name != name("nonce")){
-                      EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
-                                 "Unknown action ${action} in contract ${contract}",
-                                 ("action", act->name)("contract", act->account));
+
+                      abi_def abi;
+
+                      if (abi_serializer::to_abi(db.find<account_object, by_name>(N(eosio))->abi, abi)) {
+                          abi_serializer abis(abi, fc::microseconds(config::default_abi_serializer_max_time_ms));
+
+                      auto t_id = db.find<chain::table_id_object, chain::by_code_scope_table>(
+                              boost::make_tuple(config::system_account_name, config::system_account_name, N("conactions")));
+
+                      if (t_id != nullptr) {
+                          std::cout<<std::endl<<"Conactions table located";
+                          const auto &idx = db.get_index<key_value_index, by_scope_primary>();
+                          auto it = idx.find(boost::make_tuple(t_id->id, act->name));
+                          if (it != idx.end()) {
+                              vector<char> data;
+                              const chain::key_value_object &obj(*it);
+                              data.resize(obj.value.size());
+                              memcpy(data.data(), obj.value.data(), obj.value.size());
+
+                              auto result = abis.binary_to_variant("conactions", data,
+                                         fc::microseconds(config::default_abi_serializer_max_time_ms), true);
+                              string r2;
+                              from_variant(result, r2);
+                              std::cout<<std::endl<<r2;
+                          }
+                      }
+                    }
+
+                    //  EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
+                    //             "Unknown action ${action} in contract ${contract}",
+                    //             ("action", act->name)("contract", act->account));
                       EOS_ASSERT(sizeof(act->data) < config::max_transaction_size, action_validate_exception,
                                  " action ${action} in contract ${contract} too large",
                                  ("action", act->name)("contract", act->account));

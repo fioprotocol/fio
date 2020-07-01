@@ -115,6 +115,24 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
     )
 };
 
+
+struct [[eosio::table("conactions"), eosio::contract("fio.system")]] cactions {
+    cactions() {}
+    name action;
+    name account;
+    uint32_t blocknum = now();
+    bool active = true;
+
+    uint64_t primary_key() const { return action.value; }
+
+    EOSLIB_SERIALIZE( cactions,(action)
+            (blocknum)(active)
+    )
+};
+
+typedef eosio::multi_index<"conactions"_n, cactions>
+contract_actions_table;
+
 //begin locked token holders table
 //this table holds the list of FIO accounts that hold locked FIO tokens
 struct [[eosio::table, eosio::contract("fio.system")]] locked_token_holder_info {
@@ -242,7 +260,6 @@ typedef eosio::multi_index<"voters"_n, voter_info,
 indexed_by<"byaddress"_n, const_mem_fun<voter_info, uint128_t, &voter_info::by_address>>,
 indexed_by<"byowner"_n, const_mem_fun<voter_info, uint64_t, &voter_info::by_owner>>
 > voters_table;
-
 
 
 //MAS-522 eliminate producers2 table typedef eosio::multi_index<"producers2"_n, producer_info2> producers_table2;
