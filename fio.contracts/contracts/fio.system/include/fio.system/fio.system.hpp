@@ -115,23 +115,23 @@ struct [[eosio::table("global3"), eosio::contract("fio.system")]] eosio_global_s
     )
 };
 
+struct contract_action {
+  name action;
+  name account;
+  uint32_t blocknum = now();
+  bool active = true;
+};
 
 struct [[eosio::table("conactions"), eosio::contract("fio.system")]] cactions {
     cactions() {}
-    name action;
-    name account;
-    uint32_t blocknum = now();
-    bool active = true;
+    vector<contract_action> contractactions;
 
-    uint64_t primary_key() const { return action.value; }
-
-    EOSLIB_SERIALIZE( cactions,(action)
-            (blocknum)(active)
+    EOSLIB_SERIALIZE( cactions,(contractactions)
     )
 };
 
-typedef eosio::multi_index<"conactions"_n, cactions>
-contract_actions_table;
+typedef eosio::singleton<"conactions"_n, cactions> contract_actions_state;
+
 
 //begin locked token holders table
 //this table holds the list of FIO accounts that hold locked FIO tokens
@@ -283,6 +283,8 @@ private:
     global_state_singleton _global;
     global_state2_singleton _global2;
     global_state3_singleton _global3;
+    contract_actions_state _conactions;
+    cactions _cactions;
     eosio_global_state _gstate;
     eosio_global_state2 _gstate2;
     eosio_global_state3 _gstate3;
@@ -394,6 +396,9 @@ public:
 
     [[eosio::action]]
     void updtrevision(const uint8_t &revision);
+
+    [[eosio::action]]
+    void setactions(const name &action, const name &account, const name &actor);
 
     using init_action = eosio::action_wrapper<"init"_n, &system_contract::init>;
     using regproducer_action = eosio::action_wrapper<"regproducer"_n, &system_contract::regproducer>;

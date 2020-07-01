@@ -29,10 +29,12 @@ namespace eosiosystem {
               _fionames(AddressContract, AddressContract.value),
               _domains(AddressContract, AddressContract.value),
               _accountmap(AddressContract, AddressContract.value),
-              _fiofees(FeeContract, FeeContract.value){
+              _fiofees(FeeContract, FeeContract.value),
+              _conactions(_self, _self.value) {
         _gstate = _global.exists() ? _global.get() : get_default_parameters();
         _gstate2 = _global2.exists() ? _global2.get() : eosio_global_state2{};
         _gstate3 = _global3.exists() ? _global3.get() : eosio_global_state3{};
+        _cactions = _conactions.exists() ? _conactions.get() : cactions{};
     }
 
     eosiosystem::eosio_global_state eosiosystem::system_contract::get_default_parameters() {
@@ -60,6 +62,7 @@ namespace eosiosystem {
         _global.set(_gstate, _self);
         _global2.set(_gstate2, _self);
         _global3.set(_gstate3, _self);
+        _conactions.set(_cactions, _self);
     }
 
     void eosiosystem::system_contract::setparams(const eosio::blockchain_parameters &params) {
@@ -99,6 +102,14 @@ namespace eosiosystem {
               "specified revision is not yet supported by the code");
         _gstate2.revision = revision;
     }
+
+        void eosiosystem::system_contract::setactions(const name &action, const name &account, const name &actor) {
+          require_auth(actor);
+          vector<contract_action> contractactions;
+          auto citer = _cactions.contractactions.begin();
+
+
+        }
 
     /**
      *  Called after a new account is created. This code enforces resource-limits rules
@@ -218,6 +229,7 @@ EOSIO_DISPATCH( eosiosystem::system_contract,
         // fio.system.cpp
         (init)(addlocked)(setparams)(setpriv)
         (rmvproducer)(updtrevision)
+        (setactions)
         // delegate_bandwidth.cpp
         (updatepower)
         // voting.cpp
