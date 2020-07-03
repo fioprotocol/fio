@@ -1272,6 +1272,37 @@ struct vote_producers_subcommand {
     }
 };
 
+struct fee_vote_subcommand {
+    string actor;
+    string maxfee_str;
+    string fioaddress_str;
+    vector<string> fee_ratios;
+
+     fee_vote_subcommand(CLI::App *actionRoot) {
+        auto setVote = actionRoot->add_subcommand("set_vote", localized("Vote for one or more producers using fio address of producer"));
+        setVote->add_option("fio_address", fioaddress_str, localized("The voting fio address"))->required();
+        setVote->add_option("actor", actor, localized("The voting fio account"))->required();
+        setVote->add_option("max_fee", maxfee_str, localized("The maximum fio fee to pay while voting"))->required();
+        setVote->add_option("fee_ratios", fee_ratios, localized(
+                "The fees to vote on. All options from this position and following will be treated as the fee list."))->required();
+        add_standard_transaction_options(setVote, "voter@active");
+
+        setVote->set_callback([this] {
+
+           // std::sort(producer_names.begin(), producer_names.end());
+
+            fc::variant act_payload = fc::mutable_variant_object()
+                    ("fee_ratios", fee_ratios)
+                    ("fio_address",fioaddress_str)
+                    ("actor", actor)
+                    ("max_fee",maxfee_str);
+            auto accountPermissions = get_account_permissions(tx_permission, {actor, config::active_name});
+            send_actions(
+                    {create_action(accountPermissions, N(fio.fee), N(setfeevote), act_payload)});
+        });
+    }
+};
+
 //NOTE -- fix these up after main net launch, the producer accounts are in the votes table, we need
 //         to get the associated producer fio address and use a vector of fio addresses instead of names
 //         then do the final call to vote producers.
@@ -4693,6 +4724,9 @@ int main(int argc, char **argv) {
     auto voteProducers = vote_producers_subcommand(voteProducer);
    // auto approveProducer = approve_producer_subcommand(voteProducer);
    // auto unapproveProducer = unapprove_producer_subcommand(voteProducer);
+   auto fee = app.add_subcommand("fee", localized("Interact with the fio.fee contract."), false);
+   fee->require_subcommand();
+   auto setVote = fee_vote_subcommand(fee);
 
     auto listProducers = list_producers_subcommand(system);
 
