@@ -1289,8 +1289,6 @@ struct fee_vote_subcommand {
 
         setVote->set_callback([this] {
 
-           // std::sort(producer_names.begin(), producer_names.end());
-
             fc::variant act_payload = fc::mutable_variant_object()
                     ("fee_ratios", fee_ratios)
                     ("fio_address",fioaddress_str)
