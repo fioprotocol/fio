@@ -5450,7 +5450,13 @@ if( options.count(name) ) { \
         read_only::serialize_json(const read_only::serialize_json_params &params) const try {
             serialize_json_result result;
 
-            string actionname = fioio::map_to_contract(params.action.to_string());
+            const fioaction_object *fioaction_item = nullptr;
+            action_name nm = params.action;
+            fioaction_item = db.db().find<fioaction_object,by_actionname>(nm);
+            EOS_ASSERT(fioaction_item != nullptr, contract_query_exception, "Action can't be found ${contract}",
+                       ("contract", params.action.to_string()));
+
+            string actionname = fioaction_item->contractname;
             name code = ::eosio::string_to_name(actionname.c_str());
 
             const auto code_account = db.db().find<account_object, by_name>(code);
