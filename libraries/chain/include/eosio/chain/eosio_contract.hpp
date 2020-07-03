@@ -52,6 +52,8 @@ namespace eosio {
 
         void apply_eosio_unlinkauth(apply_context &);
 
+        void apply_eosio_updateacts(apply_context &);
+
         /*
         void apply_eosio_postrecovery(apply_context&);
         void apply_eosio_passrecovery(apply_context&);

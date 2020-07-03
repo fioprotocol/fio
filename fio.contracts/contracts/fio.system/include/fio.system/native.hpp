@@ -120,6 +120,11 @@ namespace eosiosystem {
 
 
         [[eosio::action]]
+        void updateacts(const name &actionname,
+                        const string &contractname);
+
+
+        [[eosio::action]]
         void updateauth(const name &account,
                         const name &permission,
                         const name &parent,

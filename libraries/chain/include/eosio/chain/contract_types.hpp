@@ -25,6 +25,20 @@ namespace eosio {
             }
         };
 
+        struct updateacts {
+            name actionname;
+            string contractname;
+
+
+            static account_name get_account() {
+                return config::system_account_name;
+            }
+
+            static action_name get_name() {
+                return N(updateacts);
+            }
+        };
+
         struct trnsfiopubky {
             string payee_public_key;
             int64_t amount;
@@ -244,6 +258,7 @@ namespace eosio {
 } /// namespace eosio::chain
 
 FC_REFLECT(eosio::chain::newaccount, (creator)(name)(owner)(active))
+FC_REFLECT(eosio::chain::updateacts, (actionname)(contractname))
 FC_REFLECT(eosio::chain::setcode, (account)(vmtype)(vmversion)(code))
 FC_REFLECT(eosio::chain::setabi, (account)(abi))
 FC_REFLECT(eosio::chain::updateauth, (account)(permission)(parent)(auth)(max_fee))

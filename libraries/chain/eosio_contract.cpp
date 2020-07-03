@@ -66,7 +66,46 @@ namespace eosio {
             }
         }
 
-/**
+        /**
+         *  This method is called assuming precondition_system_newaccount succeeds a
+         */
+        void apply_eosio_updateacts(apply_context &context) {
+            auto create = context.get_action().data_as<updateacts>();
+            try {
+               // context.require_authorization(create.creator);
+
+               // auto &authorization = context.control.get_mutable_authorization_manager();
+
+               // EOS_ASSERT(validate(create.owner), action_validate_exception, "Invalid owner authority");
+               // EOS_ASSERT(validate(create.active), action_validate_exception, "Invalid active authority");
+
+                auto &db = context.db;
+
+                auto name_str = name(create.actionname).to_string();
+
+                EOS_ASSERT(!create.actionname.empty(), action_validate_exception, "account name cannot be empty");
+                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "account names can only be 12 chars long");
+
+
+                std::cout << "EDEDEDEDEDEDED before the first find ";
+                auto fioaction_name = db.find<fioaction_object, by_actionname>(create.actionname);
+                EOS_ASSERT(fioaction_name == nullptr, account_name_exists_exception,
+                           "Cannot create account named ${name}, as that name is already taken",
+                           ("name", create.actionname));
+                std::cout << "EDEDEDEDEDEDED after the first find ";
+
+                const auto &new_fioaction = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = create.actionname;
+                    a.contractname = create.contractname;
+                    a.blocktimestamp = context.control.pending_block_time().time_since_epoch().count();
+                });
+                std::cout << "EDEDEDEDEDEDED after the create!! ";
+
+            } FC_CAPTURE_AND_RETHROW((create))
+        }
+
+
+        /**
  *  This method is called assuming precondition_system_newaccount succeeds a
  */
         void apply_eosio_newaccount(apply_context &context) {

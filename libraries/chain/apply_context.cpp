@@ -52,13 +52,20 @@ namespace eosio {
 
             const auto &cfg = control.get_global_properties().configuration;
             const account_metadata_object *receiver_account = nullptr;
+            const account_metadata_object *receiver_tmp = nullptr;
+            const fioaction_object *fioaction_item = nullptr;
+
             try {
                 try {
                     receiver_account = &db.get<account_metadata_object, by_name>(receiver);
+                    action_name  thename = act->name;
+
+
+                    fioaction_item = db.find<fioaction_object, by_actionname>(thename);
                     privileged = receiver_account->is_privileged();
                     auto native = control.find_apply_handler(receiver, act->account, act->name);
                     if (act->name != name("nonce")){
-                      EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
+                      EOS_ASSERT(fioaction_item != nullptr, action_validate_exception,
                                  "Unknown action ${action} in contract ${contract}",
                                  ("action", act->name)("contract", act->account));
                       EOS_ASSERT(sizeof(act->data) < config::max_transaction_size, action_validate_exception,

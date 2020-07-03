@@ -46,7 +46,8 @@ namespace eosio {
                 transaction_multi_index,
                 generated_transaction_multi_index,
                 table_id_multi_index,
-                code_index
+                code_index,
+                fioaction_index
         >;
 
         using contract_database_index_set = index_set<
@@ -344,6 +345,7 @@ namespace eosio {
                 SET_APP_HANDLER(eosio, eosio, deleteauth);
                 SET_APP_HANDLER(eosio, eosio, linkauth);
                 SET_APP_HANDLER(eosio, eosio, unlinkauth);
+                SET_APP_HANDLER(eosio, eosio, updateacts);
 /*
    SET_APP_HANDLER( eosio, eosio, postrecovery );
    SET_APP_HANDLER( eosio, eosio, passrecovery );
@@ -1008,6 +1010,8 @@ namespace eosio {
 
                 db.create<dynamic_global_property_object>([](auto &) {});
 
+                db.create<fioaction_object>([](auto &) {}); /// reserve perm 0 (used else where)
+
                 authorization.initialize_database();
                 resource_limits.initialize_database();
 
@@ -1032,6 +1036,476 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
+
+                const auto &ins1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(approve);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unapprove);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(propose);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(exec);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(invalidate);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins6 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(cancel);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+
+              //  if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
+              const auto &ins7 = db.create<fioaction_object>([&](auto &a) {
+                        a.actionname = N(regaddress);
+                        a.contractname = "fio.address";
+                        a.blocktimestamp = 1;
+                    });
+                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins9 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(addaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                //    action == "remaddress" || action == "remalladdr" ||
+                const auto &ins10 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(remaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins11 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(remalladdr);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                 //   action == "renewdomain" || action == "renewaddress" ||
+                const auto &ins12 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(renewdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins13 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(renewaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                //    action == "setdomainpub" || action == "bind2eosio" ||
+                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setdomainpub);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bind2eosio);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                //    action == "burnexpired" || action == "decrcounter" || action == "xferdomain" || action == "xferaddress" )
+                const auto &ins16 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(burnexpired);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins17 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(decrcounter);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins18 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(xferdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+                const auto &ins19 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(xferaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+
+
+        // fio.fee actions
+        //if (action == "setfeemult" || action == "bundlevote" || action == "setfeevote" ||
+                const auto &fee1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setfeemult);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+                const auto &fee2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bundlevote);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+                const auto &fee3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setfeevote);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+           // action == "bytemandfee" || action == "updatefees" || action == "mandatoryfee" ||
+                const auto &fee4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bytemandfee);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+                const auto &fee5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatefees);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+                const auto &fee6 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(mandatoryfee);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+           // action == "createfee")
+                const auto &fee7 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(createfee);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+
+
+                // fio.treasury actions
+               // if (action == "tpidclaim" || action == "bpclaim" || action == "bppoolupdate" ||
+                const auto &treas1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(tpidclaim);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+                const auto &treas2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bpclaim);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+                const auto &treas3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bppoolupdate);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+               //     action == "fdtnrwdupdat" || action == "bprewdupdate" || action == "startclock" ||
+                const auto &treas4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(fdtnrwdupdat);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+                const auto &treas5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bprewdupdate);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+                const auto &treas6 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(startclock);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+                 //   action == "updateclock")
+                const auto &treas7 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updateclock);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+
+
+
+
+
+
+        //fio.token actions
+       // if (action == "trnsfiopubky" || action == "create" || action == "issue" ||
+                const auto &tok1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(trnsfiopubky);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tok2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(create);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tok3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(issue);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+                //     action == "transfer" || action == "mintfio")
+                const auto &tok4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(transfer);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tok5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(mintfio);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+       //   return "fio.token";
+        //fio.request.obt actions
+      //  if (action == "recordobt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
+                const auto &req1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(recordobt);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+                const auto &req2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(rejectfndreq);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+                const auto &req3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(cancelfndreq);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+                const auto &req4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(newfundsreq);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+      //    return "fio.reqobt";
+
+        //fio.tpid actions
+      //  if (action == "updatebounty" || action == "rewardspaid" || action == "updatetpid")
+                const auto &tpid1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatebounty);
+                    a.contractname = "fio.tpid";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tpid2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(rewardspaid);
+                    a.contractname = "fio.tpid";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tpid3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatetpid);
+                    a.contractname = "fio.tpid";
+                    a.blocktimestamp = 1;
+                });
+       //   return "fio.tpid";
+
+        // eosio.wrap actions
+      //  if (action == "execute")
+                const auto &exe1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(execute);
+                    a.contractname = "eosio.wrap";
+                    a.blocktimestamp = 1;
+                });
+       //   return "eosio.wrap";
+
+
+        //system actions
+     //   if (action == "newaccount" || action == "onblock" || action == "addlocked" ||
+                const auto &eos1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(newaccount);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(onblock);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(addlocked);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "regproducer" || action == "unregprod" || action == "regproxy" ||
+                const auto &eos4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regproducer);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unregprod);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos6 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "voteproducer" || action == "unregproxy" || action == "voteproxy" ||
+                const auto &eos7 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(voteproducer);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unregproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos9 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(voteproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "setabi" || action == "setcode" || action == "updateauth" ||
+                const auto &eos10 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setabi);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos11 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setcode);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos12 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updateauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "setprods" || action == "setpriv" || action == "init" ||
+                const auto &eos13 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setprods);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setpriv);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(init);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "nonce" || action == "burnaction" || action == "canceldelay" ||
+                const auto &eos16 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(nonce);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos17 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(burnaction);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos18 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(canceldelay);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "crautoproxy" || action == "deleteauth" || action == "inhibitunlck" ||
+                const auto &eos19 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(crautoproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos20 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(deleteauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos21 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(inhibitunlck);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "linkauth" || action == "onerror" || action == "unlinkauth" ||
+                const auto &eos22 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(linkauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos23 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(onerror);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos24 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unlinkauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
+                const auto &eos25 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(rmvproducer);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos26 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setautoproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos27 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setparams);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
+                const auto &eos28 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unlocktokens);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos29 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updtrevision);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos30 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updlocked);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "updatepower" ||
+                const auto &eos31 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatepower);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //       action == "updlbpclaim" || action == "resetclaim" || action == "incram" || action == "updateacts")
+                const auto &eos32 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updlbpclaim);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos33 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(resetclaim);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos34 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(incram);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos35 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updateacts);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+     //     return "eosio";
+
+
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
