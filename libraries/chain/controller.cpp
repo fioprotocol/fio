@@ -345,7 +345,8 @@ namespace eosio {
                 SET_APP_HANDLER(eosio, eosio, deleteauth);
                 SET_APP_HANDLER(eosio, eosio, linkauth);
                 SET_APP_HANDLER(eosio, eosio, unlinkauth);
-                SET_APP_HANDLER(eosio, eosio, updateacts);
+                SET_APP_HANDLER(eosio, eosio, addaction);
+                SET_APP_HANDLER(eosio, eosio, remaction);
 /*
    SET_APP_HANDLER( eosio, eosio, postrecovery );
    SET_APP_HANDLER( eosio, eosio, passrecovery );
@@ -1482,7 +1483,7 @@ namespace eosio {
                     a.contractname = "eosio";
                     a.blocktimestamp = 1;
                 });
-     //       action == "updlbpclaim" || action == "resetclaim" || action == "incram" || action == "updateacts")
+     //       action == "updlbpclaim" || action == "resetclaim" || action == "incram" || action == "addaction")
                 const auto &eos32 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(updlbpclaim);
                     a.contractname = "eosio";
@@ -1499,7 +1500,12 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
                 const auto &eos35 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(updateacts);
+                    a.actionname = N(addaction);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+                const auto &eos36 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(remaction);
                     a.contractname = "eosio";
                     a.blocktimestamp = 1;
                 });

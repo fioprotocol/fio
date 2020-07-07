@@ -120,8 +120,13 @@ namespace eosiosystem {
 
 
         [[eosio::action]]
-        void updateacts(const name &actionname,
-                        const string &contractname);
+        void addaction(const name &action,
+                       const string &contract,
+                       const name &actor);
+
+        [[eosio::action]]
+        void remaction(const name &action,
+                       const name &actor);
 
 
         [[eosio::action]]

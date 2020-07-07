@@ -69,40 +69,96 @@ namespace eosio {
         /**
          *  This method is called assuming precondition_system_newaccount succeeds a
          */
-        void apply_eosio_updateacts(apply_context &context) {
-            auto create = context.get_action().data_as<updateacts>();
+        void apply_eosio_addaction(apply_context &context) {
+            auto create = context.get_action().data_as<addaction>();
             try {
-               // context.require_authorization(create.creator);
 
-               // auto &authorization = context.control.get_mutable_authorization_manager();
 
-               // EOS_ASSERT(validate(create.owner), action_validate_exception, "Invalid owner authority");
-               // EOS_ASSERT(validate(create.active), action_validate_exception, "Invalid active authority");
+                context.require_authorization(create.actor);
+
+                EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
+                           create.actor == MSIGACCOUNT ||
+                           create.actor == WRAPACCOUNT ||
+                           create.actor == ASSERTACCOUNT ||
+                           create.actor == REQOBTACCOUNT ||
+                           create.actor == FeeContract ||
+                           create.actor == AddressContract ||
+                           create.actor == TPIDContract ||
+                           create.actor == TokenContract ||
+                           create.actor == TREASURYACCOUNT ||
+                           create.actor == FIOSYSTEMACCOUNT ||
+                           create.actor == FIOACCOUNT
+                        ,fio_invalid_account_or_action,"addaction not permitted." );
+
 
                 auto &db = context.db;
 
-                auto name_str = name(create.actionname).to_string();
+                auto name_str = name(create.action).to_string();
 
-                EOS_ASSERT(!create.actionname.empty(), action_validate_exception, "account name cannot be empty");
-                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "account names can only be 12 chars long");
+                EOS_ASSERT(!create.action.empty(), action_validate_exception, "action name cannot be empty");
+                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "action names can only be 12 chars long");
+                EOS_ASSERT(!create.actor.empty(), action_validate_exception, "actor name cannot be empty");
+                EOS_ASSERT(!create.contract.empty(), action_validate_exception, "action name cannot be empty");
 
 
-                std::cout << "EDEDEDEDEDEDED before the first find ";
-                auto fioaction_name = db.find<fioaction_object, by_actionname>(create.actionname);
+                auto fioaction_name = db.find<fioaction_object, by_actionname>(create.action);
                 EOS_ASSERT(fioaction_name == nullptr, account_name_exists_exception,
-                           "Cannot create account named ${name}, as that name is already taken",
-                           ("name", create.actionname));
-                std::cout << "EDEDEDEDEDEDED after the first find ";
+                           "Cannot add action named ${name}, as that name is already taken",
+                           ("name", create.action));
+
 
                 const auto &new_fioaction = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = create.actionname;
-                    a.contractname = create.contractname;
+                    a.actionname = create.action;
+                    a.contractname = create.contract;
                     a.blocktimestamp = context.control.pending_block_time().time_since_epoch().count();
                 });
-                std::cout << "EDEDEDEDEDEDED after the create!! ";
+
 
             } FC_CAPTURE_AND_RETHROW((create))
         }
+
+        /**
+       *  This method is called assuming precondition_system_newaccount succeeds a
+       */
+        void apply_eosio_remaction(apply_context &context) {
+            auto rem = context.get_action().data_as<remaction>();
+            try {
+                context.require_authorization(rem.actor);
+
+                EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
+                           rem.actor == MSIGACCOUNT ||
+                           rem.actor == WRAPACCOUNT ||
+                           rem.actor == ASSERTACCOUNT ||
+                           rem.actor == REQOBTACCOUNT ||
+                           rem.actor == FeeContract ||
+                           rem.actor == AddressContract ||
+                           rem.actor == TPIDContract ||
+                           rem.actor == TokenContract ||
+                           rem.actor == TREASURYACCOUNT ||
+                           rem.actor == FIOSYSTEMACCOUNT ||
+                           rem.actor == FIOACCOUNT
+                        ,fio_invalid_account_or_action,"addaction not permitted." );
+
+
+                auto &db = context.db;
+
+                auto name_str = name(rem.action).to_string();
+
+                EOS_ASSERT(!rem.action.empty(), action_validate_exception, "action name cannot be empty");
+                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "action names can only be 12 chars long");
+                EOS_ASSERT(!rem.actor.empty(), action_validate_exception, "actor name cannot be empty");
+
+                auto fioaction_name = db.find<fioaction_object, by_actionname>(rem.action);
+                EOS_ASSERT(fioaction_name != nullptr, account_name_exists_exception,
+                           "Cannot remove action named ${name}, the name does not exist",
+                           ("name", rem.action));
+
+
+                db.remove(*fioaction_name);
+
+            } FC_CAPTURE_AND_RETHROW((rem))
+        }
+
 
 
         /**

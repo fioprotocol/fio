@@ -148,9 +148,17 @@ namespace eosio {
             });
 
             eos_abi.structs.emplace_back(struct_def{
-                    "updateacts", "", {
-                            {"name", "actionname"},
-                            {"string", "contractname"}
+                    "addaction", "", {
+                            {"name", "action"},
+                            {"string", "contract"},
+                            {"name","actor"}
+                    }
+            });
+
+            eos_abi.structs.emplace_back(struct_def{
+                    "remaction", "", {
+                            {"name", "action"},
+                            {"name","actor"}
                     }
             });
 
@@ -234,7 +242,8 @@ namespace eosio {
             eos_abi.actions.push_back(action_def{name("canceldelay"), "canceldelay", ""});
             eos_abi.actions.push_back(action_def{name("onerror"), "onerror", ""});
             eos_abi.actions.push_back(action_def{name("onblock"), "onblock", ""});
-            eos_abi.actions.push_back(action_def{name("updateacts"), "updateacts", ""});
+            eos_abi.actions.push_back(action_def{name("addaction"), "addaction", ""});
+            eos_abi.actions.push_back(action_def{name("remaction"), "remaction", ""});
 
             return eos_abi;
         }
