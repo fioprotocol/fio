@@ -1036,6 +1036,7 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
+                /*
 
                 const auto &ins1 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(approve);
@@ -1509,6 +1510,7 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
      //     return "eosio";
+                 */
 
 
             }

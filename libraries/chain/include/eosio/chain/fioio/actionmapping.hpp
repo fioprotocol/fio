@@ -71,7 +71,8 @@ namespace fioio {
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
             action == "updatepower" ||
-            action == "updlbpclaim" || action == "resetclaim" || action == "incram" || action == "updateacts")
+            action == "updlbpclaim" || action == "resetclaim" || action == "incram" ||
+            action == "addaction" || action == "remaction")
           return "eosio";
 
         if (action == "nonce")

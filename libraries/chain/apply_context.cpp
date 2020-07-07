@@ -46,6 +46,7 @@ namespace eosio {
 
         void apply_context::exec_one() {
             auto start = fc::time_point::now();
+            int32_t HF1_BLOCK_TIME = 1594336300; //july 9 2020
 
             action_receipt r;
             r.receiver = receiver;
@@ -59,16 +60,22 @@ namespace eosio {
             try {
                 try {
                     receiver_account = &db.get<account_metadata_object, by_name>(receiver);
-                    action_name  thename = act->name;
 
-
-                    fioaction_item = db.find<fioaction_object, by_actionname>(thename);
                     privileged = receiver_account->is_privileged();
                     auto native = control.find_apply_handler(receiver, act->account, act->name);
-                    if (act->name != name("nonce")){
-                      EOS_ASSERT(fioaction_item != nullptr, action_validate_exception,
-                                 "Unknown action ${action} in contract ${contract}",
-                                 ("action", act->name)("contract", act->account));
+                    if (act->name != name("nonce")) {
+                        //Special note, this is the hardfork to integrate the whitelist in state.
+                        if (control.head_block_time().sec_since_epoch() > HF1_BLOCK_TIME) {
+                            action_name  thename = act->name;
+                            fioaction_item = db.find<fioaction_object, by_actionname>(thename);
+                            EOS_ASSERT(fioaction_item != nullptr, action_validate_exception,
+                                       "Unknown action ${action} in contract ${contract}",
+                                       ("action", act->name)("contract", act->account));
+                        }else {
+                            EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
+                                       "Unknown action ${action} in contract ${contract}",
+                                       ("action", act->name)("contract", act->account));
+                        }
                       EOS_ASSERT(sizeof(act->data) < config::max_transaction_size, action_validate_exception,
                                  " action ${action} in contract ${contract} too large",
                                  ("action", act->name)("contract", act->account));
