@@ -1012,8 +1012,6 @@ namespace eosio {
 
                 db.create<dynamic_global_property_object>([](auto &) {});
 
-                db.create<fioaction_object>([](auto &) {}); /// reserve perm 0 (used else where)
-
                 authorization.initialize_database();
                 resource_limits.initialize_database();
 
