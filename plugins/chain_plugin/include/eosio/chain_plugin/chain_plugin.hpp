@@ -8,6 +8,7 @@
 #include <eosio/chain/asset.hpp>
 #include <eosio/chain/authority.hpp>
 #include <eosio/chain/account_object.hpp>
+#include <eosio/chain/fioaction_object.hpp>
 #include <eosio/chain/block.hpp>
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/contract_table_objects.hpp>

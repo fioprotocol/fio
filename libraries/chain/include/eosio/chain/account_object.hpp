@@ -104,37 +104,15 @@ namespace eosio {
                 >
         >;
 
-        class fioaction_object : public chainbase::object<fioaction_object_type, fioaction_object> {
-            OBJECT_CTOR(fioaction_object)
-
-            id_type id;
-            action_name actionname; //< name should not be changed within a chainbase modifier lambda
-            string contractname;
-            uint64_t blocktimestamp;
-        };
-
-        using fioaction_id_type = fioaction_object::id_type;
-
-        struct by_actionname;
-        using fioaction_index = chainbase::shared_multi_index_container<
-        fioaction_object,
-        indexed_by<
-                ordered_unique<tag<by_id>, member<fioaction_object, fioaction_object::id_type, &fioaction_object::id>>,
-        ordered_unique<tag<by_actionname>, member<fioaction_object, action_name, &fioaction_object::actionname>>
-        >
-        >;
-
     }
 } // eosio::chain
 
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::account_object, eosio::chain::account_index)
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::account_metadata_object, eosio::chain::account_metadata_index)
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::account_ram_correction_object, eosio::chain::account_ram_correction_index)
-CHAINBASE_SET_INDEX_TYPE(eosio::chain::fioaction_object, eosio::chain::fioaction_index)
 
 
 FC_REFLECT(eosio::chain::account_object, (name)(creation_date)(abi))
 FC_REFLECT(eosio::chain::account_metadata_object, (name)(recv_sequence)(auth_sequence)(code_sequence)(abi_sequence)
         (code_hash)(last_code_update)(flags)(vm_type)(vm_version))
 FC_REFLECT(eosio::chain::account_ram_correction_object, (name)(ram_correction))
-FC_REFLECT(eosio::chain::fioaction_object, (actionname)(contractname)(blocktimestamp))
