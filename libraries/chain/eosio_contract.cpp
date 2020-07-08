@@ -89,23 +89,22 @@ namespace eosio {
                            create.actor == TREASURYACCOUNT ||
                            create.actor == FIOSYSTEMACCOUNT ||
                            create.actor == FIOACCOUNT
-                        ,fio_invalid_account_or_action,"addaction not permitted." );
+                        ,fio_invalid_account_or_action,"Invalid Signature" );
 
 
                 auto &db = context.db;
 
                 auto name_str = name(create.action).to_string();
 
-                EOS_ASSERT(!create.action.empty(), action_validate_exception, "action name cannot be empty");
-                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "action names can only be 12 chars long");
-                EOS_ASSERT(!create.actor.empty(), action_validate_exception, "actor name cannot be empty");
-                EOS_ASSERT(!create.contract.empty(), action_validate_exception, "action name cannot be empty");
+                EOS_ASSERT(!create.action.empty(), action_validate_exception, "Action invalid or not found");
+                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "Action invalid or not found");
+                EOS_ASSERT(!create.actor.empty(), action_validate_exception, "Invalid Signature");
+                EOS_ASSERT(!create.contract.empty(), action_validate_exception, "Invalid Contract");
 
 
                 auto fioaction_name = db.find<fioaction_object, by_actionname>(create.action);
                 EOS_ASSERT(fioaction_name == nullptr, account_name_exists_exception,
-                           "Cannot add action named ${name}, as that name is already taken",
-                           ("name", create.action));
+                           "Action invalid or not found");
 
 
                 const auto &new_fioaction = db.create<fioaction_object>([&](auto &a) {
@@ -138,21 +137,20 @@ namespace eosio {
                            rem.actor == TREASURYACCOUNT ||
                            rem.actor == FIOSYSTEMACCOUNT ||
                            rem.actor == FIOACCOUNT
-                        ,fio_invalid_account_or_action,"addaction not permitted." );
+                        ,fio_invalid_account_or_action,"Invalid Signature" );
 
 
                 auto &db = context.db;
 
                 auto name_str = name(rem.action).to_string();
 
-                EOS_ASSERT(!rem.action.empty(), action_validate_exception, "action name cannot be empty");
-                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "action names can only be 12 chars long");
-                EOS_ASSERT(!rem.actor.empty(), action_validate_exception, "actor name cannot be empty");
+                EOS_ASSERT(!rem.action.empty(), action_validate_exception, "Action invalid or not found");
+                EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "Action invalid or not found");
+                EOS_ASSERT(!rem.actor.empty(), action_validate_exception, "Invalid Signature");
 
                 auto fioaction_name = db.find<fioaction_object, by_actionname>(rem.action);
                 EOS_ASSERT(fioaction_name != nullptr, account_name_exists_exception,
-                           "Cannot remove action named ${name}, the name does not exist",
-                           ("name", rem.action));
+                           "Action invalid or not found");
 
 
                 db.remove(*fioaction_name);
