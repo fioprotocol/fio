@@ -48,7 +48,11 @@
           "type": "uint64"
         },
         {
-          "name": "reservetokensminted",
+          "name": "bpreservetokensminted",
+          "type": "uint64"
+        },
+        {
+          "name": "fdtnreservetokensminted",
           "type": "uint64"
         }
       ]
