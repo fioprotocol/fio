@@ -4,6 +4,7 @@
 #include <eosio/chain/chain_config.hpp>
 #include <eosio/chain/config.hpp>
 #include <eosio/chain/types.hpp>
+#include <eosio/chain/asset.hpp>
 
 namespace eosio {
     namespace chain {
@@ -22,6 +23,21 @@ namespace eosio {
 
             static action_name get_name() {
                 return N(newaccount);
+            }
+        };
+
+        struct transfer {
+            name from;
+            name to;
+            eosio::chain::asset quantity;
+            string memo;
+
+            static account_name get_account() {
+                return N(fio.token);
+            }
+
+            static action_name get_name() {
+                return N(transfer);
             }
         };
 
@@ -257,3 +273,4 @@ FC_REFLECT(eosio::chain::regaddress, (fio_address)(owner_fio_public_key)(max_fee
 FC_REFLECT(eosio::chain::regdomain, (fio_domain)(owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::xferdomain, (fio_domain)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::xferaddress, (fio_address)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
+FC_REFLECT(eosio::chain::transfer, (from)(to)(quantity)(memo))

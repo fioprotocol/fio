@@ -50,9 +50,38 @@ namespace eosio {
                 uint32_t last_irreversible_block;
                 optional<bool> time_limit_exceeded_error;
             };
-
-
             get_actions_result get_actions(const get_actions_params &) const;
+
+            struct get_transfers_params {
+                string fio_public_key;
+                optional<int64_t> pos; /// a absolute sequence positon -1 is the end/last action
+                optional<int64_t> offset; ///< the number of actions relative to pos, negative numbers return [pos-offset,pos), positive numbers return [pos,pos+offset)
+            };
+
+            struct transfer_information {
+              uint64_t global_action_seq;
+              uint64_t account_action_seq;
+              uint32_t block_num;
+              chain::block_timestamp_type block_time;
+              string payer;
+              string payee;
+              string payee_public_key;
+              uint64_t transfer_amount;
+              uint64_t fee_amount;
+              uint64_t transaction_total;
+              string note;
+              string action;
+              string tpid;
+              string transaction_id;
+            };
+
+            struct get_transfers_result {
+                vector<transfer_information> transfers;
+                uint32_t last_irreversible_block;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_transfers_result get_transfers(const get_transfers_params &) const;
 
 
             struct get_transaction_params {
@@ -152,6 +181,12 @@ namespace eosio {
 FC_REFLECT(eosio::history_apis::read_only::get_actions_params, (account_name)(pos)(offset))
 FC_REFLECT(eosio::history_apis::read_only::get_actions_result,
            (actions)(last_irreversible_block)(time_limit_exceeded_error))
+FC_REFLECT(eosio::history_apis::read_only::get_transfers_params, (fio_public_key)(pos)(offset))
+FC_REFLECT(eosio::history_apis::read_only::get_transfers_result,
+           (transfers)(last_irreversible_block)(time_limit_exceeded_error))
+FC_REFLECT(eosio::history_apis::read_only::transfer_information, (global_action_seq)(account_action_seq)(block_num)
+          (block_time)(payer)(payee)(payee_public_key)(transfer_amount)(fee_amount)
+          (transaction_total)(note)(action)(tpid)(transaction_id) )
 FC_REFLECT(eosio::history_apis::read_only::ordered_action_result,
            (global_action_seq)(account_action_seq)(block_num)(block_time)(action_trace))
 

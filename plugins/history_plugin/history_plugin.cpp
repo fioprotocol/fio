@@ -122,6 +122,14 @@ namespace eosio {
         }
     }
 
+    //Used to retrieve the fee paid from action_trace.receipt->response
+    static const uint64_t extract_fee (const action_trace &t) {
+      const string &extract = t.receipt->response.substr(t.receipt->response.find("d\":") + 3,
+            std::numeric_limits<unsigned long long>::max());
+      const string &fee = extract.substr(0, extract.find("}"));
+      return boost::lexical_cast<uint64_t>(fee);
+    }
+
     struct filter_entry {
         name receiver;
         name action;
@@ -549,9 +557,162 @@ namespace eosio {
                 }
             }
             return result;
+        } //get actions
+
+        read_only::get_transfers_result read_only::get_transfers(const read_only::get_transfers_params &params) const {
+            // edump((params));
+            auto &chain = history->chain_plug->chain();
+            const auto& hdb  = chain.hdb();
+            const auto& hidb = chain.hidb();
+            const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
+
+            const auto& idx = hidb.get_index<account_history_index, by_account_action_seq>();
+            account_name account_name = fioio::key_to_account(params.fio_public_key);
+            int64_t start = 0;
+            int64_t pos = params.pos ? *params.pos : -1;
+            int64_t end = 0;
+            int64_t offset = params.offset ? *params.offset : -20;
+            auto n = account_name;
+            // idump((pos));
+            if (pos == -1) {
+                auto itr = idx.lower_bound(boost::make_tuple(name(n.value + 1), 0));
+                if (itr == idx.begin()) {
+                    if (itr->account == n)
+                        pos = itr->account_sequence_num + 1;
+                } else if (itr != idx.begin()) --itr;
+
+                if (itr->account == n)
+                    pos = itr->account_sequence_num + 1;
+            }
+
+            if (pos == -1) pos = 0xfffffffffffffff;
+
+            if (offset > 0) {
+                start = pos;
+                end = start + offset;
+            } else {
+                start = pos + offset;
+                if (start > pos) start = 0;
+                end = pos;
+            }
+            EOS_ASSERT(end >= start, chain::plugin_exception, "end position is earlier than start position");
+
+            // idump((start)(end));
+
+            // Find latest stored action (will have lowest available ACCOUNT seq number)
+            const auto max_itr = idx.lower_bound( boost::make_tuple( n, 0 ) );
+            const auto min_seq_number = max_itr->account_sequence_num;
+            if (min_seq_number > 0) {  // Reject outside of retention policy boundary.
+              const auto max_seq_number = min_seq_number + history->history_per_account * 3;
+              EOS_ASSERT( start >= min_seq_number, chain::plugin_range_not_satisfiable, "start position is earlier than account retention policy (${p}). Latest available: ${l}. Requested start: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",start) );
+              // Below should actually never occur..?
+              EOS_ASSERT( end >= min_seq_number, chain::plugin_range_not_satisfiable,   "end position is earlier than account retention policy (${p}). Latest available: ${l}. Requested end: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",end) );
+            }
+
+            auto start_itr = idx.lower_bound(boost::make_tuple(n, start));
+            auto end_itr = idx.upper_bound(boost::make_tuple(n, end));
+
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
+
+            get_actions_result action_result;
+            get_transfers_result result;
+            result.last_irreversible_block = chain.last_irreversible_block_num();
+            action_result.last_irreversible_block = chain.last_irreversible_block_num();
+            fc::sha256 previoustrxid;
+            while (start_itr != end_itr) {
+                uint64_t action_sequence_num;
+                int64_t account_sequence_num;
+                if (params.pos < 0) {
+                --end_itr;
+                action_sequence_num = end_itr->action_sequence_num;
+                account_sequence_num = end_itr->account_sequence_num;
+                } else {
+                action_sequence_num = start_itr->action_sequence_num;
+                account_sequence_num = start_itr->account_sequence_num;
+                ++start_itr;
+                }
+
+                const auto& a = hdb.get<action_history_object, by_action_sequence_num>( action_sequence_num );
+                fc::datastream<const char *> ds(a.packed_action_trace.data(), a.packed_action_trace.size());
+                action_trace t;
+                fc::raw::unpack(ds, t);
+
+                  transfer_information ti;
+                  ti.transaction_id = t.trx_id;
+                  ti.block_num = t.block_num;
+                  ti.block_time = t.block_time;
+                  ti.global_action_seq = action_sequence_num;
+                  ti.account_action_seq = account_sequence_num;
+                    if (t.act.name == N(trnsfiopubky)) {
+                      const auto transferdata = t.act.data_as<eosio::trnsfiopubky>();
+                      const auto paccount = fioio::key_to_account(transferdata.payee_public_key);
+                      if ( previoustrxid != t.trx_id && (account_name == paccount ||
+                        t.receipt->receiver == N(account_name) ||
+                        t.receipt->receiver == transferdata.actor  ||
+                        t.receipt->receiver == N(paccount) ||
+                        paccount == "fio.treasury" ||
+                        transferdata.actor.to_string() == paccount ||
+                        transferdata.actor.to_string() == account_name)) {
+                        ti.action = "trnsfiopubky";
+                        ti.tpid = transferdata.tpid;
+                        ti.note = "FIO Transfer";
+                        ti.payer = transferdata.actor.to_string();
+                        ti.payee = paccount;
+                        ti.payee_public_key = transferdata.payee_public_key;
+                        ti.fee_amount = extract_fee(t);
+                        std::cout<<"*****TRANSFERPUB*******";
+                        ti.transaction_total = ti.fee_amount + transferdata.amount;
+                        ti.transfer_amount = transferdata.amount;
+                        if (params.pos < 0) {
+                          result.transfers.emplace(result.transfers.begin(), ti );
+                        } else {
+                          result.transfers.emplace_back( ti );
+                        }
+                      }
+                    }
+                    else if (t.act.name == N(transfer)) {
+                      const auto transferdata = t.act.data_as<eosio::transfer>();
+                      if (t.receipt->receiver == account_name ||
+                         transferdata.to.to_string() == account_name ||
+                         transferdata.from.to_string() == account_name) {
+                      ti.action = "transfer";
+                      ti.tpid = "";
+                      ti.note = transferdata.memo;
+                      ti.payer = transferdata.from.to_string();
+                      ti.payee = transferdata.to.to_string();
+                      ti.payee_public_key = "";
+                      if (ti.payee == "fio.treasury") {
+                        ti.fee_amount = transferdata.quantity.get_amount();
+                        ti.transfer_amount = 0;
+                      } else {
+                          ti.fee_amount = 0;
+                          ti.transfer_amount = transferdata.quantity.get_amount(); //transfer amount is optional result and only set in cases where transfer is not fee to fio.treasury
+                      }
+                      ti.transaction_total = transferdata.quantity.get_amount();
+
+                      if (params.pos < 0) {
+                          result.transfers.emplace(result.transfers.begin(), ti );
+                      } else {
+                        result.transfers.emplace_back( ti );
+                      }
+                    }
+                  }
+                  previoustrxid = t.trx_id;
+
+                  end_time = fc::time_point::now();
+                  if (end_time - start_time > (fc::microseconds(100000 * 3))) {
+                      action_result.time_limit_exceeded_error = true;
+                      break;
+                  }
+
+
+                } // while
+
+            return result;
         }
 
-
+         //get actions
         read_only::get_transaction_result read_only::get_transaction(const read_only::get_transaction_params &p) const {
             auto &chain = history->chain_plug->chain();
             const auto abi_serializer_max_time = history->chain_plug->get_abi_serializer_max_time();
