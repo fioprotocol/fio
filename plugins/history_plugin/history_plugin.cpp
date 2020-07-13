@@ -257,6 +257,20 @@ namespace eosio {
                         result.insert(fioio::key_to_account(xferdata.new_owner_fio_public_key));
                       }
                     }
+
+                    if (act.act.name == N(updateauth)) {
+                        const auto update = act.act.data_as<chain::updateauth>();
+                        if(filter_out.find({act.receiver, act.act.name, update.account}) == filter_out.end()) {
+                          result.insert(update.account);
+                        }
+                    }
+
+                    if (act.act.name == N(deleteauth)) {
+                        const auto deleteauth = act.act.data_as<chain::deleteauth>();
+                        if(filter_out.find({act.receiver, act.act.name, deleteauth.account}) == filter_out.end()) {
+                          result.insert(deleteauth.account);
+                        }
+                      }
                 }
             }
             return result;
