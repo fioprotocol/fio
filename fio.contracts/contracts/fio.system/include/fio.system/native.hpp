@@ -120,6 +120,16 @@ namespace eosiosystem {
 
 
         [[eosio::action]]
+        void addaction(const name &action,
+                       const string &contract,
+                       const name &actor);
+
+        [[eosio::action]]
+        void remaction(const name &action,
+                       const name &actor);
+
+
+        [[eosio::action]]
         void updateauth(const name &account,
                         const name &permission,
                         const name &parent,
