@@ -3507,7 +3507,7 @@ int main(int argc, char **argv) {
 
 // add address subcommand
     string addresses;
-    auto addaddress_action = address->add_subcommand("add", localized("Add other blockchain addresses to FIO address"));
+    auto addaddress_action = address->add_subcommand("add_pub", localized("Add other blockchain addresses to FIO address"));
     add_standard_transaction_options(addaddress_action, "sender@active");
     addaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
     addaddress_action->add_option("addresses", addresses, localized("Bloclchain addresses to add to the FIO address"))->required();
@@ -3528,6 +3528,27 @@ int main(int argc, char **argv) {
                variant_to_bin(N(fio.address), N(addaddress), addaddress)}});
      });
 
+ // add address subcommand
+     auto remaddress_action = address->add_subcommand("remove_pub", localized("Remove blockchain addresses from FIO address"));
+     add_standard_transaction_options(remaddress_action, "sender@active");
+     remaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
+     remaddress_action->add_option("public_addresses", addresses, localized("Blockchain addresses to remove from the FIO address"))->required();
+     remaddress_action->add_option("fio_address", fio_address,localized("The FIO address to remove blockchain addresses from"))->required();
+     remaddress_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+     remaddress_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+     remaddress_action->set_callback([&] {
+
+     auto rem_address = fc::mutable_variant_object
+                ("fio_address", fio_address)
+                ("public_addresses", addresses)
+                ("actor", name(actor))
+                ("max_fee", max_fee)
+                ("tpid", tpid);
+
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "remaddress",
+                variant_to_bin(N(fio.address), N(remaddress), rem_address)}});
+      });
 
 // renew address subcommand
     auto renewaddress_action = address->add_subcommand("renew", localized("Renew address action"));
@@ -3550,7 +3571,7 @@ int main(int argc, char **argv) {
      });
 
      // remove all subcommand
-     auto removeall_action = address->add_subcommand("remove_all", localized("Remove all addresses action"));
+     auto removeall_action = address->add_subcommand("remove_all_pub", localized("Remove all addresses action"));
      add_standard_transaction_options(removeall_action, "sender@active");
      removeall_action->add_option("actor", actor, localized("actor (string)"))->required();
      removeall_action->add_option("fio_address", fio_address,
