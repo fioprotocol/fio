@@ -1301,6 +1301,28 @@ struct fee_vote_subcommand {
     }
 };
 
+struct fee_multiplier_subcommand {
+    string actor;
+    string multiplier;
+
+     fee_multiplier_subcommand(CLI::App *actionRoot) {
+        auto setMult = actionRoot->add_subcommand("set_multiplier", localized("Set the fee multiplier"));
+        setMult->add_option("multiplier", multiplier, localized("The fee multiplier to set"))->required();
+        setMult->add_option("actor", actor, localized("The actor setting the multiplier"))->required();
+        add_standard_transaction_options(setMult, "actor@active");
+
+        setMult->set_callback([this] {
+
+            fc::variant act_payload = fc::mutable_variant_object()
+                    ("actor", actor)
+                    ("multiplier", multiplier);
+            auto accountPermissions = get_account_permissions(tx_permission, {actor, config::active_name});
+            send_actions(
+                    {create_action(accountPermissions, N(fio.fee), N(setfeemult), act_payload)});
+        });
+    }
+};
+
 //NOTE -- fix these up after main net launch, the producer accounts are in the votes table, we need
 //         to get the associated producer fio address and use a vector of fio addresses instead of names
 //         then do the final call to vote producers.
@@ -3262,7 +3284,7 @@ int main(int argc, char **argv) {
        // Register FIO address
        string actor;
        string tpid;
-       uint64_t max_fee = 80000000000LL;
+       uint64_t max_fee = 800000000001LL;
        string fio_address;
        string owner_fio_public_key;
 
@@ -4725,6 +4747,7 @@ int main(int argc, char **argv) {
    auto fee = app.add_subcommand("fee", localized("Interact with the fio.fee contract."), false);
    fee->require_subcommand();
    auto setVote = fee_vote_subcommand(fee);
+   auto setMult = fee_multiplier_subcommand(fee);
 
     auto listProducers = list_producers_subcommand(system);
 
