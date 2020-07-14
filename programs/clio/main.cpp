@@ -4702,7 +4702,7 @@ int main(int argc, char **argv) {
     string executer;
     auto exec = msig->add_subcommand("exec", localized("Execute proposed transaction"));
     add_standard_transaction_options(exec, "executer@active");
-    exec->add_option("proposer", proposer, localized("proposer name (stri ng)"))->required();
+    exec->add_option("proposer", proposer, localized("proposer name (string)"))->required();
     exec->add_option("proposal_name", proposal_name, localized("proposal name (string)"))->required();
     exec->add_option("max_fee",max_fee, localized("max acceptable fee in smallest amount of FIO (SUFs)"))->required();
     exec->add_option("executer", executer, localized("account paying for execution (string)"));
