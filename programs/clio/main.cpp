@@ -3502,6 +3502,30 @@ int main(int argc, char **argv) {
                     variant_to_bin(N(fio.address), N(regaddress), regaddress)}});
           });
 
+// add address subcommand
+    string addresses;
+    auto addaddress_action = address->add_subcommand("add", localized("Add other blockchain addresses to FIO address"));
+    add_standard_transaction_options(addaddress_action, "sender@active");
+    addaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
+    addaddress_action->add_option("addresses", addresses, localized("Bloclchain addresses to add to the FIO address"))->required();
+    addaddress_action->add_option("fio_address", fio_address,localized("The FIO address to add blockchain addresses to"))->required();
+    addaddress_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
+    addaddress_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
+
+    addaddress_action->set_callback([&] {
+
+    auto addaddress = fc::mutable_variant_object
+               ("fio_address", fio_address)
+               ("addresses", addresses)
+               ("actor", name(actor))
+               ("max_fee", max_fee)
+               ("tpid", tpid);
+
+     send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "addaddress",
+               variant_to_bin(N(fio.address), N(addaddress), addaddress)}});
+     });
+
+
 // renew address subcommand
     auto renewaddress_action = address->add_subcommand("renew", localized("Renew address action"));
     add_standard_transaction_options(renewaddress_action, "sender@active");
