@@ -3280,16 +3280,26 @@ int main(int argc, char **argv) {
    });
    */
 
-       string actor;
-       string tpid;
-       uint64_t max_fee = 800000000001LL;
-       string fio_address;
-       string owner_fio_public_key;
+    string actor;
+    string tpid;
+    uint64_t max_fee = 800000000001LL;
+    string fio_address;
+    string owner_fio_public_key;
 
     // domain subcommand
-    auto domain = app.add_subcommand("domain", localized("FIO Address contract commands"), false);
-    domain->require_subcommand();
+    auto domain = app.add_subcommand("domain", localized("FIO Domain contract commands"), false);
+         domain->require_subcommand();
 
+    auto burnexpired_action = domain ->add_subcommand("burn_expired", localized("Burn expired domains"));
+         burnexpired_action->add_option("actor", actor, localized("actor (string)"))->required();
+    add_standard_transaction_options(burnexpired_action, "sender@active");
+
+    burnexpired_action->set_callback([&] {
+
+    send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "burnexpired",
+              variant_to_bin(N(fio.address), N(burnexpired), fc::mutable_variant_object())}});
+    });
+    //register fio domain subcommand
     string fio_domain;
 
     auto regdomain_action = domain->add_subcommand("register", localized("Register domain action"));
@@ -3745,7 +3755,7 @@ int main(int argc, char **argv) {
     // data record command
     auto dataSubcommand = app.add_subcommand("data", localized("Record special data to state"));
     dataSubcommand->require_subcommand();
-    
+
     auto recordobt_action = dataSubcommand->add_subcommand("record", localized("Record on blockchain transaction"));
     add_standard_transaction_options(recordobt_action, "sender@active");
     recordobt_action->add_option("actor", actor, localized("actor (string)"))->required();
