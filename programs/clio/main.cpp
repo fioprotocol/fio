@@ -3742,9 +3742,11 @@ int main(int argc, char **argv) {
     // set action permission
     auto setActionPermission = set_action_permission_subcommand(setAction);
 
-    // set record command
-
-    auto recordobt_action = setSubcommand->add_subcommand("record", localized("Record on blockchain transaction"));
+    // data record command
+    auto dataSubcommand = app.add_subcommand("data", localized("Record special data to state"));
+    dataSubcommand->require_subcommand();
+    
+    auto recordobt_action = dataSubcommand->add_subcommand("record", localized("Record on blockchain transaction"));
     add_standard_transaction_options(recordobt_action, "sender@active");
     recordobt_action->add_option("actor", actor, localized("actor (string)"))->required();
     recordobt_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
