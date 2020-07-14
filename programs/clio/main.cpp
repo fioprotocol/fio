@@ -3374,6 +3374,8 @@ int main(int argc, char **argv) {
       transferdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferdomain_action->add_option("fio_domain", fio_address,
                                  localized("The FIO Domain to transfer"))->required();
+      transferdomain_action->add_option("new_owner_fio_public_key", owner_fio_public_key,
+                                 localized("The FIO public key of the new domain owner (optional)"));
       transferdomain_action->add_option("tpid", tpid,
                                  localized("The TPID (Technology Provider ID)"));
       transferdomain_action->add_option("max_fee", max_fee,
@@ -3381,12 +3383,13 @@ int main(int argc, char **argv) {
       transferdomain_action->set_callback([&] {
 
       auto transferdomain = fc::mutable_variant_object
-                 ("fio_address", fio_address)
+                 ("fio_domain", fio_domain)
                  ("actor", name(actor))
+                 ("new_owner_fio_public_key", owner_fio_public_key)
                  ("max_fee", max_fee)
                  ("tpid", tpid);
 
-       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "xferaddress",
+       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "xferdomain",
                  variant_to_bin(N(fio.address), N(xferdomain), transferdomain)}});
      });
 
@@ -3574,6 +3577,8 @@ int main(int argc, char **argv) {
       transferaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferaddress_action->add_option("fio_address", fio_address,
                                  localized("The FIO Address to transfer"))->required();
+      transferaddress_action->add_option("new_owner_fio_public_key", owner_fio_public_key,
+                                localized("The FIO public key of the new FIO address owner (optional)"));
       transferaddress_action->add_option("tpid", tpid,
                                  localized("The TPID (Technology Provider ID)"));
       transferaddress_action->add_option("max_fee", max_fee,
@@ -3583,6 +3588,7 @@ int main(int argc, char **argv) {
       auto transferaddress = fc::mutable_variant_object
                  ("fio_address", fio_address)
                  ("actor", name(actor))
+                 ("new_owner_fio_public_key", owner_fio_public_key)
                  ("max_fee", max_fee)
                  ("tpid", tpid);
 
