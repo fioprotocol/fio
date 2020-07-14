@@ -1272,22 +1272,22 @@ struct vote_producers_subcommand {
     }
 };
 
-struct fee_vote_subcommand {
+struct fee_amount_subcommand {
     string actor;
     string maxfee_str;
     string fioaddress_str;
     vector<string> fee_ratios;
 
-     fee_vote_subcommand(CLI::App *actionRoot) {
-        auto setVote = actionRoot->add_subcommand("set_vote", localized("Vote for one or more producers using fio address of producer"));
-        setVote->add_option("fio_address", fioaddress_str, localized("The voting fio address"))->required();
-        setVote->add_option("actor", actor, localized("The voting fio account"))->required();
-        setVote->add_option("max_fee", maxfee_str, localized("The maximum fio fee to pay while voting"))->required();
-        setVote->add_option("fee_ratios", fee_ratios, localized(
+     fee_amount_subcommand(CLI::App *actionRoot) {
+        auto setAmount = actionRoot->add_subcommand("set_amount", localized("Vote for one or more producers"));
+        setAmount->add_option("fio_address", fioaddress_str, localized("The voting fio address"))->required();
+        setAmount->add_option("actor", actor, localized("The voting fio account"))->required();
+        setAmount->add_option("max_fee", maxfee_str, localized("The maximum fio fee to pay while voting"))->required();
+        setAmount->add_option("fee_ratios", fee_ratios, localized(
                 "The fees to vote on. All options from this position and following will be treated as the fee list."))->required();
-        add_standard_transaction_options(setVote, "voter@active");
+        add_standard_transaction_options(setAmount, "voter@active");
 
-        setVote->set_callback([this] {
+        setAmount->set_callback([this] {
 
             fc::variant act_payload = fc::mutable_variant_object()
                     ("fee_ratios", fee_ratios)
@@ -4809,7 +4809,7 @@ int main(int argc, char **argv) {
    // auto unapproveProducer = unapprove_producer_subcommand(voteProducer);
    auto fee = app.add_subcommand("fee", localized("Interact with the fio.fee contract."), false);
    fee->require_subcommand();
-   auto setVote = fee_vote_subcommand(fee);
+   auto setAmount = fee_amount_subcommand(fee);
    auto setMult = fee_multiplier_subcommand(fee);
 
     auto listProducers = list_producers_subcommand(system);
