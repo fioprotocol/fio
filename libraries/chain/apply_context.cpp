@@ -46,7 +46,7 @@ namespace eosio {
 
         void apply_context::exec_one() {
             auto start = fc::time_point::now();
-            int32_t HF1_BLOCK_TIME = 1596048306; //july 29 2020
+            int32_t HF1_BLOCK_TIME = 1596729600; //Aug 6 2020 10am MST 4pm UTC, test net forking deadline
 
             action_receipt r;
             r.receiver = receiver;
