@@ -89,7 +89,7 @@ namespace fioio {
     constexpr auto ErrorTransactionTooLarge = ident | httpDataError | 152;   // Transaction too large
     constexpr auto ErrorRequestStatusInvalid = ident | httpDataError | 153;   // the specified request context record was not found
     constexpr auto ErrorActorIsSystemAccount = ident | httpDataError | 154;   // the specified actor is a FIO system account
-
+    constexpr auto ErrorNoFioActionsFound = ident | httpLocationError | 155;   // no actions found
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
     */

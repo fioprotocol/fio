@@ -6,6 +6,7 @@
 #include <eosio/chain/exceptions.hpp>
 
 #include <eosio/chain/account_object.hpp>
+#include <eosio/chain/fioaction_object.hpp>
 #include <eosio/chain/code_object.hpp>
 #include <eosio/chain/block_summary_object.hpp>
 #include <eosio/chain/eosio_contract.hpp>
@@ -46,7 +47,8 @@ namespace eosio {
                 transaction_multi_index,
                 generated_transaction_multi_index,
                 table_id_multi_index,
-                code_index
+                code_index,
+                fioaction_index
         >;
 
         using contract_database_index_set = index_set<
@@ -344,6 +346,8 @@ namespace eosio {
                 SET_APP_HANDLER(eosio, eosio, deleteauth);
                 SET_APP_HANDLER(eosio, eosio, linkauth);
                 SET_APP_HANDLER(eosio, eosio, unlinkauth);
+                SET_APP_HANDLER(eosio, eosio, addaction);
+                SET_APP_HANDLER(eosio, eosio, remaction);
 /*
    SET_APP_HANDLER( eosio, eosio, postrecovery );
    SET_APP_HANDLER( eosio, eosio, passrecovery );
@@ -1032,6 +1036,7 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
+
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
