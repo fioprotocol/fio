@@ -7,6 +7,7 @@
 #include <eosio/chain/fork_database.hpp>
 #include <eosio/chain/block_log.hpp>
 #include <eosio/chain/exceptions.hpp>
+#include <eosio/chain/fioaction_object.hpp>
 #include <eosio/chain/authorization_manager.hpp>
 #include <eosio/chain/code_object.hpp>
 #include <eosio/chain/config.hpp>
@@ -1800,6 +1801,57 @@ if( options.count(name) ) { \
         } // get_pending_fio_requests
 
 
+
+        read_only::get_actions_result
+        read_only::get_actions(const read_only::get_actions_params &p) const {
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            get_actions_result results;
+
+            const auto &idx = db.db().get_index<fioaction_index,by_id>();
+            auto itr = idx.rbegin();
+
+            int count = 0;
+            if (p.offset > 0){
+                while ((itr != idx.rend()) && (count < p.offset)){
+                    itr++;
+                    count++;
+                }
+            }
+
+            count = 0;
+            while ((itr != idx.rend())){
+                if (count == p.limit && p.limit != 0){
+                    break;
+                }
+                string action = itr->actionname.to_string();
+                string contract = itr->contractname;
+                string timestamp = to_string(itr->blocktimestamp);
+
+                action_record rr{action, contract, timestamp};
+                results.actions.push_back(rr);
+                itr++;
+                count++;
+            }
+
+            count = 0;
+            while ((itr != idx.rend())){
+                itr++;
+                count++;
+            }
+
+
+            FIO_404_ASSERT(!(results.actions.size() == 0), "No actions", fioio::ErrorNoFioActionsFound);
+            results.more = count;
+            return results;
+        } // get_actions
+
+
         /***
        * get cancelled fio requests.
        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -2633,7 +2685,7 @@ if( options.count(name) ) { \
                         break;
                     }
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
-                    if (nam.find('@') != std::string::npos) { 
+                    if (nam.find('@') != std::string::npos) {
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
 
                         temptime = namexpiration;
@@ -5369,18 +5421,25 @@ if( options.count(name) ) { \
                     }
                 }
 
-                t_id = d.find<chain::table_id_object, chain::by_code_scope_table>(
-                        boost::make_tuple(config::system_account_name, config::system_account_name, N(voters)));
-                if (t_id != nullptr) {
-                    const auto &idx = d.get_index<key_value_index, by_scope_primary>();
-                    auto it = idx.find(boost::make_tuple(t_id->id, params.account_name));
-                    if (it != idx.end()) {
-                        vector<char> data;
-                        copy_inline_row(*it, data);
-                        result.voter_info = abis.binary_to_variant("voter_info", data, abi_serializer_max_time,
-                                                                   shorten_abi_errors);
-                    }
-                }
+                const abi_def system_abi = eosio::chain_apis::get_abi(db,"eosio");
+                get_table_rows_params voter_table = get_table_rows_params{
+                        .json        = true,
+                        .code        = "eosio",
+                        .scope       = "eosio",
+                        .table       = "voters",
+                        .lower_bound = boost::lexical_cast<string>(params.account_name.value),
+                        .upper_bound = boost::lexical_cast<string>(params.account_name.value),
+                        .key_type       = "i64",
+                        .index_position = "3"
+                };
+
+                get_table_rows_result voter_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                        voter_table, system_abi, [](uint64_t v) -> uint64_t {
+                            return v;
+                        });
+                        if (!voter_result.rows.empty()) {
+                          result.voter_info = voter_result.rows[0];
+                        }
             }
             return result;
         }
@@ -5443,7 +5502,20 @@ if( options.count(name) ) { \
         read_only::serialize_json(const read_only::serialize_json_params &params) const try {
             serialize_json_result result;
 
-            string actionname = fioio::map_to_contract(params.action.to_string());
+            const int32_t HF1_BLOCK_TIME = 1596729600; //Aug 6 2020 10am MST 4pm UTC, test net forking deadline
+            string actionname;
+
+            action_name nm = params.action;
+            if ( db.head_block_time().sec_since_epoch() > HF1_BLOCK_TIME) {
+                const fioaction_object *fioaction_item = nullptr;
+                fioaction_item = db.db().find<fioaction_object, by_actionname>(nm);
+                EOS_ASSERT(fioaction_item != nullptr, contract_query_exception, "Action can't be found ${contract}",
+                           ("contract", params.action.to_string()));
+                actionname = fioaction_item->contractname;
+            }else{
+                actionname = fioio::map_to_contract(params.action.to_string());
+            }
+
             name code = ::eosio::string_to_name(actionname.c_str());
 
             const auto code_account = db.db().find<account_object, by_name>(code);
