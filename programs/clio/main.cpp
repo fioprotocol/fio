@@ -110,7 +110,7 @@ Options:
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#include <fio.common/keyops.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
 
 #pragma pop_macro("N")
 

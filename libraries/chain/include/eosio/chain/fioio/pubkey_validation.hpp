@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string>
-#include <fio.common/fio_common_validator.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <fc/crypto/ripemd160.hpp>
 
 #pragma once

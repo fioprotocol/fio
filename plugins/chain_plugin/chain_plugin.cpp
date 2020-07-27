@@ -18,13 +18,14 @@
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
 
+#include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
+
 #include <eosio/chain/eosio_contract.hpp>
 
 #include <eosio/chain/fioio/fioserialize.h>
 #include <eosio/chain/fioio/pubkey_validation.hpp>
-#include <fio.common/fioerror.hpp>
-#include <fio.common/keyops.hpp>
-#include <fio.common/fio_common_validator.hpp>
 
 #include <boost/signals2/connection.hpp>
 #include <boost/algorithm/string.hpp>
