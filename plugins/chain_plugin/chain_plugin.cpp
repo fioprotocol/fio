@@ -18,13 +18,14 @@
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
 
+#include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
+
 #include <eosio/chain/eosio_contract.hpp>
 
 #include <eosio/chain/fioio/fioserialize.h>
 #include <eosio/chain/fioio/pubkey_validation.hpp>
-#include <fio.common/fioerror.hpp>
-#include <fio.common/keyops.hpp>
-#include <fio.common/fio_common_validator.hpp>
 
 #include <boost/signals2/connection.hpp>
 #include <boost/algorithm/string.hpp>
@@ -2988,8 +2989,10 @@ if( options.count(name) ) { \
 
             const name code = ::eosio::string_to_name("fio.address");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
-            const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
+            const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
+            const string chainCode = fioio::makeLowerCase(p.chain_code);
+            const string tokenCode = fioio::makeLowerCase(p.token_code);
 
             //these are the results for the table searches for domain ansd fio name
             get_table_rows_result domain_result;
@@ -3062,8 +3065,10 @@ if( options.count(name) ) { \
             }
 
             for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
-                if ((name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code)&&
-                        (name_result.rows[0]["addresses"][i]["chain_code"].as_string() == p.chain_code)){
+                string tToken = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["token_code"].as_string());
+                string tChain = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["chain_code"].as_string());
+
+                if ((tToken == tokenCode) && (tChain == chainCode)) {
                     result.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
                 }
             }

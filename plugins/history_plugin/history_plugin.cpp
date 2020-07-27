@@ -4,7 +4,7 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
-#include <fio.common/keyops.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
 #include <fc/io/json.hpp>
 
 #include <boost/algorithm/string.hpp>

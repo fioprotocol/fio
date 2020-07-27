@@ -27,6 +27,15 @@ namespace fioio {
         bool domainOnly;
     };
 
+    inline string makeLowerCase(const string &entry){
+        string temp = entry;
+        for (auto &c : temp) {
+            c = char(::tolower(c));
+        }
+
+        return temp;
+    }
+
     inline void getFioAddressStruct(const string &p, FioAddress &fa) {
         // Split the fio name and domain portions
         fa.fioname = "";
@@ -37,9 +46,7 @@ namespace fioio {
 
         //Lower Case
         fa.fioaddress = p;
-        for (auto &c : fa.fioaddress) {
-            c = char(::tolower(c));
-        }
+        makeLowerCase(fa.fioaddress);
 
         if (pos == string::npos || fa.domainOnly) {
             fa.fiodomain = fa.fioaddress;
