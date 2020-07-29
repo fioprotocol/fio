@@ -286,7 +286,7 @@ namespace eosio {
                         throw chain::missing_net_api_plugin_exception(
                                 FC_LOG_MESSAGE(error, "Net API plugin is not enabled"));
                     }
-                } else if (status_code == 400 || status_code == 401 || status_code == 402 || status_code == 403) {
+                } else if (status_code == 400 || status_code == 401 || status_code == 402 || status_code == 403 || status_code == 404) {
                   EOS_ASSERT(false, http_request_fail, "Error code ${c}\n: ${msg}\n",
                              ("c", status_code)("msg", re));
                 } else {
