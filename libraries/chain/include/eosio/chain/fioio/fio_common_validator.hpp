@@ -45,8 +45,7 @@ namespace fioio {
         fa.domainOnly = pos == 0 || pos == string::npos;
 
         //Lower Case
-        fa.fioaddress = p;
-        makeLowerCase(fa.fioaddress);
+        fa.fioaddress = makeLowerCase(p);
 
         if (pos == string::npos || fa.domainOnly) {
             fa.fiodomain = fa.fioaddress;
