@@ -268,7 +268,8 @@ namespace eosio {
                               << fc::json::to_pretty_string(response_result) << std::endl
                               << "---------------------" << std::endl;
                 }
-                if (status_code == 200 || status_code == 201 || status_code == 202 || status_code == 400 || status_code == 401 || status_code == 402 || status_code == 403) {
+
+                if (status_code == 200 || status_code == 201 || status_code == 202) {
                     return response_result;
                 } else if (status_code == 404) {
                     // Unknown endpoint
@@ -285,7 +286,10 @@ namespace eosio {
                         throw chain::missing_net_api_plugin_exception(
                                 FC_LOG_MESSAGE(error, "Net API plugin is not enabled"));
                     }
-                }  else {
+                } else if (status_code == 400 || status_code == 401 || status_code == 402 || status_code == 403) {
+                  EOS_ASSERT(false, http_request_fail, "Error code ${c}\n: ${msg}\n",
+                             ("c", status_code)("msg", re));
+                } else {
                     auto &&error_info = response_result.as<eosio::error_results>().error;
                     // Construct fc exception from error
                     const auto &error_details = error_info.details;
