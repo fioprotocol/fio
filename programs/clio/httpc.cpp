@@ -268,7 +268,7 @@ namespace eosio {
                               << fc::json::to_pretty_string(response_result) << std::endl
                               << "---------------------" << std::endl;
                 }
-                if (status_code == 200 || status_code == 201 || status_code == 202) {
+                if (status_code == 200 || status_code == 201 || status_code == 202 || status_code == 400 || status_code == 401 || status_code == 402 || status_code == 403) {
                     return response_result;
                 } else if (status_code == 404) {
                     // Unknown endpoint
@@ -297,7 +297,7 @@ namespace eosio {
                         logs.emplace_back(fc::log_message(context, itr->message));
                     }
 
-                    //throw fc::exception(logs, error_info.code, error_info.name, error_info.what);
+                    throw fc::exception(logs, error_info.code, error_info.name, error_info.what);
                 }
 
                 EOS_ASSERT(status_code == 200, http_request_fail, "Error code ${c}\n: ${msg}\n",
