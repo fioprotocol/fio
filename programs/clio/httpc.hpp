@@ -99,6 +99,7 @@ namespace eosio {
             const string proxy_vote_func = chain_func_base + "/proxy_vote";
             const string add_address_func = chain_func_base + "/add_pub_address";
             const string token_transfer_func = chain_func_base + "/transfer_tokens_pub_key";
+            //const string add_bundled_func = chain_func_base + "/add_bundled_transactions";
             const string burn_expired_func = chain_func_base + "/burn_expired";
             const string unreg_proxy_func = chain_func_base + "/unregister_proxy";
             const string reg_proxy_func = chain_func_base + "/register_proxy";

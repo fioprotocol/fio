@@ -989,6 +989,18 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function<transfer_tokens_pub_key_results> next);
 
+            //begin add_bundled_transactions
+            using add_bundled_transactions_params = fc::variant_object;
+            struct add_bundled_transactions_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void add_bundled_transactions(const add_bundled_transactions_params &params,
+                                  chain::plugin_interface::next_function<add_bundled_transactions_results> next);
+
+            //end add_bundled_transactions
+
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
             struct renew_fio_domain_results {
@@ -1448,6 +1460,7 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed));
