@@ -5507,7 +5507,7 @@ if( options.count(name) ) { \
         read_only::serialize_json(const read_only::serialize_json_params &params) const try {
             serialize_json_result result;
 
-            const int32_t HF1_BLOCK_TIME = 1596729600; //Aug 6 2020 10am MST 4pm UTC, test net forking deadline
+            const int32_t HF1_BLOCK_TIME = 1600876800; //Aug 6 2020 10am MST 4pm UTC, test net forking deadline
             string actionname;
 
             action_name nm = params.action;
