@@ -7,6 +7,7 @@
 #include <eosio/chain/fork_database.hpp>
 #include <eosio/chain/block_log.hpp>
 #include <eosio/chain/exceptions.hpp>
+#include <eosio/chain/fioaction_object.hpp>
 #include <eosio/chain/authorization_manager.hpp>
 #include <eosio/chain/code_object.hpp>
 #include <eosio/chain/config.hpp>
@@ -17,13 +18,14 @@
 #include <eosio/chain/generated_transaction_object.hpp>
 #include <eosio/chain/snapshot.hpp>
 
+#include <eosio/chain/fioio/fioerror.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
+
 #include <eosio/chain/eosio_contract.hpp>
 
 #include <eosio/chain/fioio/fioserialize.h>
 #include <eosio/chain/fioio/pubkey_validation.hpp>
-#include <fio.common/fioerror.hpp>
-#include <fio.common/keyops.hpp>
-#include <fio.common/fio_common_validator.hpp>
 
 #include <boost/signals2/connection.hpp>
 #include <boost/algorithm/string.hpp>
@@ -1800,6 +1802,57 @@ if( options.count(name) ) { \
         } // get_pending_fio_requests
 
 
+
+        read_only::get_actions_result
+        read_only::get_actions(const read_only::get_actions_params &p) const {
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            get_actions_result results;
+
+            const auto &idx = db.db().get_index<fioaction_index,by_id>();
+            auto itr = idx.rbegin();
+
+            int count = 0;
+            if (p.offset > 0){
+                while ((itr != idx.rend()) && (count < p.offset)){
+                    itr++;
+                    count++;
+                }
+            }
+
+            count = 0;
+            while ((itr != idx.rend())){
+                if (count == p.limit && p.limit != 0){
+                    break;
+                }
+                string action = itr->actionname.to_string();
+                string contract = itr->contractname;
+                string timestamp = to_string(itr->blocktimestamp);
+
+                action_record rr{action, contract, timestamp};
+                results.actions.push_back(rr);
+                itr++;
+                count++;
+            }
+
+            count = 0;
+            while ((itr != idx.rend())){
+                itr++;
+                count++;
+            }
+
+
+            FIO_404_ASSERT(!(results.actions.size() == 0), "No actions", fioio::ErrorNoFioActionsFound);
+            results.more = count;
+            return results;
+        } // get_actions
+
+
         /***
        * get cancelled fio requests.
        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -2936,8 +2989,10 @@ if( options.count(name) ) { \
 
             const name code = ::eosio::string_to_name("fio.address");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
-            const uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
+            const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
+            const string chainCode = fioio::makeLowerCase(p.chain_code);
+            const string tokenCode = fioio::makeLowerCase(p.token_code);
 
             //these are the results for the table searches for domain ansd fio name
             get_table_rows_result domain_result;
@@ -3010,8 +3065,10 @@ if( options.count(name) ) { \
             }
 
             for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
-                if ((name_result.rows[0]["addresses"][i]["token_code"].as_string() == p.token_code)&&
-                        (name_result.rows[0]["addresses"][i]["chain_code"].as_string() == p.chain_code)){
+                string tToken = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["token_code"].as_string());
+                string tChain = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["chain_code"].as_string());
+
+                if ((tToken == tokenCode) && (tChain == chainCode)) {
                     result.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
                 }
             }
@@ -5503,7 +5560,20 @@ if( options.count(name) ) { \
         read_only::serialize_json(const read_only::serialize_json_params &params) const try {
             serialize_json_result result;
 
-            string actionname = fioio::map_to_contract(params.action.to_string());
+            const int32_t HF1_BLOCK_TIME = 1596729600; //Aug 6 2020 10am MST 4pm UTC, test net forking deadline
+            string actionname;
+
+            action_name nm = params.action;
+            if ( db.head_block_time().sec_since_epoch() > HF1_BLOCK_TIME) {
+                const fioaction_object *fioaction_item = nullptr;
+                fioaction_item = db.db().find<fioaction_object, by_actionname>(nm);
+                EOS_ASSERT(fioaction_item != nullptr, contract_query_exception, "Action can't be found ${contract}",
+                           ("contract", params.action.to_string()));
+                actionname = fioaction_item->contractname;
+            }else{
+                actionname = fioio::map_to_contract(params.action.to_string());
+            }
+
             name code = ::eosio::string_to_name(actionname.c_str());
 
             const auto code_account = db.db().find<account_object, by_name>(code);

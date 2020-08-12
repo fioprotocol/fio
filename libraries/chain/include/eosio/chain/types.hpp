@@ -192,6 +192,7 @@ namespace eosio {
             protocol_state_object_type,
             account_ram_correction_object_type,
             code_object_type,
+            fioaction_object_type,
             OBJECT_TYPE_COUNT ///< Sentry value which contains the number of different object types
         };
 
@@ -243,6 +244,7 @@ namespace eosio {
          */
 
         class account_object;
+        class fioaction_object;
 
         using block_id_type       = fc::sha256;
         using checksum_type       = fc::sha256;
