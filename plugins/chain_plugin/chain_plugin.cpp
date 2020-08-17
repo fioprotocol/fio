@@ -3096,13 +3096,13 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
 
-            //FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
-            //               fioio::ErrorPagingInvalid);
-            //FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
-            //               fioio::ErrorPagingInvalid);
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
 
-          //  uint32_t search_limit = p.limit;
-          //  uint32_t search_offset = p.offset;
+            uint32_t search_limit = p.limit, search_offset = p.offset;
+
             const name code = ::eosio::string_to_name("fio.address");
             const abi_def abi = eosio::chain_apis::get_abi(db, code);
             const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
@@ -3177,11 +3177,26 @@ if( options.count(name) ) { \
             }
 
             address_info public_address_info;
-            for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
-              public_address_info.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
-              public_address_info.token_code = name_result.rows[0]["addresses"][i]["token_code"].as_string();
-              public_address_info.chain_code = name_result.rows[0]["addresses"][i]["chain_code"].as_string();
-              result.public_addresses.push_back(public_address_info);
+            int i = 0;
+
+            if (search_offset < name_result.rows[0]["addresses"].size()) {
+
+              int64_t leftover = (name_result.rows[0]["addresses"].size() - 1) - (search_offset + search_limit);
+              if(leftover < 0) {
+                leftover = 0;
+              }
+              result.more = leftover;
+                for (size_t pos = 0 + search_offset; pos < name_result.rows[0]["addresses"].size(); pos++) {
+                if((search_limit > 0) && (pos - search_offset >= search_limit)) {
+                    break;
+                }
+                public_address_info.public_address = name_result.rows[0]["addresses"][pos]["public_address"].as_string();
+                public_address_info.token_code = name_result.rows[0]["addresses"][pos]["token_code"].as_string();
+                public_address_info.chain_code = name_result.rows[0]["addresses"][pos]["chain_code"].as_string();
+                result.public_addresses.push_back(public_address_info);
+                result.more = (name_result.rows[0]["addresses"].size() - pos) - 1;
+              }
+
             }
             // vector is empty, throw 404
             FIO_404_ASSERT(!result.public_addresses.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
