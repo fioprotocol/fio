@@ -3091,9 +3091,9 @@ if( options.count(name) ) { \
             fioio::getFioAddressStruct(p.fio_address, fa);
             // assert if empty fio name
 
-            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "Invalid FIO Address",
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "Invalid FIO Address format",
                            fioio::ErrorInvalidFioNameFormat);
-            FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
+            FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address format",
                            fioio::ErrorInvalidFioNameFormat);
 
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
@@ -3133,11 +3133,11 @@ if( options.count(name) ) { \
                         return v;
                     });
 
-            FIO_404_ASSERT(!domain_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+            FIO_404_ASSERT(!domain_result.rows.empty(), "FIO Address does not exist", fioio::ErrorPubAddressNotFound);
 
             uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
             uint32_t present_time = (uint32_t) time(0);
-            FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
+            FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "FIO Address does not exist",
                            fioio::ErrorFioNameEmpty);
 
             //set name result to be the domain results.
@@ -3163,17 +3163,18 @@ if( options.count(name) ) { \
                             return v;
                         });
 
-                FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found",
+                FIO_404_ASSERT(!fioname_result.rows.empty(), "FIO Address does not exist",
                                fioio::ErrorPubAddressNotFound);
 
                 uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
-                FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
+                FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "FIO Address does not exist",
                                fioio::ErrorFioNameEmpty);
 
                 //set the result to the name results
                 name_result = fioname_result;
             } else {
-                FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+              // This condition should never be met, all FIO Addresses will have at least 1 public address at minimum (The FIO Public Key)
+                FIO_404_ASSERT(!p.fio_address.empty(), "Public Addresses not found", fioio::ErrorPubAddressNotFound);
             }
 
             address_info public_address_info;
@@ -3199,7 +3200,7 @@ if( options.count(name) ) { \
 
             }
             // vector is empty, throw 404
-            FIO_404_ASSERT(!result.public_addresses.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+            FIO_404_ASSERT(!result.public_addresses.empty(), "Public Addresses not found", fioio::ErrorPubAddressNotFound);
 
             return result;
         } // get_pub_addresses
