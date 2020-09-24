@@ -660,7 +660,7 @@ namespace eosio {
         if (rescode == chain::unsatisfied_authorization().code() ||
             rescode == chain::fio_invalid_sig_exception().code()) {
             rescode = 403;
-            message = "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}";
+            message = "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature is not valid or this user is not allowed to sign this transaction.\"\n}";
         } else if (rescode == chain::fio_invalid_trans_exception().code()) {
             rescode = 403;
             message = "{ \n  \"type\": \"invalid_transaction\",\n  \"message\": \"Signed transaction is not valid or is not formatted properly.\"\n}";

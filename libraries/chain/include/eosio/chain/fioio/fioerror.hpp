@@ -155,7 +155,7 @@ namespace fioio {
 
     struct Code_403_Result : public Http_Result {
         Code_403_Result(uint64_t code) :
-                Http_Result("invalid_signature", "Request signature not valid or not allowed.") {
+                Http_Result("invalid_signature", "Request signature is not valid or this user is not allowed to sign this transaction.") {
             if (code == fioio::ErrorTransaction) {
                 type = "invalid_transaction";
                 message = "Signed transaction is not valid or is not formatted properly";
