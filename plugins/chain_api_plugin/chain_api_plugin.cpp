@@ -113,6 +113,7 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_fio_addresses, 200),
                                      CHAIN_RO_CALL(get_locks, 200),
                                      CHAIN_RO_CALL(get_fee, 200),
+                                     CHAIN_RO_CALL(get_actions, 200),
                                      CHAIN_RO_CALL(avail_check, 200),
                                      CHAIN_RO_CALL(serialize_json, 200),
                                      CHAIN_RO_CALL(get_pub_address, 200),

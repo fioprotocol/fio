@@ -42,6 +42,8 @@ namespace eosio {
 
         class account_object;
 
+        class fioaction_object;
+
         using resource_limits::resource_limits_manager;
         using apply_handler = std::function<void(apply_context &)>;
         using unapplied_transactions_type = map<transaction_id_type, transaction_metadata_ptr, sha256_less>;

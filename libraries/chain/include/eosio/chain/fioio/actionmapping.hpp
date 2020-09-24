@@ -70,8 +70,9 @@ namespace fioio {
             action == "linkauth" || action == "onerror" || action == "unlinkauth" ||
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
-            action == "updatepower" || action == "addgenlocked" ||
-            action == "updlbpclaim" || action == "resetclaim" || action == "incram")
+            action == "updatepower" ||
+            action == "updlbpclaim" || action == "resetclaim" || action == "incram" ||
+            action == "addaction" || action == "remaction" || action == "addgenlocked")
           return "eosio";
 
         if (action == "nonce")

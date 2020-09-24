@@ -8,6 +8,7 @@
 #include <eosio/chain/asset.hpp>
 #include <eosio/chain/authority.hpp>
 #include <eosio/chain/account_object.hpp>
+#include <eosio/chain/fioaction_object.hpp>
 #include <eosio/chain/block.hpp>
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/contract_table_objects.hpp>
@@ -97,6 +98,12 @@ namespace eosio {
             string content;      // this is encrypted content
             string time_stamp;        // FIO blockchain request received timestamp
             string status;          //the status of the request.
+        };
+
+        struct action_record {
+            string action;
+            string contract;
+            string block_timestamp;
         };
 
         struct whitelist_info {
@@ -475,6 +482,20 @@ namespace eosio {
             get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
 
             //end get pending fio requests
+
+            //begin get actions fio requests
+            struct get_actions_params {
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+
+            struct get_actions_result {
+                vector <action_record> actions;
+                uint32_t more;
+            };
+
+            get_actions_result get_actions(const get_actions_params &params) const;
+            //end get actions
 
             //begin get cancelled fio requests
             struct get_cancelled_fio_requests_params {
@@ -1407,6 +1428,8 @@ FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_params, (fio
 FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_actions_params, (offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_actions_result, (actions)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
@@ -1421,6 +1444,7 @@ FC_REFLECT(eosio::chain_apis::request_status_record,
            (fio_request_id)(payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(
                    time_stamp)
                    (status))
+FC_REFLECT(eosio::chain_apis::action_record,(action)(contract)(block_timestamp))
 
 FC_REFLECT(eosio::chain_apis::obt_records,
            (payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(fio_request_id)(

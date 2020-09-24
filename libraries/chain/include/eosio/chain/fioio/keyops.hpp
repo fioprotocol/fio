@@ -8,17 +8,16 @@
  *
  */
 
+#include <string>
+#include <eosio/chain/name.hpp>
 
 #pragma once
-
-#include <string>
 
 using namespace eosio;
 
 namespace fioio {
 
-    static uint32_t acctcap = 12;
-
+    const uint32_t acctcap = 12;
     const char *const ALPHABET =
             "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     const char ALPHABET_MAP[128] = {

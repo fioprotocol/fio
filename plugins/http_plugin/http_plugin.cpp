@@ -5,7 +5,7 @@
 #include <eosio/http_plugin/http_plugin.hpp>
 #include <eosio/http_plugin/local_endpoint.hpp>
 #include <eosio/chain/exceptions.hpp>
-#include <fio.common/fioerror.hpp>
+#include <eosio/chain/fioio/fioerror.hpp>
 
 #include <eosio/chain/thread_utils.hpp>
 
