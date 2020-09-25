@@ -7,7 +7,7 @@
 typedef uint32_t rep_t;
 
 #define REP_C (uint32_t)
-#define significandBits 23
+#define significandBits 23 
 #define typeWidth       (sizeof(rep_t)*CHAR_BIT)
 #define exponentBits    (typeWidth - significandBits - 1)
 #define maxExponent     ((1 << exponentBits) - 1)

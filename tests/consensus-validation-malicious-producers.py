@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+import testUtils
+
 import argparse
+import signal
+from collections import namedtuple
 import os
 import shutil
-import testUtils
-from collections import namedtuple
 
 ###############################################################
 # Test for validating consensus based block production. We introduce malicious producers which
@@ -18,12 +20,13 @@ from collections import namedtuple
 ###############################################################
 
 
-Print = testUtils.Utils.Print
-errorExit = Utils.errorExit
+Print=testUtils.Utils.Print
+errorExit=Utils.errorExit
 
-StagedNodeInfo = namedtuple("StagedNodeInfo", "config logging")
+StagedNodeInfo=namedtuple("StagedNodeInfo", "config logging")
 
-logging00 = """{
+
+logging00="""{
   "includes": [],
   "appenders": [{
       "name": "stderr",
@@ -84,7 +87,7 @@ logging00 = """{
   ]
 }"""
 
-config00 = """genesis-json = ./genesis.json
+config00="""genesis-json = ./genesis.json
 block-log-dir = blocks
 readonly = 0
 send-whole-blocks = true
@@ -103,7 +106,8 @@ plugin = eosio::chain_api_plugin
 plugin = eosio::history_plugin
 plugin = eosio::history_api_plugin"""
 
-config01 = """genesis-json = ./genesis.json
+
+config01="""genesis-json = ./genesis.json
 block-log-dir = blocks
 readonly = 0
 send-whole-blocks = true
@@ -122,7 +126,8 @@ plugin = eosio::chain_api_plugin
 plugin = eosio::history_plugin
 plugin = eosio::history_api_plugin"""
 
-producers = """producer-name = defproducerd
+
+producers="""producer-name = defproducerd
 producer-name = defproducerf
 producer-name = defproducerh
 producer-name = defproducerj
@@ -142,70 +147,59 @@ producer-name = defproducero
 producer-name = defproducerq
 producer-name = defproducers"""
 
-zeroExecTime = "trans-execution-time = 0"
-
+zeroExecTime="trans-execution-time = 0"
 
 def getNoMaliciousStagedNodesInfo():
-    stagedNodesInfo = []
-    myConfig00 = config00
+    stagedNodesInfo=[]
+    myConfig00=config00
     stagedNodesInfo.append(StagedNodeInfo(myConfig00, logging00))
-    myConfig01 = config01 + "\n" + producers
+    myConfig01=config01+"\n"+producers
     stagedNodesInfo.append(StagedNodeInfo(myConfig01, logging00))
     return stagedNodesInfo
-
 
 def getMinorityMaliciousProducerStagedNodesInfo():
-    stagedNodesInfo = []
-    myConfig00 = config00 + "\n" + producers
+    stagedNodesInfo=[]
+    myConfig00=config00+"\n"+producers
     stagedNodesInfo.append(StagedNodeInfo(myConfig00, logging00))
-    myConfig01 = config01 + "\n" + zeroExecTime
+    myConfig01=config01+"\n"+zeroExecTime
     stagedNodesInfo.append(StagedNodeInfo(myConfig01, logging00))
     return stagedNodesInfo
-
 
 def getMajorityMaliciousProducerStagedNodesInfo():
-    stagedNodesInfo = []
-    myConfig00 = config00
+    stagedNodesInfo=[]
+    myConfig00=config00
     stagedNodesInfo.append(StagedNodeInfo(myConfig00, logging00))
-    myConfig01 = config01 + "\n" + producers + "\n" + zeroExecTime
+    myConfig01=config01+"\n"+producers+"\n"+zeroExecTime
     stagedNodesInfo.append(StagedNodeInfo(myConfig01, logging00))
     return stagedNodesInfo
 
-
-stagingDir = "staging"
-
-
+stagingDir="staging"
 def stageScenario(stagedNodeInfos):
-    assert (stagedNodeInfos != None)
-    assert (len(stagedNodeInfos) > 1)
+    assert(stagedNodeInfos != None)
+    assert(len(stagedNodeInfos) > 1)
 
     os.makedirs(stagingDir)
-    count = 0
+    count=0
     for stagedNodeInfo in stagedNodeInfos:
-        configPath = os.path.join(stagingDir, "etc/eosio/node_%02d" % (count))
+        configPath=os.path.join(stagingDir, "etc/eosio/node_%02d" % (count))
         os.makedirs(configPath)
         with open(os.path.join(configPath, "config.ini"), "w") as textFile:
-            print(stagedNodeInfo.config, file=textFile)
+            print(stagedNodeInfo.config,file=textFile)
         with open(os.path.join(configPath, "logging.json"), "w") as textFile:
-            print(stagedNodeInfo.logging, file=textFile)
+            print(stagedNodeInfo.logging,file=textFile)
         count += 1
     return
-
 
 def cleanStaging():
     os.path.exists(stagingDir) and shutil.rmtree(stagingDir)
 
-
 def error(msg="", errorCode=1):
     Print("ERROR:", msg)
 
-
 parser = argparse.ArgumentParser()
-tests = [1, 2, 3]
+tests=[1,2,3]
 
-parser.add_argument("-t", "--tests", type=str,
-                    help="1|2|3 1=run no malicious producers test, 2=minority malicious, 3=majority malicious.",
-                    default=None)
+parser.add_argument("-t", "--tests", type=str, help="1|2|3 1=run no malicious producers test, 2=minority malicious, 3=majority malicious.", default=None)
 parser.add_argument("-w", type=int, help="system wait time", default=testUtils.Utils.systemWaitTimeout)
 parser.add_argument("-v", help="verbose logging", action='store_true')
 parser.add_argument("--dump-error-details",
@@ -217,30 +211,29 @@ parser.add_argument("--not-noon", help="This is not the Noon branch.", action='s
 parser.add_argument("--dont-kill", help="Leave cluster running after test finishes", action='store_true')
 
 args = parser.parse_args()
-testsArg = args.tests
-debug = args.v
-waitTimeout = args.w
-dumpErrorDetails = args.dump - error - details
-keepLogs = args.keep - logs
-amINoon = not args.not_noon
-killEosInstances = not args.dont - kill
-killWallet = not args.dont - kill
+testsArg=args.tests
+debug=args.v
+waitTimeout=args.w
+dumpErrorDetails=args.dump-error-details
+keepLogs=args.keep-logs
+amINoon=not args.not_noon
+killEosInstances= not args.dont-kill
+killWallet= not args.dont-kill
 
-testUtils.Utils.Debug = debug
+testUtils.Utils.Debug=debug
 
 assert (testsArg is None or testsArg == "1" or testsArg == "2" or testsArg == "3")
 if testsArg is not None:
-    tests = [int(testsArg)]
+    tests=[int(testsArg)]
 
 testUtils.Utils.setSystemWaitTimeout(waitTimeout)
 testUtils.Utils.iAmNotNoon()
 
-
 def myTest(transWillEnterBlock):
-    testSuccessful = False
+    testSuccessful=False
 
-    cluster = testUtils.Cluster(walletd=True, staging=True)
-    walletMgr = testUtils.WalletMgr(True)
+    cluster=testUtils.Cluster(walletd=True, staging=True)
+    walletMgr=testUtils.WalletMgr(True)
 
     try:
         cluster.killall()
@@ -248,25 +241,25 @@ def myTest(transWillEnterBlock):
         walletMgr.killall()
         walletMgr.cleanup()
 
-        pnodes = 2
-        total_nodes = pnodes
-        topo = "mesh"
-        delay = 0
+        pnodes=2
+        total_nodes=pnodes
+        topo="mesh"
+        delay=0
         Print("Stand up cluster")
         if cluster.launch(pnodes=pnodes, totalNodes=total_nodes, topo=topo, delay=delay) is False:
             error("Failed to stand up eos cluster.")
             return False
 
-        accounts = testUtils.Cluster.createAccountKeys(1)
+        accounts=testUtils.Cluster.createAccountKeys(1)
         if accounts is None:
             error("FAILURE - create keys")
             return False
-        currencyAccount = accounts[0]
-        currencyAccount.name = "currency0000"
+        currencyAccount=accounts[0]
+        currencyAccount.name="currency0000"
 
-        testWalletName = "test"
+        testWalletName="test"
         Print("Creating wallet \"%s\"." % (testWalletName))
-        testWallet = walletMgr.create(testWalletName)
+        testWallet=walletMgr.create(testWalletName)
 
         for account in accounts:
             Print("Importing keys for account %s into wallet %s." % (account.name, testWallet.name))
@@ -274,10 +267,10 @@ def myTest(transWillEnterBlock):
                 error("Failed to import key for account %s" % (account.name))
                 return False
 
-        node = cluster.getNode(0)
-        node2 = cluster.getNode(1)
+        node=cluster.getNode(0)
+        node2=cluster.getNode(1)
 
-        defproduceraAccount = testUtils.Cluster.defproduceraAccount
+        defproduceraAccount=testUtils.Cluster.defproduceraAccount
 
         Print("Importing keys for account %s into wallet %s." % (defproduceraAccount.name, testWallet.name))
         if not walletMgr.importKey(defproduceraAccount, testWallet):
@@ -285,33 +278,33 @@ def myTest(transWillEnterBlock):
             return False
 
         Print("Create new account %s via %s" % (currencyAccount.name, defproduceraAccount.name))
-        transId = node.createAccount(currencyAccount, defproduceraAccount, stakedDeposit=5000, waitForTransBlock=True)
+        transId=node.createAccount(currencyAccount, defproduceraAccount, stakedDeposit=5000, waitForTransBlock=True)
         if transId is None:
             error("Failed to create account %s" % (currencyAccount.name))
             return False
 
-        wasmFile = "currency.wasm"
-        abiFile = "currency.abi"
+        wasmFile="currency.wasm"
+        abiFile="currency.abi"
         Print("Publish contract")
-        trans = node.publishContract(currencyAccount.name, wasmFile, abiFile, waitForTransBlock=True)
+        trans=node.publishContract(currencyAccount.name, wasmFile, abiFile, waitForTransBlock=True)
         if trans is None:
             error("Failed to publish contract.")
             return False
 
         Print("push transfer action to currency0000 contract")
-        contract = "currency0000"
-        action = "transfer"
-        data = "{\"from\":\"currency0000\",\"to\":\"defproducera\",\"quantity\":"
+        contract="currency0000"
+        action="transfer"
+        data="{\"from\":\"currency0000\",\"to\":\"defproducera\",\"quantity\":"
         if amINoon:
-            data += "\"00.0050 CUR\",\"memo\":\"test\"}"
+            data +="\"00.0050 CUR\",\"memo\":\"test\"}"
         else:
-            data += "50}"
-        opts = "--permission currency0000@active"
+            data +="50}"
+        opts="--permission currency0000@active"
         if not amINoon:
             opts += " --scope currency0000,defproducera"
 
-        trans = node.pushMessage(contract, action, data, opts, silentErrors=True)
-        transInBlock = False
+        trans=node.pushMessage(contract, action, data, opts, silentErrors=True)
+        transInBlock=False
         if not trans[0]:
             # On slower systems e.g Travis the transaction rejection can happen immediately
             #  We want to handle fast and slow failures.
@@ -322,7 +315,7 @@ def myTest(transWillEnterBlock):
                 return False
 
         else:
-            transId = testUtils.Node.getTransId(trans[1])
+            transId=testUtils.Node.getTransId(trans[1])
 
             Print("verify transaction exists")
             if not node2.waitForTransInBlock(transId):
@@ -330,20 +323,20 @@ def myTest(transWillEnterBlock):
                 return False
 
             Print("Get details for transaction %s" % (transId))
-            transaction = node2.getTransaction(transId, exitOnError=True)
-            signature = transaction["transaction"]["signatures"][0]
+            transaction=node2.getTransaction(transId, exitOnError=True)
+            signature=transaction["transaction"]["signatures"][0]
 
-            blockNum = int(transaction["transaction"]["ref_block_num"])
+            blockNum=int(transaction["transaction"]["ref_block_num"])
             blockNum += 1
             Print("Our transaction is in block %d" % (blockNum))
 
-            block = node2.getBlock(blockNum, exitOnError=True)
-            cycles = block["cycles"]
+            block=node2.getBlock(blockNum, exitOnError=True)
+            cycles=block["cycles"]
             if len(cycles) > 0:
-                blockTransSignature = cycles[0][0]["user_input"][0]["signatures"][0]
+                blockTransSignature=cycles[0][0]["user_input"][0]["signatures"][0]
                 # Print("Transaction signature: %s\nBlock transaction signature: %s" %
                 #       (signature, blockTransSignature))
-                transInBlock = (signature == blockTransSignature)
+                transInBlock=(signature == blockTransSignature)
 
         if transWillEnterBlock:
             if not transInBlock:
@@ -358,7 +351,7 @@ def myTest(transWillEnterBlock):
             else:
                 Print("SUCCESS: Transaction2 did not enter the chain.")
 
-        testSuccessful = True
+        testSuccessful=True
     finally:
         if not testSuccessful and dumpErrorDetails:
             cluster.dumpErrorDetails()
@@ -379,24 +372,21 @@ def myTest(transWillEnterBlock):
 
 try:
     if 1 in tests:
-        Print(
-            "Cluster with no malicious producers. All producers expected to approve transaction. Hence transaction is expected to enter the chain.")
+        Print("Cluster with no malicious producers. All producers expected to approve transaction. Hence transaction is expected to enter the chain.")
         cleanStaging()
         stageScenario(getNoMaliciousStagedNodesInfo())
         if not myTest(True):
             exit(1)
 
     if 2 in tests:
-        Print(
-            "\nCluster with minority(1) malicious nodes. Majority producers expected to approve transaction. Hence transaction is expected to enter the chain.")
+        Print("\nCluster with minority(1) malicious nodes. Majority producers expected to approve transaction. Hence transaction is expected to enter the chain.")
         cleanStaging()
         stageScenario(getMinorityMaliciousProducerStagedNodesInfo())
         if not myTest(True):
             exit(1)
 
     if 3 in tests:
-        Print(
-            "\nCluster with majority(20) malicious nodes. Majority producers expected to block transaction. Hence transaction is not expected to enter the chain.")
+        Print("\nCluster with majority(20) malicious nodes. Majority producers expected to block transaction. Hence transaction is not expected to enter the chain.")
         cleanStaging()
         stageScenario(getMajorityMaliciousProducerStagedNodesInfo())
         if not myTest(False):

@@ -28,13 +28,13 @@ tu_int ___fixunstfti(fp_t a) {
         return 0;
 
     // If the value is too large for the integer type, saturate.
-    if ((unsigned) exponent >= sizeof(fixuint_t) * CHAR_BIT)
-        return ~(fixuint_t) 0;
+    if ((unsigned)exponent >= sizeof(fixuint_t) * CHAR_BIT)
+        return ~(fixuint_t)0;
 
     // If 0 <= exponent < significandBits, right shift to get the result.
     // Otherwise, shift left.
     if (exponent < significandBits)
         return significand >> (significandBits - exponent);
     else
-        return (fixuint_t) significand << (exponent - significandBits);
+        return (fixuint_t)significand << (exponent - significandBits);
 }

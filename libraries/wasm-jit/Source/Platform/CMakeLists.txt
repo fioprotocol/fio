@@ -1,8 +1,8 @@
 set(Sources
-        POSIX.cpp
-        Windows.cpp)
+	POSIX.cpp
+	Windows.cpp)
 set(PublicHeaders
-        ${WAVM_INCLUDE_DIR}/Platform/Platform.h)
+	${WAVM_INCLUDE_DIR}/Platform/Platform.h)
 include_directories(${WAVM_INCLUDE_DIR}/Platform)
 
 add_definitions(-DPLATFORM_API=DLL_EXPORT)
@@ -10,11 +10,11 @@ add_definitions(-DPLATFORM_API=DLL_EXPORT)
 add_library(Platform STATIC ${Sources} ${PublicHeaders})
 
 # Link with dl on Linux for dladdr.
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(Platform dl pthread rt)
-endif ()
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	target_link_libraries(Platform dl pthread rt)
+endif()
 
-install(TARGETS Platform
-        LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+install(TARGETS Platform 
+   LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+   ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 

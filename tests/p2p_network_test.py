@@ -1,25 +1,30 @@
 #!/usr/bin/env python3
 
-import argparse
-import copy
+import testUtils
+import p2p_test_peers
 import impaired_network
 import lossy_network
 import p2p_stress
-import p2p_test_peers
-import testUtils
+
+import copy
+import decimal
+import argparse
+import random
+import re
+import time
 
 Remote = p2p_test_peers.P2PTestPeers
 
-hosts = Remote.hosts
-ports = Remote.ports
+hosts=Remote.hosts
+ports=Remote.ports
 
-DEFAULT_HOST = hosts[0]
-DEFAULT_PORT = ports[0]
+DEFAULT_HOST=hosts[0]
+DEFAULT_PORT=ports[0]
 
 parser = argparse.ArgumentParser(add_help=False)
-Print = testUtils.Utils.Print
-cmdError = Utils.cmdError
-errorExit = Utils.errorExit
+Print=testUtils.Utils.Print
+cmdError=Utils.cmdError
+errorExit=Utils.errorExit
 
 # Override default help argument so that only --help (and not -h) can call help
 parser.add_argument('-?', action='help', default=argparse.SUPPRESS,
@@ -36,11 +41,11 @@ parser.add_argument("--stress_network", help="test load/stress network", action=
 parser.add_argument("--not_kill_wallet", help="not killing walletd", action='store_true')
 
 args = parser.parse_args()
-enableMongo = False
-defproduceraPrvtKey = args.defproducera_prvt_key
-defproducerbPrvtKey = args.defproducerb_prvt_key
+enableMongo=False
+defproduceraPrvtKey=args.defproducera_prvt_key
+defproducerbPrvtKey=args.defproducerb_prvt_key
 
-walletMgr = testUtils.WalletMgr(True, port=args.wallet_port, host=args.wallet_host)
+walletMgr=testUtils.WalletMgr(True, port=args.wallet_port, host=args.wallet_host)
 
 if args.impaired_network:
     module = impaired_network.ImpairedNetwork()
@@ -49,12 +54,9 @@ elif args.lossy_network:
 elif args.stress_network:
     module = p2p_stress.StressNetwork()
 else:
-    errorExit(
-        "one of impaired_network, lossy_network or stress_network must be set. Please also check peer configs in p2p_test_peers.py.")
+    errorExit("one of impaired_network, lossy_network or stress_network must be set. Please also check peer configs in p2p_test_peers.py.")
 
-cluster = testUtils.Cluster(walletd=True, enableMongo=enableMongo, defproduceraPrvtKey=defproduceraPrvtKey,
-                            defproducerbPrvtKey=defproducerbPrvtKey, walletHost=args.wallet_host,
-                            walletPort=args.wallet_port)
+cluster=testUtils.Cluster(walletd=True, enableMongo=enableMongo, defproduceraPrvtKey=defproduceraPrvtKey, defproducerbPrvtKey=defproducerbPrvtKey, walletHost=args.wallet_host, walletPort=args.wallet_port)
 
 print("BEGIN")
 
@@ -62,14 +64,14 @@ print("number of hosts: %d, list of hosts:" % (len(hosts)))
 for i in range(len(hosts)):
     Print("%s:%d" % (hosts[i], ports[i]))
 
-init_str = '{"nodes":['
+init_str='{"nodes":['
 for i in range(len(hosts)):
     if i > 0:
-        init_str = init_str + ','
-    init_str = init_str + '{"host":"' + hosts[i] + '", "port":' + str(ports[i]) + '}'
-init_str = init_str + ']}'
+        init_str=init_str+','
+    init_str=init_str+'{"host":"' + hosts[i] + '", "port":'+str(ports[i])+'}'
+init_str=init_str+']}'
 
-# Print('init nodes with json str %s',(init_str))
+#Print('init nodes with json str %s',(init_str))
 cluster.initializeNodesFromJson(init_str);
 
 if args.not_kill_wallet == False:
@@ -79,37 +81,37 @@ if args.not_kill_wallet == False:
 walletMgr.cleanup()
 
 print('creating account keys')
-accounts = testUtils.Cluster.createAccountKeys(3)
+accounts=testUtils.Cluster.createAccountKeys(3)
 if accounts is None:
     errorExit("FAILURE - create keys")
-testeraAccount = accounts[0]
-testeraAccount.name = "testera11111"
-currencyAccount = accounts[1]
-currencyAccount.name = "currency1111"
-exchangeAccount = accounts[2]
-exchangeAccount.name = "exchange1111"
+testeraAccount=accounts[0]
+testeraAccount.name="testera11111"
+currencyAccount=accounts[1]
+currencyAccount.name="currency1111"
+exchangeAccount=accounts[2]
+exchangeAccount.name="exchange1111"
 
-PRV_KEY1 = testeraAccount.ownerPrivateKey
-PUB_KEY1 = testeraAccount.ownerPublicKey
-PRV_KEY2 = currencyAccount.ownerPrivateKey
-PUB_KEY2 = currencyAccount.ownerPublicKey
-PRV_KEY3 = exchangeAccount.activePrivateKey
-PUB_KEY3 = exchangeAccount.activePublicKey
+PRV_KEY1=testeraAccount.ownerPrivateKey
+PUB_KEY1=testeraAccount.ownerPublicKey
+PRV_KEY2=currencyAccount.ownerPrivateKey
+PUB_KEY2=currencyAccount.ownerPublicKey
+PRV_KEY3=exchangeAccount.activePrivateKey
+PUB_KEY3=exchangeAccount.activePublicKey
 
-testeraAccount.activePrivateKey = currencyAccount.activePrivateKey = PRV_KEY3
-testeraAccount.activePublicKey = currencyAccount.activePublicKey = PUB_KEY3
+testeraAccount.activePrivateKey=currencyAccount.activePrivateKey=PRV_KEY3
+testeraAccount.activePublicKey=currencyAccount.activePublicKey=PUB_KEY3
 
-exchangeAccount.ownerPrivateKey = PRV_KEY2
-exchangeAccount.ownerPublicKey = PUB_KEY2
+exchangeAccount.ownerPrivateKey=PRV_KEY2
+exchangeAccount.ownerPublicKey=PUB_KEY2
 
 print("Stand up walletd")
 if walletMgr.launch() is False:
     cmdError("%s" % (WalletdName))
     errorExit("Failed to stand up eos walletd.")
 
-testWalletName = "test"
+testWalletName="test"
 Print("Creating wallet \"%s\"." % (testWalletName))
-testWallet = walletMgr.create(testWalletName)
+testWallet=walletMgr.create(testWalletName)
 
 for account in accounts:
     Print("Importing keys for account %s into wallet %s." % (account.name, testWallet.name))
@@ -117,19 +119,19 @@ for account in accounts:
         cmdError("%s wallet import" % (ClientName))
         errorExit("Failed to import key for account %s" % (account.name))
 
-defproduceraWalletName = "defproducera"
+defproduceraWalletName="defproducera"
 Print("Creating wallet \"%s\"." % (defproduceraWalletName))
-defproduceraWallet = walletMgr.create(defproduceraWalletName)
+defproduceraWallet=walletMgr.create(defproduceraWalletName)
 
-defproduceraAccount = testUtils.Cluster.defproduceraAccount
+defproduceraAccount=testUtils.Cluster.defproduceraAccount
 # defproducerbAccount=testUtils.Cluster.defproducerbAccount
 
 Print("Importing keys for account %s into wallet %s." % (defproduceraAccount.name, defproduceraWallet.name))
 if not walletMgr.importKey(defproduceraAccount, defproduceraWallet):
-    cmdError("%s wallet import" % (ClientName))
-    errorExit("Failed to import key for account %s" % (defproduceraAccount.name))
+     cmdError("%s wallet import" % (ClientName))
+     errorExit("Failed to import key for account %s" % (defproduceraAccount.name))
 
-node0 = cluster.getNode(0)
+node0=cluster.getNode(0)
 
 # eosio should have the same key as defproducera
 eosio = copy.copy(defproduceraAccount)
@@ -138,14 +140,15 @@ eosio.name = "eosio"
 Print("Info of each node:")
 for i in range(len(hosts)):
     node = node0
-    cmd = "%s %s get info" % (testUtils.Utils.EosClientPath, node.endpointArgs)
+    cmd="%s %s get info" % (testUtils.Utils.EosClientPath, node.endpointArgs)
     trans = node.runCmdReturnJson(cmd)
     Print("host %s: %s" % (hosts[i], trans))
 
-wasmFile = "eosio.system.wasm"
-abiFile = "eosio.system.abi"
+
+wasmFile="eosio.system.wasm"
+abiFile="eosio.system.abi"
 Print("\nPush system contract %s %s" % (wasmFile, abiFile))
-trans = node0.publishContract(eosio.name, wasmFile, abiFile, waitForTransBlock=True)
+trans=node0.publishContract(eosio.name, wasmFile, abiFile, waitForTransBlock=True)
 if trans is None:
     Utils.errorExit("Failed to publish eosio.system.")
 else:

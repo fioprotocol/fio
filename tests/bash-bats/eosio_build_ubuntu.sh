@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 load helpers/general
 
-export SCRIPT_LOCATION="scripts/fio_build.sh"
+export SCRIPT_LOCATION="scripts/eosio_build.sh"
 export TEST_LABEL="[eosio_build_ubuntu]"
 
 [[ $ARCH == "Linux" ]] || exit 0 # Exit 0 is required for pipeline
@@ -39,6 +39,6 @@ export TEST_LABEL="[eosio_build_ubuntu]"
     fi
     [[ -z $(echo "${output}" | grep "-   NOT found") ]] || exit
     [[ -z $(echo "${output}" | grep lcov.*found) ]] || exit
-    [[ ! -z $(echo "${output}" | grep "FIO has been successfully built") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
     [[ "$(echo ${VERSION_ID})" == "16.04" ]] && apt autoremove build-essential -y || uninstall-package clang WETRUN
 }
