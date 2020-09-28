@@ -65,7 +65,7 @@ INSTALL_PATHS=()
 # -f -y should proceed forward with removing the data directories without prompting the user.
 if [[ $NONINTERACTIVE == false ]] && $FULL; then
    while true; do
-      read -p "By specifying -f, removal of the eosio data directory will require a resync of data which can take days. Do you wish to proceed? (y/n) " PROCEED
+      read -p "By specifying -f, removal of the fio data directory will require a resync of data which can take days. Do you wish to proceed? (y/n) " PROCEED
       case $PROCEED in
          "" ) echo "What would you like to do?";;
          0 | true | [Yy]* ) break;;
@@ -81,7 +81,7 @@ if [[ ! -d "${EOSIO_INSTALL_DIR}" ]]; then
    echo "[EOSIO installation ${COLOR_YELLOW}NOT${COLOR_NC} found in ${EOSIO_INSTALL_DIR}]"
 else
    # As of 1.8.0, we're using a versioned directories under home: https://github.com/EOSIO/eos/issues/6940
-   echo "[EOSIO installation found: ${EOSIO_INSTALL_DIR}]" && INSTALL_PATHS+=("${EOSIO_INSTALL_DIR}") # EOSIO_INSTALL_DIR set in .environment
+   echo "[FIO installation found: ${EOSIO_INSTALL_DIR}]" && INSTALL_PATHS+=("${EOSIO_INSTALL_DIR}") # EOSIO_INSTALL_DIR set in .environment
    while true; do
       [[ $NONINTERACTIVE == false ]] && read -p "Do you wish to remove the installation in ${EOSIO_INSTALL_DIR}? (y/n) " PROCEED
       case $PROCEED in
@@ -98,15 +98,15 @@ else
             for INSTALL_PATH in ${INSTALL_PATHS[@]}; do
                execute rm -rf $INSTALL_PATH
             done
-            echo " - EOSIO Removal Complete"
+            echo " - FIO Removal Complete"
             break;;
-         1 | false | [Nn]* ) echo " - Cancelled EOSIO Removal!"; exit 1;;
+         1 | false | [Nn]* ) echo " - Cancelled FIO Removal!"; exit 1;;
          * ) echo "Please type 'y' for yes or 'n' for no.";;
       esac
    done
 fi
 
-echo "[Removing EOSIO Dependencies]"
+echo "[Removing FIO Dependencies]"
 if [[ $ARCH == "Darwin" ]]; then
    for package in $(cat scripts/eosio_build_darwin_deps | cut -d, -f1 2>/dev/null); do
       while true; do

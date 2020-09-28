@@ -5,18 +5,31 @@ echo "Physical Memory: ${MEM_GIG}G"
 echo "Disk space total: ${DISK_TOTAL}G"
 echo "Disk space available: ${DISK_AVAIL}G"
 
-if [[ "${NAME}" == "Amazon Linux" ]] && [[ $VERSION == 2 ]]; then
-	DEPS_FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux2_deps"
-else
-	echo " - You must be running Amazon Linux 2017.09 or higher to install EOSIO." && exit 1
-fi
+( [[ $NAME == "CentOS Linux" ]] && [[ "$(echo ${VERSION} | sed 's/ .*//g')" < 7 ]] ) && echo " - You must be running Centos 7 or higher to install FIO." && exit 1
 
 [[ $MEM_GIG -lt 7 ]] && echo "Your system must have 7 or more Gigabytes of physical memory installed." && exit 1
-[[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && echo " - You must have at least ${DISK_MIN}GB of available storage to install EOSIO." && exit 1
+[[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && echo " - You must have at least ${DISK_MIN}GB of available storage to install FIO." && exit 1
 
+echo ""
+
+# Repo necessary for rh-python3, devtoolset-8 and llvm-toolset-7.0
+ensure-scl
+# GCC8 for Centos / Needed for CMAKE install even if we're pinning
+ensure-devtoolset
+if [[ -d /opt/rh/devtoolset-8 ]]; then
+	echo "${COLOR_CYAN}[Enabling Centos devtoolset-8 (so we can use GCC 8)]${COLOR_NC}"
+	execute-always source /opt/rh/devtoolset-8/enable
+	echo " - ${COLOR_GREEN}Centos devtoolset-8 successfully enabled!${COLOR_NC}"
+fi
 # Ensure packages exist
-($PIN_COMPILER && $BUILD_CLANG) && EXTRA_DEPS=(gcc-c++,rpm\ -qa)
-ensure-yum-packages $DEPS_FILE $(echo ${EXTRA_DEPS[@]})
+ensure-yum-packages "${REPO_ROOT}/scripts/helpers/build_centos7_deps"
+export PYTHON3PATH="/opt/rh/rh-python36"
+if $DRYRUN || [ -d $PYTHON3PATH ]; then
+	echo "${COLOR_CYAN}[Enabling python36]${COLOR_NC}"
+	execute source $PYTHON3PATH/enable
+	echo " ${COLOR_GREEN}- Python36 successfully enabled!${COLOR_NC}"
+	echo ""
+fi
 # Handle clang/compiler
 ensure-compiler
 # CMAKE Installation
@@ -44,9 +57,9 @@ if $INSTALL_MONGO; then
 		&& rm -rf $BIN_DIR/mongod \
 		&& ln -s $MONGODB_ROOT $MONGODB_LINK_DIR \
 		&& ln -s $MONGODB_LINK_DIR/bin/mongod $BIN_DIR/mongod"
-		echo " - MongoDB successfully installed @ ${MONGODB_ROOT} (Symlinked to ${MONGODB_LINK_DIR})."
+		echo " - MongoDB successfully installed @ ${MONGODB_ROOT}."
 	else
-		echo " - MongoDB found with correct version @ ${MONGODB_ROOT} (Symlinked to ${MONGODB_LINK_DIR})."
+		echo " - MongoDB found with correct version @ ${MONGODB_ROOT}."
 	fi
 	echo "${COLOR_CYAN}[Ensuring MongoDB C driver installation]${COLOR_NC}"
 	if [[ ! -d $MONGO_C_DRIVER_ROOT ]]; then
@@ -65,7 +78,7 @@ if $INSTALL_MONGO; then
 	else
 		echo " - MongoDB C driver found with correct version @ ${MONGO_C_DRIVER_ROOT}."
 	fi
-	echo "${COLOR_CYAN}[Ensuring MongoDB C++ driver installation]${COLOR_NC}"
+	echo "${COLOR_CYAN}[Ensuring MongoDB CXX driver installation]${COLOR_NC}"
 	if [[ ! -d $MONGO_CXX_DRIVER_ROOT ]]; then
 		execute bash -c "cd $SRC_DIR && \
 		curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r$MONGO_CXX_DRIVER_VERSION.tar.gz -o mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz \
@@ -74,7 +87,7 @@ if $INSTALL_MONGO; then
 		&& sed -i 's/\"maxAwaitTimeMS\", count/\"maxAwaitTimeMS\", static_cast<int64_t>(count)/' src/mongocxx/options/change_stream.cpp \
 		&& sed -i 's/add_subdirectory(test)//' src/mongocxx/CMakeLists.txt src/bsoncxx/CMakeLists.txt \
 		&& cd build \
-		&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX='$EOSIO_INSTALL_DIR' -DCMAKE_PREFIX_PATH='$EOSIO_INSTALL_DIR' $PINNED_TOOLCHAIN .. \
+		&& $CMAKE -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$EOSIO_INSTALL_DIR -DCMAKE_PREFIX_PATH=$EOSIO_INSTALL_DIR $PINNED_TOOLCHAIN .. \
 		&& make -j${JOBS} VERBOSE=1 \
 		&& make install \
 		&& cd ../.. \
@@ -84,4 +97,3 @@ if $INSTALL_MONGO; then
 		echo " - MongoDB C++ driver found with correct version @ ${MONGO_CXX_DRIVER_ROOT}."
 	fi
 fi
-echo ""

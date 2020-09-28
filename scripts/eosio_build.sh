@@ -2,8 +2,8 @@
 set -eo pipefail
 SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD image)
 ##########################################################################
-# This is the EOSIO automated install script for Linux and Mac OS.
-# This file was downloaded from https://github.com/EOSIO/eos
+# This is the FIO automated install script for Linux and Mac OS.
+# This file was downloaded from https://github.com/fioprotocol/fio
 #
 # Copyright (c) 2017, Respective Authors all rights reserved.
 #
@@ -29,7 +29,7 @@ SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD imag
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# https://github.com/EOSIO/eos/blob/master/LICENSE
+# https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
 function usage() {
@@ -114,10 +114,10 @@ export CURRENT_WORKING_DIR=$(pwd) # relative path support
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 # Load eosio specific helper functions
-. ./scripts/helpers/eosio.sh
+. ./scripts/helpers/fio_helper.sh
 
 $VERBOSE && echo "Build Script Version: ${SCRIPT_VERSION}"
-echo "EOSIO Version: ${EOSIO_VERSION_FULL}"
+echo "FIO Version: ${EOSIO_VERSION_FULL}"
 echo "$( date -u )"
 echo "User: ${CURRENT_USER}"
 # echo "git head id: %s" "$( cat .git/refs/heads/master )"
@@ -166,13 +166,13 @@ if [[ $ARCH == "Linux" ]]; then
    case $NAME in
       "Amazon Linux AMI" | "Amazon Linux")
          echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
-         FILE="${REPO_ROOT}/scripts/eosio_build_amazonlinux.sh"
+         FILE="${REPO_ROOT}/scripts/helpers/build_amazonlinux.sh"
       ;;
       "CentOS Linux")
-         FILE="${REPO_ROOT}/scripts/eosio_build_centos.sh"
+         FILE="${REPO_ROOT}/scripts/helpers/build_centos.sh"
       ;;
       "Ubuntu")
-         FILE="${REPO_ROOT}/scripts/eosio_build_ubuntu.sh"
+         FILE="${REPO_ROOT}/scripts/helpers/build_ubuntu.sh"
       ;;
       *) print_supported_linux_distros_and_exit;;
    esac
@@ -183,7 +183,7 @@ if [ "$ARCH" == "Darwin" ]; then
    # opt/gettext: cleos requires Intl, which requires gettext; it's keg only though and we don't want to force linking: https://github.com/EOSIO/eos/issues/2240#issuecomment-396309884
    # EOSIO_INSTALL_DIR/lib/cmake: mongo_db_plugin.cpp:25:10: fatal error: 'bsoncxx/builder/basic/kvp.hpp' file not found
    CMAKE_PREFIX_PATHS="/usr/local/opt/gettext;${EOSIO_INSTALL_DIR}"
-   FILE="${SCRIPT_DIR}/eosio_build_darwin.sh"
+   FILE="${SCRIPT_DIR}/build_darwin.sh"
    export CMAKE=${CMAKE}
 fi
 
@@ -191,7 +191,7 @@ fi
 execute bash -c "sed -e 's~@~$OPT_DIR~g' $SCRIPT_DIR/pinned_toolchain.cmake &> $BUILD_DIR/pinned_toolchain.cmake"
 
 echo "${COLOR_CYAN}====================================================================================="
-echo "======================= ${COLOR_WHITE}Starting EOSIO Dependency Install${COLOR_CYAN} ===========================${COLOR_NC}"
+echo "======================= ${COLOR_WHITE}Starting FIO Dependency Install${COLOR_CYAN} ===========================${COLOR_NC}"
 execute cd $SRC_DIR
 set_system_vars # JOBS, Memory, disk space available, etc
 echo "Architecture: ${ARCH}"
@@ -200,7 +200,7 @@ execute cd $REPO_ROOT
 
 echo ""
 echo "${COLOR_CYAN}========================================================================"
-echo "======================= ${COLOR_WHITE}Starting EOSIO Build${COLOR_CYAN} ===========================${COLOR_NC}"
+echo "======================= ${COLOR_WHITE}Starting FIO Build${COLOR_CYAN} ===========================${COLOR_NC}"
 if $VERBOSE; then
    echo "CXX: $CXX"
    echo "CC: $CC"
@@ -223,19 +223,23 @@ execute cd $REPO_ROOT 1>/dev/null
 
 TIME_END=$(( $(date -u +%s) - $TIME_BEGIN ))
 
-echo " _______  _______  _______ _________ _______"
-echo "(  ____ \(  ___  )(  ____   __   __ (  ___  )"
-echo "| (    \/| (   ) || (    \/   ) (   | (   ) |"
-echo "| (__    | |   | || (_____    | |   | |   | |"
-echo "|  __)   | |   | |(_____  )   | |   | |   | |"
-echo "| (      | |   | |      ) |   | |   | |   | |"
-echo "| (____/\| (___) |/\____) |___) (___| (___) |"
-echo "(_______/(_______)\_______)\_______/(_______)"
-echo "=============================================${COLOR_NC}"
-
-echo "${COLOR_GREEN}EOSIO has been successfully built. $(($TIME_END/3600)):$(($TIME_END%3600/60)):$(($TIME_END%60))"
-echo "${COLOR_GREEN}You can now install using: ${SCRIPT_DIR}/eosio_install.sh${COLOR_NC}"
-echo "${COLOR_YELLOW}Uninstall with: ${SCRIPT_DIR}/eosio_uninstall.sh${COLOR_NC}"
+printf "${bldred}\n"
+printf "      ___                       ___                 \n"
+printf "     /\\__\\                     /\\  \\            \n"
+printf "    /:/ _/_       ___         /::\\  \\             \n"
+printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
+printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
+printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
+printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
+printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
+printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
+printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
+printf "     \\/__/         \\/__/       \\/__/             \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
+printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
+printf "==============================================================================================\\n${bldred}"
+echo "${COLOR_GREEN}You can now install using: ${REPO_ROOT}/scripts/fio_install.sh${COLOR_NC}"
+echo "${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}"
 
 echo ""
 echo "${COLOR_CYAN}If you wish to perform tests to ensure functional code:${COLOR_NC}"
