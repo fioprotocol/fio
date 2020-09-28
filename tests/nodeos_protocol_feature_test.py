@@ -1,43 +1,51 @@
 #!/usr/bin/env python3
 
-import signal
+from testUtils import Utils
 from Cluster import Cluster, PFSetupPolicy
-from Node import Node
 from TestHelper import TestHelper
 from WalletMgr import WalletMgr
-from testUtils import Utils
+from Node import Node
+
+import signal
+import json
+from os.path import join
+from datetime import datetime
+
+###############################################################
+# nodeos_protocol_feature_test
+#
+# Many smaller tests centered around irreversible mode
+#
+###############################################################
 
 # Parse command line arguments
-args = TestHelper.parse_args({"-v", "--clean-run", "--dump-error-details", "--leave-running", "--keep-logs"})
+args = TestHelper.parse_args({"-v","--clean-run","--dump-error-details","--leave-running","--keep-logs"})
 Utils.Debug = args.v
-killAll = args.clean_run
-dumpErrorDetails = args.dump_error_details
-dontKill = args.leave_running
-killEosInstances = not dontKill
-killWallet = not dontKill
-keepLogs = args.keep_logs
-
+killAll=args.clean_run
+dumpErrorDetails=args.dump_error_details
+dontKill=args.leave_running
+killEosInstances=not dontKill
+killWallet=not dontKill
+keepLogs=args.keep_logs
 
 # The following test case will test the Protocol Feature JSON reader of the blockchain
 
-def restartNode(node: Node, nodeId, chainArg=None, addOrSwapFlags=None):
+def restartNode(node: Node, nodeId, chainArg=None, addSwapFlags=None):
     if not node.killed:
         node.kill(signal.SIGTERM)
-    isRelaunchSuccess = node.relaunch(nodeId, chainArg, addOrSwapFlags=addOrSwapFlags, timeout=5, cachePopen=True)
+    isRelaunchSuccess = node.relaunch(nodeId, chainArg, addSwapFlags=addSwapFlags, timeout=5, cachePopen=True)
     assert isRelaunchSuccess, "Fail to relaunch"
 
-
-walletMgr = WalletMgr(True)
-cluster = Cluster(walletd=True)
+walletMgr=WalletMgr(True)
+cluster=Cluster(walletd=True)
 cluster.setWalletMgr(walletMgr)
 
-# List to contain the test result message
 testSuccessful = False
 try:
     TestHelper.printSystemInfo("BEGIN")
     cluster.killall(allInstances=killAll)
     cluster.cleanup()
-    cluster.launch(extraNodeosArgs=" --plugin eosio::producer_api_plugin ",
+    cluster.launch(extraNodeosArgs=" --plugin eosio::producer_api_plugin  --http-max-response-time-ms 990000 ",
                    dontBootstrap=True,
                    pfSetupPolicy=PFSetupPolicy.NONE)
     biosNode = cluster.biosNode
@@ -52,17 +60,15 @@ try:
     restartNode(biosNode, "bios")
 
     supportedProtocolFeatureDict = biosNode.getSupportedProtocolFeatureDict()
-    preactivateFeatureSubjectiveRestrictions = supportedProtocolFeatureDict["PREACTIVATE_FEATURE"][
-        "subjective_restrictions"]
+    preactivateFeatureSubjectiveRestrictions = supportedProtocolFeatureDict["PREACTIVATE_FEATURE"]["subjective_restrictions"]
 
     # Ensure that the PREACTIVATE_FEATURE subjective restrictions match the value written in the JSON
-    assert preactivateFeatureSubjectiveRestrictions == newSubjectiveRestrictions, \
+    assert preactivateFeatureSubjectiveRestrictions == newSubjectiveRestrictions,\
         "PREACTIVATE_FEATURE subjective restrictions are not updated according to the JSON"
 
     testSuccessful = True
 finally:
-    TestHelper.shutdown(cluster, walletMgr, testSuccessful, killEosInstances, killWallet, keepLogs, killAll,
-                        dumpErrorDetails)
+    TestHelper.shutdown(cluster, walletMgr, testSuccessful, killEosInstances, killWallet, keepLogs, killAll, dumpErrorDetails)
 
 exitCode = 0 if testSuccessful else 1
 exit(exitCode)

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 #include <cstddef>
 
@@ -18,15 +17,7 @@ typedef double F64;
 // Work around it by defining our own Uptr/Iptr that are always int type.
 template<size_t pointerSize>
 struct PointerIntHelper;
-template<>
-struct PointerIntHelper<4> {
-    typedef I32 IntType;
-    typedef U32 UnsignedIntType;
-};
-template<>
-struct PointerIntHelper<8> {
-    typedef I64 IntType;
-    typedef U64 UnsignedIntType;
-};
+template<> struct PointerIntHelper<4> { typedef I32 IntType; typedef U32 UnsignedIntType; };
+template<> struct PointerIntHelper<8> { typedef I64 IntType; typedef U64 UnsignedIntType; };
 typedef PointerIntHelper<sizeof(size_t)>::UnsignedIntType Uptr;
 typedef PointerIntHelper<sizeof(size_t)>::IntType Iptr;

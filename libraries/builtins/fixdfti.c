@@ -14,7 +14,7 @@ typedef __int128 fixint_t;
 typedef unsigned __int128 fixuint_t;
 
 fixint_t ___fixdfti(uint64_t a) {
-    const fixint_t fixint_max = (fixint_t) ((~(fixuint_t) 0) / 2);
+    const fixint_t fixint_max = (fixint_t)((~(fixuint_t)0) / 2);
     const fixint_t fixint_min = -fixint_max - 1;
     // Break a into sign, exponent, significand
     const rep_t aRep = a;
@@ -28,7 +28,7 @@ fixint_t ___fixdfti(uint64_t a) {
         return 0;
 
     // If the value is too large for the integer type, saturate.
-    if ((unsigned) exponent >= sizeof(fixint_t) * CHAR_BIT)
+    if ((unsigned)exponent >= sizeof(fixint_t) * CHAR_BIT)
         return sign == 1 ? fixint_max : fixint_min;
 
     // If 0 <= exponent < significandBits, right shift to get the result.
@@ -36,6 +36,6 @@ fixint_t ___fixdfti(uint64_t a) {
     if (exponent < significandBits)
         return sign * (significand >> (significandBits - exponent));
     else
-        return sign * ((fixint_t) significand << (exponent - significandBits));
+        return sign * ((fixint_t)significand << (exponent - significandBits));
 
 }

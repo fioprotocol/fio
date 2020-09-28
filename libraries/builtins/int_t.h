@@ -1,48 +1,54 @@
 #ifndef __compiler_rt_int_t_h__
 #define __compiler_rt_int_t_h__
-
 #include <stdint.h>
 #include <limits.h>
 
-typedef union {
+typedef union
+{
     __int128 all;
-    struct {
+    struct
+    {
         uint64_t low;
         int64_t high;
-    } s;
+    }s;
 } twords;
 
-typedef union {
+typedef union
+{
     unsigned __int128 all;
-    struct {
+    struct
+    {
         uint64_t low;
         uint64_t high;
-    } s;
+    }s;
 } utwords;
 
-typedef union {
+typedef union
+{
     uint64_t all;
-    struct {
+    struct
+    {
         uint32_t low;
         uint32_t high;
-    } s;
+    }s;
 } udwords;
 
-typedef union {
+typedef union
+{
     udwords u;
-    double f;
+    double  f;
 } double_bits;
 
 
 typedef __int128 ti_int;
 typedef unsigned __int128 tu_int;
-
-inline __int128 __clzti2(__int128 a) {
+inline __int128 __clzti2(__int128 a)
+{
     twords x;
     x.all = a;
     const int64_t f = -(x.s.high == 0);
     return __builtin_clzll((x.s.high & ~f) | (x.s.low & f)) +
-           ((int32_t) f & ((int32_t) (sizeof(int64_t) * CHAR_BIT)));
+           ((int32_t)f & ((int32_t)(sizeof(int64_t) * CHAR_BIT)));
 }
 
 #endif// __compiler_rt_int_t_h__

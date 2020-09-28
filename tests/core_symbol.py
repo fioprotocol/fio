@@ -1,1 +1,0 @@
-CORE_SYMBOL = 'FIO'

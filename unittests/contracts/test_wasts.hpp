@@ -1,5 +1,4 @@
 #pragma once
-
 #include <eosio/chain/webassembly/common.hpp>
 
 static const char huge_tables_wast[] = R"=====(
@@ -177,6 +176,15 @@ static const char entry_wast_2[] = R"=====(
    )
   )
  )
+)
+)=====";
+
+static const char entry_import_wast[] = R"=====(
+(module
+ (import "env" "abort" (func $abort))
+ (export "apply" (func $apply))
+ (start $abort)
+ (func $apply (param $0 i64) (param $1 i64) (param $2 i64))
 )
 )=====";
 
@@ -431,6 +439,38 @@ static const char table_checker_small_wast[] = R"=====(
 )
 )=====";
 
+static const char table_init_oob_wast[] = R"=====(
+(module
+ (type $mahsig (func (param i64) (param i64) (param i64)))
+ (table 1024 anyfunc)
+ (export "apply" (func $apply))
+ (func $apply (param $0 i64) (param $1 i64) (param $2 i64)
+ )
+ (elem (i32.const 1024) $apply)
+)
+)=====";
+
+static const char table_init_oob_smaller_wast[] = R"=====(
+(module
+ (type $mahsig (func (param i64) (param i64) (param i64)))
+ (table 620 anyfunc)
+ (export "apply" (func $apply))
+ (func $apply (param $0 i64) (param $1 i64) (param $2 i64)
+ )
+ (elem (i32.const 700) $apply)
+)
+)=====";
+
+static const char table_init_oob_no_table_wast[] = R"=====(
+(module
+ (type $mahsig (func (param i64) (param i64) (param i64)))
+ (export "apply" (func $apply))
+ (func $apply (param $0 i64) (param $1 i64) (param $2 i64)
+ )
+ (elem (i32.const 0) $apply)
+)
+)=====";
+
 static const char global_protection_none_get_wast[] = R"=====(
 (module
  (export "apply" (func $apply))
@@ -473,83 +513,76 @@ static const char global_protection_some_set_wast[] = R"=====(
 )=====";
 
 static const std::vector<uint8_t> global_protection_okay_get_wasm{
-        0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
-        0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e,
-        0x00,            //type section containing a function as void(i64,i64,i64)
-        0x03, 0x02, 0x01, 0x00,                                          //a function
+   0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
+   0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e, 0x00,            //type section containing a function as void(i64,i64,i64)
+   0x03, 0x02, 0x01, 0x00,                                          //a function
 
-        0x06, 0x06, 0x01, 0x7f, 0x00, 0x41, 0x75, 0x0b,                  //global
+   0x06, 0x06, 0x01, 0x7f, 0x00, 0x41, 0x75, 0x0b,                  //global
 
-        0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
-        0x0a, 0x07, 0x01,                                                //code section
-        0x05, 0x00,                                                      //function body start with length 5; no locals
-        0x23, 0x00,                                                      //get global 0
-        0x1a,                                                            //drop
-        0x0b                                                             //end
+   0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
+   0x0a, 0x07, 0x01,                                                //code section
+   0x05, 0x00,                                                      //function body start with length 5; no locals
+   0x23, 0x00,                                                      //get global 0
+   0x1a,                                                            //drop
+   0x0b                                                             //end
 };
 
 static const std::vector<uint8_t> global_protection_none_get_wasm{
-        0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
-        0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e,
-        0x00,            //type section containing a function as void(i64,i64,i64)
-        0x03, 0x02, 0x01, 0x00,                                          //a function
+   0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
+   0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e, 0x00,            //type section containing a function as void(i64,i64,i64)
+   0x03, 0x02, 0x01, 0x00,                                          //a function
 
-        0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
-        0x0a, 0x07, 0x01,                                                //code section
-        0x05, 0x00,                                                      //function body start with length 5; no locals
-        0x23, 0x00,                                                      //get global 0
-        0x1a,                                                            //drop
-        0x0b                                                             //end
+   0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
+   0x0a, 0x07, 0x01,                                                //code section
+   0x05, 0x00,                                                      //function body start with length 5; no locals
+   0x23, 0x00,                                                      //get global 0
+   0x1a,                                                            //drop
+   0x0b                                                             //end
 };
 
 static const std::vector<uint8_t> global_protection_some_get_wasm{
-        0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
-        0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e,
-        0x00,            //type section containing a function as void(i64,i64,i64)
-        0x03, 0x02, 0x01, 0x00,                                          //a function
+   0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
+   0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e, 0x00,            //type section containing a function as void(i64,i64,i64)
+   0x03, 0x02, 0x01, 0x00,                                          //a function
 
-        0x06, 0x06, 0x01, 0x7f, 0x00, 0x41, 0x75, 0x0b,                  //global
+   0x06, 0x06, 0x01, 0x7f, 0x00, 0x41, 0x75, 0x0b,                  //global
 
-        0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
-        0x0a, 0x07, 0x01,                                                //code section
-        0x05, 0x00,                                                      //function body start with length 5; no locals
-        0x23, 0x01,                                                      //get global 1
-        0x1a,                                                            //drop
-        0x0b                                                             //end
+   0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
+   0x0a, 0x07, 0x01,                                                //code section
+   0x05, 0x00,                                                      //function body start with length 5; no locals
+   0x23, 0x01,                                                      //get global 1
+   0x1a,                                                            //drop
+   0x0b                                                             //end
 };
 
 static const std::vector<uint8_t> global_protection_okay_set_wasm{
-        0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
-        0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e,
-        0x00,            //type section containing a function as void(i64,i64,i64)
-        0x03, 0x02, 0x01, 0x00,                                          //a function
+   0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
+   0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e, 0x00,            //type section containing a function as void(i64,i64,i64)
+   0x03, 0x02, 0x01, 0x00,                                          //a function
 
-        0x06, 0x06, 0x01, 0x7e, 0x01, 0x42, 0x75,
-        0x0b,                  //global.. this time with i64 & global mutablity
+   0x06, 0x06, 0x01, 0x7e, 0x01, 0x42, 0x75, 0x0b,                  //global.. this time with i64 & global mutablity
 
-        0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
-        0x0a, 0x08, 0x01,                                                //code section
-        0x06, 0x00,                                                      //function body start with length 6; no locals
-        0x20, 0x00,                                                      //get local 0
-        0x24, 0x00,                                                      //set global 0
-        0x0b                                                             //end
+   0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
+   0x0a, 0x08, 0x01,                                                //code section
+   0x06, 0x00,                                                      //function body start with length 6; no locals
+   0x20, 0x00,                                                      //get local 0
+   0x24, 0x00,                                                      //set global 0
+   0x0b                                                             //end
 };
 
 static const std::vector<uint8_t> global_protection_some_set_wasm{
-        0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
-        0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e,
-        0x00,            //type section containing a function as void(i64,i64,i64)
-        0x03, 0x02, 0x01, 0x00,                                          //a function
+   0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
+   0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e, 0x00,            //type section containing a function as void(i64,i64,i64)
+   0x03, 0x02, 0x01, 0x00,                                          //a function
 
-        0x06, 0x06, 0x01, 0x7e, 0x01, 0x42, 0x75,
-        0x0b,                  //global.. this time with i64 & global mutablity
+   0x06, 0x06, 0x01, 0x7e, 0x01, 0x42, 0x75, 0x0b,                  //global.. this time with i64 & global mutablity
 
-        0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
-        0x0a, 0x08, 0x01,                                                //code section
-        0x06, 0x00,                                                      //function body start with length 6; no locals
-        0x20, 0x00,                                                      //get local 0
-        0x24, 0x01,                                                      //set global 1
-        0x0b                                                             //end
+   0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00,     //export function 0 as "apply"
+   0x0a, 0x08, 0x01,                                                //code section
+   0x06, 0x00,                                                      //function body start with length 6; no locals
+   0x20, 0x00,                                                      //get local 0
+   0x24, 0x01,                                                      //set global 1
+   0x0b                                                             //end
 };
 
 static const char no_apply_wast[] = R"=====(
@@ -598,7 +631,7 @@ static const char apply_wrong_signature_wast[] = R"=====(
 )
 )=====";
 
-static const char import_injected_wast[] = \
+static const char import_injected_wast[] =                                            \
 "(module"                                                                             \
 " (export \"apply\" (func $apply))"                                                   \
 " (import \"" EOSIO_INJECTED_MODULE_NAME "\" \"checktime\" (func $inj (param i32)))"  \
@@ -655,3 +688,90 @@ static const char large_maligned_host_ptr[] = R"=====(
  )
 )
 )=====";
+
+static const char depth_assert_wasm[] = R"=====(
+(module
+ (export "apply" (func $$apply))
+ (func $$apply (param $$0 i64) (param $$1 i64) (param $$2 i64)
+  (if (i64.eq (get_global $$depth) (i64.const 0)) (then
+    (return)
+  ))
+  (set_global $$depth
+   (i64.sub
+    (get_global $$depth)
+    (i64.const 1)
+   )
+  )
+  (call $$apply
+   (get_local $$0)
+   (get_local $$1)
+   (get_local $$2)
+  )
+ )
+ (global $$depth (mut i64) (i64.const ${MAX_DEPTH}))
+)
+)=====";
+
+static const char depth_assert_intrinsic[] = R"=====(
+(module
+ (import "env" "current_time" (func $$current_time (result i64)))
+ (export "apply" (func $$apply))
+ (func $$apply (param $$0 i64) (param $$1 i64) (param $$2 i64)
+  (if (i64.eq (get_global $$depth) (i64.const 1)) (then
+    (drop (call $$current_time))
+    (return)
+  ))
+  (set_global $$depth
+   (i64.sub
+    (get_global $$depth)
+    (i64.const 1)
+   )
+  )
+  (call $$apply
+   (get_local $$0)
+   (get_local $$1)
+   (get_local $$2)
+  )
+ )
+ (global $$depth (mut i64) (i64.const ${MAX_DEPTH}))
+)
+)=====";
+
+static const char depth_assert_wasm_float[] = R"=====(
+(module
+ (export "apply" (func $$apply))
+ (func $$apply (param $$0 i64) (param $$1 i64) (param $$2 i64)
+  (set_global $$mcfloaty
+   (f64.mul
+    (get_global $$mcfloaty)
+    (f64.const 3.1415)
+   )
+  )
+  (if (i64.eq (get_global $$depth) (i64.const 0)) (then
+    (return)
+  ))
+  (set_global $$depth
+   (i64.sub
+    (get_global $$depth)
+    (i64.const 1)
+   )
+  )
+  (call $$apply
+   (get_local $$0)
+   (get_local $$1)
+   (get_local $$2)
+  )
+ )
+ (global $$depth (mut i64) (i64.const ${MAX_DEPTH}))
+ (global $$mcfloaty (mut f64) (f64.const 3.14))
+)
+)=====";
+
+static const std::vector<uint8_t> varuint_memory_flags{
+  0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00,
+  0x01, 0x07, 0x01, 0x60, 0x03, 0x7e, 0x7e, 0x7e, 0x00, // types
+  0x03, 0x02, 0x01, 0x00, // functions
+  0x04, 0x08, 0x01, 0x70, 0x80, 0x02, 0x80, 0x80, 0x80, 0x00, // memory with flags varuint(0x80 0x02) -> 0x2
+  0x07, 0x09, 0x01, 0x05, 'a', 'p', 'p', 'l', 'y', 0x00, 0x00, // exports
+  0x0a, 0x04, 0x01, 0x02, 0x00, 0x0b // code
+};

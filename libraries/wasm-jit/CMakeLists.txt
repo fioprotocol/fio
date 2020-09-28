@@ -13,19 +13,19 @@
 set(WAVM_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/Include)
 include_directories(${WAVM_INCLUDE_DIR})
 #
-# Use C++11
+	# Use C++11
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-# Compile with all warnings and fatal warnings
+	# Compile with all warnings and fatal warnings
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
-# Disable RTTI
+	# Disable RTTI
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
-# Ensure that even static libraries are relocatable so they can be linked into a .so
+	# Ensure that even static libraries are relocatable so they can be linked into a .so
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
-# Enable asan in debug builds.
+	# Enable asan in debug builds.
 #	if(CMAKE_BUILD_TYPE MATCHES "Debug")
 #		option(ENABLE_ASAN "enable ASAN" ON)
 #		add_definitions("-D_DEBUG")
@@ -38,40 +38,38 @@ include_directories(${WAVM_INCLUDE_DIR})
 
 set(CMAKE_CXX_STANDARD 11)
 option(WAVM_METRICS_OUTPUT "controls printing the timings of some operations to stdout" OFF)
-if (WAVM_METRICS_OUTPUT)
-    add_definitions("-DWAVM_METRICS_OUTPUT=1")
-else ()
-    add_definitions("-DWAVM_METRICS_OUTPUT=0")
-endif ()
+if(WAVM_METRICS_OUTPUT)
+	add_definitions("-DWAVM_METRICS_OUTPUT=1")
+else()
+	add_definitions("-DWAVM_METRICS_OUTPUT=0")
+endif()
 
 option(PRETEND_32BIT_ADDRESS_SPACE "forces 64-bit WAVM to reserve address-space as it would in a 32-bit process" OFF)
-if (PRETEND_32BIT_ADDRESS_SPACE)
-    add_definitions("-DPRETEND_32BIT_ADDRESS_SPACE=1")
-else ()
-    add_definitions("-DPRETEND_32BIT_ADDRESS_SPACE=0")
-endif ()
+if(PRETEND_32BIT_ADDRESS_SPACE)
+	add_definitions("-DPRETEND_32BIT_ADDRESS_SPACE=1")
+else()
+	add_definitions("-DPRETEND_32BIT_ADDRESS_SPACE=0")
+endif()
 
 option(ENABLE_SIMD_PROTOTYPE "enables the prototype implementation of the proposed WebAssembly SIMD extension" OFF)
-if (ENABLE_SIMD_PROTOTYPE)
-    add_definitions("-DENABLE_SIMD_PROTOTYPE=1")
-else ()
-    add_definitions("-DENABLE_SIMD_PROTOTYPE=0")
-endif ()
+if(ENABLE_SIMD_PROTOTYPE)
+	add_definitions("-DENABLE_SIMD_PROTOTYPE=1")
+else()
+	add_definitions("-DENABLE_SIMD_PROTOTYPE=0")
+endif()
 
 option(ENABLE_THREADING_PROTOTYPE "enables the prototype implementation of the proposed WebAssembly threading extension" OFF)
-if (ENABLE_THREADING_PROTOTYPE)
-    add_definitions("-DENABLE_THREADING_PROTOTYPE=1")
-else ()
-    add_definitions("-DENABLE_THREADING_PROTOTYPE=0")
-endif ()
+if(ENABLE_THREADING_PROTOTYPE)
+	add_definitions("-DENABLE_THREADING_PROTOTYPE=1")
+else()
+	add_definitions("-DENABLE_THREADING_PROTOTYPE=0")
+endif()
 
 add_subdirectory(Include/Inline)
 
-#add_subdirectory(Source/Emscripten)
 add_subdirectory(Source/IR)
 add_subdirectory(Source/Logging)
 add_subdirectory(Source/Platform)
-#add_subdirectory(Source/Programs)
 add_subdirectory(Source/Runtime)
 add_subdirectory(Source/WASM)
 add_subdirectory(Source/WAST)

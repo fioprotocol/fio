@@ -1,27 +1,29 @@
-import copy
+import testUtils
+import p2p_test_peers
 import random
-import threading
 import time
+import copy
+import threading
+
 from core_symbol import CORE_SYMBOL
 
-
 class StressNetwork:
-    speeds = [1, 5, 10, 30, 60, 100, 500]
-    sec = 10
-    maxthreads = 100
-    trList = []
+    speeds=[1,5,10,30,60,100,500]
+    sec=10
+    maxthreads=100
+    trList=[]
 
     def maxIndex(self):
         return len(self.speeds)
 
     def randAcctName(self):
-        s = ""
+        s=""
         for i in range(12):
-            s = s + random.choice("abcdefghijklmnopqrstuvwxyz12345")
+            s=s+random.choice("abcdefghijklmnopqrstuvwxyz12345")
         return s
-
+    
     def _transfer(self, node, acc1, acc2, amount, threadId, round):
-        memo = "%d %d" % (threadId, round)
+        memo="%d %d" % (threadId, round)
         tr = node.transferFunds(acc1, acc2, amount, memo)
         self.trList.append(tr)
 
@@ -48,11 +50,11 @@ class StressNetwork:
         print("transaction id %s" % (trid))
 
         print("issue currency0000 into %s" % (acc1.name))
-        contract = "eosio"
-        action = "issue"
-        data = "{\"to\":\"" + acc1.name + "\",\"quantity\":\"1000000.0000 " + CORE_SYMBOL + "\"}"
-        opts = "--permission eosio@active"
-        tr = node.pushMessage(contract, action, data, opts)
+        contract="eosio"
+        action="issue"
+        data="{\"to\":\"" + acc1.name + "\",\"quantity\":\"1000000.0000 "+CORE_SYMBOL+"\"}"
+        opts="--permission eosio@active"
+        tr=node.pushMessage(contract, action, data, opts)
         trid = node.getTransId(tr[1])
         if trid is None:
             return ([], "", 0.0, "failed to issue currency0000")
@@ -61,15 +63,14 @@ class StressNetwork:
 
         self.trList = []
         expBal = 0
-        nthreads = self.maxthreads
+        nthreads=self.maxthreads
         if nthreads > self.speeds[cmdInd]:
             nthreads = self.speeds[cmdInd]
         cycle = int(total / nthreads)
-        total = cycle * nthreads  # rounding
+        total = cycle * nthreads # rounding
         delay = 1.0 / self.speeds[cmdInd] * nthreads
 
-        print("start currency0000 trasfer from %s to %s for %d times with %d threads" % (
-        acc1.name, acc2.name, total, nthreads))
+        print("start currency0000 trasfer from %s to %s for %d times with %d threads" % (acc1.name, acc2.name, total, nthreads))
 
         t00 = time.time()
         for k in range(cycle):
@@ -77,15 +78,15 @@ class StressNetwork:
             amount = 1
             threadList = []
             for m in range(nthreads):
-                th = threading.Thread(target=self._transfer, args=(node, acc1, acc2, amount, m, k))
+                th = threading.Thread(target = self._transfer,args = (node, acc1, acc2, amount, m, k))
                 th.start()
                 threadList.append(th)
             for th in threadList:
                 th.join()
             expBal = expBal + amount * nthreads
             t1 = time.time()
-            if (t1 - t0 < delay):
-                time.sleep(delay - (t1 - t0))
+            if (t1-t0 < delay):
+                time.sleep(delay - (t1-t0))
         t11 = time.time()
         print("time used = %lf" % (t11 - t00))
 
@@ -98,6 +99,7 @@ class StressNetwork:
             transIdlist.append(trid)
             node.waitForTransInBlock(trid)
         return (transIdlist, acc2.name, expBal, "")
-
+    
     def on_exit(self):
         print("end of network stress tests")
+

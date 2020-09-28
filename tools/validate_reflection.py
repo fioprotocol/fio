@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import atexit
-import os
-import re
-import sys
-import tempfile
-import traceback
 from collections import OrderedDict
-
+import re
+import os
+import sys
+import traceback
 
 ###############################################################
 # validate_reflection
@@ -27,9 +24,11 @@ from collections import OrderedDict
 #  fields will also match the order.  But both field2 and field3 should not be indicated.
 #
 #
-#
+# 
 ###############################################################
 
+import atexit
+import tempfile
 
 @atexit.register
 def close_debug_file():
@@ -39,16 +38,11 @@ def close_debug_file():
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('-?', action='help', default=argparse.SUPPRESS,
-                    help=argparse._('show this help message and exit'))
+                         help=argparse._('show this help message and exit'))
 parser.add_argument('-d', '--debug', help="generate debug output into a temporary directory", action='store_true')
-parser.add_argument('-r', '--recurse', help="recurse through an entire directory (if directory provided for \"file\"",
-                    action='store_true')
-parser.add_argument('-x', '--extension', type=str,
-                    help="extensions array to allow for directory and recursive search.  Defaults to \".hpp\" and \".cpp\".",
-                    action='append')
-parser.add_argument('-e', '--exit-on-error',
-                    help="Exit immediately when a validation error is discovered.  Default is to run validation on all files and directories provided.",
-                    action='store_true')
+parser.add_argument('-r', '--recurse', help="recurse through an entire directory (if directory provided for \"file\"", action='store_true')
+parser.add_argument('-x', '--extension', type=str, help="extensions array to allow for directory and recursive search.  Defaults to \".hpp\" and \".cpp\".", action='append')
+parser.add_argument('-e', '--exit-on-error', help="Exit immediately when a validation error is discovered.  Default is to run validation on all files and directories provided.", action='store_true')
 parser.add_argument('files', metavar='file', nargs='+', type=str, help="File containing nodes info in JSON format.")
 args = parser.parse_args()
 
@@ -61,24 +55,22 @@ else:
     debug_file = None
 extensions = []
 if args.extension is None or len(args.extension) == 0:
-    extensions = [".hpp", ".cpp"]
+    extensions = [".hpp",".cpp"]
 else:
     for extension in args.extension:
         assert len(extension) > 0, "empty --extension passed in"
         if extension[0] != ".":
             extension = "." + extension
-        extensions.append(extension)
+        extensions.append(extension) 
 print("extensions=%s" % (",".join(extensions)))
 ignore_str = "@ignore"
 swap_str = "@swap"
 fc_reflect_str = "FC_REFLECT"
 fc_reflect_possible_enum_or_derived_ext = "(?:_ENUM|_DERIVED)?"
 
-
 def debug(debug_str):
     if debug_file is not None:
         debug_file.write(debug_str + "\n")
-
 
 class EmptyScope:
     multi_word_type_pattern = r'(?:(?:un)?signed\s+)?(?:short\s+|(?:long\s+){1,2}?)?'
@@ -89,8 +81,7 @@ class EmptyScope:
     strip_extra_pattern = re.compile(r'\n\s*\*\s*')
     invalid_chars_pattern = re.compile(r'([^\w\s,])')
     multi_line_comment_ignore_swap_pattern = re.compile(r'(\w+)(?:\s*,\s*)?')
-    handle_braces_initialization_swap_pattern = re.compile(r'(?:{|;)\s*([^{};=]*?)\s*{([^{};]*)}(?=\s*;)',
-                                                           re.MULTILINE | re.DOTALL)
+    handle_braces_initialization_swap_pattern = re.compile(r'(?:{|;)\s*([^{};=]*?)\s*{([^{};]*)}(?=\s*;)', re.MULTILINE | re.DOTALL)
     # pattern to handle fields initialized with {}
     possible_end_skip_initialization = re.compile(r'{[^;}]*}\s*;', re.MULTILINE | re.DOTALL)
     namespace_str = "namespace"
@@ -117,8 +108,7 @@ class EmptyScope:
         self.inherit = None
 
     def read(self):
-        debug("%sEmptyScope(%s).read - %s starting at %s" % (
-        self.indent, self.__class__.__name__, self.name, self.current))
+        debug("%sEmptyScope(%s).read - %s starting at %s" % (self.indent, self.__class__.__name__, self.name, self.current))
         end = len(self.content) - 1
         while self.current < end:
             next_scope = self.next_scope()
@@ -128,16 +118,13 @@ class EmptyScope:
 
         if self.end is None:
             self.end = self.content.find(EmptyScope.end_char, self.current, len(self.content))
-            debug("%sEmptyScope(%s).read - %s find end current: %s, end: %s" % (
-            self.indent, self.__class__.__name__, self.name, self.current, self.end))
+            debug("%sEmptyScope(%s).read - %s find end current: %s, end: %s" % (self.indent, self.__class__.__name__, self.name, self.current, self.end))
             pdesc = str(self.parent_scope) if self.parent_scope is not None else "<no parent scope>"
-            assert self.end != -1, "Could not find \"%s\" in \"%s\" - parent scope - %s" % (
-            EmptyScope.end_char, self.content[self.current:], pdesc)
+            assert self.end != -1, "Could not find \"%s\" in \"%s\" - parent scope - %s" % (EmptyScope.end_char, self.content[self.current:], pdesc)
         debug("%sEmptyScope(%s).read - %s - Done at %s" % (self.indent, self.__class__.__name__, self.name, self.end))
 
     def add(self, child):
-        debug("%sEmptyScope.add %s (%s) to %s (%s) - DROP" % (
-        self.indent, child.name, child.__class__.__name__, self.name, self.__class__.__name__))
+        debug("%sEmptyScope.add %s (%s) to %s (%s) - DROP" % (self.indent, child.name, child.__class__.__name__, self.name, self.__class__.__name__))
         pass
 
     def find_scope_start(self, content, start, end, find_str):
@@ -155,14 +142,13 @@ class EmptyScope:
             all = possible_skip_init.group(0)
             all_start = self.content.find(all, self.current)
             all_end = all_start + len(all)
-            debug("%sEmptyScope.find_possible_end found possible at %s checking skip from %d to %d, all={\n%s\n}" % (
-            self.indent, possible, all_start, all_end, all))
+            debug("%sEmptyScope.find_possible_end found possible at %s checking skip from %d to %d, all={\n%s\n}" % (self.indent, possible, all_start, all_end, all))
             if possible > all_start and possible < all_end:
                 possible = self.content.find(EmptyScope.end_char, all_end + 1)
         debug("%sEmptyScope.find_possible_end current=%s  possible end=%s" % (self.indent, self.current, possible))
         return possible
 
-    def next_scope(self, end=None):
+    def next_scope(self, end = None):
         if end is None:
             end = self.find_possible_end()
         debug("%sEmptyScope.next_scope current=%s  end=%s" % (self.indent, self.current, end))
@@ -172,8 +158,7 @@ class EmptyScope:
             new_scope = EmptyScope(None, start, self.content, self)
             new_scope.read()
             self.current = new_scope.end + 1
-            debug("%sEmptyScope.next_scope return EmptyScope current: %s, scope end: %s" % (
-            self.indent, self.current, new_scope.end))
+            debug("%sEmptyScope.next_scope return EmptyScope current: %s, scope end: %s" % (self.indent, self.current, new_scope.end))
             return new_scope
 
         return None
@@ -186,20 +171,17 @@ class EmptyScope:
             loc += len(scope_separator)
             child_scoped_name = scoped_name[loc:]
             if child_name in self.children:
-                debug("%sfind_class traverse child_name: %s, child_scoped_name: %s" % (
-                self.indent, child_name, child_scoped_name))
+                debug("%sfind_class traverse child_name: %s, child_scoped_name: %s" % (self.indent, child_name, child_scoped_name))
                 return self.children[child_name].find_class(child_scoped_name)
             elif self.inherit is not None and scoped_name in self.inherit.children:
-                debug("%sfind_class found scoped_name: %s in inherited: %s" % (
-                self.indent, scoped_name, self.inherit.name))
+                debug("%sfind_class found scoped_name: %s in inherited: %s" % (self.indent, scoped_name, self.inherit.name))
                 return self.inherit.children[scoped_name].find_class(child_scoped_name)
         else:
             if scoped_name not in self.children:
                 inherit_children = ",".join(self.inherit.children) if self.inherit is not None else "no inheritance"
                 inherit_using = ",".join(self.inherit.usings) if self.inherit is not None else "no inheritance"
                 inherit = self.inherit.name if self.inherit is not None else None
-                debug("%sfind_class %s not in children, using: %s, inherit: %s - children: %s, using: %s" % (
-                self.indent, scoped_name, ",".join(self.usings), inherit, inherit_children, inherit_using))
+                debug("%sfind_class %s not in children, using: %s, inherit: %s - children: %s, using: %s" % (self.indent, scoped_name, ",".join(self.usings), inherit, inherit_children, inherit_using))
 
             if scoped_name in self.children:
                 debug("%sfind_class found scoped_name: %s" % (self.indent, scoped_name))
@@ -209,12 +191,10 @@ class EmptyScope:
                 debug("%sfind_class found scoped_name: %s, using: %s" % (self.indent, scoped_name, using))
                 return self.find_class(using)
             elif self.inherit is not None and scoped_name in self.inherit.children:
-                debug("%sfind_class found scoped_name: %s in inherited: %s" % (
-                self.indent, scoped_name, self.inherit.name))
+                debug("%sfind_class found scoped_name: %s in inherited: %s" % (self.indent, scoped_name, self.inherit.name))
                 return self.inherit.children[scoped_name]
             else:
-                debug("%sfind_class could not find scoped_name: %s, children: %s" % (
-                self.indent, scoped_name, ",".join(self.children)))
+                debug("%sfind_class could not find scoped_name: %s, children: %s" % (self.indent, scoped_name, ",".join(self.children)))
                 return None
 
     def __str__(self):
@@ -237,32 +217,22 @@ class EmptyScope:
         desc += indent + "  }\n"
         return desc
 
-
 def create_scope(type, name, inherit, start, content, parent_scope):
     indent = parent_scope.indent + " > " if parent_scope is not None else " > "
     debug("%screate_scope" % (indent))
     if type == EmptyScope.namespace_str:
         return Namespace(name, inherit, start, content, parent_scope)
     elif type == EmptyScope.class_str or type == EmptyScope.struct_str:
-        return ClassStruct(name, inherit, start, content, parent_scope, is_enum=False)
+        return ClassStruct(name, inherit, start, content, parent_scope, is_enum = False)
     elif type == EmptyScope.enum_str:
-        return ClassStruct(name, inherit, start, content, parent_scope, is_enum=True)
+        return ClassStruct(name, inherit, start, content, parent_scope, is_enum = True)
     else:
         assert False, "Script does not account for type = \"%s\" found in \"%s\"" % (type, content[start:])
 
-
 class ClassStruct(EmptyScope):
-    field_pattern = re.compile(
-        r'\n\s*?(?:mutable\s+)?(%s\w[\w:]*(?:\s*<\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?(?:,\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?)?>\s*)?(?:,\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?(?:,\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?)?>\s*)?)?>\s*)?)(?:\*\s+|\s+\*|\s+)(\w+)\s*(?:;|=\s*[-]?\w[\w:]*(?:\s*[-/\*\+]\s*[-]?\w[\w:]*)*\s*;|=\s*(?:\w[\w:]*(?:<[^\n;]>)?)?(?:{|(?:\([^\)]*\)?|(?:\"[^\"]*\")?)\s*;)|\s*{[^\}]*}\s*;)' % (
-        EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern,
-        EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern,
-        EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern,
-        EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern,
-        EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern),
-        re.MULTILINE | re.DOTALL)
+    field_pattern = re.compile(r'\n\s*?(?:mutable\s+)?(%s\w[\w:]*(?:\s*<\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?(?:,\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?)?>\s*)?(?:,\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?(?:,\s*%s\w[\w:]*\s*(?:\s*<\s*%s\w[\w:]*\s*(?:,\s*%s\w[\w:]*\s*)*>\s*)?)?>\s*)?)?>\s*)?)(?:\*\s+|\s+\*|\s+)(\w+)\s*(?:;|=\s*[-]?\w[\w:]*(?:\s*[-/\*\+]\s*[-]?\w[\w:]*)*\s*;|=\s*(?:\w[\w:]*(?:<[^\n;]>)?)?(?:{|(?:\([^\)]*\)?|(?:\"[^\"]*\")?)\s*;)|\s*{[^\}]*}\s*;)' % (EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern, EmptyScope.multi_word_type_pattern), re.MULTILINE | re.DOTALL)
     enum_field_pattern = re.compile(r'[,\{]\s*?(\w+)\s*(?:=\s*[^,}\s]+)?\s*(?:,|})', re.MULTILINE | re.DOTALL)
-    class_pattern = re.compile(r'(%s|%s|%s)\s+(\w+)\s*(:\s*public\s+([^<\s]+)[^{]*)?\s*\{' % (
-    EmptyScope.struct_str, EmptyScope.class_str, EmptyScope.enum_str), re.MULTILINE | re.DOTALL)
+    class_pattern = re.compile(r'(%s|%s|%s)\s+(\w+)\s*(:\s*public\s+([^<\s]+)[^{]*)?\s*\{' % (EmptyScope.struct_str, EmptyScope.class_str, EmptyScope.enum_str), re.MULTILINE | re.DOTALL)
     cb_obj_pattern = re.compile(r'chainbase::object$')
     obj_pattern = re.compile(r'^object$')
     using_pattern = re.compile(r'\n\s*?using\s+(\w+)\s*=\s*([\w:]+)(?:<.*>)?;')
@@ -286,13 +256,10 @@ class ClassStruct(EmptyScope):
             while self.inherit is None and next is not None:
                 self.inherit = next.find_class(inherit)
                 next = next.parent_scope
-            debug("%sChecking for object, ignore_id: %s, inherit: %s, name: %s" % (
-            self.indent, self.ignore_id, inherit, name))
+            debug("%sChecking for object, ignore_id: %s, inherit: %s, name: %s" % (self.indent, self.ignore_id, inherit, name))
 
     def add(self, child):
-        debug("%sClassStruct.add %s (%s) to %s (%s) - (existing children: %s)" % (
-        self.indent, child.name, child.__class__.__name__, self.name, self.__class__.__name__,
-        ", ".join(self.children)))
+        debug("%sClassStruct.add %s (%s) to %s (%s) - (existing children: %s)" % (self.indent, child.name, child.__class__.__name__, self.name, self.__class__.__name__, ", ".join(self.children)))
         if isinstance(child, ClassStruct):
             if child.name not in self.children:
                 self.classes[child.name] = child
@@ -318,8 +285,7 @@ class ClassStruct(EmptyScope):
         self.fields.append(field)
         all = match.group(0)
         loc = self.content.find(all, loc) + len(all)
-        debug("%sClassStruct.add_field - %s (%d) - loc: %s, pattern: %s, matched: \"%s\"" % (
-        self.indent, field, len(self.fields), loc, ClassStruct.field_pattern.pattern, all))
+        debug("%sClassStruct.add_field - %s (%d) - loc: %s, pattern: %s, matched: \"%s\"" % (self.indent, field, len(self.fields), loc, ClassStruct.field_pattern.pattern, all))
         return loc
 
     def add_enum_field(self, loc, end):
@@ -329,9 +295,8 @@ class ClassStruct(EmptyScope):
         field = match.group(1)
         self.fields.append(field)
         all = match.group(0)
-        loc = self.content.find(all, loc) + len(all) - 1  # back up one to not match ','
-        debug("%sClassStruct.add_enum_field - %s (%d) - %s" % (
-        self.indent, field, len(self.fields), ClassStruct.enum_field_pattern.pattern))
+        loc = self.content.find(all, loc) + len(all) - 1    # back up one to not match ','
+        debug("%sClassStruct.add_enum_field - %s (%d) - %s" % (self.indent, field, len(self.fields), ClassStruct.enum_field_pattern.pattern))
         return loc
 
     def add_usings(self, start, end):
@@ -349,12 +314,11 @@ class ClassStruct(EmptyScope):
             debug("%sClassStruct.add_usings - %s (%d)" % (self.indent, using, len(self.usings)))
         debug("%sClassStruct.add_usings done" % (self.indent))
 
-    def next_scope(self, end=None):
+    def next_scope(self, end = None):
         new_scope = None
         if end is None:
             end = self.find_possible_end()
-        debug("%sClassStruct.next_scope current=%s end=%s on %s\n\npossible scope={\n\"%s\"\n\n\npattern=%s" % (
-        self.indent, self.current, end, self.name, self.content[self.current:end], self.pattern.pattern))
+        debug("%sClassStruct.next_scope current=%s end=%s on %s\n\npossible scope={\n\"%s\"\n\n\npattern=%s" % (self.indent, self.current, end, self.name, self.content[self.current:end], self.pattern.pattern))
         match = self.pattern.search(self.content[self.current:end])
         start = -1
         search_str = None
@@ -371,8 +335,7 @@ class ClassStruct(EmptyScope):
             debug("%sClassStruct.next_scope match for %s - type: %s, name: %s" % (self.indent, self.name, type, name))
 
             start = self.find_scope_start(self.content, self.current, end, search_str)
-            debug("%sClassStruct.next_scope all: %s, type: %s, name: %s, start: %s, inherit: %s" % (
-            self.indent, search_str, type, name, start, inherit))
+            debug("%sClassStruct.next_scope all: %s, type: %s, name: %s, start: %s, inherit: %s" % (self.indent, search_str, type, name, start, inherit))
 
         generic_scope_start = self.find_scope_start(self.content, self.current, end, EmptyScope.start_char)
         if start == -1 and generic_scope_start == -1:
@@ -380,15 +343,13 @@ class ClassStruct(EmptyScope):
             self.add_fields(self.current, end)
             return None
 
-        debug("%sClassStruct.next_scope found \"%s\" - \"%s\" - \"%s\" current=%s, start=%s, end=%s, pattern=%s " % (
-        self.indent, search_str, type, name, self.current, start, end, self.pattern.pattern))
+        debug("%sClassStruct.next_scope found \"%s\" - \"%s\" - \"%s\" current=%s, start=%s, end=%s, pattern=%s " % (self.indent, search_str, type, name, self.current, start, end, self.pattern.pattern))
         # determine if there is a non-namespace/non-class/non-struct scope before a namespace/class/struct scope
         if start != -1 and (generic_scope_start == -1 or start <= generic_scope_start):
             debug("%sClassStruct.next_scope found %s at %d" % (self.indent, type, start))
             new_scope = create_scope(type, name, inherit, start, self.content, self)
         else:
-            debug("%sClassStruct.next_scope found EmptyScope (%s) at %d, next scope at %s" % (
-            self.indent, type, generic_scope_start, start))
+            debug("%sClassStruct.next_scope found EmptyScope (%s) at %d, next scope at %s" % (self.indent, type, generic_scope_start, start))
             new_scope = EmptyScope("", generic_scope_start, self.content, self)
 
         self.add_fields(self.current, new_scope.start)
@@ -398,22 +359,18 @@ class ClassStruct(EmptyScope):
 
         return new_scope
 
-
 class Namespace(ClassStruct):
-    namespace_class_pattern = re.compile(r'(%s|%s|%s|%s)\s+(\w+)\s*(:\s*public\s+([^<\s]+)[^{]*)?\s*\{' % (
-    EmptyScope.namespace_str, EmptyScope.struct_str, EmptyScope.class_str, EmptyScope.enum_str),
-                                         re.MULTILINE | re.DOTALL)
+    namespace_class_pattern = re.compile(r'(%s|%s|%s|%s)\s+(\w+)\s*(:\s*public\s+([^<\s]+)[^{]*)?\s*\{' % (EmptyScope.namespace_str, EmptyScope.struct_str, EmptyScope.class_str, EmptyScope.enum_str), re.MULTILINE | re.DOTALL)
 
     def __init__(self, name, inherit, start, content, parent_scope):
         assert inherit is None, "namespace %s should not inherit from %s" % (name, inherit)
-        ClassStruct.__init__(self, name, None, start, content, parent_scope, is_enum=False)
+        ClassStruct.__init__(self, name, None, start, content, parent_scope, is_enum = False)
         debug("%sNamespace.__init__ %s %d" % (self.indent, name, start))
         self.namespaces = {}
         self.pattern = Namespace.namespace_class_pattern
 
     def add(self, child):
-        debug("%sNamespace.add %s (%s) to %s (%s)" % (
-        self.indent, child.name, child.__class__.__name__, self.name, self.__class__.__name__))
+        debug("%sNamespace.add %s (%s) to %s (%s)" % (self.indent, child.name, child.__class__.__name__, self.name, self.__class__.__name__))
         if isinstance(child, ClassStruct):
             ClassStruct.add(self, child)
             return
@@ -421,7 +378,6 @@ class Namespace(ClassStruct):
             if child.name not in self.children:
                 self.namespaces[child.name] = child
                 self.children[child.name] = child
-
 
 class Reflection:
     def __init__(self, name):
@@ -431,24 +387,15 @@ class Reflection:
         self.swapped = []
         self.absent = []
 
-
 class Reflections:
     def __init__(self, content):
         self.content = content
         self.current = 0
         self.end = len(content)
         self.classes = OrderedDict()
-        self.with_2_comments = re.compile(
-            r'(//\s*(%s|%s)\s+([^/\n]*?)\s*\n\s*//\s*(%s|%s)\s+([^/]*?)\s*\n\s*(%s%s\s*\(\s*(\w[^\s<]*))(?:\s*<[^>]*>)?\s*,)' % (
-            ignore_str, swap_str, ignore_str, swap_str, fc_reflect_str, fc_reflect_possible_enum_or_derived_ext),
-            re.MULTILINE | re.DOTALL)
-        self.with_comment = re.compile(
-            r'(//\s*(%s|%s)\s+([^/]*?)\s*\n\s*(%s%s\s*\(\s*(\w[^\s<]*))(?:\s*<[^>]*>)?\s*,)' % (
-            ignore_str, swap_str, fc_reflect_str, fc_reflect_possible_enum_or_derived_ext), re.MULTILINE | re.DOTALL)
-        self.reflect_pattern = re.compile(
-            r'(\b(%s%s\s*\(\s*(\w[^\s<]*)(?:\s*<[^>]*>)?\s*)(,|,\s*\([^\(\)]+\)\s*,)\s*(\([^,]*?\))\s*\))[^\)]*%s%s\b' % (
-            fc_reflect_str, fc_reflect_possible_enum_or_derived_ext, fc_reflect_str,
-            fc_reflect_possible_enum_or_derived_ext), re.MULTILINE | re.DOTALL)
+        self.with_2_comments = re.compile(r'(//\s*(%s|%s)\s+([^/\n]*?)\s*\n\s*//\s*(%s|%s)\s+([^/]*?)\s*\n\s*(%s%s\s*\(\s*(\w[^\s<]*))(?:\s*<[^>]*>)?\s*,)' % (ignore_str, swap_str, ignore_str, swap_str, fc_reflect_str, fc_reflect_possible_enum_or_derived_ext), re.MULTILINE | re.DOTALL)
+        self.with_comment = re.compile(r'(//\s*(%s|%s)\s+([^/]*?)\s*\n\s*(%s%s\s*\(\s*(\w[^\s<]*))(?:\s*<[^>]*>)?\s*,)' % (ignore_str, swap_str, fc_reflect_str, fc_reflect_possible_enum_or_derived_ext), re.MULTILINE | re.DOTALL)
+        self.reflect_pattern = re.compile(r'(\b(%s%s\s*\(\s*(\w[^\s<]*)(?:\s*<[^>]*>)?\s*)(,|,\s*\([^\(\)]+\)\s*,)\s*(\([^,]*?\))\s*\))[^\)]*%s%s\b' % (fc_reflect_str, fc_reflect_possible_enum_or_derived_ext, fc_reflect_str, fc_reflect_possible_enum_or_derived_ext), re.MULTILINE | re.DOTALL)
         self.reflect_derived_pattern = re.compile(r',\s*\(\s*(.*)\s*\)\s*,', re.MULTILINE | re.DOTALL)
         self.field_pattern = re.compile(r'\(([^\)]+)\)', re.MULTILINE | re.DOTALL)
         self.ignore_swap_pattern = re.compile(r'\b([\w\d]+)\b', re.MULTILINE | re.DOTALL)
@@ -461,7 +408,7 @@ class Reflections:
             match_reflect = self.reflect_pattern.search(self.content[self.current:])
             match_loc = None
             if match_2_comments or match_comment:
-                loc1 = self.content.find(match_2_comments.group(1), self.current) if match_2_comments else self.end
+                loc1 = self.content.find(match_2_comments.group(1), self.current) if match_2_comments else self.end 
                 loc2 = self.content.find(match_comment.group(1), self.current) if match_comment else self.end
                 debug("loc1=%s and loc2=%s" % (loc1, loc2))
                 group1 = match_2_comments.group(1) if match_2_comments else "<EMPTY>"
@@ -491,7 +438,7 @@ class Reflections:
                     debug("  %s" % g)
                 debug("}")
                 assert len(match_2_comments.groups()) == 7, "match_2_comments wrong size due to regex pattern change"
-                (ignore_or_swap1,
+                (ignore_or_swap1, 
                  next_reflect_ignore_swap1,
                  ignore_or_swap2,
                  next_reflect_ignore_swap2,
@@ -548,20 +495,17 @@ class Reflections:
     def add_fields(self, next_reflect, next_reflect_class, next_reflect_fields, derived):
         old = self.current
         self.current = self.content.find(next_reflect, self.current) + len(next_reflect)
-        debug("all={\n\n%s\n\nclass=\n\n%s\n\nfields=\n\n%s\n\n" % (
-        next_reflect, next_reflect_class, next_reflect_fields))
+        debug("all={\n\n%s\n\nclass=\n\n%s\n\nfields=\n\n%s\n\n" % (next_reflect, next_reflect_class, next_reflect_fields))
         fields = re.findall(self.field_pattern, next_reflect_fields)
         for field in fields:
             self.add_field(next_reflect_class, field)
         if derived:
             struct_class = self.classes[derived]
-            assert struct_class is not None, "%s reflection macro indicates it is derived from %s, but that class/struct can not be found" % (
-            next_reflect_class, derived)
+            assert struct_class is not None, "%s reflection macro indicates it is derived from %s, but that class/struct can not be found" % (next_reflect_class, derived)
             for field in struct_class.fields:
                 self.add_field(next_reflect_class, field)
         reflect_class = self.find_or_add(next_reflect_class)
-        debug("add_fields %s done, fields count=%s, ignored count=%s, swapped count=%s" % (
-        next_reflect_class, len(reflect_class.fields), len(reflect_class.ignored), len(reflect_class.swapped)))
+        debug("add_fields %s done, fields count=%s, ignored count=%s, swapped count=%s" % (next_reflect_class, len(reflect_class.fields), len(reflect_class.ignored), len(reflect_class.swapped)))
 
     def add_ignore_swaps(self, next_reflect_class, next_reflect_ignores_swaps, ignore_or_swap):
         debug("class=\n\n%s\n\n%s=\n\n%s\n\n" % (next_reflect_class, ignore_or_swap, next_reflect_ignores_swaps))
@@ -573,23 +517,18 @@ class Reflections:
                 ignore_swap = ignore_swap_match.group(1)
                 reflect_class = self.find_or_add(next_reflect_class)
                 if (ignore_or_swap == ignore_str):
-                    assert ignore_swap not in reflect_class.ignored, "Reflection for %s repeats %s \"%s\"" % (
-                    next_reflect_class, ignore_or_swap, ignore_str)
-                    assert ignore_swap not in reflect_class.swapped, "Reflection for %s references field \"%s\" in %s  and %s " % (
-                    next_reflect_class, ignore_swap, ignore_str, swap_str)
+                    assert ignore_swap not in reflect_class.ignored, "Reflection for %s repeats %s \"%s\"" % (next_reflect_class, ignore_or_swap, ignore_str)
+                    assert ignore_swap not in reflect_class.swapped, "Reflection for %s references field \"%s\" in %s  and %s " % (next_reflect_class, ignore_swap, ignore_str, swap_str)
                     reflect_class.ignored.append(ignore_swap)
                 else:
-                    assert ignore_swap not in reflect_class.swapped, "Reflection for %s repeats %s \"%s\"" % (
-                    next_reflect_class, ignore_or_swap)
-                    assert ignore_swap not in reflect_class.ignored, "Reflection for %s references field \"%s\" in %s  and %s " % (
-                    next_reflect_class, ignore_swap, swap_str, ignore_str)
+                    assert ignore_swap not in reflect_class.swapped, "Reflection for %s repeats %s \"%s\"" % (next_reflect_class, ignore_or_swap)
+                    assert ignore_swap not in reflect_class.ignored, "Reflection for %s references field \"%s\" in %s  and %s " % (next_reflect_class, ignore_swap, swap_str, ignore_str)
                     reflect_class.swapped.append(ignore_swap)
-                debug("ignore or swap %s --> %s, ignored count=%s, swapped count=%s" % (
-                next_reflect_class, ignore_swap, len(reflect_class.ignored), len(reflect_class.swapped)))
-                current = next_reflect_ignores_swaps.find(ignore_swap_match.group(0), current) + len(
-                    ignore_swap_match.group(0))
+                debug("ignore or swap %s --> %s, ignored count=%s, swapped count=%s" % (next_reflect_class, ignore_swap, len(reflect_class.ignored), len(reflect_class.swapped)))
+                current = next_reflect_ignores_swaps.find(ignore_swap_match.group(0), current) + len(ignore_swap_match.group(0))
             else:
                 break
+        
 
     def add_field(self, reflect_class_name, field):
         reflect_class = self.find_or_add(reflect_class_name)
@@ -597,49 +536,45 @@ class Reflections:
         reflect_class.fields.append(field)
         debug("add_field %s --> %s" % (reflect_class_name, field))
 
-
 def replace_multi_line_comment(match):
-    all = match.group(1)
-    all = EmptyScope.strip_extra_pattern.sub("", all)
+    all=match.group(1)
+    all=EmptyScope.strip_extra_pattern.sub("", all)
     debug("multiline found=%s" % (all))
-    match = EmptyScope.ignore_swap_pattern.search(all)
+    match=EmptyScope.ignore_swap_pattern.search(all)
     if match:
-        ignore_or_swap = match.group(1)
+        ignore_or_swap = match.group(1) 
         all = match.group(2)
         debug("multiline %s now=%s" % (ignore_or_swap, all))
-        invalid_chars = EmptyScope.invalid_chars_pattern.search(all)
+        invalid_chars=EmptyScope.invalid_chars_pattern.search(all)
         if invalid_chars:
             for ic in invalid_chars.groups():
                 debug("invalid_char=%s" % (ic))
-            debug("WARNING: looks like \"%s\" is intending to %s, but there are invalid characters - \"%s\"" % (
-            all, ignore_or_swap, ",".join(invalid_chars.groups())))
+            debug("WARNING: looks like \"%s\" is intending to %s, but there are invalid characters - \"%s\"" % (all, ignore_or_swap, ",".join(invalid_chars.groups())))
             return ""
-        groups = re.findall(EmptyScope.multi_line_comment_ignore_swap_pattern, all)
+        groups=re.findall(EmptyScope.multi_line_comment_ignore_swap_pattern, all)
         if groups is None:
             return ""
-        rtn_str = "// %s " % (ignore_or_swap)
-        rtn_str += ', '.join([group for group in groups if group is not None])
+        rtn_str="// %s " % (ignore_or_swap)
+        rtn_str+=', '.join([group for group in groups if group is not None])
         debug("multiline rtn_str=%s" % (rtn_str))
         return rtn_str
-
+    
     debug("multiline no match")
     return ""
 
-
 def replace_line_comment(match):
-    all = match.group(0)
+    all=match.group(0)
     debug("singleline found=%s" % (all))
     if EmptyScope.single_comment_ignore_swap_pattern.match(all):
         return all
     else:
         return "\n"
 
-
 def replace_braces_initialization(match):
-    all = match.group(0)
+    all=match.group(0)
     preamble = match.group(1)
     init_data = match.group(2)
-    # check if preamble is the start of an enum declaration
+    #check if preamble is the start of an enum declaration
     match = ClassStruct.class_pattern.search(all)
     if match is None:
         repl = all.replace("{%s}" % (init_data), " = {%s}" % (init_data), 1)
@@ -648,10 +583,9 @@ def replace_braces_initialization(match):
     debug("replace_braces_initialization matched \"%s\" so no replace." % (match.group(1)))
     return all
 
-
 def validate_file(file):
     f = open(file, "r", encoding="utf-8")
-    contents = "\n" + f.read()  # lazy fix for complex regex
+    contents = "\n" + f.read()   # lazy fix for complex regex
     f.close()
     print("analyze %s" % (file))
     debug("analyze %s" % (file))
@@ -663,7 +597,7 @@ def validate_file(file):
         return
     print("validate %s" % (file))
     debug("validate %s" % (file))
-    global_namespace = Namespace("", None, 0, contents, None)
+    global_namespace=Namespace("", None, 0, contents, None)
     global_namespace.read()
     if args.debug:
         _, filename = os.path.split(file)
@@ -671,25 +605,22 @@ def validate_file(file):
             f.write("global_namespace=%s" % (global_namespace))
         with open(os.path.join(temp_dir, filename + ".stripped"), "w") as f:
             f.write(contents)
-    reflections = Reflections(contents)
+    reflections=Reflections(contents)
     reflections.read()
     for reflection_name in reflections.classes:
         reflection = reflections.classes[reflection_name]
         class_struct = global_namespace.find_class(reflection_name)
         if class_struct is None:
-            match = re.search(r'^(.+?)::id_type$', reflection_name)
+            match=re.search(r'^(.+?)::id_type$', reflection_name)
             if match:
                 parent_class_name = match.group(1)
                 parent_class = global_namespace.find_class(parent_class_name)
                 if parent_class.ignore_id:
                     # this is a chainbase::object, don't need to worry about id_type definition
                     continue
-        class_struct_num_fields = len(class_struct.fields) if class_struct is not None else None
-        debug("reflection_name=%s, class field count=%s, reflection field count=%s, ingore count=%s, swap count=%s" % (
-        reflection_name, class_struct_num_fields, len(reflection.fields), len(reflection.ignored),
-        len(reflection.swapped)))
-        assert isinstance(class_struct, ClassStruct), "could not find a %s/%s/%s for %s" % (
-        EmptyScope.class_str, EmptyScope.struct_str, EmptyScope.enum_str, reflection_name)
+        class_struct_num_fields = len(class_struct.fields) if class_struct is not None else None 
+        debug("reflection_name=%s, class field count=%s, reflection field count=%s, ingore count=%s, swap count=%s" % (reflection_name, class_struct_num_fields, len(reflection.fields), len(reflection.ignored), len(reflection.swapped)))
+        assert isinstance(class_struct, ClassStruct), "could not find a %s/%s/%s for %s" % (EmptyScope.class_str, EmptyScope.struct_str, EmptyScope.enum_str, reflection_name)
         if class_struct.ignore_id:
             id_field = "id"
             if id_field not in reflection.ignored and id_field not in reflection.fields:
@@ -715,31 +646,26 @@ def validate_file(file):
                 debug("field \"%s\" swapped (back)" % (field))
                 reflection.swapped.remove(field)
                 back_swapped.append(field)
-                assert field in reflection.fields, "Reflection for %s indicates swapping %s but swapped position is not indicated in the reflection fields. Should it be ignored?" % (
-                reflection_name, field)
-                assert reflect_field != field, "Reflection for %s should not indicate swapping %s since it is in the correct order" % (
-                reflection_name, field)
+                assert field in reflection.fields, "Reflection for %s indicates swapping %s but swapped position is not indicated in the reflection fields. Should it be ignored?" % (reflection_name, field)
+                assert reflect_field != field, "Reflection for %s should not indicate swapping %s since it is in the correct order" % (reflection_name, field)
                 f_index += 1
                 continue
             if reflect_field in reflection.swapped:
                 debug("field \"%s\" swapped (fwd)" % (field))
                 reflection.swapped.remove(reflect_field)
                 fwd_swapped.append(reflect_field)
-                assert reflect_field in reflection.fields, "Reflection for %s indicates swapping field %s but it doesn't exist in that class/struct so it should be removed" % (
-                reflection_name, reflect_field)
+                assert reflect_field in reflection.fields, "Reflection for %s indicates swapping field %s but it doesn't exist in that class/struct so it should be removed" % (reflection_name, reflect_field)
                 rf_index += 1
                 continue
-            assert reflect_field not in ignored, "Reflection for %s should not indicate %s for %s; it should indicate %s - %s" % (
-            reflection_name, ignore_str, reflect_field, swap_str, ",".join(ignored))
+            assert reflect_field not in ignored, "Reflection for %s should not indicate %s for %s; it should indicate %s - %s" % (reflection_name, ignore_str, reflect_field, swap_str, ",".join(ignored))
             if field in reflection.ignored:
                 debug("ignoring: %s" % (field))
                 reflection.ignored.remove(field)
                 ignored.append(field)
-                assert reflect_field != field, "Reflection for %s should not indicate ignoring %s since it is in the correct order" % (
-                reflection_name, field)
+                assert reflect_field != field, "Reflection for %s should not indicate ignoring %s since it is in the correct order" % (reflection_name, field)
                 f_index += 1
                 continue
-            debug("ignored=%s, swapped=%s" % (",".join(reflection.ignored), ",".join(reflection.swapped)))
+            debug("ignored=%s, swapped=%s" % (",".join(reflection.ignored),",".join(reflection.swapped)))
             if reflect_field is not None and reflect_field in back_swapped:
                 back_swapped.remove(reflect_field)
                 rf_index += 1
@@ -747,14 +673,12 @@ def validate_file(file):
                 fwd_swapped.remove(field)
                 f_index += 1
             else:
-                assert reflect_field == field, "Reflection for %s should have field %s instead of %s or else it should indicate if the field should be ignored (%s) or swapped (%s)" % (
-                reflection_name, field, reflect_field, ignore_str, swap_str)
+                assert reflect_field == field, "Reflection for %s should have field %s instead of %s or else it should indicate if the field should be ignored (%s) or swapped (%s)" %(reflection_name, field, reflect_field, ignore_str, swap_str)
                 f_index += 1
                 rf_index += 1
             debug("rf_index=%s, rf_len=%s, f_index=%s, f_len=%s" % (rf_index, rf_len, f_index, f_len))
 
-        assert len(reflection.ignored) == 0, "Reflection for %s has erroneous ignores - \"%s\"" % (
-        reflection_name, ",".join(reflection.ignored))
+        assert len(reflection.ignored) == 0, "Reflection for %s has erroneous ignores - \"%s\"" % (reflection_name, ",".join(reflection.ignored))
         unused_reflect_fields = []
         while rf_index < rf_len:
             debug("rf_index=%s, rf_len=%s fields=%s" % (rf_index, rf_len, ",".join(reflection.fields)))
@@ -764,23 +688,14 @@ def validate_file(file):
             else:
                 unused_reflect_fields.append(reflect_field)
             rf_index += 1
-        assert len(
-            unused_reflect_fields) == 0, "Reflection for %s has fields not in definition for class/struct - \"%s\"" % (
-        reflection_name, ",".join(unused_reflect_fields))
-        assert len(reflection.swapped) == 0, "Reflection for %s has erroneous swaps - \"%s\"" % (
-        reflection_name, ",".join(reflection.swapped))
-        assert len(
-            back_swapped) == 0, "Reflection for %s indicated swapped fields that were never provided - \"%s\"" % (
-        reflection_name, ",".join(back_swapped))
-        assert len(
-            fwd_swapped) == 0, "Reflection for %s indicated and provided swapped fields that are not in the class - \"%s\"" % (
-        reflection_name, ",".join(fwd_swapped))
+        assert len(unused_reflect_fields) == 0, "Reflection for %s has fields not in definition for class/struct - \"%s\"" % (reflection_name, ",".join(unused_reflect_fields))
+        assert len(reflection.swapped) == 0, "Reflection for %s has erroneous swaps - \"%s\"" % (reflection_name, ",".join(reflection.swapped))
+        assert len(back_swapped) == 0, "Reflection for %s indicated swapped fields that were never provided - \"%s\"" % (reflection_name, ",".join(back_swapped))
+        assert len(fwd_swapped) == 0, "Reflection for %s indicated and provided swapped fields that are not in the class - \"%s\"" % (reflection_name, ",".join(fwd_swapped))
 
     print("%s passed" % (file))
 
-
 success = True
-
 
 def walk(current_dir):
     result = True
@@ -794,7 +709,7 @@ def walk(current_dir):
                 validate_file(os.path.join(root, filename))
             except AssertionError:
                 _, info, tb = sys.exc_info()
-                traceback.print_tb(tb)  # Fixed format
+                traceback.print_tb(tb) # Fixed format
                 tb_info = traceback.extract_tb(tb)
                 filename, line, func, text = tb_info[-1]
 
@@ -807,7 +722,6 @@ def walk(current_dir):
             break
     return result
 
-
 for file in args.files:
     if os.path.isdir(file):
         success &= walk(file)
@@ -816,7 +730,7 @@ for file in args.files:
             validate_file(file)
         except AssertionError:
             _, info, tb = sys.exc_info()
-            traceback.print_tb(tb)  # Fixed format
+            traceback.print_tb(tb) # Fixed format
             tb_info = traceback.extract_tb(tb)
             filename, line, func, text = tb_info[-1]
 

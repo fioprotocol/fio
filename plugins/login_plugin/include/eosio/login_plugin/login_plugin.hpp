@@ -1,9 +1,4 @@
-/**
- *  @file
- *  @copyright defined in fio/LICENSE
- */
 #pragma once
-
 #include <eosio/chain_plugin/chain_plugin.hpp>
 #include <eosio/http_plugin/http_plugin.hpp>
 
@@ -12,84 +7,76 @@
 
 namespace eosio {
 
-    class login_plugin : public plugin<login_plugin> {
-    public:
-        APPBASE_PLUGIN_REQUIRES((chain_plugin) (http_plugin))
+class login_plugin : public plugin<login_plugin> {
+ public:
+   APPBASE_PLUGIN_REQUIRES((chain_plugin)(http_plugin))
 
-        login_plugin();
+   login_plugin();
+   virtual ~login_plugin();
 
-        virtual ~login_plugin();
+   virtual void set_program_options(options_description&, options_description&) override;
+   void plugin_initialize(const variables_map&);
+   void plugin_startup();
+   void plugin_shutdown();
 
-        virtual void set_program_options(options_description &, options_description &) override;
+   struct start_login_request_params {
+      chain::time_point_sec expiration_time;
+   };
 
-        void plugin_initialize(const variables_map &);
+   struct start_login_request_results {
+      chain::public_key_type server_ephemeral_pub_key;
+   };
 
-        void plugin_startup();
+   struct finalize_login_request_params {
+      chain::public_key_type server_ephemeral_pub_key;
+      chain::public_key_type client_ephemeral_pub_key;
+      chain::permission_level permission;
+      std::string data;
+      std::vector<chain::signature_type> signatures;
+   };
 
-        void plugin_shutdown();
+   struct finalize_login_request_results {
+      chain::sha256 digest{};
+      flat_set<chain::public_key_type> recovered_keys{};
+      bool permission_satisfied = false;
+      std::string error{};
+   };
 
-        struct start_login_request_params {
-            chain::time_point_sec expiration_time;
-        };
+   struct do_not_use_gen_r1_key_params {};
 
-        struct start_login_request_results {
-            chain::public_key_type server_ephemeral_pub_key;
-        };
+   struct do_not_use_gen_r1_key_results {
+      chain::public_key_type pub_key;
+      chain::private_key_type priv_key;
+   };
 
-        struct finalize_login_request_params {
-            chain::public_key_type server_ephemeral_pub_key;
-            chain::public_key_type client_ephemeral_pub_key;
-            chain::permission_level permission;
-            std::string data;
-            std::vector<chain::signature_type> signatures;
-        };
+   struct do_not_use_sign_params {
+      chain::private_key_type priv_key;
+      chain::bytes data;
+   };
 
-        struct finalize_login_request_results {
-            chain::sha256 digest{};
-            flat_set<chain::public_key_type> recovered_keys{};
-            bool permission_satisfied = false;
-            std::string error{};
-        };
+   struct do_not_use_sign_results {
+      chain::signature_type sig;
+   };
 
-        struct do_not_use_gen_r1_key_params {
-        };
+   struct do_not_use_get_secret_params {
+      chain::public_key_type pub_key;
+      chain::private_key_type priv_key;
+   };
 
-        struct do_not_use_gen_r1_key_results {
-            chain::public_key_type pub_key;
-            chain::private_key_type priv_key;
-        };
+   struct do_not_use_get_secret_results {
+      chain::sha512 secret;
+   };
 
-        struct do_not_use_sign_params {
-            chain::private_key_type priv_key;
-            chain::bytes data;
-        };
+   start_login_request_results start_login_request(const start_login_request_params&);
+   finalize_login_request_results finalize_login_request(const finalize_login_request_params&);
 
-        struct do_not_use_sign_results {
-            chain::signature_type sig;
-        };
+   do_not_use_gen_r1_key_results do_not_use_gen_r1_key(const do_not_use_gen_r1_key_params&);
+   do_not_use_sign_results do_not_use_sign(const do_not_use_sign_params&);
+   do_not_use_get_secret_results do_not_use_get_secret(const do_not_use_get_secret_params&);
 
-        struct do_not_use_get_secret_params {
-            chain::public_key_type pub_key;
-            chain::private_key_type priv_key;
-        };
-
-        struct do_not_use_get_secret_results {
-            chain::sha512 secret;
-        };
-
-        start_login_request_results start_login_request(const start_login_request_params &);
-
-        finalize_login_request_results finalize_login_request(const finalize_login_request_params &);
-
-        do_not_use_gen_r1_key_results do_not_use_gen_r1_key(const do_not_use_gen_r1_key_params &);
-
-        do_not_use_sign_results do_not_use_sign(const do_not_use_sign_params &);
-
-        do_not_use_get_secret_results do_not_use_get_secret(const do_not_use_get_secret_params &);
-
-    private:
-        unique_ptr<class login_plugin_impl> my;
-    };
+ private:
+   unique_ptr<class login_plugin_impl> my;
+};
 
 } // namespace eosio
 

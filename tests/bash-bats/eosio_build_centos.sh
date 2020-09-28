@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 load helpers/general
 
-export SCRIPT_LOCATION="scripts/fio_build.sh"
+export SCRIPT_LOCATION="scripts/eosio_build.sh"
 export TEST_LABEL="[eosio_build_centos]"
 
 [[ $ARCH == "Linux" ]] || exit 0 # Exit 0 is required for pipeline
@@ -40,7 +40,7 @@ export TEST_LABEL="[eosio_build_centos]"
     [[ ! -z $(echo "${output}" | grep /NEWPATH.*/src/boost) ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Build") ]] || exit
     [[ ! -z $(echo "${output}" | grep "make -j${CPU_CORES}") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "FIO has been successfully built") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
     uninstall-package devtoolset-8* WETRUN &>/dev/null
     uninstall-package centos-release-scl WETRUN &>/dev/null
 }
