@@ -36,7 +36,7 @@ VERSION=2.1
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 # Load eosio specific helper functions
-. ./scripts/helpers/eosio.sh
+. ./scripts/helpers/fio_helper.sh
 
 [[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
