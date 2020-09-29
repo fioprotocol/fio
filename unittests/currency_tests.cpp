@@ -271,10 +271,10 @@ BOOST_FIXTURE_TEST_CASE(test_symbol, TESTER) try {
    }
 
    {
-      symbol sys(4, "SYS");
+      symbol sys(4, "FIO");
       BOOST_REQUIRE_EQUAL(SY(4,SYS), sys.value());
-      BOOST_REQUIRE_EQUAL("4,SYS", sys.to_string());
-      BOOST_REQUIRE_EQUAL("SYS", sys.name());
+      BOOST_REQUIRE_EQUAL("4,FIO", sys.to_string());
+      BOOST_REQUIRE_EQUAL("FIO", sys.name());
       BOOST_REQUIRE_EQUAL(4, sys.decimals());
    }
 

@@ -4,10 +4,10 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = "EOS.IO"
-PROJECT_NUMBER         = "EOSIO ${DOXY_EOS_VERSION}"
+PROJECT_NAME           = "FIO"
+PROJECT_NUMBER         = "FIO ${DOXY_EOS_VERSION}"
 PROJECT_BRIEF          =
-PROJECT_LOGO           = eos-logo.png
+PROJECT_LOGO           =
 OUTPUT_DIRECTORY       =
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = NO
