@@ -68,6 +68,30 @@ namespace eosio {
             }
         };
 
+        struct lockperiods {
+            int64_t duration = 0; //duration in seconds. each duration is seconds after grant creation.
+            double percent; //this is the percent to be unlocked
+        };
+
+
+        struct trnsloctoks {
+            string payee_public_key;
+            int32_t can_vote;
+            vector<lockperiods> periods;
+            int32_t amount;
+            int64_t max_fee;
+            name actor;
+            string tpid;
+
+            static account_name get_account() {
+                return N(fio.token);
+            }
+
+            static action_name get_name() {
+                return N(trnsloctoks);
+            }
+        };
+
         struct regaddress {
             string fio_address;
             string owner_fio_public_key;
@@ -286,3 +310,5 @@ FC_REFLECT(eosio::chain::regaddress, (fio_address)(owner_fio_public_key)(max_fee
 FC_REFLECT(eosio::chain::regdomain, (fio_domain)(owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::xferdomain, (fio_domain)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::xferaddress, (fio_address)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
+FC_REFLECT(eosio::chain::lockperiods, (duration)(percent))
+FC_REFLECT(eosio::chain::trnsloctoks, (payee_public_key)(can_vote)(periods)(amount)(max_fee)(actor)(tpid))
