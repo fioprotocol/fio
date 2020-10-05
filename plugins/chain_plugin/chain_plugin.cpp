@@ -4298,7 +4298,7 @@ if( options.count(name) ) { \
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
                 FIO_403_ASSERT(actions[0].account.to_string() == "fio.fee", fioio::InvalidAccountOrAction);
-                FIO_403_ASSERT(actions[0].name.to_string() == "updatefees", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "computefees", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
                         const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
