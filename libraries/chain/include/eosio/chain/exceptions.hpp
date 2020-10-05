@@ -767,7 +767,7 @@ namespace eosio {
 
         FC_DECLARE_DERIVED_EXCEPTION(fio_invalid_sig_exception, fio_exception,
                                      5010002,
-                                     "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature not valid or not allowed.\"\n}")
+                                     "{ \n  \"type\": \"invalid_signature\",\n  \"message\": \"Request signature is not valid or this user is not allowed to sign this transaction.\"\n}")
 
         FC_DECLARE_DERIVED_EXCEPTION(fio_invalid_trans_exception, fio_exception,
                                      5010003,
