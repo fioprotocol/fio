@@ -1084,6 +1084,18 @@ public:
       }
    }
 
+   void eosio_assert_message_code(bool condition, null_terminated_ptr msg, uint64_t error_code) {
+    if (BOOST_UNLIKELY(!condition)) {
+        std::string message(msg, strnlen(msg, max_assert_message));
+        edump((message));
+        edump((error_code));
+        throw eosio_assert_code_exception(
+                FC_LOG_MESSAGE(error, "assertion failure with error code: ${error_code}",
+                               ("error_code", error_code)),
+                error_code, "message", message);
+    }
+}
+
    void eosio_assert_code( bool condition, uint64_t error_code ) {
       if( BOOST_UNLIKELY( !condition ) ) {
          if( error_code >= static_cast<uint64_t>(system_error_code::generic_system_error) ) {
@@ -1133,6 +1145,10 @@ class action_api : public context_aware_api {
 
       name current_receiver() {
          return context.get_receiver();
+      }
+
+      void send_response(null_terminated_ptr response){
+        context.set_response(response);
       }
 };
 
@@ -1956,6 +1972,7 @@ REGISTER_INTRINSICS(context_free_system_api,
    (abort,                void()              )
    (eosio_assert,         void(int, int)      )
    (eosio_assert_message, void(int, int, int) )
+   (eosio_assert_message_code, void(int, int, int64_t))
    (eosio_assert_code,    void(int, int64_t)  )
    (eosio_exit,           void(int)           )
 );
@@ -1964,6 +1981,7 @@ REGISTER_INTRINSICS(action_api,
    (read_action_data,       int(int, int)  )
    (action_data_size,       int()          )
    (current_receiver,       int64_t()      )
+   (send_response,          void(int)      )
 );
 
 REGISTER_INTRINSICS(authorization_api,

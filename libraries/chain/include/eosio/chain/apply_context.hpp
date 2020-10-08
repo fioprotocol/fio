@@ -505,6 +505,10 @@ class apply_context {
          _pending_console_output += val;
       }
 
+      void set_response(const char *response) {
+        _response = response;
+      }
+
    /// Database methods:
    public:
 
@@ -585,7 +589,7 @@ class apply_context {
       vector<uint32_t>                    _cfa_inline_actions; ///< action_ordinals of queued inline context-free actions
       std::string                         _pending_console_output;
       flat_set<account_delta>             _account_ram_deltas; ///< flat_set of account_delta so json is an array of objects
-
+      std::string _response;
       //bytes                               _cached_trx;
 };
 
