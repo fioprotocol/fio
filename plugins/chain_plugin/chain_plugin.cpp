@@ -4324,7 +4324,6 @@ if( options.count(name) ) { \
                 auto pretty_input = std::make_shared<packed_transaction>();
                 auto resolver = make_resolver(this, abi_serializer_max_time);
                 transaction_metadata_ptr ptrx;
-                dlog("transfer_locked_tokens called");
                 try {
                     abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
                     ptrx = std::make_shared<transaction_metadata>(pretty_input);
@@ -4332,8 +4331,6 @@ if( options.count(name) ) { \
 
                 transaction trx = pretty_input->get_transaction();
                 vector<action> &actions = trx.actions;
-                dlog("\n");
-                dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
 
                 FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
