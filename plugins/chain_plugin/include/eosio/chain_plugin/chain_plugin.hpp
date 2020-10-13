@@ -70,7 +70,7 @@ namespace eosio {
         struct request_record {
             uint64_t fio_request_id;     // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
-            string payee_fio_address;     // receiver FIO address e.g. jane.xyzc
+            string payee_fio_address;     // receiver FIO address e.g. jane.xyz
             string payer_fio_public_key;
             string payee_fio_public_key;
             string content;             // this is encrypted content
