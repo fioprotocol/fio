@@ -2872,8 +2872,7 @@ if( options.count(name) ) { \
                 //not bundle eligible
                 result.fee = feeamount;
             }
-            //get the fee
-
+            
             return result;
         } // get_fee
 
