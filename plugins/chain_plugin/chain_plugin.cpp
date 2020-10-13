@@ -2793,7 +2793,6 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.end_point.size() <= FEEMAXLENGTH, "end_point", p.end_point.c_str(), "Invalid end point",
                            fioio::ErrorNoEndpoint);
 
-
             //get_fee
             const uint128_t endpointhash = fioio::string_to_uint128_t(p.end_point.c_str());
 
@@ -2828,11 +2827,15 @@ if( options.count(name) ) { \
             uint64_t feeamount = (uint64_t) table_rows_result.rows[0]["suf_amount"].as_uint64();
 
             if (isbundleeligible) {
-
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-                uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
+
+                fioio::FioAddress fa;
+                fioio::getFioAddressStruct(p.fio_address, fa);
+                uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+                FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
+                               fioio::ErrorFioNameNotReg);
 
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
@@ -2852,20 +2855,16 @@ if( options.count(name) ) { \
                             return v;
                         });
 
-                fioio::FioAddress fa;
-                fioio::getFioAddressStruct(p.fio_address, fa);
-                FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", p.fio_address, "Invalid FIO Address",
-                               fioio::ErrorFioNameNotReg);
-
-                FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", p.fio_address,
+                FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", fa.fioaddress.c_str(),
                                "No such FIO address",
                                fioio::ErrorFioNameNotReg);
 
+                //128 bit indexes returned multiple rows unexpectedly during integration testing, this code ensures
+                // that if the index search returns multiple rows unexpectedly the results are not processed.
                 FIO_404_ASSERT(names_table_rows_result.rows.size() == 1, "Multiple names found for fio address",
                                fioio::ErrorNoFeesFoundForEndpoint);
 
                 uint64_t bundleeligiblecountdown = (uint64_t) names_table_rows_result.rows[0]["bundleeligiblecountdown"].as_uint64();
-                //read fio names
 
                 if (bundleeligiblecountdown < 1) {
                     result.fee = feeamount;
@@ -2874,7 +2873,6 @@ if( options.count(name) ) { \
                 //not bundle eligible
                 result.fee = feeamount;
             }
-            //get the fee
 
             return result;
         } // get_fee
