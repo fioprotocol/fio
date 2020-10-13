@@ -2832,7 +2832,12 @@ if( options.count(name) ) { \
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
-                uint128_t name_hash = fioio::string_to_uint128_t(p.fio_address.c_str());
+
+                fioio::FioAddress fa;
+                fioio::getFioAddressStruct(p.fio_address, fa);
+                uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+                FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
+                               fioio::ErrorFioNameNotReg);
 
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
@@ -2852,15 +2857,11 @@ if( options.count(name) ) { \
                             return v;
                         });
 
-                fioio::FioAddress fa;
-                fioio::getFioAddressStruct(p.fio_address, fa);
-                FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", p.fio_address, "Invalid FIO Address",
-                               fioio::ErrorFioNameNotReg);
-
-                FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", p.fio_address,
+                FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", fa.fioaddress.c_str(),
                                "No such FIO address",
                                fioio::ErrorFioNameNotReg);
 
+                //This check is due to 128 index searching weirdness. All is good here.
                 FIO_404_ASSERT(names_table_rows_result.rows.size() == 1, "Multiple names found for fio address",
                                fioio::ErrorNoFeesFoundForEndpoint);
 
