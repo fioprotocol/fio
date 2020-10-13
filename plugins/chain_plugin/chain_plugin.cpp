@@ -1615,7 +1615,7 @@ if( options.count(name) ) { \
         const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
         const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
         const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
-        const name fio_code = N(eosio);    // FIO system account, init in the top of this class
+        const name fio_code = N(eosio);    // FIO system account
         const string fio_scope = "eosio";   // FIO system scope
 
 
