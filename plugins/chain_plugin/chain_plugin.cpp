@@ -2793,7 +2793,6 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.end_point.size() <= FEEMAXLENGTH, "end_point", p.end_point.c_str(), "Invalid end point",
                            fioio::ErrorNoEndpoint);
 
-
             //get_fee
             const uint128_t endpointhash = fioio::string_to_uint128_t(p.end_point.c_str());
 
@@ -2828,7 +2827,6 @@ if( options.count(name) ) { \
             uint64_t feeamount = (uint64_t) table_rows_result.rows[0]["suf_amount"].as_uint64();
 
             if (isbundleeligible) {
-
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -2866,7 +2864,6 @@ if( options.count(name) ) { \
                                fioio::ErrorNoFeesFoundForEndpoint);
 
                 uint64_t bundleeligiblecountdown = (uint64_t) names_table_rows_result.rows[0]["bundleeligiblecountdown"].as_uint64();
-                //read fio names
 
                 if (bundleeligiblecountdown < 1) {
                     result.fee = feeamount;
