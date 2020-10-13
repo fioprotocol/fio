@@ -1037,14 +1037,14 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
-                //these actions are added to the action mapping here to permit the launch of
-                //test networks for development testing and private test net testing.
-                //we put the actions into the table here and they are initialized for use
-                //during a test net launch. if we do not do this, then after the forking deadline
-                //for the action whitelisting, we will not be able to start a test network successfully,
-                //because actions will not be present in the mapping to permit execution.
-                //see fio.devtools, and dev-net for more details of
-                //how fio launches for developer and other testing purposes.
+               //these actions are added to the action mapping here to permit the launch of
+               //test networks for development testing and private test net testing.
+               //we put the actions into the table here and they are initialized for use
+               //during a test net launch. if we do not do this, then after the forking deadline
+               //for the action whitelisting, we will not be able to start a test network successfully,
+               //because actions will not be present in the mapping to permit execution.
+               //see fio.devtools, and dev-net for more details of
+               //how fio launches for developer and other testing purposes.
                 const auto &ins17 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(decrcounter);
                     a.contractname = "fio.address";
