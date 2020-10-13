@@ -2859,7 +2859,8 @@ if( options.count(name) ) { \
                                "No such FIO address",
                                fioio::ErrorFioNameNotReg);
 
-                //This check is due to 128 index searching weirdness. All is good here.
+                //128 bit indexes returned multiple rows unexpectedly during integration testing, this code ensures
+                // that if the index search returns multiple rows unexpectedly the results are not processed.
                 FIO_404_ASSERT(names_table_rows_result.rows.size() == 1, "Multiple names found for fio address",
                                fioio::ErrorNoFeesFoundForEndpoint);
 
@@ -2872,7 +2873,7 @@ if( options.count(name) ) { \
                 //not bundle eligible
                 result.fee = feeamount;
             }
-            
+
             return result;
         } // get_fee
 
