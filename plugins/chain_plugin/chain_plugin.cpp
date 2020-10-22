@@ -1640,7 +1640,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPubKeyValid);
 
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
-                           fioio::ErrorPagingInvalid);
+                          fioio::ErrorPagingInvalid);
 
             FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
                            fioio::ErrorPagingInvalid);
@@ -3076,6 +3076,132 @@ if( options.count(name) ) { \
             return result;
         } // get_pub_address
 
+
+
+        /***
+        * Get all addresses by FIO name.
+        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+        * @return n/a
+        */
+        read_only::get_pub_addresses_result
+        read_only::get_pub_addresses(const read_only::get_pub_addresses_params &p) const {
+            fioio::FioAddress fa;
+            fioio::getFioAddressStruct(p.fio_address, fa);
+            // assert if empty fio name
+
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress, "Invalid FIO Address format",
+                           fioio::ErrorInvalidFioNameFormat);
+            FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address format",
+                           fioio::ErrorInvalidFioNameFormat);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            uint32_t search_limit = p.limit, search_offset = p.offset;
+
+            const name code = ::eosio::string_to_name("fio.address");
+            const abi_def abi = eosio::chain_apis::get_abi(db, code);
+            const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+            const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
+
+            //these are the results for the table searches for domain ansd fio name
+            get_table_rows_result domain_result;
+            get_table_rows_result fioname_result;
+            get_table_rows_result name_result;
+
+            get_pub_addresses_result result;
+
+            std::string hexvaldomainhash = "0x";
+            hexvaldomainhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
+
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                    .code=code,
+                    .scope=fio_system_scope,
+                    .table=fio_domains_table,
+                    .lower_bound=hexvaldomainhash,
+                    .upper_bound=hexvaldomainhash,
+                    .encode_type="hex",
+                    .index_position ="4"};
+
+            domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                    name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                        return v;
+                    });
+
+            FIO_404_ASSERT(!domain_result.rows.empty(), "FIO Address does not exist", fioio::ErrorPubAddressNotFound);
+
+            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            uint32_t present_time = (uint32_t) time(0);
+            FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "FIO Address does not exist",
+                           fioio::ErrorFioNameEmpty);
+
+            //set name result to be the domain results.
+            name_result = domain_result;
+
+            if (!fa.fioname.empty()) {
+
+                std::string hexvalnamehash = "0x";
+                hexvalnamehash.append(
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=fio_system_code,
+                        .scope=fio_system_scope,
+                        .table=fio_address_table,
+                        .lower_bound=hexvalnamehash,
+                        .upper_bound=hexvalnamehash,
+                        .encode_type="hex",
+                        .index_position ="5"};
+
+                fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
+
+                FIO_404_ASSERT(!fioname_result.rows.empty(), "FIO Address does not exist",
+                               fioio::ErrorPubAddressNotFound);
+
+                uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+                FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "FIO Address does not exist",
+                               fioio::ErrorFioNameEmpty);
+
+                //set the result to the name results
+                name_result = fioname_result;
+            } else {
+              // This condition should never be met, all FIO Addresses will have at least 1 public address at minimum (The FIO Public Key)
+                FIO_404_ASSERT(!p.fio_address.empty(), "Public Addresses not found", fioio::ErrorPubAddressNotFound);
+            }
+
+            address_info public_address_info;
+            int i = 0;
+
+            if (search_offset < name_result.rows[0]["addresses"].size()) {
+
+              int64_t leftover = (name_result.rows[0]["addresses"].size() - 1) - (search_offset + search_limit);
+              if(leftover < 0) {
+                leftover = 0;
+              }
+              result.more = leftover;
+                for (size_t pos = 0 + search_offset; pos < name_result.rows[0]["addresses"].size(); pos++) {
+                if((search_limit > 0) && (pos - search_offset >= search_limit)) {
+                    break;
+                }
+                public_address_info.public_address = name_result.rows[0]["addresses"][pos]["public_address"].as_string();
+                public_address_info.token_code = name_result.rows[0]["addresses"][pos]["token_code"].as_string();
+                public_address_info.chain_code = name_result.rows[0]["addresses"][pos]["chain_code"].as_string();
+                result.public_addresses.push_back(public_address_info);
+                result.more = (name_result.rows[0]["addresses"].size() - pos) - 1;
+              }
+
+            }
+            // vector is empty, throw 404
+            FIO_404_ASSERT(!result.public_addresses.empty(), "Public Addresses not found", fioio::ErrorPubAddressNotFound);
+
+            return result;
+        } // get_pub_addresses
 
 
         /***

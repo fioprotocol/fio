@@ -648,6 +648,27 @@ namespace eosio {
 
             get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
 
+            struct get_pub_addresses_params {
+                fc::string fio_address;
+                int32_t offset;
+                int32_t limit;
+
+            };
+
+            struct address_info {
+              fc::string chain_code;
+              fc::string token_code;
+              fc::string public_address;
+
+            };
+            struct get_pub_addresses_result {
+                vector<address_info> public_addresses;
+                bool more;
+            };
+
+            get_pub_addresses_result get_pub_addresses(const get_pub_addresses_params &params) const;
+
+
             /**
              * Lookup FIO domains and addresses based upon public address
              * @param params
@@ -1420,6 +1441,9 @@ FC_REFLECT(eosio::chain_apis::obt_records,
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)(chain_code))
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address));
+FC_REFLECT(eosio::chain_apis::read_only::address_info, (public_address)(token_code)(chain_code))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_params, (fio_address)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addresses)(more));
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
