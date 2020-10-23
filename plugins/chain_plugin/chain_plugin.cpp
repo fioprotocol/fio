@@ -4543,12 +4543,12 @@ if( options.count(name) ) { \
         }
 
         /***
- * compute fees - This enpoint will compute fees based on pending votes..
- * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
- * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
- */
+         * compute fees - This enpoint will compute fees based on pending votes..
+         * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+         * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+         */
         void read_write::compute_fees(const read_write::compute_fees_params &params,
-                                      next_function<read_write::compute_fees_results> next) {
+                                      next_function <read_write::compute_fees_results> next) {
             try {
                 FIO_403_ASSERT(params.size() == 4,
                                fioio::ErrorTransaction); // variant object contains authorization, account, name, data
@@ -4563,7 +4563,7 @@ if( options.count(name) ) { \
                 EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
 
                 transaction trx = pretty_input->get_transaction();
-                vector<action> &actions = trx.actions;
+                vector <action> &actions = trx.actions;
                 dlog("\n");
                 dlog(actions[0].name.to_string());
                 FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
@@ -4572,7 +4572,7 @@ if( options.count(name) ) { \
                 FIO_403_ASSERT(actions[0].name.to_string() == "computefees", fioio::InvalidAccountOrAction);
 
                 app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
-                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
                     if (result.contains<fc::exception_ptr>()) {
                         next(result.get<fc::exception_ptr>());
                     } else {
@@ -4590,6 +4590,55 @@ if( options.count(name) ) { \
                         } CATCH_AND_CALL(next);
                     }
                 });
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        void read_write::burn_fio_address(const read_write::burn_fio_address_params &params,
+                                          next_function <read_write::burn_fio_address_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 4,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("burn_fio_address called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector <action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "burnaddress", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant <fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::burn_fio_address_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
             } catch (boost::interprocess::bad_alloc &) {
                 chain_plugin::handle_db_exhaustion();
             } CATCH_AND_CALL(next);

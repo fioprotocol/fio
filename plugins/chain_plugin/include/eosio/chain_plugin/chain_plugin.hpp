@@ -1064,6 +1064,16 @@ namespace eosio {
 
             //end renew_address
 
+            //begin burn_fio_address
+            using burn_fio_address_params = fc::variant_object;
+            struct burn_fio_address_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void burn_fio_address(const burn_fio_address_params &params,
+                                     chain::plugin_interface::next_function<burn_fio_address_results> next);
+
             //begin transfer_fio_domain
             using transfer_fio_domain_params = fc::variant_object;
             struct transfer_fio_domain_results {
@@ -1495,6 +1505,7 @@ FC_REFLECT(eosio::chain_apis::read_only::avail_check_result, (is_registered));
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain))
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration));
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::burn_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_domain_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::set_fio_domain_public_results, (transaction_id)(processed));
