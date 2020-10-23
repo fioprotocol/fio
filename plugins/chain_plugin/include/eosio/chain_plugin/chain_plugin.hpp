@@ -1084,7 +1084,7 @@ namespace eosio {
             void transfer_fio_address(const transfer_fio_address_params &params,
                                      chain::plugin_interface::next_function<transfer_fio_address_results> next);
 
-            //begin burn_expired
+
             using burn_expired_params = fc::variant_object;
             struct burn_expired_results {
                 chain::transaction_id_type transaction_id;
@@ -1094,9 +1094,15 @@ namespace eosio {
             void burn_expired(const burn_expired_params &params,
                               chain::plugin_interface::next_function<burn_expired_results> next);
 
-            //end burn_expired
+            using compute_fees_params = fc::variant_object;
+            struct compute_fees_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
 
-            //begin unregister_producer
+            void compute_fees(const compute_fees_params &params,
+                              chain::plugin_interface::next_function<compute_fees_results> next);
+
             using unregister_producer_params = fc::variant_object;
             struct unregister_producer_results {
                 chain::transaction_id_type transaction_id;
@@ -1105,9 +1111,7 @@ namespace eosio {
 
             void unregister_producer(const unregister_producer_params &params,
                                      chain::plugin_interface::next_function<unregister_producer_results> next);
-            //end unregister_producer
 
-            //begin register_producer
             using register_producer_params = fc::variant_object;
             struct register_producer_results {
                 chain::transaction_id_type transaction_id;
@@ -1116,7 +1120,6 @@ namespace eosio {
 
             void register_producer(const register_producer_params &params,
                                    chain::plugin_interface::next_function<register_producer_results> next);
-            //end register_producer
 
             using vote_producer_params = fc::variant_object;
             struct vote_producer_results {
@@ -1507,6 +1510,7 @@ FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (tra
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_locked_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::compute_fees_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (transaction_id)(processed));
