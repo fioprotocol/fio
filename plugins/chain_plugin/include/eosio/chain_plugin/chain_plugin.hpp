@@ -597,6 +597,26 @@ namespace eosio {
                 uint32_t more;
             };
 
+            struct lockperiods {
+                uint64_t duration = 0;
+                double percent = 0.0;
+            };
+
+            struct get_locks_params {
+                fc::string fio_public_key;
+            };
+
+            struct get_locks_result {
+                    uint64_t lock_amount=0;
+                    uint64_t remaining_lock_amount = 0;
+                    uint64_t time_stamp = 0;  //time the lock was created.
+                    uint64_t payouts_performed = 0;
+                    uint32_t can_vote = 0;
+                    vector<lockperiods> unlock_periods;
+            };
+
+            get_locks_result get_locks(const get_locks_params &params) const;
+
 
 
             struct get_fio_balance_params {
@@ -605,6 +625,7 @@ namespace eosio {
 
             struct get_fio_balance_result {
                 uint64_t balance;
+                uint64_t available;
             };
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
@@ -1010,6 +1031,15 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function<transfer_tokens_pub_key_results> next);
 
+            using transfer_locked_tokens_params = fc::variant_object;
+            struct transfer_locked_tokens_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void transfer_locked_tokens(const transfer_locked_tokens_params &params,
+                                         chain::plugin_interface::next_function<transfer_locked_tokens_results> next);
+
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
             struct renew_fio_domain_results {
@@ -1410,6 +1440,9 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_params,
            (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(
                    encode_type)(reverse)(show_payer))
 FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_result, (rows)(more));
+FC_REFLECT(eosio::chain_apis::read_only::get_locks_params, (fio_public_key))
+FC_REFLECT(eosio::chain_apis::read_only::lockperiods, (duration)(percent))
+FC_REFLECT(eosio::chain_apis::read_only::get_locks_result, (lock_amount)(remaining_lock_amount)(time_stamp)(payouts_performed)(can_vote)(unlock_periods))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_params, (fio_public_key)(offset)(limit))
@@ -1472,6 +1505,7 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::transfer_locked_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed));
@@ -1496,7 +1530,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_currency_balance_params, (code)(acc
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
-FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)(available));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_params, (fio_public_key));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_result, (actor));
 FC_REFLECT(eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)(limit))

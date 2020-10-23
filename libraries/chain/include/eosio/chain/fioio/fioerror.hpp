@@ -88,8 +88,12 @@ namespace fioio {
     constexpr auto ErrorTransactionTooLarge = ident | httpDataError | 152;   // Transaction too large
     constexpr auto ErrorRequestStatusInvalid = ident | httpDataError | 153;   // the specified request context record was not found
     constexpr auto ErrorActorIsSystemAccount = ident | httpDataError | 154;   // the specified actor is a FIO system account
-    constexpr auto ErrorNoFioActionsFound = ident | httpLocationError | 155;   // no actions found
-    constexpr auto ErrorDomainOwner = ident | httpInvalidError | 156;
+    constexpr auto ErrorInvalidUnlockPeriods = ident | httpDataError | 155;   //Invalid unlock periods.
+    constexpr auto ErrorInvalidValue = ident | httpDataError | 155;   //Invalid value.
+    constexpr auto ErrorNoGeneralLocksFound = ident | httpLocationError | 156;   // no fio requests found
+    constexpr auto ErrorUnexpectedNumberResults = ident | httpLocationError | 156;   // unexpected number of results
+    constexpr auto ErrorNoFioActionsFound = ident | httpLocationError | 157;   // no actions found
+    constexpr auto ErrorDomainOwner = ident | httpInvalidError | 158;
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
