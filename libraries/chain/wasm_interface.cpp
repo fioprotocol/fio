@@ -199,6 +199,11 @@ class privileged_api : public context_aware_api {
          context.control.get_resource_limits_manager().get_account_limits( account, ram_bytes, net_weight, cpu_weight);
       }
 
+      int64_t
+      get_account_ram_usage(account_name account) {
+          return context.control.get_resource_limits_manager().get_account_ram_usage(account);
+      }
+
       int64_t set_proposed_producers_common( vector<producer_authority> && producers, bool validate_keys ) {
          EOS_ASSERT(producers.size() <= config::max_producers, wasm_execution_error, "Producer schedule exceeds the maximum producer count for this chain");
          EOS_ASSERT( producers.size() > 0

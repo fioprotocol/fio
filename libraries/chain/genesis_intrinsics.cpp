@@ -50,6 +50,7 @@ const std::vector<const char*> genesis_intrinsics = {
    "activate_feature",
    "get_resource_limits",
    "set_resource_limits",
+   "get_account_ram_usage",
    "set_proposed_producers",
    "get_blockchain_parameters_packed",
    "set_blockchain_parameters_packed",
