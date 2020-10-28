@@ -95,6 +95,14 @@ namespace fioio {
         return false;
     }
 
+    inline bool validateTokenNameFormat(const string &token) {
+        if(token == "*"){
+            return true;
+        }
+
+        return validateChainNameFormat(token);
+    }
+
     inline bool validateTPIDFormat(const string &tpid) {
         if (tpid.size() > 0) {
             FioAddress fa;

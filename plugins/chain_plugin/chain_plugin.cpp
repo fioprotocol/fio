@@ -3071,7 +3071,7 @@ if( options.count(name) ) { \
                            fioio::ErrorInvalidFioNameFormat);
             FIO_400_ASSERT(!fa.domainOnly, "fio_address", fa.fioaddress, "Invalid FIO Address",
                            fioio::ErrorInvalidFioNameFormat);
-            FIO_400_ASSERT(fioio::validateChainNameFormat(p.token_code), "token_code", p.token_code,
+            FIO_400_ASSERT(fioio::validateTokenNameFormat(p.token_code), "token_code", p.token_code,
                            "Invalid Token Code",
                            fioio::ErrorTokenCodeInvalid);
             FIO_400_ASSERT(fioio::validateChainNameFormat(p.chain_code), "chain_code", p.chain_code,
@@ -3084,6 +3084,7 @@ if( options.count(name) ) { \
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
             const string chainCode = fioio::makeLowerCase(p.chain_code);
             const string tokenCode = fioio::makeLowerCase(p.token_code);
+            const string defaultCode = "*";
 
             //these are the results for the table searches for domain ansd fio name
             get_table_rows_result domain_result;
@@ -3155,12 +3156,21 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
             }
 
+            string defaultPubAddress = "";
+
             for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
                 string tToken = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["token_code"].as_string());
                 string tChain = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["chain_code"].as_string());
 
                 if ((tToken == tokenCode) && (tChain == chainCode)) {
                     result.public_address = name_result.rows[0]["addresses"][i]["public_address"].as_string();
+                    break;
+                }
+                if ((tToken == defaultCode) && (tChain == chainCode)) {
+                    defaultPubAddress = name_result.rows[0]["addresses"][i]["public_address"].as_string();
+                }
+                if (i == name_result.rows[0]["addresses"].size() - 1 && defaultPubAddress != "" ) {
+                    result.public_address = defaultPubAddress;
                 }
             }
             //   // Pick out chain specific key and populate result
