@@ -1279,7 +1279,7 @@ struct fee_amount_subcommand {
     vector<string> fee_ratios;
 
      fee_amount_subcommand(CLI::App *actionRoot) {
-        auto setAmount = actionRoot->add_subcommand("set_amount", localized("Vote for one or more producers"));
+        auto setAmount = actionRoot->add_subcommand("submit_ratios", localized("Vote for one or more producers"));
         setAmount->add_option("fio_address", fioaddress_str, localized("The voting fio address"))->required();
         setAmount->add_option("actor", actor, localized("The voting fio account"))->required();
         setAmount->add_option("max_fee", maxfee_str, localized("The maximum fio fee to pay while voting"))->required();
@@ -1306,7 +1306,7 @@ struct fee_multiplier_subcommand {
     string multiplier;
 
      fee_multiplier_subcommand(CLI::App *actionRoot) {
-        auto setMult = actionRoot->add_subcommand("set_multiplier", localized("Set the fee multiplier"));
+        auto setMult = actionRoot->add_subcommand("submit_multiplier", localized("Set the fee multiplier"));
         setMult->add_option("multiplier", multiplier, localized("The fee multiplier to set"))->required();
         setMult->add_option("actor", actor, localized("The actor setting the multiplier"))->required();
         add_standard_transaction_options(setMult, "actor@active");
