@@ -50,10 +50,7 @@ namespace eosio {
                 uint32_t last_irreversible_block;
                 optional<bool> time_limit_exceeded_error;
             };
-
-
             get_actions_result get_actions(const get_actions_params &) const;
-
 
             struct get_transaction_params {
                 string id;
@@ -152,6 +149,7 @@ namespace eosio {
 FC_REFLECT(eosio::history_apis::read_only::get_actions_params, (account_name)(pos)(offset))
 FC_REFLECT(eosio::history_apis::read_only::get_actions_result,
            (actions)(last_irreversible_block)(time_limit_exceeded_error))
+
 FC_REFLECT(eosio::history_apis::read_only::ordered_action_result,
            (global_action_seq)(account_action_seq)(block_num)(block_time)(action_trace))
 

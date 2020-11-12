@@ -518,6 +518,7 @@ namespace eosio {
 
             get_actions_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
+
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -558,8 +559,7 @@ namespace eosio {
                 }
             }
             return result;
-        }
-
+        } //get actions
 
         read_only::get_transaction_result read_only::get_transaction(const read_only::get_transaction_params &p) const {
             auto &chain = history->chain_plug->chain();

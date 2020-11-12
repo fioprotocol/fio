@@ -35,8 +35,8 @@ bfs::path determine_home_directory() {
 int main(int argc, char **argv) {
     try {
         bfs::path home = determine_home_directory();
-        app().set_default_data_dir(home / "eosio-wallet");
-        app().set_default_config_dir(home / "eosio-wallet");
+        app().set_default_data_dir(home / "fio-wallet");
+        app().set_default_config_dir(home / "fio-wallet");
         http_plugin::set_defaults({
                                           .default_unix_socket_path = keosd::config::key_store_executable_name +
                                                                       ".sock",
