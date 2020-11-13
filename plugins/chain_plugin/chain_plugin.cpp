@@ -1785,7 +1785,7 @@ if( options.count(name) ) { \
                 }
             }
 
-            FIO_404_ASSERT(!(result.requests.size() == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             result.more = records_size - records_returned;
             return result;
         } // get_pending_fio_requests
@@ -1892,7 +1892,7 @@ if( options.count(name) ) { \
                 records_size = ledger_result.rows[0]["transactions"]["cancelled_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
                 if(search_offset > records_size){ records_size = 0; }
-                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+                FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
                     get_table_rows_params fio_table_row_params2 = get_table_rows_params{
@@ -1998,7 +1998,7 @@ if( options.count(name) ) { \
                 records_size = ledger_result.rows[0]["transactions"]["sent_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
                 if(search_offset > records_size){ records_size = 0; }
-                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+                FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
                     get_table_rows_params fio_table_row_params2 = get_table_rows_params{
@@ -2108,7 +2108,7 @@ if( options.count(name) ) { \
                 records_size = ledger_result.rows[0]["transactions"]["obt_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
                 if(search_offset > records_size){ records_size = 0; }
-                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+                FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for(size_t i = 0; i < search_limit; i++) {
                     get_table_rows_params fio_table_row_params2 = get_table_rows_params{
