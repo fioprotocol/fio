@@ -1735,7 +1735,7 @@ if( options.count(name) ) { \
                     get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
 
             if (!ledger_result.rows.empty()) {
-                records_size = ledger_result.rows[0]["transactions"]["pending_action_ids"].size();
+                records_size = ledger_result.rows[0]["transactions"]["payer_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; }
                 if(search_offset > records_size){ records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
@@ -1746,8 +1746,8 @@ if( options.count(name) ) { \
                             .code           = fio_reqobt_code,
                             .scope          = fio_reqobt_scope,
                             .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["pending_action_ids"][i+search_offset].as_uint64()),
-                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["pending_action_ids"][i+search_offset].as_uint64()),
+                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payer_action_ids"][i+search_offset].as_uint64()),
+                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payer_action_ids"][i+search_offset].as_uint64()),
                             .key_type       = "i64",
                             .index_position = "1"};
 
@@ -1995,7 +1995,7 @@ if( options.count(name) ) { \
                     get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
 
             if (!ledger_result.rows.empty()) {
-                records_size = ledger_result.rows[0]["transactions"]["sent_action_ids"].size();
+                records_size = ledger_result.rows[0]["transactions"]["payee_action_ids"].size();
                 if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
                 if(search_offset > records_size){ records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
@@ -2006,8 +2006,8 @@ if( options.count(name) ) { \
                             .code           = fio_reqobt_code,
                             .scope          = fio_reqobt_scope,
                             .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["sent_action_ids"][i+search_offset].as_uint64()),
-                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["sent_action_ids"][i+search_offset].as_uint64()),
+                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payee_action_ids"][i+search_offset].as_uint64()),
+                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payee_action_ids"][i+search_offset].as_uint64()),
                             .key_type       = "i64",
                             .index_position = "1"};
 
