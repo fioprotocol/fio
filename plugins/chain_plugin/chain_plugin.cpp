@@ -1763,24 +1763,29 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
 
-                    //convert the time_stamp to string formatted time.
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
+                    // NO REJECTED
+                    uint8_t statusint = requests_rows_result.rows[0]["fio_data_type"].as_uint64();
 
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                    if(statusint != 1) {
+                        //convert the time_stamp to string formatted time.
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
 
-                    request_record rr{fio_request_id, payer_fio_addr,
-                                      payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                    result.requests.push_back(rr);
-                    records_returned++;
-                    end_time = fc::time_point::now();
-                    if (end_time - start_time > fc::microseconds(100000)) {
-                        result.time_limit_exceeded_error = true;
-                        break;
+                        request_record rr{fio_request_id, payer_fio_addr,
+                                          payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
+
+                        result.requests.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
