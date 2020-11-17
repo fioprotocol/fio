@@ -5824,10 +5824,20 @@ if( options.count(name) ) { \
                 get_table_rows_result voter_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                         voter_table, system_abi, [](uint64_t v) -> uint64_t {
                             return v;
+                 });
+                  if (!voter_result.rows.empty()) {
+                    result.voter_info = voter_result.rows[0];
+                  }
+                  else {
+                        voter_table.table = "voters2";
+                        get_table_rows_result voter2_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                                voter_table, system_abi, [](uint64_t v) -> uint64_t {
+                                    return v;
                         });
-                        if (!voter_result.rows.empty()) {
-                          result.voter_info = voter_result.rows[0];
-                        }
+                            if (!voter2_result.rows.empty()) {
+                              result.voter_info = voter2_result.rows[0];
+                            }
+                  }
             }
             return result;
         }
