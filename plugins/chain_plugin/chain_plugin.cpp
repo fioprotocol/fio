@@ -1795,6 +1795,132 @@ if( options.count(name) ) { \
             return result;
         } // get_pending_fio_requests
 
+        /***
+         * get received fio requests.
+         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+         * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+         */
+        read_only::get_received_fio_requests_result
+        read_only::get_received_fio_requests(const read_only::get_received_fio_requests_params &p) const {
+            string fioKey = p.fio_public_key;
+
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+            uint32_t records_returned = 0;
+            uint32_t records_size = 0;
+
+
+            get_received_fio_requests_result result;
+            string fio_trx_lookup_table = "fiotrxts";
+
+            auto start_time = fc::time_point::now();
+            auto end_time = start_time;
+            string account;
+            fioio::key_to_account(p.fio_public_key, account);
+            string ledger_table = "reqledgers";
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+
+            get_table_rows_params fio_table_row_params1 = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_reqobt_code,
+                    .scope          = fio_reqobt_scope,
+                    .table          = ledger_table,
+                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
+                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result ledger_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
+
+
+            if (!ledger_result.rows.empty()) {
+
+                FIO_404_ASSERT(ledger_result.rows.size() == 1, "Unexpected number of results found",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                //put all the ids into one
+                std::vector <uint64_t> all_records;
+
+                //we dont do the payee_action_ids, because those are the ones we have sent, not
+                //the ones we have received
+                //we dont do the obt_action_ids, these are duplicates of whats in sent for items responded to
+
+                //we do the payer_action_ids, these are the requests that have been sent to use
+                for (int e=0;e<ledger_result.rows[0]["transactions"]["payer_action_ids"].size();e++){
+                      all_records.push_back(ledger_result.rows[0]["transactions"]["payer_action_ids"][e].as_uint64());
+                }
+
+                for (int e=0;e<ledger_result.rows[0]["transactions"]["obt_action_ids"].size();e++){
+                    all_records.push_back(ledger_result.rows[0]["transactions"]["obt_action_ids"][e].as_uint64());
+                }
+                std::sort(all_records.begin(), all_records.end());
+                records_size = all_records.size();
+
+                if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; }
+                if(search_offset > records_size){ records_size = 0; }
+                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+
+                for(size_t i = 0; i < search_limit; i++) {
+                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                            .json           = true,
+                            .code           = fio_reqobt_code,
+                            .scope          = fio_reqobt_scope,
+                            .table          = fio_trx_lookup_table,
+                            .lower_bound    = boost::lexical_cast<string>(all_records[i+search_offset]),
+                            .upper_bound    = boost::lexical_cast<string>(all_records[i+search_offset]),
+                            .key_type       = "i64",
+                            .index_position = "1"};
+
+                    get_table_rows_result requests_rows_result =
+                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+
+                    //get all the attributes of the fio request
+                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
+                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
+                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[0]["content"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[0]["init_time"].as_uint64();
+                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
+                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
+
+                    //convert the time_stamp to string formatted time.
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
+
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                    request_record rr{fio_request_id, payer_fio_addr,
+                                      payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
+
+                    result.requests.push_back(rr);
+                    records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
+                    }
+                }
+            }
+
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No received FIO Requests", fioio::ErrorNoFioRequestsFound);
+            result.more = records_size - records_returned;
+            return result;
+        } // get_received_fio_requests
+
 
 
         read_only::get_actions_result
