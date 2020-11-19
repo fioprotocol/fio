@@ -3333,10 +3333,11 @@ int main(int argc, char **argv) {
     renewdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
     renewdomain_action->add_option("fio_domain", fio_domain,
                                localized("The FIO Domain to renew"))->required();
-    renewdomain_action->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"));
     renewdomain_action->add_option("tpid", tpid,
                                localized("The TPID (Technology Provider ID)"));
+    renewdomain_action->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"));
+
 
     renewdomain_action->set_callback([&] {
 
@@ -3841,9 +3842,9 @@ int main(int argc, char **argv) {
     add_standard_transaction_options(transfer, "sender@active");
     transfer->add_option("payee_public_key", payee_public_key, localized("The account sending tokens"))->required();
     transfer->add_option("amount", amount, localized("The amount of tokens to send"))->required();
-    transfer->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"))->required();
     transfer->add_option("actor", actor, localized("actor (string)"))->required();
+    transfer->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"));
     transfer->add_option("tpid", tpid,
                                localized("The TPID (Technology Provider ID)"));
     transfer->set_callback([&] {
