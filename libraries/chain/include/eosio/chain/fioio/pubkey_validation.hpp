@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string>
-#include <fio.common/fio_common_validator.hpp>
+#include <eosio/chain/fioio/fio_common_validator.hpp>
 #include <fc/crypto/ripemd160.hpp>
 
 #pragma once
@@ -37,15 +37,6 @@ namespace fioio {
         if (memcmp(&hash_val, &vch.end()[-4], 4) != 0) return false;
         //end of the public key validity check.
 
-        return true;
-    }
-
-    inline bool replaceFormat(string& str) {
-        std::string from = "PUB_K1_";
-        size_t start_pos = str.find(from);
-        if(start_pos == std::string::npos)
-            return false;
-        str.replace(start_pos, from.length(), "FIO");
         return true;
     }
 }

@@ -45,7 +45,7 @@ namespace fioio {
 
         //fio.token actions
         if (action == "trnsfiopubky" || action == "create" || action == "issue" ||
-            action == "transfer" || action == "mintfio")
+            action == "transfer" || action == "mintfio" || action == "trnsloctoks" )
           return "fio.token";
         //fio.request.obt actions
         if (action == "recordobt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
@@ -71,7 +71,8 @@ namespace fioio {
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
             action == "updatepower" ||
-            action == "updlbpclaim" || action == "resetclaim" || action == "incram")
+            action == "updlbpclaim" || action == "resetclaim" || action == "incram" ||
+            action == "addaction" || action == "remaction" || action == "addgenlocked")
           return "eosio";
 
         if (action == "nonce")

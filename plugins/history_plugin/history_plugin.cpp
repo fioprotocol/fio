@@ -4,7 +4,7 @@
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/trace.hpp>
 #include <eosio/chain_plugin/chain_plugin.hpp>
-#include <fio.common/keyops.hpp>
+#include <eosio/chain/fioio/keyops.hpp>
 #include <fc/io/json.hpp>
 
 #include <boost/algorithm/string.hpp>
@@ -247,6 +247,15 @@ namespace eosio {
                          filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
                         result.insert(fioio::key_to_account(xferdata.new_owner_fio_public_key));
                       }
+                    }
+
+                    if (act.act.name == N(trnsloctoks)) {
+                        const auto xferdata = act.act.data_as<eosio::trnsloctoks>();
+                        if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
+                           filter_out.find({act.receiver, 0, xferdata.actor}) == filter_out.end() &&
+                           filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
+                            result.insert(fioio::key_to_account(xferdata.payee_public_key));
+                        }
                     }
 
                     if (act.act.name == N(xferaddress)) {

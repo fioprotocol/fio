@@ -6,6 +6,7 @@
 #include <eosio/chain/exceptions.hpp>
 
 #include <eosio/chain/account_object.hpp>
+#include <eosio/chain/fioaction_object.hpp>
 #include <eosio/chain/code_object.hpp>
 #include <eosio/chain/block_summary_object.hpp>
 #include <eosio/chain/eosio_contract.hpp>
@@ -46,7 +47,8 @@ namespace eosio {
                 transaction_multi_index,
                 generated_transaction_multi_index,
                 table_id_multi_index,
-                code_index
+                code_index,
+                fioaction_index
         >;
 
         using contract_database_index_set = index_set<
@@ -344,6 +346,8 @@ namespace eosio {
                 SET_APP_HANDLER(eosio, eosio, deleteauth);
                 SET_APP_HANDLER(eosio, eosio, linkauth);
                 SET_APP_HANDLER(eosio, eosio, unlinkauth);
+                SET_APP_HANDLER(eosio, eosio, addaction);
+                SET_APP_HANDLER(eosio, eosio, remaction);
 /*
    SET_APP_HANDLER( eosio, eosio, postrecovery );
    SET_APP_HANDLER( eosio, eosio, passrecovery );
@@ -1032,6 +1036,323 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
+
+                
+               //these actions are added to the action mapping here to permit the launch of
+               //test networks for development testing and private test net testing.
+               //we put the actions into the table here and they are initialized for use
+               //during a test net launch. if we do not do this, then after the forking deadline
+               //for the action whitelisting, we will not be able to start a test network successfully,
+               //because actions will not be present in the mapping to permit execution.
+               //see fio.devtools, and dev-net for more details of
+               //how fio launches for developer and other testing purposes.
+                const auto &ins17 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(decrcounter);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins7 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &treas5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bprewdupdate);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &treas3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bppoolupdate);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &treas4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(fdtnrwdupdat);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setdomainpub);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &treas6 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(startclock);
+                    a.contractname = "fio.treasury";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &fee7 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(createfee);
+                    a.contractname = "fio.fee";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bind2eosio);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &tok1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(trnsfiopubky);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &tok2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(create);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &tok3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(issue);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &tok4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(transfer);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &tok5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(mintfio);
+                    a.contractname = "fio.token";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(newaccount);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos2 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(onblock);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos3 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(addlocked);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos4 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regproducer);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos5 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unregprod);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos6 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos7 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(voteproducer);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unregproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos9 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(voteproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos10 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setabi);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos11 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setcode);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos12 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updateauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+
+                const auto &eos13 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setprods);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setpriv);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(init);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+
+                const auto &eos16 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(nonce);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos17 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(burnaction);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos18 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(canceldelay);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos19 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(crautoproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos20 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(deleteauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos21 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(inhibitunlck);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos22 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(linkauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos23 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(onerror);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos24 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unlinkauth);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos25 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(rmvproducer);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos26 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setautoproxy);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos27 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setparams);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos28 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unlocktokens);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos29 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updtrevision);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos30 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updlocked);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos31 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatepower);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos32 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updlbpclaim);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos33 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(resetclaim);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos34 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(incram);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos35 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(addaction);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &eos36 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(remaction);
+                    a.contractname = "eosio";
+                    a.blocktimestamp = 1;
+                });
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.

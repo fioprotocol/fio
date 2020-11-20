@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <set>
 
-namespace chainbase { class database; }
 
 namespace eosio {
     namespace chain {
