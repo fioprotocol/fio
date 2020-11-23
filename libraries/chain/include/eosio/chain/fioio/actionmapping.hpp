@@ -73,6 +73,7 @@ namespace fioio {
             action == "updatepower" ||
             action == "updlbpclaim" || action == "resetclaim" || action == "incram" ||
             action == "addaction" || action == "remaction" || action == "addgenlocked")
+
           return "eosio";
 
         if (action == "nonce")
