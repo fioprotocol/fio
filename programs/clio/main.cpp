@@ -3304,9 +3304,9 @@ int main(int argc, char **argv) {
 
     auto regdomain_action = domain->add_subcommand("register", localized("Register domain action"));
     add_standard_transaction_options(regdomain_action, "sender@active");
-    regdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
-    regdomain_action->add_option("fio_address", fio_address,
+    regdomain_action->add_option("fio_domain", fio_domain,
                                localized("The FIO Domain to register"))->required();
+    regdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
     regdomain_action->add_option("owner_fio_public_key", owner_fio_public_key,
                                localized("The FIO public key of the new owner (optional)"));
     regdomain_action->add_option("tpid", tpid,
@@ -3484,9 +3484,9 @@ int main(int argc, char **argv) {
 
          auto regadd_action = address->add_subcommand("register", localized("Register address action"));
          add_standard_transaction_options(regadd_action, "sender@active");
-         regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
          regadd_action->add_option("fio_address", fio_address,
                                     localized("The FIO Address to register"))->required();
+         regadd_action->add_option("actor", actor, localized("actor (string)"))->required();
          regadd_action->add_option("owner_fio_public_key", owner_fio_public_key,
                                     localized("The FIO public key of the new owner (optional)"));
          regadd_action->add_option("tpid", tpid,
