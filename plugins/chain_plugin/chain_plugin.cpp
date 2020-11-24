@@ -2196,8 +2196,7 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for (size_t i = 0; i < search_limit; i++) {
-
-                    if( requests_rows_result.rows[i + search_offset] != requests_rows_result.rows.end() ) {
+                    if((i + search_offset) < requests_rows_result.rows.size() ) {
                         uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                         string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                         string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
