@@ -2195,23 +2195,31 @@ if( options.count(name) ) { \
                 if (search_offset > records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
+                uint64_t fio_request_id;
+                string payee_fio_addr;
+                string payer_fio_addr;
+                string content;
+                string payer_fio_public_key;
+                string payee_fio_public_key;
+                uint64_t time_stamp;
+
                 for (size_t i = 0; i < search_limit; i++) {
                     if((i + search_offset) < requests_rows_result.rows.size() ) {
-                        uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
-                        string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
-                        string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                        string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
-                        string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
-                        string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
-                        uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                        fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
+                        payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
+                        payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
+                        content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                        payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
+                        payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
+                        time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
                     } else {
-                        uint64_t fio_request_id = requests_rows_result2.rows[i + search_offset]["fio_request_id"].as_uint64();
-                        string payee_fio_addr = requests_rows_result2.rows[i + search_offset]["payee_fio_addr"].as_string();
-                        string payer_fio_addr = requests_rows_result2.rows[i + search_offset]["payer_fio_addr"].as_string();
-                        string content = requests_rows_result2.rows[i + search_offset]["content"].as_string();
-                        string payer_fio_public_key = requests_rows_result2.rows[i + search_offset]["payer_key"].as_string();
-                        string payee_fio_public_key = requests_rows_result2.rows[i + search_offset]["payee_key"].as_string();
-                        uint64_t time_stamp = requests_rows_result2.rows[i + search_offset]["init_time"].as_uint64();
+                        fio_request_id = requests_rows_result2.rows[i + search_offset]["fio_request_id"].as_uint64();
+                        payee_fio_addr = requests_rows_result2.rows[i + search_offset]["payee_fio_addr"].as_string();
+                        payer_fio_addr = requests_rows_result2.rows[i + search_offset]["payer_fio_addr"].as_string();
+                        content = requests_rows_result2.rows[i + search_offset]["content"].as_string();
+                        payer_fio_public_key = requests_rows_result2.rows[i + search_offset]["payer_key"].as_string();
+                        payee_fio_public_key = requests_rows_result2.rows[i + search_offset]["payee_key"].as_string();
+                        time_stamp = requests_rows_result2.rows[i + search_offset]["init_time"].as_uint64();
                     }
 
                     time_t temptime;
