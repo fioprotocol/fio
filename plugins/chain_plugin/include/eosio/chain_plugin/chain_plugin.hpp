@@ -470,7 +470,7 @@ namespace eosio {
             struct get_pending_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_pending_fio_requests_result {
@@ -488,11 +488,11 @@ namespace eosio {
             struct get_received_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_received_fio_requests_result {
-                vector <request_record> requests;
+                vector <request_status_record> requests;
                 uint32_t more;
                 optional<bool> time_limit_exceeded_error;
             };
@@ -521,7 +521,7 @@ namespace eosio {
             struct get_cancelled_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_cancelled_fio_requests_result {
@@ -539,7 +539,7 @@ namespace eosio {
             struct get_sent_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_sent_fio_requests_result {
@@ -556,7 +556,7 @@ namespace eosio {
             struct get_obt_data_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_obt_data_result {

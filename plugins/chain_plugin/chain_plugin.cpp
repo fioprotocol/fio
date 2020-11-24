@@ -1641,7 +1641,6 @@ if( options.count(name) ) { \
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
 
-
             string account_name;
             fioio::key_to_account(fioKey, account_name);
 
@@ -1667,10 +1666,8 @@ if( options.count(name) ) { \
 
             FIO_404_ASSERT(!rows_result.rows.empty(), "No lock tokens in account",
                            fioio::ErrorNoGeneralLocksFound);
-
             FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
                            fioio::ErrorUnexpectedNumberResults);
-
 
             result.lock_amount = rows_result.rows[0]["lock_amount"].as_uint64();
             result.remaining_lock_amount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
@@ -1684,243 +1681,8 @@ if( options.count(name) ) { \
                 lockperiods lp{duration, percent};
                 result.unlock_periods.push_back(lp);
             }
-
             return result;
         }
-
-        /***
-        * get pending fio requests.
-        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
-        * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
-        */
-        read_only::get_pending_fio_requests_result
-        read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
-            string fioKey = p.fio_public_key;
-            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
-                           "Invalid FIO Public Key",
-                           fioio::ErrorPubKeyValid);
-
-            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
-                          fioio::ErrorPagingInvalid);
-
-            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
-                           fioio::ErrorPagingInvalid);
-
-            uint32_t search_limit = p.limit;
-            uint32_t search_offset = p.offset;
-            uint32_t records_returned = 0;
-            uint32_t records_size = 0;
-
-            get_pending_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
-
-            auto start_time = fc::time_point::now();
-            auto end_time = start_time;
-            string account;
-            fioio::key_to_account(p.fio_public_key, account);
-            string ledger_table = "reqledgers";   // table name
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
-
-            get_table_rows_params fio_table_row_params1 = get_table_rows_params{
-                    .json           = true,
-                    .code           = fio_reqobt_code,
-                    .scope          = fio_reqobt_scope,
-                    .table          = ledger_table,
-                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .key_type       = "i64",
-                    .index_position = "1"};
-
-            get_table_rows_result ledger_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
-
-            if (!ledger_result.rows.empty()) {
-                records_size = ledger_result.rows[0]["transactions"]["payer_action_ids"].size();
-                if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; }
-                if(search_offset > records_size){ records_size = 0; }
-                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
-
-                for(size_t i = 0; i < search_limit; i++) {
-                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
-                            .json           = true,
-                            .code           = fio_reqobt_code,
-                            .scope          = fio_reqobt_scope,
-                            .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payer_action_ids"][i+search_offset].as_uint64()),
-                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payer_action_ids"][i+search_offset].as_uint64()),
-                            .key_type       = "i64",
-                            .index_position = "1"};
-
-                    get_table_rows_result requests_rows_result =
-                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
-
-                    //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
-                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
-                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[0]["content"].as_string();
-                    uint64_t time_stamp = requests_rows_result.rows[0]["init_time"].as_uint64();
-                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
-                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
-
-                    // NO REJECTED
-                    uint8_t statusint = requests_rows_result.rows[0]["fio_data_type"].as_uint64();
-
-                    if(statusint != 1) {
-                        //convert the time_stamp to string formatted time.
-                        time_t temptime;
-                        struct tm *timeinfo;
-                        char buffer[80];
-
-                        temptime = time_stamp;
-                        timeinfo = gmtime(&temptime);
-                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
-
-                        request_record rr{fio_request_id, payer_fio_addr,
-                                          payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
-
-                        result.requests.push_back(rr);
-                        records_returned++;
-                        end_time = fc::time_point::now();
-                        if (end_time - start_time > fc::microseconds(100000)) {
-                            result.time_limit_exceeded_error = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
-            result.more = records_size - records_returned;
-            return result;
-        } // get_pending_fio_requests
-
-        /***
-         * get received fio requests.
-         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
-         * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
-         */
-        read_only::get_received_fio_requests_result
-        read_only::get_received_fio_requests(const read_only::get_received_fio_requests_params &p) const {
-            string fioKey = p.fio_public_key;
-
-            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
-                           "Invalid FIO Public Key",
-                           fioio::ErrorPubKeyValid);
-
-            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
-                           fioio::ErrorPagingInvalid);
-
-            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
-                           fioio::ErrorPagingInvalid);
-
-            uint32_t search_limit = p.limit;
-            uint32_t search_offset = p.offset;
-            uint32_t records_returned = 0;
-            uint32_t records_size = 0;
-
-
-            get_received_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";
-
-            auto start_time = fc::time_point::now();
-            auto end_time = start_time;
-            string account;
-            fioio::key_to_account(p.fio_public_key, account);
-            string ledger_table = "reqledgers";
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
-
-            get_table_rows_params fio_table_row_params1 = get_table_rows_params{
-                    .json           = true,
-                    .code           = fio_reqobt_code,
-                    .scope          = fio_reqobt_scope,
-                    .table          = ledger_table,
-                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .key_type       = "i64",
-                    .index_position = "1"};
-
-            get_table_rows_result ledger_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
-
-
-            if (!ledger_result.rows.empty()) {
-
-                FIO_404_ASSERT(ledger_result.rows.size() == 1, "Unexpected number of results found",
-                               fioio::ErrorUnexpectedNumberResults);
-
-                //put all the ids into one
-                std::vector <uint64_t> all_records;
-
-                //we dont do the payee_action_ids, because those are the ones we have sent, not
-                //the ones we have received
-                //we dont do the obt_action_ids, these are duplicates of whats in sent for items responded to
-
-                //we do the payer_action_ids, these are the requests that have been sent to use
-                for (int e=0;e<ledger_result.rows[0]["transactions"]["payer_action_ids"].size();e++){
-                      all_records.push_back(ledger_result.rows[0]["transactions"]["payer_action_ids"][e].as_uint64());
-                }
-
-                for (int e=0;e<ledger_result.rows[0]["transactions"]["obt_action_ids"].size();e++){
-                    all_records.push_back(ledger_result.rows[0]["transactions"]["obt_action_ids"][e].as_uint64());
-                }
-                std::sort(all_records.begin(), all_records.end());
-                records_size = all_records.size();
-
-                if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; }
-                if(search_offset > records_size){ records_size = 0; }
-                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
-
-                for(size_t i = 0; i < search_limit; i++) {
-                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
-                            .json           = true,
-                            .code           = fio_reqobt_code,
-                            .scope          = fio_reqobt_scope,
-                            .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(all_records[i+search_offset]),
-                            .upper_bound    = boost::lexical_cast<string>(all_records[i+search_offset]),
-                            .key_type       = "i64",
-                            .index_position = "1"};
-
-                    get_table_rows_result requests_rows_result =
-                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
-
-                    //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
-                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
-                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[0]["content"].as_string();
-                    uint64_t time_stamp = requests_rows_result.rows[0]["init_time"].as_uint64();
-                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
-                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
-
-                    //convert the time_stamp to string formatted time.
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
-
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
-
-                    request_record rr{fio_request_id, payer_fio_addr,
-                                      payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
-
-                    result.requests.push_back(rr);
-                    records_returned++;
-                    end_time = fc::time_point::now();
-                    if (end_time - start_time > fc::microseconds(100000)) {
-                        result.time_limit_exceeded_error = true;
-                        break;
-                    }
-                }
-            }
-
-            FIO_404_ASSERT(!(result.requests.size() == 0), "No received FIO Requests", fioio::ErrorNoFioRequestsFound);
-            result.more = records_size - records_returned;
-            return result;
-        } // get_received_fio_requests
-
 
 
         read_only::get_actions_result
@@ -1974,10 +1736,102 @@ if( options.count(name) ) { \
 
 
         /***
-       * get cancelled fio requests.
-       * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
-       * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
-       */
+        * get pending fio requests.
+        * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+        * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+        */
+        read_only::get_pending_fio_requests_result
+        read_only::get_pending_fio_requests(const read_only::get_pending_fio_requests_params &p) const {
+            string fioKey = p.fio_public_key;
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            get_pending_fio_requests_result result;
+            string fio_trx_lookup_table = "fiotrxts";   // table name
+            uint128_t requesttype = static_cast<uint128_t>(fioio::trxstatus::requested);
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+            uint32_t records_returned = 0;
+            uint32_t records_size = 0;
+
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
+            uint128_t hexstat = keyhash + requesttype;
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_reqobt_code,
+                    .scope          = fio_reqobt_scope,
+                    .table          = fio_trx_lookup_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "8"};
+
+            get_table_rows_result requests_rows_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+
+            if (!requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                uint32_t search_offset = p.offset;
+
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                records_size = requests_rows_result.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset > records_size) { records_size = 0; }
+                FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
+
+                for (size_t i = 0; i < search_limit; i++) {
+                    //get all the attributes of the fio request
+                    uint64_t fio_request_id = requests_rows_result.rows[i +
+                                                                        search_offset]["fio_request_id"].as_uint64();
+                    string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
+                    string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
+                    string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
+
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
+
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                    request_record rr{fio_request_id, payer_fio_addr,
+                                      payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
+
+                    result.requests.push_back(rr);
+                    records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
+                    }
+                }
+            }
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+            result.more = records_size - records_returned;
+            return result;
+        } // get_pending_fio_requests
+
+        /***
+      * get cancelled fio requests.
+      * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+      * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+      */
         read_only::get_cancelled_fio_requests_result
         read_only::get_cancelled_fio_requests(const read_only::get_cancelled_fio_requests_params &p) const {
             string fioKey = p.fio_public_key;
@@ -1991,85 +1845,178 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
                            fioio::ErrorPagingInvalid);
 
-            uint32_t search_limit = p.limit;
-            uint32_t search_offset = p.offset;
+            get_cancelled_fio_requests_result result;
+            string fio_trx_lookup_table = "fiotrxts";   // table name
+            uint128_t requesttype = static_cast<uint128_t>(fioio::trxstatus::cancelled);
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            get_cancelled_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
+            uint128_t hexstat = keyhash + requesttype;
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
 
-            auto start_time = fc::time_point::now();
-            auto end_time = start_time;
-            string account;
-            fioio::key_to_account(p.fio_public_key, account);
-            string ledger_table = "reqledgers";   // table name
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
-
-            get_table_rows_params fio_table_row_params1 = get_table_rows_params{
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
-                    .table          = ledger_table,
-                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .key_type       = "i64",
-                    .index_position = "1"};
+                    .table          = fio_trx_lookup_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "9"};
 
-            get_table_rows_result ledger_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
+            get_table_rows_result requests_rows_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
 
-            if (!ledger_result.rows.empty()) {
-                records_size = ledger_result.rows[0]["transactions"]["cancelled_action_ids"].size();
-                if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
-                if(search_offset > records_size){ records_size = 0; }
+            if (!requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                uint32_t search_offset = p.offset;
+
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                string status = "cancelled";
+                records_size = requests_rows_result.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset > records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
-                for(size_t i = 0; i < search_limit; i++) {
-                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
-                            .json           = true,
-                            .code           = fio_reqobt_code,
-                            .scope          = fio_reqobt_scope,
-                            .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["cancelled_action_ids"][i+search_offset].as_uint64()),
-                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["cancelled_action_ids"][i+search_offset].as_uint64()),
-                            .key_type       = "i64",
-                            .index_position = "1"};
-
-                    get_table_rows_result requests_rows_result =
-                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
-
+                for (size_t i = 0; i < search_limit; i++) {
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
-                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
-                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[0]["content"].as_string();
-                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
-                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
-                    uint8_t statusint = requests_rows_result.rows[0]["fio_data_type"].as_uint64();
+                    uint64_t fio_request_id = requests_rows_result.rows[i +
+                                                                        search_offset]["fio_request_id"].as_uint64();
+                    string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
+                    string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
+                    string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
 
-                    if (statusint == 3) {
-                        string status = "cancelled";
-                        uint64_t time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
 
-                        //convert the time_stamp to string formatted time.
-                        time_t temptime;
-                        struct tm *timeinfo;
-                        char buffer[80];
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                        temptime = time_stamp;
-                        timeinfo = gmtime(&temptime);
-                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                    request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
+                                             payee_fio_public_key, content, buffer, status};
 
-                        request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
-                                                 payee_fio_public_key, content, buffer, status};
-                        result.requests.push_back(rr);
-                        records_returned++;
-                        end_time = fc::time_point::now();
-                        if (end_time - start_time > fc::microseconds(100000)) {
-                            result.time_limit_exceeded_error = true;
-                            break;
-                        }
+                    result.requests.push_back(rr);
+                    records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
+                    }
+                }
+            }
+            FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+            result.more = records_size - records_returned;
+            return result;
+        } //get_cancelled_fio_requests
+
+        /***
+         * get received fio requests.
+         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
+         * @return .is_registered will be true if a match is found, else false. .is_domain is true upon domain match. .address is set if found. .expiration is set upon match.
+         */
+        read_only::get_received_fio_requests_result
+        read_only::get_received_fio_requests(const read_only::get_received_fio_requests_params &p) const {
+            string fioKey = p.fio_public_key;
+            FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            get_received_fio_requests_result result;
+            string fio_trx_lookup_table = "fiotrxts";   // table name
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+            uint32_t records_returned = 0;
+            uint32_t records_size = 0;
+
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
+            uint128_t hexstat = keyhash + 1;
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_reqobt_code,
+                    .scope          = fio_reqobt_scope,
+                    .table          = fio_trx_lookup_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "12"};
+
+            get_table_rows_result requests_rows_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+
+            if (!requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                uint32_t search_offset = p.offset;
+
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                records_size = requests_rows_result.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset > records_size) { records_size = 0; }
+                FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+
+                for (size_t i = 0; i < search_limit; i++) {
+                    //get all the attributes of the fio request
+                    uint64_t fio_request_id = requests_rows_result.rows[i +
+                                                                        search_offset]["fio_request_id"].as_uint64();
+                    string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
+                    string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
+                    string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
+                    uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
+
+                    string status = "requested";
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+
+                    if (statusint == 1) {
+                        status = "rejected";
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                    } else if (statusint == 2) {
+                        status = "sent_to_blockchain";
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                    } else if (statusint == 3) {
+                        status = "cancelled";
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                    }
+
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
+
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+
+                    request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
+                                             payee_fio_public_key, content, buffer, status};
+
+                    result.requests.push_back(rr);
+                    records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
                     }
                 }
             }
@@ -2077,7 +2024,7 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             result.more = records_size - records_returned;
             return result;
-        }
+        } // get_received_fio_requests
 
         /***
         * get sent fio requests.
@@ -2097,78 +2044,68 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
                            fioio::ErrorPagingInvalid);
 
-            uint32_t search_limit = p.limit;
-            uint32_t search_offset = p.offset;
+            get_sent_fio_requests_result result;
+            string fio_trx_lookup_table = "fiotrxts";   // table name
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            get_sent_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
+            uint128_t hexstat = keyhash + 1;
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
 
-            auto start_time = fc::time_point::now();
-            auto end_time = start_time;
-            string account;
-            fioio::key_to_account(p.fio_public_key, account);
-            string ledger_table = "reqledgers";   // table name
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
-
-            get_table_rows_params fio_table_row_params1 = get_table_rows_params{
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
-                    .table          = ledger_table,
-                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .key_type       = "i64",
-                    .index_position = "1"};
+                    .table          = fio_trx_lookup_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "13"};
 
-            get_table_rows_result ledger_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
+            get_table_rows_result requests_rows_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
 
-            if (!ledger_result.rows.empty()) {
-                records_size = ledger_result.rows[0]["transactions"]["payee_action_ids"].size();
-                if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
-                if(search_offset > records_size){ records_size = 0; }
+            if (!requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                uint32_t search_offset = p.offset;
+
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                records_size = requests_rows_result.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset > records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
-                for(size_t i = 0; i < search_limit; i++) {
-                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
-                            .json           = true,
-                            .code           = fio_reqobt_code,
-                            .scope          = fio_reqobt_scope,
-                            .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payee_action_ids"][i+search_offset].as_uint64()),
-                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["payee_action_ids"][i+search_offset].as_uint64()),
-                            .key_type       = "i64",
-                            .index_position = "1"};
-
-                    get_table_rows_result requests_rows_result =
-                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
-
+                for (size_t i = 0; i < search_limit; i++) {
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
-                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
-                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[0]["content"].as_string();
-                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
-                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
-                    uint8_t statusint = requests_rows_result.rows[0]["fio_data_type"].as_uint64();
+                    uint64_t fio_request_id = requests_rows_result.rows[i +
+                                                                        search_offset]["fio_request_id"].as_uint64();
+                    string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
+                    string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
+                    string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
+                    uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
 
                     string status = "requested";
-                    uint64_t time_stamp = requests_rows_result.rows[0]["init_time"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
                     if (statusint == 1) {
                         status = "rejected";
-                        time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                     } else if (statusint == 2) {
                         status = "sent_to_blockchain";
-                        time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                     } else if (statusint == 3) {
                         status = "cancelled";
-                        time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                     }
 
-                    //convert the time_stamp to string formatted time.
                     time_t temptime;
                     struct tm *timeinfo;
                     char buffer[80];
@@ -2179,6 +2116,7 @@ if( options.count(name) ) { \
 
                     request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
                                              payee_fio_public_key, content, buffer, status};
+
                     result.requests.push_back(rr);
                     records_returned++;
                     end_time = fc::time_point::now();
@@ -2188,7 +2126,6 @@ if( options.count(name) ) { \
                     }
                 }
             }
-
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             result.more = records_size - records_returned;
             return result;
@@ -2207,93 +2144,99 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
                            fioio::ErrorPagingInvalid);
 
-            uint32_t search_limit = p.limit;
-            uint32_t search_offset = p.offset;
+            get_obt_data_result result;
+            string fio_trx_lookup_table = "fiotrxts";   // table name
+            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            get_obt_data_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
-
-            auto start_time = fc::time_point::now();
-            auto end_time = start_time;
-            string account;
-            fioio::key_to_account(p.fio_public_key, account);
-            string ledger_table = "reqledgers";   // table name
-            const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
+            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
+            uint128_t hexstat = keyhash + 1;
+            std::string hexvalkeyhash = "0x";
+            hexvalkeyhash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
 
             get_table_rows_params fio_table_row_params1 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
-                    .table          = ledger_table,
-                    .lower_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .upper_bound    = boost::lexical_cast<string>(name(account.c_str()).value),
-                    .key_type       = "i64",
-                    .index_position = "1"};
+                    .table          = fio_trx_lookup_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "10"};
 
-            get_table_rows_result ledger_result =
+            get_table_rows_result requests_rows_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
 
-            if (!ledger_result.rows.empty()) {
-                records_size = ledger_result.rows[0]["transactions"]["obt_action_ids"].size();
-                if(search_limit == 0 || search_limit > records_size){ search_limit = records_size; } //JSON return limit can be placed here.
-                if(search_offset > records_size){ records_size = 0; }
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_reqobt_code,
+                    .scope          = fio_reqobt_scope,
+                    .table          = fio_trx_lookup_table,
+                    .lower_bound    = hexvalkeyhash,
+                    .upper_bound    = hexvalkeyhash,
+                    .key_type       = "hex",
+                    .index_position = "11"};
+
+            get_table_rows_result requests_rows_result2 =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+
+            if (!requests_rows_result.rows.empty() || !requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                uint32_t search_offset = p.offset;
+
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                string status = "sent_to_blockchain";
+                records_size = requests_rows_result.rows.size() + requests_rows_result2.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset > records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
-                for(size_t i = 0; i < search_limit; i++) {
-                    get_table_rows_params fio_table_row_params2 = get_table_rows_params{
-                            .json           = true,
-                            .code           = fio_reqobt_code,
-                            .scope          = fio_reqobt_scope,
-                            .table          = fio_trx_lookup_table,
-                            .lower_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["obt_action_ids"][i+search_offset].as_uint64()),
-                            .upper_bound    = boost::lexical_cast<string>(ledger_result.rows[0]["transactions"]["obt_action_ids"][i+search_offset].as_uint64()),
-                            .key_type       = "i64",
-                            .index_position = "1"};
+                for (size_t i = 0; i < search_limit; i++) {
 
-                    get_table_rows_result requests_rows_result =
-                            get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi); // check if no returned records and break from for loop
+                    if( requests_rows_result.rows[i + search_offset] != requests_rows_result.rows.end() ) {
+                        uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
+                        string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
+                        string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
+                        string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                        string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
+                        string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
+                        uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    } else {
+                        uint64_t fio_request_id = requests_rows_result2.rows[i + search_offset]["fio_request_id"].as_uint64();
+                        string payee_fio_addr = requests_rows_result2.rows[i + search_offset]["payee_fio_addr"].as_string();
+                        string payer_fio_addr = requests_rows_result2.rows[i + search_offset]["payer_fio_addr"].as_string();
+                        string content = requests_rows_result2.rows[i + search_offset]["content"].as_string();
+                        string payer_fio_public_key = requests_rows_result2.rows[i + search_offset]["payer_key"].as_string();
+                        string payee_fio_public_key = requests_rows_result2.rows[i + search_offset]["payee_key"].as_string();
+                        uint64_t time_stamp = requests_rows_result2.rows[i + search_offset]["init_time"].as_uint64();
+                    }
 
-                    //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[0]["fio_request_id"].as_uint64();
-                    string payee_fio_addr = requests_rows_result.rows[0]["payee_fio_addr"].as_string();
-                    string payer_fio_addr = requests_rows_result.rows[0]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[0]["content"].as_string();
-                    string payer_fio_public_key = requests_rows_result.rows[0]["payer_key"].as_string();
-                    string payee_fio_public_key = requests_rows_result.rows[0]["payee_key"].as_string();
-                    uint8_t statusint = requests_rows_result.rows[0]["fio_data_type"].as_uint64();
-                    uint64_t time_stamp = requests_rows_result.rows[0]["init_time"].as_uint64();
+                    time_t temptime;
+                    struct tm *timeinfo;
+                    char buffer[80];
 
-                    if (statusint == 2 || statusint == 4) {
-                        string status = "sent_to_blockchain";
-                        if(statusint == 2) {
-                            time_stamp = requests_rows_result.rows[0]["update_time"].as_uint64();
-                        }
+                    temptime = time_stamp;
+                    timeinfo = gmtime(&temptime);
+                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                        //convert the time_stamp to string formatted time.
-                        time_t temptime;
-                        struct tm *timeinfo;
-                        char buffer[80];
+                    obt_records rr{payer_fio_addr, payee_fio_addr, payer_fio_public_key,
+                                   payee_fio_public_key, content, fio_request_id, buffer, status};
 
-                        temptime = time_stamp;
-                        timeinfo = gmtime(&temptime);
-                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
-
-                        obt_records rr{payer_fio_addr, payee_fio_addr, payer_fio_public_key,
-                                                 payee_fio_public_key, content, fio_request_id, buffer, status};
-                        result.obt_data_records.push_back(rr);
-                        records_returned++;
-                        end_time = fc::time_point::now();
-                        if (end_time - start_time > fc::microseconds(100000)) {
-                            result.time_limit_exceeded_error = true;
-                            break;
-                        }
+                    result.obt_data_records.push_back(rr);
+                    records_returned++;
+                    end_time = fc::time_point::now();
+                    if (end_time - start_time > fc::microseconds(100000)) {
+                        result.time_limit_exceeded_error = true;
+                        break;
                     }
                 }
             }
-
-            FIO_404_ASSERT(!(result.obt_data_records.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
+            FIO_404_ASSERT(!(result.obt_data_records.size() == 0), "No FIO Requests",
+                           fioio::ErrorNoFioRequestsFound);
             result.more = records_size - records_returned;
             return result;
         }
@@ -2314,7 +2257,7 @@ if( options.count(name) ) { \
             account_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params, system_abi);
         }
-        // get_sent_fio_requests
+
 
         /*** v1/chain/get_fio_names
         * Retrieves the fionames associated with the provided public address
