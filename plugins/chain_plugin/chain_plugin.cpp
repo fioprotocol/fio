@@ -1761,7 +1761,7 @@ if( options.count(name) ) { \
             uint32_t records_size = 0;
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + requesttype;
+            uint128_t hexstat = keyhash + requesttype * fioio::STATUS_MULT;
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
@@ -1853,7 +1853,7 @@ if( options.count(name) ) { \
             uint32_t records_size = 0;
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + requesttype;
+            uint128_t hexstat = keyhash + requesttype * fioio::STATUS_MULT;
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
@@ -1945,7 +1945,7 @@ if( options.count(name) ) { \
             uint32_t records_size = 0;
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + 1;
+            uint128_t hexstat = keyhash + 1 * fioio::STATUS_MULT;
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
@@ -2051,7 +2051,7 @@ if( options.count(name) ) { \
             uint32_t records_size = 0;
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + 1;
+            uint128_t hexstat = keyhash + 1 * fioio::STATUS_MULT;
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
@@ -2151,7 +2151,7 @@ if( options.count(name) ) { \
             uint32_t records_size = 0;
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + 1;
+            uint128_t hexstat = keyhash + 1 * fioio::STATUS_MULT;
             std::string hexvalkeyhash = "0x";
             hexvalkeyhash.append(
                     fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
