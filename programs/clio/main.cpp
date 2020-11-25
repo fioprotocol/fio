@@ -3408,11 +3408,10 @@ int main(int argc, char **argv) {
 
     auto newfunds_action = request->add_subcommand("new", localized("New funds request action"));
     add_standard_transaction_options(newfunds_action, "sender@active");
-    newfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
-
     newfunds_action->add_option("payer_fio_address", payer_fio_address, localized("Payer's FIO Address"))->required();
     newfunds_action->add_option("payee_fio_address", payee_fio_address, localized("Payee's FIO Address"))->required();
     newfunds_action->add_option("content", content, localized("Request content"))->required();
+    newfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
     newfunds_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
     newfunds_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
 
@@ -3434,8 +3433,8 @@ int main(int argc, char **argv) {
 
         auto rejectfunds_action = request->add_subcommand("reject", localized("Reject funds request action"));
         add_standard_transaction_options(rejectfunds_action, "sender@active");
-        rejectfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
         rejectfunds_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
+        rejectfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
         rejectfunds_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
         rejectfunds_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
 
@@ -3457,8 +3456,8 @@ int main(int argc, char **argv) {
 
         auto cancelfunds_action = request->add_subcommand("cancel", localized("Cancel funds request action"));
         add_standard_transaction_options(cancelfunds_action, "sender@active");
-        cancelfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
         cancelfunds_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
+        cancelfunds_action->add_option("actor", actor, localized("actor (string)"))->required();
         cancelfunds_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
         cancelfunds_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
 
@@ -3810,11 +3809,11 @@ int main(int argc, char **argv) {
 
     auto recordobt_action = dataSubcommand->add_subcommand("record", localized("Record on blockchain transaction"));
     add_standard_transaction_options(recordobt_action, "sender@active");
-    recordobt_action->add_option("actor", actor, localized("actor (string)"))->required();
     recordobt_action->add_option("fio_request_id", fio_request_id, localized("FIO Request ID"))->required();
     recordobt_action->add_option("payer_fio_address", payer_fio_address, localized("Payer's FIO Address"))->required();
     recordobt_action->add_option("payee_fio_address", payee_fio_address, localized("Payee's FIO Address"))->required();
     recordobt_action->add_option("content", content, localized("Request content"))->required();
+    recordobt_action->add_option("actor", actor, localized("actor (string)"))->required();
     recordobt_action->add_option("tpid", tpid, localized("The TPID (Technology Provider ID)"));
     recordobt_action->add_option("max_fee", max_fee, localized("the max fee desired in smallest units of FIO (SUFs)"));
 
