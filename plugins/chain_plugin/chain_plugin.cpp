@@ -1755,29 +1755,31 @@ if( options.count(name) ) { \
 
             get_pending_fio_requests_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
-            uint128_t requesttype = static_cast<uint128_t>(fioio::trxstatus::requested);
+            uint64_t requesttype = static_cast<uint64_t>(fioio::trxstatus::requested);
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + requesttype * fioio::STATUS_MULT;
-            std::string hexvalkeyhash = "0x";
-            hexvalkeyhash.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name account = name{account_name};
+            uint64_t hexstat = account.value + requesttype;
 
             get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = fio_trx_lookup_table,
-                    .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhash,
-                    .key_type       = "hex",
+                    .lower_bound    = boost::lexical_cast<string>(hexstat),
+                    .upper_bound    = boost::lexical_cast<string>(hexstat),
+                    .key_type       = "i64",
                     .index_position = "8"};
 
-            get_table_rows_result requests_rows_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, reqobt_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
@@ -1788,7 +1790,7 @@ if( options.count(name) ) { \
                 records_size = requests_rows_result.rows.size();
                 search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
                 if (search_limit > records_size) { search_limit = records_size; }
-                if (search_offset > records_size) { records_size = 0; }
+                if (search_offset >= records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for (size_t i = 0; i < search_limit; i++) {
@@ -1847,29 +1849,31 @@ if( options.count(name) ) { \
 
             get_cancelled_fio_requests_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
-            uint128_t requesttype = static_cast<uint128_t>(fioio::trxstatus::cancelled);
+            uint64_t requesttype = static_cast<uint64_t>(fioio::trxstatus::cancelled);
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + requesttype * fioio::STATUS_MULT;
-            std::string hexvalkeyhash = "0x";
-            hexvalkeyhash.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name account = name{account_name};
+            uint64_t hexstat = account.value + requesttype;
 
             get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = fio_trx_lookup_table,
-                    .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhash,
-                    .key_type       = "hex",
+                    .lower_bound    = boost::lexical_cast<string>(hexstat),
+                    .upper_bound    = boost::lexical_cast<string>(hexstat),
+                    .key_type       = "i64",
                     .index_position = "9"};
 
-            get_table_rows_result requests_rows_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, reqobt_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
@@ -1944,24 +1948,26 @@ if( options.count(name) ) { \
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + 1 * fioio::STATUS_MULT;
-            std::string hexvalkeyhash = "0x";
-            hexvalkeyhash.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name account = name{account_name};
+            uint64_t hexstat = account.value + true;
 
             get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = fio_trx_lookup_table,
-                    .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhash,
-                    .key_type       = "hex",
+                    .lower_bound    = boost::lexical_cast<string>(hexstat),
+                    .upper_bound    = boost::lexical_cast<string>(hexstat),
+                    .key_type       = "i64",
                     .index_position = "12"};
 
-            get_table_rows_result requests_rows_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, reqobt_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
@@ -2050,24 +2056,26 @@ if( options.count(name) ) { \
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + 1 * fioio::STATUS_MULT;
-            std::string hexvalkeyhash = "0x";
-            hexvalkeyhash.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name account = name{account_name};
+            uint64_t hexstat = account.value + true;
 
             get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = fio_trx_lookup_table,
-                    .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhash,
-                    .key_type       = "hex",
+                    .lower_bound    = boost::lexical_cast<string>(hexstat),
+                    .upper_bound    = boost::lexical_cast<string>(hexstat),
+                    .key_type       = "i64",
                     .index_position = "13"};
 
-            get_table_rows_result requests_rows_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, reqobt_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
@@ -2150,37 +2158,42 @@ if( options.count(name) ) { \
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
 
-            uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
-            uint128_t hexstat = keyhash + 1 * fioio::STATUS_MULT;
-            std::string hexvalkeyhash = "0x";
-            hexvalkeyhash.append(
-                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hexstat), sizeof(hexstat)));
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name account = name{account_name};
+            uint64_t hexstat = account.value + true;
 
             get_table_rows_params fio_table_row_params1 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = fio_trx_lookup_table,
-                    .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhash,
-                    .key_type       = "hex",
+                    .lower_bound    = boost::lexical_cast<string>(hexstat),
+                    .upper_bound    = boost::lexical_cast<string>(hexstat),
+                    .key_type       = "i64",
                     .index_position = "10"};
 
-            get_table_rows_result requests_rows_result =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params1, reqobt_abi);
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params1, reqobt_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
                     .code           = fio_reqobt_code,
                     .scope          = fio_reqobt_scope,
                     .table          = fio_trx_lookup_table,
-                    .lower_bound    = hexvalkeyhash,
-                    .upper_bound    = hexvalkeyhash,
-                    .key_type       = "hex",
+                    .lower_bound    = boost::lexical_cast<string>(hexstat),
+                    .upper_bound    = boost::lexical_cast<string>(hexstat),
+                    .key_type       = "i64",
                     .index_position = "11"};
 
-            get_table_rows_result requests_rows_result2 =
-                    get_table_rows_ex<key_value_index>(fio_table_row_params2, reqobt_abi);
+            get_table_rows_result requests_rows_result2 = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, reqobt_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
 
             if (!requests_rows_result.rows.empty() || !requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
