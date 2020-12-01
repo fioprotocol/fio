@@ -1804,23 +1804,25 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
 
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
+                    if( fioKey == payer_fio_public_key ) {
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
 
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                    request_record rr{fio_request_id, payer_fio_addr,
-                                      payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
+                        request_record rr{fio_request_id, payer_fio_addr,
+                                          payee_fio_addr, payer_fio_public_key, payee_fio_public_key, content, buffer};
 
-                    result.requests.push_back(rr);
-                    records_returned++;
-                    end_time = fc::time_point::now();
-                    if (end_time - start_time > fc::microseconds(100000)) {
-                        result.time_limit_exceeded_error = true;
-                        break;
+                        result.requests.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1899,23 +1901,25 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
 
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
+                    if( fioKey == payer_fio_public_key ) {
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
 
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                    request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
-                                             payee_fio_public_key, content, buffer, status};
+                        request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
+                                                 payee_fio_public_key, content, buffer, status};
 
-                    result.requests.push_back(rr);
-                    records_returned++;
-                    end_time = fc::time_point::now();
-                    if (end_time - start_time > fc::microseconds(100000)) {
-                        result.time_limit_exceeded_error = true;
-                        break;
+                        result.requests.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1992,37 +1996,39 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
 
-                    string status = "requested";
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    if( fioKey == payee_fio_public_key ) {
+                        string status = "requested";
+                        uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
-                    if (statusint == 1) {
-                        status = "rejected";
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
-                    } else if (statusint == 2) {
-                        status = "sent_to_blockchain";
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
-                    } else if (statusint == 3) {
-                        status = "cancelled";
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
-                    }
+                        if (statusint == 1) {
+                            status = "rejected";
+                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        } else if (statusint == 2) {
+                            status = "sent_to_blockchain";
+                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        } else if (statusint == 3) {
+                            status = "cancelled";
+                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        }
 
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
 
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                    request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
-                                             payee_fio_public_key, content, buffer, status};
+                        request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
+                                                 payee_fio_public_key, content, buffer, status};
 
-                    result.requests.push_back(rr);
-                    records_returned++;
-                    end_time = fc::time_point::now();
-                    if (end_time - start_time > fc::microseconds(100000)) {
-                        result.time_limit_exceeded_error = true;
-                        break;
+                        result.requests.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -2100,37 +2106,39 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
 
-                    string status = "requested";
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    if( fioKey == payer_fio_public_key ) {
+                        string status = "requested";
+                        uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
-                    if (statusint == 1) {
-                        status = "rejected";
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
-                    } else if (statusint == 2) {
-                        status = "sent_to_blockchain";
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
-                    } else if (statusint == 3) {
-                        status = "cancelled";
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
-                    }
+                        if (statusint == 1) {
+                            status = "rejected";
+                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        } else if (statusint == 2) {
+                            status = "sent_to_blockchain";
+                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        } else if (statusint == 3) {
+                            status = "cancelled";
+                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        }
 
-                    time_t temptime;
-                    struct tm *timeinfo;
-                    char buffer[80];
+                        time_t temptime;
+                        struct tm *timeinfo;
+                        char buffer[80];
 
-                    temptime = time_stamp;
-                    timeinfo = gmtime(&temptime);
-                    strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
+                        temptime = time_stamp;
+                        timeinfo = gmtime(&temptime);
+                        strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                    request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
-                                             payee_fio_public_key, content, buffer, status};
+                        request_status_record rr{fio_request_id, payer_fio_addr, payee_fio_addr, payer_fio_public_key,
+                                                 payee_fio_public_key, content, buffer, status};
 
-                    result.requests.push_back(rr);
-                    records_returned++;
-                    end_time = fc::time_point::now();
-                    if (end_time - start_time > fc::microseconds(100000)) {
-                        result.time_limit_exceeded_error = true;
-                        break;
+                        result.requests.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
                     }
                 }
             }
