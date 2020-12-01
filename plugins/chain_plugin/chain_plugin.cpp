@@ -1733,8 +1733,7 @@ if( options.count(name) ) { \
             results.more = count;
             return results;
         } // get_actions
-
-
+        
         /***
         * get pending fio requests.
         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -1804,7 +1803,7 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
 
-                    if( fioKey == payer_fio_public_key ) {
+                    if (fioKey == payer_fio_public_key) {
                         time_t temptime;
                         struct tm *timeinfo;
                         char buffer[80];
@@ -1901,7 +1900,7 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
 
-                    if( fioKey == payer_fio_public_key ) {
+                    if (fioKey == payer_fio_public_key) {
                         time_t temptime;
                         struct tm *timeinfo;
                         char buffer[80];
@@ -1996,7 +1995,7 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
 
-                    if( fioKey == payee_fio_public_key ) {
+                    if (fioKey == payee_fio_public_key) {
                         string status = "requested";
                         uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
@@ -2106,7 +2105,7 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
 
-                    if( fioKey == payer_fio_public_key ) {
+                    if (fioKey == payer_fio_public_key) {
                         string status = "requested";
                         uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
@@ -2227,7 +2226,7 @@ if( options.count(name) ) { \
                 size_t j = 0;
 
                 for (size_t i = 0; i < search_limit; i++) {
-                    if((i + search_offset) < requests_rows_result.rows.size() ) {
+                    if ((i + search_offset) < requests_rows_result.rows.size()) {
                         fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
@@ -2237,7 +2236,7 @@ if( options.count(name) ) { \
                         time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
                     } else {
                         //remove offset and reset index
-                        if(!wContinue) {
+                        if (!wContinue) {
                             wContinue = true;
                             search_offset = search_offset - records_returned;
                         }
