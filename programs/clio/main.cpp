@@ -3351,19 +3351,27 @@ int main(int argc, char **argv) {
                variant_to_bin(N(fio.address), N(renewdomain), renewdomain)}});
      });
 
-     bool set_public = false;
+     bool spublic = false;
 
      auto domainpub_action = domain->add_subcommand("set_public", localized("Set domain to public"));
      add_standard_transaction_options(domainpub_action, "sender@active");
      domainpub_action->add_option("fio_domain", actor, localized("domain (string)"))->required();
-     domainpub_action->add_option("set_public", set_public,
+     domainpub_action->add_option("spublic", spublic,
                                 localized("is public (true/false)"))->required();
+     domainpub_action->add_option("actor", actor, localized("actor (string)"))->required();
+     domainpub_action->add_option("tpid", tpid,
+                                localized("The TPID (Technology Provider ID)"));
+     domainpub_action->add_option("max_fee", max_fee,
+                                localized("the max fee desired in smallest units of FIO (SUFs)"));
 
      domainpub_action->set_callback([&] {
 
      auto setdomainpub = fc::mutable_variant_object
                 ("fio_domain", fio_domain)
-                ("public", set_public);
+                ("is_public", spublic)
+                ("max_fee", max_fee)
+                ("tpid", tpid)
+                ("actor", name(actor));
 
       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "renewdomain",
                 variant_to_bin(N(fio.address), N(setdomainpub), setdomainpub)}});
@@ -3372,11 +3380,11 @@ int main(int argc, char **argv) {
       // transfer domain
       auto transferdomain_action = domain->add_subcommand("transfer", localized("Transfer domain action"));
       add_standard_transaction_options(transferdomain_action, "sender@active");
-      transferdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferdomain_action->add_option("fio_domain", fio_address,
                                  localized("The FIO Domain to transfer"))->required();
+      transferdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferdomain_action->add_option("new_owner_fio_public_key", owner_fio_public_key,
-                                 localized("The FIO public key of the new domain owner (optional)"));
+                                 localized("The FIO public key of the new domain owner"))->required();
       transferdomain_action->add_option("tpid", tpid,
                                  localized("The TPID (Technology Provider ID)"));
       transferdomain_action->add_option("max_fee", max_fee,
@@ -3420,6 +3428,7 @@ int main(int argc, char **argv) {
       auto newfunds = fc::mutable_variant_object
                 ("payer_fio_address", payer_fio_address)
                 ("payee_fio_address", payee_fio_address)
+                ("content", content)
                 ("actor", actor)
                 ("tpid", tpid)
                 ("max_fee", max_fee);
@@ -3595,11 +3604,11 @@ int main(int argc, char **argv) {
       // transfer address
       auto transferaddress_action = address->add_subcommand("transfer", localized("Transfer address action"));
       add_standard_transaction_options(transferaddress_action, "sender@active");
-      transferaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferaddress_action->add_option("fio_address", fio_address,
                                  localized("The FIO Address to transfer"))->required();
+      transferaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferaddress_action->add_option("new_owner_fio_public_key", owner_fio_public_key,
-                                localized("The FIO public key of the new FIO address owner (optional)"));
+                                localized("The FIO public key of the new FIO address owner"))->required();
       transferaddress_action->add_option("tpid", tpid,
                                  localized("The TPID (Technology Provider ID)"));
       transferaddress_action->add_option("max_fee", max_fee,
@@ -3839,16 +3848,16 @@ int main(int argc, char **argv) {
 
     auto transfer = app.add_subcommand("transfer", localized("Transfer FIO tokens. "), false);
     add_standard_transaction_options(transfer, "sender@active");
-    transfer->add_option("payee_public_key", payee_public_key, localized("The account sending tokens"))->required();
+    transfer->add_option("payee_public_key", payee_public_key, localized("The public_key receiving tokens"))->required();
     transfer->add_option("amount", amount, localized("The amount of tokens to send"))->required();
     transfer->add_option("actor", actor, localized("actor (string)"))->required();
-    transfer->add_option("max_fee", max_fee,
-                               localized("the max fee desired in smallest units of FIO (SUFs)"));
     transfer->add_option("tpid", tpid,
                                localized("The TPID (Technology Provider ID)"));
+    transfer->add_option("max_fee", max_fee,
+                               localized("the max fee desired in smallest units of FIO (SUFs)"));
     transfer->set_callback([&] {
     auto transferobj = fc::mutable_variant_object
-               ("payee_public_key", fio_address)
+               ("payee_public_key", payee_public_key)
                ("amount", amount)
                ("actor", name(actor))
                ("max_fee", max_fee)
