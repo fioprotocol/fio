@@ -3515,7 +3515,7 @@ int main(int argc, char **argv) {
           });
 
 // add address subcommand
-    string addresses;
+    vector<string> addresses;
     auto addaddress_action = address->add_subcommand("add_pub", localized("Add other blockchain addresses to FIO address"));
     add_standard_transaction_options(addaddress_action, "sender@active");
     addaddress_action->add_option("actor", actor, localized("actor (string)"))->required();
