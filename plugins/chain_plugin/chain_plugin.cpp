@@ -2204,8 +2204,7 @@ if( options.count(name) ) { \
 
             if (!requests_rows_result.rows.empty() || !requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
-                uint32_t search_offset = p.offset;
-
+                int32_t search_offset = p.offset;
                 auto start_time = fc::time_point::now();
                 auto end_time = start_time;
                 string status = "sent_to_blockchain";
@@ -2213,6 +2212,7 @@ if( options.count(name) ) { \
                 search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
                 if (search_limit > records_size) { search_limit = records_size; }
                 if (search_offset > records_size) { records_size = 0; }
+
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 uint64_t fio_request_id;
@@ -2234,12 +2234,12 @@ if( options.count(name) ) { \
                         payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                         payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                         time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
-                    } else {
-                        //remove offset and reset index
-                        if (!wContinue) {
-                            wContinue = true;
-                            search_offset = search_offset - records_returned;
-                        }
+                    } else if (!wContinue) {
+                        wContinue = true;
+                        if( search_offset - static_cast<int>(records_returned) >= 0 ) { search_offset = search_offset - records_returned; }
+                    }
+                    if(wContinue) {
+                        if(requests_rows_result.rows.size() < (j + search_offset) ) { break; }
                         fio_request_id = requests_rows_result2.rows[j + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result2.rows[j + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result2.rows[j + search_offset]["payer_fio_addr"].as_string();
@@ -2253,7 +2253,6 @@ if( options.count(name) ) { \
                     time_t temptime;
                     struct tm *timeinfo;
                     char buffer[80];
-
                     temptime = time_stamp;
                     timeinfo = gmtime(&temptime);
                     strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
