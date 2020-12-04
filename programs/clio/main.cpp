@@ -3528,7 +3528,7 @@ int main(int argc, char **argv) {
 
     auto addaddress = fc::mutable_variant_object
                ("fio_address", fio_address)
-               ("addresses", addresses)
+               ("public_addresses", addresses)
                ("actor", name(actor))
                ("max_fee", max_fee)
                ("tpid", tpid);
@@ -3860,8 +3860,8 @@ int main(int argc, char **argv) {
                ("payee_public_key", payee_public_key)
                ("amount", amount)
                ("actor", name(actor))
-               ("max_fee", max_fee)
-               ("tpid", tpid);
+               ("tpid", tpid)
+               ("max_fee", max_fee) ;
 
      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.token", "trnsfiopubky",
                variant_to_bin(N(fio.token), N(trnsfiopubky), transferobj)}});
