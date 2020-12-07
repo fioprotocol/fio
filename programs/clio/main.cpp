@@ -3830,9 +3830,10 @@ int main(int argc, char **argv) {
                 ("fio_request_id", fio_request_id)
                 ("payer_fio_address", payer_fio_address)
                 ("payee_fio_address", payee_fio_address)
+                ("content", content)
+                ("max_fee", max_fee)
                 ("actor", actor)
-                ("tpid", tpid)
-                ("max_fee", max_fee);
+                ("tpid", tpid);
 
       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.reqobt", "recordobt",
                 variant_to_bin(N(fio.reqobt), N(recordobt), recordobt)}});
