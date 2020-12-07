@@ -3351,13 +3351,13 @@ int main(int argc, char **argv) {
                variant_to_bin(N(fio.address), N(renewdomain), renewdomain)}});
      });
 
-     bool spublic = false;
+     uint32_t spublic = false;
 
      auto domainpub_action = domain->add_subcommand("set_public", localized("Set domain to public"));
      add_standard_transaction_options(domainpub_action, "sender@active");
-     domainpub_action->add_option("fio_domain", actor, localized("domain (string)"))->required();
+     domainpub_action->add_option("fio_domain", fio_domain, localized("domain (string)"))->required();
      domainpub_action->add_option("spublic", spublic,
-                                localized("is public (true/false)"))->required();
+                                localized("is public (0/1)"))->required();
      domainpub_action->add_option("actor", actor, localized("actor (string)"))->required();
      domainpub_action->add_option("tpid", tpid,
                                 localized("The TPID (Technology Provider ID)"));
