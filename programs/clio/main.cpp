@@ -3380,7 +3380,7 @@ int main(int argc, char **argv) {
       // transfer domain
       auto transferdomain_action = domain->add_subcommand("transfer", localized("Transfer domain action"));
       add_standard_transaction_options(transferdomain_action, "sender@active");
-      transferdomain_action->add_option("fio_domain", fio_address,
+      transferdomain_action->add_option("fio_domain", fio_domain,
                                  localized("The FIO Domain to transfer"))->required();
       transferdomain_action->add_option("actor", actor, localized("actor (string)"))->required();
       transferdomain_action->add_option("new_owner_fio_public_key", owner_fio_public_key,
