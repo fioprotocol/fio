@@ -1754,7 +1754,6 @@ if( options.count(name) ) { \
 
             get_pending_fio_requests_result result;
             string fio_trx_lookup_table = "fiotrxts";   // table name
-            uint64_t requesttype = static_cast<uint64_t>(fioio::trxstatus::requested);
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
@@ -1762,7 +1761,7 @@ if( options.count(name) ) { \
             string account_name;
             fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
-            uint64_t hexstat = account.value + requesttype;
+            uint64_t hexstat = account.value;
 
             get_table_rows_params fio_table_row_params2 = get_table_rows_params{
                     .json           = true,
@@ -1783,7 +1782,6 @@ if( options.count(name) ) { \
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
                 uint32_t search_offset = p.offset;
-
                 auto start_time = fc::time_point::now();
                 auto end_time = start_time;
                 records_size = requests_rows_result.rows.size();
@@ -1794,8 +1792,7 @@ if( options.count(name) ) { \
 
                 for (size_t i = 0; i < search_limit; i++) {
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[i +
-                                                                        search_offset]["fio_request_id"].as_uint64();
+                    uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
                     string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
@@ -1879,20 +1876,18 @@ if( options.count(name) ) { \
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
                 uint32_t search_offset = p.offset;
-
                 auto start_time = fc::time_point::now();
                 auto end_time = start_time;
                 string status = "cancelled";
                 records_size = requests_rows_result.rows.size();
                 search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
                 if (search_limit > records_size) { search_limit = records_size; }
-                if (search_offset > records_size) { records_size = 0; }
+                if (search_offset >= records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for (size_t i = 0; i < search_limit; i++) {
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[i +
-                                                                        search_offset]["fio_request_id"].as_uint64();
+                    uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
                     string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
@@ -1950,7 +1945,6 @@ if( options.count(name) ) { \
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
-
             string account_name;
             fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
@@ -1975,13 +1969,12 @@ if( options.count(name) ) { \
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
                 uint32_t search_offset = p.offset;
-
                 auto start_time = fc::time_point::now();
                 auto end_time = start_time;
                 records_size = requests_rows_result.rows.size();
                 search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
                 if (search_limit > records_size) { search_limit = records_size; }
-                if (search_offset > records_size) { records_size = 0; }
+                if (search_offset >= records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for (size_t i = 0; i < search_limit; i++) {
@@ -2085,13 +2078,12 @@ if( options.count(name) ) { \
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
                 uint32_t search_offset = p.offset;
-
                 auto start_time = fc::time_point::now();
                 auto end_time = start_time;
                 records_size = requests_rows_result.rows.size();
                 search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
                 if (search_limit > records_size) { search_limit = records_size; }
-                if (search_offset > records_size) { records_size = 0; }
+                if (search_offset >= records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for (size_t i = 0; i < search_limit; i++) {
@@ -2211,8 +2203,7 @@ if( options.count(name) ) { \
                 records_size = requests_rows_result.rows.size() + requests_rows_result2.rows.size();
                 search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
                 if (search_limit > records_size) { search_limit = records_size; }
-                if (search_offset > records_size) { records_size = 0; }
-
+                if (search_offset >= records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 uint64_t fio_request_id;
