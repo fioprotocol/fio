@@ -1804,6 +1804,8 @@ if( options.count(name) ) { \
         read_only::get_actions_result
         read_only::get_actions(const read_only::get_actions_params &p) const {
 
+          try {
+
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
                            fioio::ErrorPagingInvalid);
 
@@ -1813,7 +1815,7 @@ if( options.count(name) ) { \
             get_actions_result results;
 
             int count = 0;
-            try {
+
             const auto &idx = db.db().get_index<fioaction_index,by_id>();
             auto itr = idx.rbegin();
 
@@ -1845,12 +1847,13 @@ if( options.count(name) ) { \
                 itr++;
                 count++;
             }
+
+            FIO_404_ASSERT(!(results.actions.size() == 0), "No actions", fioio::ErrorNoFioActionsFound);
+            results.more = count;
           } catch ( ... ) {
                 FIO_404_ASSERT(false, "No actions", fioio::ErrorNoFioActionsFound);
           }
 
-            FIO_404_ASSERT(!(results.actions.size() == 0), "No actions", fioio::ErrorNoFioActionsFound);
-            results.more = count;
             return results;
         } // get_actions
 
