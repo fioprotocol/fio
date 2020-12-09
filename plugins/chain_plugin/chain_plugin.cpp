@@ -1804,6 +1804,8 @@ if( options.count(name) ) { \
         read_only::get_actions_result
         read_only::get_actions(const read_only::get_actions_params &p) const {
 
+          get_actions_result results;
+          
           try {
 
             FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
@@ -1811,8 +1813,6 @@ if( options.count(name) ) { \
 
             FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
                            fioio::ErrorPagingInvalid);
-
-            get_actions_result results;
 
             int count = 0;
 
@@ -1851,7 +1851,7 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(!(results.actions.size() == 0), "No actions", fioio::ErrorNoFioActionsFound);
             results.more = count;
           } catch ( ... ) {
-                FIO_404_ASSERT(false, "No actions", fioio::ErrorNoFioActionsFound);
+                FIO_404_ASSERT(false, "No actions - unhandled exception occurred", fioio::ErrorNoFioActionsFound);
           }
 
             return results;
