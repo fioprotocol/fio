@@ -470,18 +470,38 @@ namespace eosio {
             struct get_pending_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_pending_fio_requests_result {
                 vector <request_record> requests;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_pending_fio_requests_result
             get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
 
             //end get pending fio requests
+
+            //begin get received fio requests
+            struct get_received_fio_requests_params {
+                string fio_public_key;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_received_fio_requests_result {
+                vector <request_status_record> requests;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_received_fio_requests_result
+            get_received_fio_requests(const get_received_fio_requests_params &params) const;
+
+            //end get pending fio requests
+
 
             //begin get actions fio requests
             struct get_actions_params {
@@ -501,12 +521,13 @@ namespace eosio {
             struct get_cancelled_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_cancelled_fio_requests_result {
                 vector <request_status_record> requests;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_cancelled_fio_requests_result
@@ -518,13 +539,13 @@ namespace eosio {
             struct get_sent_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_sent_fio_requests_result {
                 vector<request_status_record> requests;
-                int block_num;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_sent_fio_requests_result
@@ -535,12 +556,13 @@ namespace eosio {
             struct get_obt_data_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_obt_data_result {
                 vector<obt_records> obt_data_records;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_obt_data_result
@@ -639,11 +661,6 @@ namespace eosio {
             };
 
             get_actor_result get_actor(const get_actor_params &params) const;
-
-            void obt_data_search(uint32_t search_limit, get_obt_data_result &result, const abi_def &reqobt_abi,
-                                 const get_table_rows_result &table_rows_result, uint32_t &search_results,
-                                 uint32_t &search_offset, uint32_t &returnCount, bool &search_finished,
-                                 const bool id_req) const;
 
             //Fio API get_fee
             struct get_fee_params {
@@ -1469,15 +1486,17 @@ FC_REFLECT(eosio::chain_apis::read_only::get_locks_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::lockperiods, (duration)(percent))
 FC_REFLECT(eosio::chain_apis::read_only::get_locks_result, (lock_amount)(remaining_lock_amount)(time_stamp)(payouts_performed)(can_vote)(unlock_periods))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_received_fio_requests_params, (fio_public_key)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_received_fio_requests_result, (requests)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_actions_params, (offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_actions_result, (actions)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
 FC_REFLECT(eosio::chain_apis::whitelist_info, (fio_public_key_hash)(content))

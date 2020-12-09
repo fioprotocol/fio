@@ -17,6 +17,7 @@ namespace fioio {
     constexpr auto maxFioLen = 64;
     constexpr auto maxFioDomainLen = 62;
     std::vector<int> locationMap{10, 20, 30, 40, 50, 60, 70, 80};
+    const uint128_t STATUS_MULT = 0x1;
 
     using namespace std;
 

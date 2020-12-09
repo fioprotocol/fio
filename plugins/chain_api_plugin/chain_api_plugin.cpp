@@ -119,6 +119,7 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_pub_address, 200),
                                      CHAIN_RO_CALL(get_pub_addresses, 200),
                                      CHAIN_RO_CALL(get_pending_fio_requests, 200),
+                                     CHAIN_RO_CALL(get_received_fio_requests, 200),
                                      CHAIN_RO_CALL(get_cancelled_fio_requests, 200),
                                      CHAIN_RO_CALL(get_obt_data, 200),
                                      CHAIN_RO_CALL(get_whitelist, 200),
