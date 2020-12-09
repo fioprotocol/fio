@@ -28,15 +28,6 @@ namespace fioio {
         bool domainOnly;
     };
 
-    enum class trxstatus {
-        requested = 0,
-        rejected = 1,
-        sent_to_blockchain = 2,
-        cancelled = 3,
-        obt_action = 4,
-        other = 5 //Future Use
-    };
-
     inline string makeLowerCase(const string &entry){
         string temp = entry;
         for (auto &c : temp) {
