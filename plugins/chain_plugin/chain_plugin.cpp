@@ -1801,8 +1801,6 @@ if( options.count(name) ) { \
             return result;
         } // get_pending_fio_requests
 
-
-
         read_only::get_actions_result
         read_only::get_actions(const read_only::get_actions_params &p) const {
 
@@ -1814,10 +1812,12 @@ if( options.count(name) ) { \
 
             get_actions_result results;
 
+            int count = 0;
+            try {
             const auto &idx = db.db().get_index<fioaction_index,by_id>();
             auto itr = idx.rbegin();
 
-            int count = 0;
+
             if (p.offset > 0){
                 while ((itr != idx.rend()) && (count < p.offset)){
                     itr++;
@@ -1845,13 +1845,14 @@ if( options.count(name) ) { \
                 itr++;
                 count++;
             }
-
+          } catch ( ... ) {
+                FIO_404_ASSERT(false, "No actions", fioio::ErrorNoFioActionsFound);
+          }
 
             FIO_404_ASSERT(!(results.actions.size() == 0), "No actions", fioio::ErrorNoFioActionsFound);
             results.more = count;
             return results;
         } // get_actions
-
 
         /***
        * get cancelled fio requests.
