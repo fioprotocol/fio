@@ -1281,6 +1281,18 @@ namespace eosio {
                                   chain::plugin_interface::next_function<claim_bp_rewards_results> next);
 
             //End added for new claim_bp_rewards api method.
+
+            //Begin Added for add_bundled_transactions api method
+            using add_bundled_transactions_params = fc::variant_object;
+
+            struct add_bundled_transactions_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void add_bundled_transactions(const add_bundled_transactions_params &params,
+                                  chain::plugin_interface::next_function<add_bundled_transactions_results> next);
+            //end
             using push_transactions_params  = vector<push_transaction_params>;
             using push_transactions_results = vector<push_transaction_results>;
 
@@ -1535,6 +1547,7 @@ FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results, (transactio
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params,
            (code)(table)(lower_bound)(upper_bound)(limit)(reverse))

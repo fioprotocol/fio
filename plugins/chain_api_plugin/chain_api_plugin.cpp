@@ -191,7 +191,9 @@ namespace eosio {
                                      CHAIN_RW_CALL_ASYNC(pay_tpid_rewards,
                                                          chain_apis::read_write::pay_tpid_rewards_results, 202),
                                      CHAIN_RW_CALL_ASYNC(claim_bp_rewards,
-                                                         chain_apis::read_write::claim_bp_rewards_results, 202)
+                                                         chain_apis::read_write::claim_bp_rewards_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(add_bundled_transactions,
+                                                         chain_apis::read_write::add_bundled_transactions_results, 202)
 
                              });
     }
