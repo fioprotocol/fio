@@ -3373,7 +3373,7 @@ int main(int argc, char **argv) {
                 ("tpid", tpid)
                 ("actor", name(actor));
 
-      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "renewdomain",
+      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "setdomainpub",
                 variant_to_bin(N(fio.address), N(setdomainpub), setdomainpub)}});
       });
 
