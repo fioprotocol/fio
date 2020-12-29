@@ -27,7 +27,7 @@ namespace eosio {
 
         struct addaction {
             name action;
-            name contract;
+            string contract;
             name actor;
 
             static account_name get_account() {
