@@ -150,7 +150,7 @@ namespace eosio {
             eos_abi.structs.emplace_back(struct_def{
                     "addaction", "", {
                             {"name", "action"},
-                            {"string", "contract"},
+                            {"name", "contract"},
                             {"name","actor"}
                     }
             });
