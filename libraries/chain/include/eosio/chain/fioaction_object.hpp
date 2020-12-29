@@ -21,7 +21,7 @@ namespace eosio {
 
             id_type id;
             action_name actionname; //< name should not be changed within a chainbase modifier lambda
-            string contractname;
+            name contractname;
             uint64_t blocktimestamp;
         };
 

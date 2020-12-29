@@ -1831,7 +1831,7 @@ if( options.count(name) ) { \
                     break;
                 }
                 string action = itr->actionname.to_string();
-                string contract = itr->contractname;
+                string contract = itr->contractname.to_string();
                 string timestamp = to_string(itr->blocktimestamp);
 
                 action_record rr{action, contract, timestamp};
@@ -5516,7 +5516,7 @@ if( options.count(name) ) { \
                 fioaction_item = db.db().find<fioaction_object, by_actionname>(nm);
                 EOS_ASSERT(fioaction_item != nullptr, contract_query_exception, "Action can't be found ${contract}",
                            ("contract", params.action.to_string()));
-                actionname = fioaction_item->contractname;
+                actionname = fioaction_item->contractname.to_string();
             }else{
                 actionname = fioio::map_to_contract(params.action.to_string());
             }
