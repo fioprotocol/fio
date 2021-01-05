@@ -175,10 +175,12 @@ function ensure-compiler() {
                 ### Check for apple clang version 10 or higher
                 [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 10 ]] && export NO_CPP17=true
             else
-                if [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer
-                    [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) < 6 ]] && export NO_CPP17=true
-                elif [[ $(clang --version | cut -d ' ' -f 4 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer
-                    [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) < 6 ]] && export NO_CPP17=true
+                if [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]] && \
+                    [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) < 8 ]]; then
+                      [[ -f "$(which $CXX)-8" ]] && { export CXX="$(which $CXX)-8"; echo "${COLOR_YELLOW}WARNING: clang was less than version 8, using ${CXX} instead${COLOR_NC}"; sleep 2; } || export NO_CPP17=true
+                elif [[ $(clang --version | cut -d ' ' -f 4 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]] && \
+                    [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) < 8 ]]; then
+                      [[ -f "$(which $CXX)-8" ]] && { export CXX="$(which $CXX)-8"; echo "${COLOR_YELLOW}WARNING: clang was less than version 8, using ${CXX} instead${COLOR_NC}";  sleep 2; } || export NO_CPP17=true
                 fi
             fi
         else
