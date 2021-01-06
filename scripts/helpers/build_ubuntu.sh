@@ -12,6 +12,7 @@ echo "Disk space available: ${DISK_AVAIL}G"
 
 # system clang and build essential for Ubuntu 18 (16 too old)
 ( [[ $PIN_COMPILER == false ]] && [[ $VERSION_ID == "18.04" ]] ) && EXTRA_DEPS=(clang-8,dpkg\ -s)
+( [[ $PIN_COMPILER == false ]] && [[ $VERSION_ID == "18.04" ]] ) && EXTRA_DEPS=(llvm-8,dpkg\ -s)
 # We install clang8 for Ubuntu 16, but we still need something to compile cmake, boost, etc + pinned 18 still needs something to build source
 ( [[ $VERSION_ID == "16.04" ]] || ( $PIN_COMPILER && [[ $VERSION_ID == "18.04" ]] ) ) && ensure-build-essential
 # Ensure packages exist

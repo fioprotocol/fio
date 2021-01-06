@@ -157,8 +157,8 @@ function ensure-compiler() {
         export CXX=${CXX:-'g++'}
         export CC=${CC:-'gcc'}
     fi
-    export CXX=${CXX:-'clang++'}
-    export CC=${CC:-'clang'}
+    export CXX=${CXX:-'clang++-8'}
+    export CC=${CC:-'clang-8'}
     if $PIN_COMPILER || [[ -f $CLANG_ROOT/bin/clang++ ]]; then
         export PIN_COMPILER=true
         export BUILD_CLANG=true
@@ -177,10 +177,10 @@ function ensure-compiler() {
             else
                 if [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]] && \
                     [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) < 8 ]]; then
-                      [[ -f "$(which $CXX)-8" ]] && { export CXX="$(which $CXX)-8"; echo "${COLOR_YELLOW}WARNING: clang was less than version 8, using ${CXX} instead${COLOR_NC}"; sleep 2; } || export NO_CPP17=true
+                      [[ -f "$(which $CXX)-8" ]] && { export CPP="$(which $CPP)-8"; export CXX="$(which $CXX)-8"; echo "${COLOR_YELLOW}WARNING: clang was less than version 8, using ${CXX} instead${COLOR_NC}";  sleep 2; } || export NO_CPP17=true
                 elif [[ $(clang --version | cut -d ' ' -f 4 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]] && \
                     [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) < 8 ]]; then
-                      [[ -f "$(which $CXX)-8" ]] && { export CXX="$(which $CXX)-8"; echo "${COLOR_YELLOW}WARNING: clang was less than version 8, using ${CXX} instead${COLOR_NC}";  sleep 2; } || export NO_CPP17=true
+                      [[ -f "$(which $CXX)-8" ]] && { export CPP="$(which $CPP)-8"; export CXX="$(which $CXX)-8"; echo "${COLOR_YELLOW}WARNING: clang was less than version 8, using ${CXX} instead${COLOR_NC}";  sleep 2; } || export NO_CPP17=true
                 fi
             fi
         else
@@ -279,8 +279,8 @@ function ensure-llvm() {
             CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX='${LLVM_ROOT}' -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE='${BUILD_DIR}/pinned_toolchain.cmake' .."
         else
             if [[ $NAME == "Ubuntu" ]]; then
-                execute ln -s /usr/lib/llvm-4.0 $LLVM_ROOT
-                echo " - LLVM successfully linked from /usr/lib/llvm-4.0 to ${LLVM_ROOT}"
+                execute ln -s /usr/lib/llvm-8 $LLVM_ROOT
+                echo " - LLVM successfully linked from /usr/lib/llvm-8 to ${LLVM_ROOT}"
                 return 0
             fi
             CMAKE_FLAGS="-G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD='host' -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release .."
