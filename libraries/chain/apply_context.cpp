@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <eosio/chain/apply_context.hpp>
+#include <eosio/chain/fioio/actionmapping.hpp>
 #include <eosio/chain/controller.hpp>
 #include <eosio/chain/transaction_context.hpp>
 #include <eosio/chain/exceptions.hpp>
@@ -8,6 +9,7 @@
 #include <eosio/chain/authorization_manager.hpp>
 #include <eosio/chain/resource_limits.hpp>
 #include <eosio/chain/account_object.hpp>
+#include <eosio/chain/fioio/fioaction_object.hpp>
 #include <eosio/chain/code_object.hpp>
 #include <eosio/chain/global_property_object.hpp>
 #include <boost/container/flat_set.hpp>
@@ -52,6 +54,7 @@ apply_context::apply_context(controller& con, transaction_context& trx_ctx, uint
 void apply_context::exec_one()
 {
    auto start = fc::time_point::now();
+   int32_t HF1_BLOCK_TIME = 1600876800; //Wed Sep 23 16:00:00 UTC 2020
 
    action_receipt r;
    r.receiver         = receiver;
@@ -59,11 +62,36 @@ void apply_context::exec_one()
 
    const auto& cfg = control.get_global_properties().configuration;
    const account_metadata_object* receiver_account = nullptr;
+   const fioaction_object *fioaction_item = nullptr;
    try {
       try {
          receiver_account = &db.get<account_metadata_object,by_name>( receiver );
          privileged = receiver_account->is_privileged();
          auto native = control.find_apply_handler( receiver, act->account, act->name );
+
+         if (act->name != name("nonce")) {
+                   //Special note, this is the hardfork to integrate the whitelist in state.
+         if (control.head_block_time().sec_since_epoch() > HF1_BLOCK_TIME) {
+             action_name  thename = act->name;
+             fioaction_item = db.find<fioaction_object, by_actionname>(thename);
+             EOS_ASSERT(fioaction_item != nullptr, action_validate_exception,
+                        "Unknown action ${action} in contract ${contract}",
+                        ("action", act->name)("contract", act->account));
+         } else {
+             EOS_ASSERT(act->account.to_string() == fioio::map_to_contract(act->name.to_string()), action_validate_exception,
+                        "Unknown action ${action} in contract ${contract}",
+                        ("action", act->name)("contract", act->account));
+         }
+             EOS_ASSERT(sizeof(act->data) < config::max_transaction_size, action_validate_exception,
+                      " action ${action} in contract ${contract} too large",
+                      ("action", act->name)("contract", act->account));
+         }
+          else {
+             EOS_ASSERT(sizeof(act->data) <  config::max_nonce_size, action_validate_exception,
+                      " nonce too large: ${size} bytes",
+                      ("nonce_size", sizeof(act->data)));
+        }
+
          if( native ) {
             if( trx_context.enforce_whiteblacklist && control.is_producing_block() ) {
                control.check_contract_list( receiver );
