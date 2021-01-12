@@ -7,7 +7,7 @@
 namespace eosio { namespace chain { namespace config {
 
 typedef __uint128_t uint128_t;
-
+const static int max_nonce_size = 256;
 const static auto default_blocks_dir_name    = "blocks";
 const static auto reversible_blocks_dir_name = "reversible";
 const static auto default_reversible_cache_size = 340*1024*1024ll;/// 1MB * 340 blocks based on 21 producer BFT delay
@@ -54,6 +54,7 @@ static const uint32_t maximum_elastic_resource_multiplier  = 1000;
 //const static uint32_t   default_max_trx_runtime        = 10*1000;
 //const static uint32_t   default_max_gen_trx_size       = 64 * 1024;
 
+const static uint32_t   max_transaction_size = 8098;
 const static uint32_t   rate_limiting_precision        = 1000*1000;
 
 

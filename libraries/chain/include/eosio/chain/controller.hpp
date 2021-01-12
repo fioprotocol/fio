@@ -35,6 +35,7 @@ namespace eosio { namespace chain {
    class global_property_object;
    class permission_object;
    class account_object;
+   class fioaction_object;
    using resource_limits::resource_limits_manager;
    using apply_handler = std::function<void(apply_context&)>;
    using forked_branch_callback = std::function<void(const branch_type&)>;
