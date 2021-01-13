@@ -8,6 +8,7 @@
 #include <eosio/chain/exceptions.hpp>
 
 #include <eosio/chain/account_object.hpp>
+#include <eosio/chain/fioio/fioaction_object.hpp>
 #include <eosio/chain/code_object.hpp>
 #include <eosio/chain/permission_object.hpp>
 #include <eosio/chain/permission_link_object.hpp>
@@ -59,6 +60,99 @@ void validate_authority_precondition( const apply_context& context, const author
       }
    }
 }
+
+/**
+ *  Adds a new contract action to db
+ */
+void apply_eosio_addaction(apply_context &context) {
+    auto create = context.get_action().data_as<addaction>();
+    try {
+
+
+        context.require_authorization(create.actor);
+
+        EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
+                   create.actor == MSIGACCOUNT ||
+                   create.actor == WRAPACCOUNT ||
+                   create.actor == ASSERTACCOUNT ||
+                   create.actor == REQOBTACCOUNT ||
+                   create.actor == FeeContract ||
+                   create.actor == AddressContract ||
+                   create.actor == TPIDContract ||
+                   create.actor == TokenContract ||
+                   create.actor == TREASURYACCOUNT ||
+                   create.actor == FIOSYSTEMACCOUNT ||
+                   create.actor == FIOACCOUNT
+                ,fio_invalid_account_or_action,"Invalid Signature" );
+
+
+        auto &db = context.db;
+
+        auto name_str = name(create.action).to_string();
+
+        EOS_ASSERT(!create.action.empty(), action_validate_exception, "Action invalid or not found");
+        EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "Action invalid or not found");
+        EOS_ASSERT(!create.actor.empty(), action_validate_exception, "Invalid Signature");
+        EOS_ASSERT(!create.contract.empty(), action_validate_exception, "Invalid Contract");
+
+
+        auto fioaction_name = db.find<fioaction_object, by_actionname>(create.action);
+        EOS_ASSERT(fioaction_name == nullptr, account_name_exists_exception,
+                   "Action invalid or not found");
+
+
+        const auto &new_fioaction = db.create<fioaction_object>([&](auto &a) {
+            a.actionname = create.action;
+            a.contractname = create.contract;
+            a.blocktimestamp = context.control.pending_block_time().time_since_epoch().count();
+        });
+
+
+    } FC_CAPTURE_AND_RETHROW((create))
+}
+
+/**
+*  Removes a contract action from db
+*/
+void apply_eosio_remaction(apply_context &context) {
+    auto rem = context.get_action().data_as<remaction>();
+    try {
+        context.require_authorization(rem.actor);
+
+        EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
+                   rem.actor == MSIGACCOUNT ||
+                   rem.actor == WRAPACCOUNT ||
+                   rem.actor == ASSERTACCOUNT ||
+                   rem.actor == REQOBTACCOUNT ||
+                   rem.actor == FeeContract ||
+                   rem.actor == AddressContract ||
+                   rem.actor == TPIDContract ||
+                   rem.actor == TokenContract ||
+                   rem.actor == TREASURYACCOUNT ||
+                   rem.actor == FIOSYSTEMACCOUNT ||
+                   rem.actor == FIOACCOUNT
+                ,fio_invalid_account_or_action,"Invalid Signature" );
+
+
+        auto &db = context.db;
+
+        auto name_str = name(rem.action).to_string();
+
+        EOS_ASSERT(!rem.action.empty(), action_validate_exception, "Action invalid or not found");
+        EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "Action invalid or not found");
+        EOS_ASSERT(!rem.actor.empty(), action_validate_exception, "Invalid Signature");
+
+        auto fioaction_name = db.find<fioaction_object, by_actionname>(rem.action);
+        EOS_ASSERT(fioaction_name != nullptr, account_name_exists_exception,
+                   "Action invalid or not found");
+
+
+        db.remove(*fioaction_name);
+
+    } FC_CAPTURE_AND_RETHROW((rem))
+}
+
+
 
 /**
  *  This method is called assuming precondition_system_newaccount succeeds a
