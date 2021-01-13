@@ -1978,12 +1978,10 @@ if( options.count(name) ) { \
                 if (search_limit > records_size) { search_limit = records_size; }
                 if (search_offset >= records_size) { records_size = 0; }
                 FIO_404_ASSERT(!(records_size == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
-
                 for (size_t i = 0; i < search_limit; i++) {
                     if((i + search_offset) == requests_rows_result.rows.size()){ break; }
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[i +
-                                                                        search_offset]["fio_request_id"].as_uint64();
+                    uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
                     string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
@@ -1991,7 +1989,7 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
 
-                    if (fioKey == payee_fio_public_key) {
+                    if (fioKey == payer_fio_public_key) {
                         string status = "requested";
                         uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
@@ -2027,7 +2025,6 @@ if( options.count(name) ) { \
                     }
                 }
             }
-
             FIO_404_ASSERT(!(result.requests.size() == 0), "No FIO Requests", fioio::ErrorNoFioRequestsFound);
             result.more = records_size - records_returned - search_offset;
             return result;
