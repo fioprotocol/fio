@@ -928,7 +928,17 @@ namespace eosio {
       try {
          try {
             throw;
-         } catch (chain::unknown_block_exception& e) {
+          } catch (const chain::fio_data_exception &e) {
+              cb(400, e.what());
+          } catch (const chain::fio_invalid_sig_exception &e) {
+              cb(403, e.what());
+          } catch (const chain::fio_invalid_trans_exception &e) {
+              cb(403, e.what());
+          } catch (const chain::fio_invalid_account_or_action &e) {
+              cb(403, e.what());
+          } catch (const chain::fio_location_exception &e) {
+              cb(404, e.what());
+          } catch (chain::unknown_block_exception &e) {
             error_results results{400, "Unknown Block", error_results::error_info(e, verbose_http_errors)};
             cb( 400, fc::variant( results ));
          } catch (chain::invalid_http_request& e) {
@@ -950,7 +960,7 @@ namespace eosio {
                auto rescode = fioio::get_http_result(e.code());
                elog("got FIO error code ${f}", ("f", rescode));
 
-               cb(rescode, fc::json::from_string(e.what()));
+               cb(rescode, fc::json::from_string(e.what())); // cb(rescode, fc::json::from_string(e.what(),fc::json::legacy_parser));
            } else {
             // error_results results{500, "Internal Service Error",
             // error_results::error_info(e, verbose_http_errors)};
