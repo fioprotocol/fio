@@ -7,6 +7,7 @@
 namespace eosio { namespace chain { namespace config {
 
 typedef __uint128_t uint128_t;
+
 const static int max_nonce_size = 256;
 const static auto default_blocks_dir_name    = "blocks";
 const static auto reversible_blocks_dir_name = "reversible";
