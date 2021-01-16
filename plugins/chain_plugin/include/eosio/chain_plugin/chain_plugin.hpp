@@ -77,6 +77,7 @@ string convert_to_string(const chain::key256_t& source, const string& key_type, 
 template<>
 string convert_to_string(const float128_t& source, const string& key_type, const string& encode_type, const string& desc);
 
+abi_def get_abi( const controller& db, const name& account );
 
 class read_only {
    const controller& db;
