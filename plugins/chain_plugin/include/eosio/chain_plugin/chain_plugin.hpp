@@ -79,6 +79,9 @@ string convert_to_string(const float128_t& source, const string& key_type, const
 
 abi_def get_abi( const controller& db, const name& account );
 
+abi_def get_abi( const controller& db, const name& account );
+
+
 class read_only {
    const controller& db;
    const fc::optional<account_query_db>& aqdb;
@@ -396,6 +399,65 @@ public:
 
    get_scheduled_transactions_result get_scheduled_transactions( const get_scheduled_transactions_params& params ) const;
 
+   /////////////
+   //// FIO ////
+   /////////////
+
+   const name fio_system_code = N(fio.address);    // FIO name contract account, init in the top of this class
+   const name fio_reqobt_code = N(fio.reqobt);    // FIO request obt contract account, init in the top of this class
+   const name fio_fee_code = N(fio.fee);    // FIO fee account, init in the top of this class
+   const name fio_whitelst_code = N(fio.whitelst);    // FIO whitelst account, init in the top of this class
+   const name fio_code = N(eosio);    // FIO system account
+   const name fio_whitelist_table = N(whitelist); // FIO Address Table
+   const name fio_address_table = N(fionames); // FIO Address Table
+   const name fio_fees_table = N(fiofees); // FIO fees Table
+   const name fio_domains_table = N(domains); // FIO Domains Table
+   const name fio_accounts_table = N(accountmap); // FIO Chains Table
+   const name fio_locks_table = N(locktokens); // FIO locktokens Table
+
+   const string fio_system_scope = "fio.address";   // FIO name contract scope
+   const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
+   const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
+   const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
+   const string fio_scope = "eosio";   // FIO system scope
+
+   const uint16_t FEEMAXLENGTH = 32;
+   const uint16_t FIOPUBLICKEYLENGTH = 53;
+
+   struct get_pub_address_params {
+       fc::string fio_address;
+       fc::string token_code;
+       fc::string chain_code;
+   };
+
+   struct get_pub_address_result {
+       fc::string public_address;
+   };
+
+   get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
+
+   struct get_pub_addresses_params {
+       fc::string fio_address;
+       int32_t offset;
+       int32_t limit;
+
+   };
+
+   struct address_info {
+     fc::string chain_code;
+     fc::string token_code;
+     fc::string public_address;
+
+   };
+
+   struct get_pub_addresses_result {
+       vector<address_info> public_addresses;
+       bool more;
+   };
+
+   get_pub_addresses_result get_pub_addresses(const get_pub_addresses_params &params) const;
+
+
    static void copy_inline_row(const chain::key_value_object& obj, vector<char>& data) {
       data.resize( obj.value.size() );
       memcpy( data.data(), obj.value.data(), obj.value.size() );
@@ -654,7 +716,7 @@ public:
             // which is the format used by secondary index
             uint8_t buffer[32];
             memcpy(buffer, v.data(), 32);
-            fixed_bytes<32> fb(buffer); 
+            fixed_bytes<32> fb(buffer);
             return chain::key256_t(fb.get_array());
         };
      }
@@ -672,7 +734,7 @@ public:
             // which is the format used by secondary index
             uint8_t buffer[20];
             memcpy(buffer, v.data(), 20);
-            fixed_bytes<20> fb(buffer); 
+            fixed_bytes<20> fb(buffer);
             return chain::key256_t(fb.get_array());
         };
      }
@@ -796,6 +858,18 @@ FC_REFLECT( eosio::chain_apis::read_only::get_producer_schedule_result, (active)
 FC_REFLECT( eosio::chain_apis::read_only::get_scheduled_transactions_params, (json)(lower_bound)(limit) )
 FC_REFLECT( eosio::chain_apis::read_only::get_scheduled_transactions_result, (transactions)(more) );
 
+/////////////
+//// FIO ////
+/////////////
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)(chain_code))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address));
+FC_REFLECT(eosio::chain_apis::read_only::address_info, (public_address)(token_code)(chain_code))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_params, (fio_address)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addresses)(more));
+
+
+/////////////
+/////////////
 FC_REFLECT( eosio::chain_apis::read_only::get_account_results,
             (account_name)(head_block_num)(head_block_time)(privileged)(last_code_update)(created)
             (core_liquid_balance)(ram_quota)(net_weight)(cpu_weight)(net_limit)(cpu_limit)(ram_usage)(permissions)
@@ -819,4 +893,3 @@ FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_params, (code)(action)
 FC_REFLECT( eosio::chain_apis::read_only::abi_bin_to_json_result, (args) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_params, (transaction)(available_keys) )
 FC_REFLECT( eosio::chain_apis::read_only::get_required_keys_result, (required_keys) )
-
