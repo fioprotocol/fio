@@ -243,7 +243,8 @@ namespace eosio {
                                act.account == TokenContract ||
                                act.account == TREASURYACCOUNT ||
                                act.account == FIOSYSTEMACCOUNT ||
-                               act.account == FIOACCOUNT
+                               act.account == FIOACCOUNT || 
+                               act.account == ESCROWACCOUNT
                     ,fio_invalid_account_or_action,"set code not permitted." );
 
             EOS_ASSERT(act.vmtype == 0, invalid_contract_vm_type, "code should be 0");

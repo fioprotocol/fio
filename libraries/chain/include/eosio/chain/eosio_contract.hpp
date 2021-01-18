@@ -37,6 +37,7 @@ namespace eosio {
         static const name TREASURYACCOUNT =   name("fio.treasury");
         static const name FIOSYSTEMACCOUNT=   name("fio.system");
         static const name FIOACCOUNT =   name("fio");
+        static const name ESCROWACCOUNT = name("fio.escrow");
 
         /**
          * @defgroup native_action_handlers Native Action Handlers
