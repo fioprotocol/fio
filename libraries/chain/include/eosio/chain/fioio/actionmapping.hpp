@@ -78,6 +78,10 @@ namespace fioio {
         if (action == "nonce")
            return "eosio.null";
 
+        // fio.escrow
+        if (action == "hi")
+            return "fio.escrow";
+
         return "nomap";
     }
 

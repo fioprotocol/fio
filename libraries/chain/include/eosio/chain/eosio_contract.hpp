@@ -36,6 +36,8 @@ namespace eosio {
         static const name FOUNDATIONACCOUNT = name("tw4tjkmo4eyd");
         static const name TREASURYACCOUNT =   name("fio.treasury");
         static const name FIOSYSTEMACCOUNT=   name("fio.system");
+        // FIOESCROW
+        static const name FIOESCROW = name("fio.escrow");
         static const name FIOACCOUNT =   name("fio");
 
         /**
