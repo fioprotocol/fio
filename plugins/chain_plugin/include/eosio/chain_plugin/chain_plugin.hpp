@@ -65,6 +65,7 @@ namespace eosio {
         struct fioaddress_record {
             string fio_address;
             string expiration;
+            uint64_t remaining_bundled_tx = 0;
         };
 
         struct request_record {
@@ -1522,7 +1523,7 @@ FC_REFLECT(eosio::chain_apis::read_only::address_info, (public_address)(token_co
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_params, (fio_address)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addresses)(more));
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
-FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
+FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)(remaining_bundled_tx))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))
