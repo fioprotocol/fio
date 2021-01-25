@@ -1753,7 +1753,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             get_pending_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            string fio_trx_lookup_table = "fiotrxtss";   // table name
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
@@ -1847,7 +1847,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             get_cancelled_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            string fio_trx_lookup_table = "fiotrxtss";   // table name
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
@@ -1894,7 +1894,7 @@ if( options.count(name) ) { \
                     string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
                     if (fioKey == payee_fio_public_key) {
                         time_t temptime;
@@ -1942,7 +1942,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             get_received_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            string fio_trx_lookup_table = "fiotrxtss";   // table name
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
@@ -1988,20 +1988,16 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
 
                     if (fioKey == payer_fio_public_key) {
                         string status = "requested";
-                        uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
-
                         if (statusint == 1) {
                             status = "rejected";
-                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                         } else if (statusint == 2) {
                             status = "sent_to_blockchain";
-                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                         } else if (statusint == 3) {
                             status = "cancelled";
-                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                         }
 
                         time_t temptime;
@@ -2049,7 +2045,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             get_sent_fio_requests_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            string fio_trx_lookup_table = "fiotrxtss";   // table name
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
@@ -2096,20 +2092,17 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+
 
                     if (fioKey == payee_fio_public_key) {
                         string status = "requested";
-                        uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
-
                         if (statusint == 1) {
                             status = "rejected";
-                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                         } else if (statusint == 2) {
                             status = "sent_to_blockchain";
-                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                         } else if (statusint == 3) {
                             status = "cancelled";
-                            time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                         }
 
                         time_t temptime;
@@ -2152,7 +2145,7 @@ if( options.count(name) ) { \
                            fioio::ErrorPagingInvalid);
 
             get_obt_data_result result;
-            string fio_trx_lookup_table = "fiotrxts";   // table name
+            string fio_trx_lookup_table = "fiotrxtss";   // table name
             const abi_def reqobt_abi = eosio::chain_apis::get_abi(db, fio_reqobt_code);
             uint32_t records_returned = 0;
             uint32_t records_size = 0;
@@ -2223,10 +2216,10 @@ if( options.count(name) ) { \
                         fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                        content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                        content = requests_rows_result.rows[i + search_offset]["obt_metadata"].as_string();
                         payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                         payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
-                        time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
                     } else if (!wContinue) {
                         wContinue = true;
                         if( search_offset - static_cast<int>(records_returned) >= 0 ) { search_offset = search_offset - records_returned; }
@@ -2236,10 +2229,10 @@ if( options.count(name) ) { \
                         fio_request_id = requests_rows_result2.rows[j + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result2.rows[j + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result2.rows[j + search_offset]["payer_fio_addr"].as_string();
-                        content = requests_rows_result2.rows[j + search_offset]["content"].as_string();
+                        content = requests_rows_result2.rows[j + search_offset]["obt_metadata"].as_string();
                         payer_fio_public_key = requests_rows_result2.rows[j + search_offset]["payer_key"].as_string();
                         payee_fio_public_key = requests_rows_result2.rows[j + search_offset]["payee_key"].as_string();
-                        time_stamp = requests_rows_result2.rows[j + search_offset]["init_time"].as_uint64();
+                        time_stamp = requests_rows_result2.rows[j + search_offset]["update_time"].as_uint64();
                         j++;
                     }
 
