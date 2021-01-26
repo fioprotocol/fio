@@ -1796,8 +1796,8 @@ if( options.count(name) ) { \
                     uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    string content = requests_rows_result.rows[i + search_offset]["req_content"].as_string();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
 
@@ -1891,10 +1891,10 @@ if( options.count(name) ) { \
                     uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["req_content"].as_string();
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
                     if (fioKey == payee_fio_public_key) {
                         time_t temptime;
@@ -1984,11 +1984,11 @@ if( options.count(name) ) { \
                     uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["req_content"].as_string();
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
                     if (fioKey == payer_fio_public_key) {
                         string status = "requested";
@@ -2088,11 +2088,11 @@ if( options.count(name) ) { \
                     uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                    string content = requests_rows_result.rows[i + search_offset]["content"].as_string();
+                    string content = requests_rows_result.rows[i + search_offset]["req_content"].as_string();
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
-                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["init_time"].as_uint64();
+                    uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
 
                     if (fioKey == payee_fio_public_key) {
@@ -2216,10 +2216,10 @@ if( options.count(name) ) { \
                         fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
-                        content = requests_rows_result.rows[i + search_offset]["obt_metadata"].as_string();
+                        content = requests_rows_result.rows[i + search_offset]["obt_content"].as_string();
                         payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                         payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
-                        time_stamp = requests_rows_result.rows[i + search_offset]["update_time"].as_uint64();
+                        time_stamp = requests_rows_result.rows[i + search_offset]["obt_time"].as_uint64();
                     } else if (!wContinue) {
                         wContinue = true;
                         if( search_offset - static_cast<int>(records_returned) >= 0 ) { search_offset = search_offset - records_returned; }
@@ -2229,10 +2229,10 @@ if( options.count(name) ) { \
                         fio_request_id = requests_rows_result2.rows[j + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result2.rows[j + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result2.rows[j + search_offset]["payer_fio_addr"].as_string();
-                        content = requests_rows_result2.rows[j + search_offset]["obt_metadata"].as_string();
+                        content = requests_rows_result2.rows[j + search_offset]["obt_content"].as_string();
                         payer_fio_public_key = requests_rows_result2.rows[j + search_offset]["payer_key"].as_string();
                         payee_fio_public_key = requests_rows_result2.rows[j + search_offset]["payee_key"].as_string();
-                        time_stamp = requests_rows_result2.rows[j + search_offset]["update_time"].as_uint64();
+                        time_stamp = requests_rows_result2.rows[j + search_offset]["obt_time"].as_uint64();
                         j++;
                     }
 
