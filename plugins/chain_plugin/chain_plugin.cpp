@@ -1772,7 +1772,7 @@ if( options.count(name) ) { \
                     .lower_bound    = boost::lexical_cast<string>(hexstat),
                     .upper_bound    = boost::lexical_cast<string>(hexstat),
                     .key_type       = "i64",
-                    .index_position = "8"};
+                    .index_position = "9"};
 
             get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     fio_table_row_params2, reqobt_abi,
@@ -1866,7 +1866,7 @@ if( options.count(name) ) { \
                     .lower_bound    = boost::lexical_cast<string>(hexstat),
                     .upper_bound    = boost::lexical_cast<string>(hexstat),
                     .key_type       = "i64",
-                    .index_position = "9"};
+                    .index_position = "10"};
 
             get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     fio_table_row_params2, reqobt_abi,
@@ -1961,7 +1961,7 @@ if( options.count(name) ) { \
                     .lower_bound    = boost::lexical_cast<string>(hexstat),
                     .upper_bound    = boost::lexical_cast<string>(hexstat),
                     .key_type       = "i64",
-                    .index_position = "12"};
+                    .index_position = "13"};
 
             get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     fio_table_row_params2, reqobt_abi,
@@ -2064,7 +2064,7 @@ if( options.count(name) ) { \
                     .lower_bound    = boost::lexical_cast<string>(hexstat),
                     .upper_bound    = boost::lexical_cast<string>(hexstat),
                     .key_type       = "i64",
-                    .index_position = "13"};
+                    .index_position = "14"};
 
             get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     fio_table_row_params2, reqobt_abi,
@@ -2164,7 +2164,7 @@ if( options.count(name) ) { \
                     .lower_bound    = boost::lexical_cast<string>(hexstat),
                     .upper_bound    = boost::lexical_cast<string>(hexstat),
                     .key_type       = "i64",
-                    .index_position = "10"};
+                    .index_position = "11"};
 
             get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
                     fio_table_row_params1, reqobt_abi,
@@ -2180,7 +2180,7 @@ if( options.count(name) ) { \
                     .lower_bound    = boost::lexical_cast<string>(hexstat),
                     .upper_bound    = boost::lexical_cast<string>(hexstat),
                     .key_type       = "i64",
-                    .index_position = "11"};
+                    .index_position = "12"};
 
             get_table_rows_result requests_rows_result2 = get_table_rows_by_seckey<index64_index, uint64_t>(
                     fio_table_row_params2, reqobt_abi,
