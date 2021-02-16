@@ -2318,6 +2318,7 @@ if( options.count(name) ) { \
 
             std::string nam;
             uint64_t namexpiration;
+            uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
             char buffer[80];
@@ -2331,12 +2332,14 @@ if( options.count(name) ) { \
                     if (nam.find('@') !=
                         std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+                        rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
+
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
                         strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                        fioaddress_record fa{nam, buffer};
+                        fioaddress_record fa{nam, buffer,rem_bundle};
                         result.fio_addresses.push_back(fa);
                     }
                 } // Get FIO domains and push
