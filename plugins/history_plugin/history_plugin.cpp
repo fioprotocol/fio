@@ -503,7 +503,7 @@ namespace eosio {
             // Find latest stored action (will have lowest available ACCOUNT seq number)
             const auto max_itr = idx.lower_bound( boost::make_tuple( n, 0 ) );
             const auto min_seq_number = max_itr->account_sequence_num;
-            if (min_seq_number > 0) {  // Reject outside of retention policy boundary.
+            if (min_seq_number > 0 && max_itr != idx.end()) {  // Reject outside of retention policy boundary.
               const auto max_seq_number = min_seq_number + history->history_per_account;
               EOS_ASSERT( start >= min_seq_number, chain::plugin_range_not_satisfiable, "start position is earlier than account retention policy (${p}). Latest available: ${l}. Requested start: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",start) );
               // Below should actually never occur..?
