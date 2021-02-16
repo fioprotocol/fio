@@ -78,7 +78,7 @@ namespace fioio {
         if (action == "nonce")
            return "eosio.null";
 
-        if (action == "wraptokens")
+        if (action == "wraptokens" || action == "unwraptokens")
             return "fio.oracle";
 
         return "nomap";
