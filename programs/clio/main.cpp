@@ -1279,21 +1279,20 @@ struct fee_amount_subcommand {
     vector<string> fee_ratios;
 
      fee_amount_subcommand(CLI::App *actionRoot) {
-        auto setAmount = actionRoot->add_subcommand("submit_ratios", localized("Vote for one or more producers"));
-        setAmount->add_option("fio_address", fioaddress_str, localized("The voting fio address"))->required();
-        setAmount->add_option("actor", actor, localized("The voting fio account"))->required();
-        setAmount->add_option("max_fee", maxfee_str, localized("The maximum fio fee to pay while voting"))->required();
+        auto setAmount = actionRoot->add_subcommand("submit_ratios", localized("Set one or more fee ratios"));
+        setAmount->add_option("fio_address", fioaddress_str, localized("The setter fio address"))->required();
+        setAmount->add_option("actor", actor, localized("The setter FIO account"))->required();
+        setAmount->add_option("max_fee", maxfee_str, localized("The maximum FIO fee to pay while setting ratios"))->required();
         setAmount->add_option("fee_ratios", fee_ratios, localized(
-                "The fees to vote on. All options from this position and following will be treated as the fee list."))->required();
+                "The fee ratios to set. All options from this position and following will be treated as the fee list."))->required();
         add_standard_transaction_options(setAmount, "voter@active");
 
         setAmount->set_callback([this] {
-
             fc::variant act_payload = fc::mutable_variant_object()
-                    ("fee_ratios", fee_ratios)
                     ("fio_address",fioaddress_str)
                     ("actor", actor)
-                    ("max_fee",maxfee_str);
+                    ("max_fee",maxfee_str)
+                    ("fee_ratios", fee_ratios);
             auto accountPermissions = get_account_permissions(tx_permission, {actor, config::active_name});
             send_actions(
                     {create_action(accountPermissions, N(fio.fee), N(setfeevote), act_payload)});
