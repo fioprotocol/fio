@@ -2205,7 +2205,7 @@ if( options.count(name) ) { \
                 string content;
                 string payer_fio_public_key;
                 string payee_fio_public_key;
-                int32_t search_offset2;
+                int32_t search_offset2 = 0;
                 uint64_t time_stamp;
                 bool wContinue = false;
                 size_t j = 0;
@@ -2221,10 +2221,10 @@ if( options.count(name) ) { \
                         time_stamp = requests_rows_result.rows[i + search_offset]["obt_time"].as_uint64();
                     } else if (!wContinue) {
                         wContinue = true;
-                        if( search_offset - static_cast<int>(records_returned) >= 0 ) { search_offset2 = search_offset - records_returned; }
+                        if( search_offset - static_cast<int>(records_returned) > 0 ) { search_offset2 = search_offset - records_returned; }
                     }
                     if(wContinue) {
-                        if(requests_rows_result2.rows.size() == (j + search_offset2) ) { break; }
+                        if(requests_rows_result2.rows.size() == (j + search_offset2) ) { break; } // safety check
                         fio_request_id = requests_rows_result2.rows[j + search_offset2]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result2.rows[j + search_offset2]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result2.rows[j + search_offset2]["payer_fio_addr"].as_string();
