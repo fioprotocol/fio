@@ -2233,6 +2233,7 @@ if( options.count(name) ) { \
                         payee_fio_public_key = requests_rows_result2.rows[j + search_offset2]["payee_key"].as_string();
                         time_stamp = requests_rows_result2.rows[j + search_offset2]["obt_time"].as_uint64();
                         j++;
+                        i--;
                     }
 
                     time_t temptime;
@@ -2550,7 +2551,6 @@ if( options.count(name) ) { \
                     result.more = (table_rows_result.rows.size()-pos)-1;
                 }
             }
-
             return result;
         } // get_fio_addresses
 
