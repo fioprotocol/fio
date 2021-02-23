@@ -3462,7 +3462,7 @@ int main(int argc, char **argv) {
           send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "regaddress",
                     variant_to_bin(N(fio.address), N(regaddress), regaddress)}});
           });
-
+/*
 // add address subcommand
     vector<string> addresses;
     auto addaddress_action = address->add_subcommand("add_pub", localized("Add other blockchain addresses to FIO address"));
@@ -3485,7 +3485,8 @@ int main(int argc, char **argv) {
                variant_to_bin(N(fio.address), N(addaddress), addaddress)}});
      });
 
- // add address subcommand
+
+ // remaddress subcommand
      auto remaddress_action = address->add_subcommand("remove_pub", localized("Remove blockchain addresses from FIO address"));
      add_standard_transaction_options(remaddress_action, "sender@active");
      remaddress_action->add_option("fio_address", fio_address,localized("The FIO address to remove blockchain addresses from"))->required();
@@ -3505,7 +3506,7 @@ int main(int argc, char **argv) {
       send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "remaddress",
                 variant_to_bin(N(fio.address), N(remaddress), rem_address)}});
       });
-
+*/
 // renew address subcommand
     auto renewaddress_action = address->add_subcommand("renew", localized("Renew address action"));
     add_standard_transaction_options(renewaddress_action, "sender@active");
@@ -3525,7 +3526,7 @@ int main(int argc, char **argv) {
      send_actions({chain::action{get_account_permissions(tx_permission, {actor, config::active_name}), "fio.address", "renewaddress",
                variant_to_bin(N(fio.address), N(renewaddress), renewaddress)}});
      });
-
+/*
      // remove all subcommand
      auto removeall_action = address->add_subcommand("remove_all_pub", localized("Remove all addresses action"));
      add_standard_transaction_options(removeall_action, "sender@active");
@@ -3573,7 +3574,7 @@ int main(int argc, char **argv) {
                  variant_to_bin(N(fio.address), N(xferaddress), transferaddress)}});
        });
 
-
+*/
     // set subcommand
     auto setSubcommand = app.add_subcommand("set", localized("Set or update blockchain state"));
     setSubcommand->require_subcommand();

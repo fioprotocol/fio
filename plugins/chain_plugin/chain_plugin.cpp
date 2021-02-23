@@ -1733,7 +1733,7 @@ if( options.count(name) ) { \
             results.more = count;
             return results;
         } // get_actions
-        
+
         /***
         * get pending fio requests.
         * @param p Input is FIO name(.fio_name) and chain name(.chain). .chain is allowed to be null/empty, in which case this will bea domain only lookup.
@@ -2094,7 +2094,6 @@ if( options.count(name) ) { \
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
-
                     if (fioKey == payee_fio_public_key) {
                         string status = "requested";
                         if (statusint == 1) {
@@ -2206,13 +2205,13 @@ if( options.count(name) ) { \
                 string content;
                 string payer_fio_public_key;
                 string payee_fio_public_key;
+                int32_t search_offset2;
                 uint64_t time_stamp;
                 bool wContinue = false;
                 size_t j = 0;
 
-                for (size_t i = 0; i < search_limit; i++) {
+                for (size_t i = 0; (i + j) < search_limit; i++) {
                     if ((i + search_offset) < requests_rows_result.rows.size()) {
-                        if((i + search_offset) == requests_rows_result.rows.size()){ break; }
                         fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
                         payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                         payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
@@ -2222,17 +2221,17 @@ if( options.count(name) ) { \
                         time_stamp = requests_rows_result.rows[i + search_offset]["obt_time"].as_uint64();
                     } else if (!wContinue) {
                         wContinue = true;
-                        if( search_offset - static_cast<int>(records_returned) >= 0 ) { search_offset = search_offset - records_returned; }
+                        if( search_offset - static_cast<int>(records_returned) >= 0 ) { search_offset2 = search_offset - records_returned; }
                     }
                     if(wContinue) {
-                        if(requests_rows_result.rows.size() < (j + search_offset) ) { break; }
-                        fio_request_id = requests_rows_result2.rows[j + search_offset]["fio_request_id"].as_uint64();
-                        payee_fio_addr = requests_rows_result2.rows[j + search_offset]["payee_fio_addr"].as_string();
-                        payer_fio_addr = requests_rows_result2.rows[j + search_offset]["payer_fio_addr"].as_string();
-                        content = requests_rows_result2.rows[j + search_offset]["obt_content"].as_string();
-                        payer_fio_public_key = requests_rows_result2.rows[j + search_offset]["payer_key"].as_string();
-                        payee_fio_public_key = requests_rows_result2.rows[j + search_offset]["payee_key"].as_string();
-                        time_stamp = requests_rows_result2.rows[j + search_offset]["obt_time"].as_uint64();
+                        if(requests_rows_result2.rows.size() == (j + search_offset2) ) { break; }
+                        fio_request_id = requests_rows_result2.rows[j + search_offset2]["fio_request_id"].as_uint64();
+                        payee_fio_addr = requests_rows_result2.rows[j + search_offset2]["payee_fio_addr"].as_string();
+                        payer_fio_addr = requests_rows_result2.rows[j + search_offset2]["payer_fio_addr"].as_string();
+                        content = requests_rows_result2.rows[j + search_offset2]["obt_content"].as_string();
+                        payer_fio_public_key = requests_rows_result2.rows[j + search_offset2]["payer_key"].as_string();
+                        payee_fio_public_key = requests_rows_result2.rows[j + search_offset2]["payee_key"].as_string();
+                        time_stamp = requests_rows_result2.rows[j + search_offset2]["obt_time"].as_uint64();
                         j++;
                     }
 
@@ -2257,7 +2256,7 @@ if( options.count(name) ) { \
             }
             FIO_404_ASSERT(!(result.obt_data_records.size() == 0), "No FIO Requests",
                            fioio::ErrorNoFioRequestsFound);
-            result.more = records_size - records_returned - orig_offset;
+            result.more = records_size - (records_returned - orig_offset);
             return result;
         }
 
@@ -2319,6 +2318,7 @@ if( options.count(name) ) { \
 
             std::string nam;
             uint64_t namexpiration;
+            uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
             char buffer[80];
@@ -2332,12 +2332,14 @@ if( options.count(name) ) { \
                     if (nam.find('@') !=
                         std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+                        rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
+
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
                         strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
 
-                        fioaddress_record fa{nam, buffer};
+                        fioaddress_record fa{nam, buffer,rem_bundle};
                         result.fio_addresses.push_back(fa);
                     }
                 } // Get FIO domains and push
@@ -5666,16 +5668,6 @@ if( options.count(name) ) { \
                  });
                   if (!voter_result.rows.empty()) {
                     result.voter_info = voter_result.rows[0];
-                  }
-                  else {
-                        voter_table.table = "voters2";
-                        get_table_rows_result voter2_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                                voter_table, system_abi, [](uint64_t v) -> uint64_t {
-                                    return v;
-                        });
-                            if (!voter2_result.rows.empty()) {
-                              result.voter_info = voter2_result.rows[0];
-                            }
                   }
             }
             return result;
