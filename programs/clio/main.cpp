@@ -4669,8 +4669,8 @@ int main(int argc, char **argv) {
     auto voteProducers = vote_producers_subcommand(voteProducer);
    // auto approveProducer = approve_producer_subcommand(voteProducer);
    // auto unapproveProducer = unapprove_producer_subcommand(voteProducer);
-   auto fee = app.add_subcommand("fee", localized("Interact with the fio.fee contract."), false);
-   fee->require_subcommand();
+   // auto fee = app.add_subcommand("fee", localized("Interact with the fio.fee contract."), false);
+   // fee->require_subcommand();
 
     auto listProducers = list_producers_subcommand(system);
 
