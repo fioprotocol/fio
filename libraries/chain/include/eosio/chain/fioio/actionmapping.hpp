@@ -79,7 +79,7 @@ namespace fioio {
            return "eosio.null";
 
         // fio.escrow
-        if (action == "hi")
+        if (action == "buydomain" || action == "listdomain" || action == "cxlistdomain")
             return "fio.escrow";
 
         return "nomap";
