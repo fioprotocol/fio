@@ -689,8 +689,8 @@ namespace eosio {
 
             struct get_pub_addresses_params {
                 fc::string fio_address;
-                int32_t offset;
-                int32_t limit;
+                int32_t offset = 0;
+                int32_t limit = 0;
 
             };
 
