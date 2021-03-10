@@ -28,14 +28,11 @@ namespace fioio {
             action == "burnexpired" || action == "decrcounter" || action == "burnaddress" ||action == "xferdomain" || action == "xferaddress" )
           return "fio.address";
 
-
-
         // fio.fee actions
         if (action == "setfeemult" || action == "bundlevote" || action == "setfeevote" ||
             action == "bytemandfee" || action == "updatefees" || action == "mandatoryfee" ||
             action == "createfee")
           return "fio.fee";
-
 
         // fio.treasury actions
         if (action == "tpidclaim" || action == "bpclaim" || action == "bppoolupdate" ||
@@ -47,6 +44,7 @@ namespace fioio {
         if (action == "trnsfiopubky" || action == "create" || action == "issue" ||
             action == "transfer" || action == "mintfio" || action == "trnsloctoks" )
           return "fio.token";
+
         //fio.request.obt actions
         if (action == "recordobt" || action == "rejectfndreq" || action == "cancelfndreq"  || action == "newfundsreq")
           return "fio.reqobt";
@@ -70,20 +68,19 @@ namespace fioio {
             action == "linkauth" || action == "onerror" || action == "unlinkauth" ||
             action == "rmvproducer" || action == "setautoproxy" || action == "setparams" ||
             action == "unlocktokens" || action == "updtrevision" ||action == "updlocked" ||
-            action == "updatepower" ||
-            action == "updlbpclaim" || action == "resetclaim" || action == "incram" ||
-            action == "addaction" || action == "remaction" || action == "addgenlocked")
+            action == "updatepower" || action == "updlbpclaim" || action == "resetclaim" ||
+            action == "incram" || action == "addaction" || action == "remaction" ||
+            action == "addgenlocked")
           return "eosio";
 
         if (action == "nonce")
            return "eosio.null";
 
         // fio.escrow
-        if (action == "buydomain" || action == "listdomain" || action == "cxlistdomain")
+        if (action == "buydomain" || action == "listdomain" || action == "cxlistdomain" ||
+            action == "rnlistdomain" || action == "setmrkplccfg")
             return "fio.escrow";
 
         return "nomap";
     }
-
-
 }
