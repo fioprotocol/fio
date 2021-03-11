@@ -22,10 +22,10 @@ namespace fioio {
 
         // fio.address actions
         if (action == "regaddress" || action == "regdomain" || action == "addaddress" ||
-            action == "remaddress" || action == "remalladdr" ||
-            action == "renewdomain" || action == "renewaddress" ||
-            action == "setdomainpub" || action == "bind2eosio" ||
-            action == "burnexpired" || action == "decrcounter" || action == "burnaddress" ||action == "xferdomain" || action == "xferaddress" )
+            action == "remaddress" || action == "remalladdr" || action == "renewdomain" ||
+            action == "renewaddress" || action == "setdomainpub" || action == "bind2eosio" ||
+            action == "burnexpired" || action == "decrcounter" || action == "burnaddress" ||
+            action == "xferdomain" || action == "xferaddress" || action == "xferescrow" )
           return "fio.address";
 
         // fio.fee actions
@@ -78,7 +78,7 @@ namespace fioio {
 
         // fio.escrow
         if (action == "buydomain" || action == "listdomain" || action == "cxlistdomain" ||
-            action == "rnlistdomain" || action == "setmrkplccfg")
+            action == "rnlistdomain" || action == "setmrkplccfg" || action == "sethldacct")
             return "fio.escrow";
 
         return "nomap";
