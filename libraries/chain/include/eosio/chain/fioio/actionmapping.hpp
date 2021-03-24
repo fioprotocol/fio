@@ -78,9 +78,8 @@ namespace fioio {
 
         // fio.escrow
         if (action == "buydomain" || action == "listdomain" || action == "cxlistdomain" ||
-            action == "rnlistdomain" || action == "setmrkplcfg" || action == "sethldacct" ||
-            action == "rmmrkplcfg" || action == "setmkpcomfee" || action == "setmkplstfee" ||
-            action == "chkexplistng" || action == "setmkpwrntm" || action == "setmkplstdur")
+            action == "setmrkplcfg" || action == "sethldacct" || action == "rmmrkplcfg" ||
+            action == "setmkpcomfee" || action == "setmkplstfee")
             return "fio.escrow";
 
         return "nomap";
