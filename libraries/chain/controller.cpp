@@ -1037,7 +1037,7 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
-                
+                /* these actions commented out because the interfere with operational startup of a node
                //these actions are added to the action mapping here to permit the launch of
                //test networks for development testing and private test net testing.
                //we put the actions into the table here and they are initialized for use
@@ -1353,6 +1353,7 @@ namespace eosio {
                     a.contractname = "eosio";
                     a.blocktimestamp = 1;
                 });
+                 end comment out code to support operational startup of a node */
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
