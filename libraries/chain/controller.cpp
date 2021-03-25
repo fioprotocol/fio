@@ -600,7 +600,7 @@ namespace eosio {
                 }
             }
 
-            void init(std::function<bool()> shutdown, const snapshot_reader_ptr &snapshot) {
+            void init(std::function<bool()> shutdown, const bool &initaddaction,  const snapshot_reader_ptr &snapshot) {
                 // Setup state if necessary (or in the default case stay with already loaded state):
                 uint32_t lib_num = 1u;
                 if (snapshot) {
@@ -626,6 +626,11 @@ namespace eosio {
                             wlog("No existing chain state or fork database. Initializing fresh blockchain state and resetting fork database.");
                         }
                         initialize_blockchain_state(); // sets head to genesis state
+
+                        //this was added to provide small scale local test nets to initialize the actions table properly when using fio.devtools.
+                        if (initaddaction){
+                            initialize_actions();
+                        }
 
                         if (!fork_db.head()) {
                             fork_db.reset(*head);
@@ -1036,16 +1041,20 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
+            }
 
-                
-               //these actions are added to the action mapping here to permit the launch of
-               //test networks for development testing and private test net testing.
-               //we put the actions into the table here and they are initialized for use
-               //during a test net launch. if we do not do this, then after the forking deadline
-               //for the action whitelisting, we will not be able to start a test network successfully,
-               //because actions will not be present in the mapping to permit execution.
-               //see fio.devtools, and dev-net for more details of
-               //how fio launches for developer and other testing purposes.
+
+            void initialize_actions() {
+
+
+                //these actions are added to the action mapping here to permit the launch of
+                //test networks for development testing and private test net testing.
+                //we put the actions into the table here and they are initialized for use
+                //during a test net launch. if we do not do this, then after the forking deadline
+                //for the action whitelisting, we will not be able to start a test network successfully,
+                //because actions will not be present in the mapping to permit execution.
+                //see fio.devtools, and dev-net for more details of
+                //how fio launches for developer and other testing purposes.
                 const auto &ins17 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(decrcounter);
                     a.contractname = "fio.address";
@@ -1354,7 +1363,6 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
             }
-
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
             fc::scoped_exit<std::function<void()>> make_block_restore_point() {
                 auto &bb = pending->_block_stage.get<building_block>();
@@ -2739,12 +2747,16 @@ namespace eosio {
             my->add_indices();
         }
 
-        void controller::startup(std::function<bool()> shutdown, const snapshot_reader_ptr &snapshot) {
+        void controller::startup(std::function<bool()> shutdown, const bool &initaddaction, const snapshot_reader_ptr &snapshot) {
             if (snapshot) {
                 ilog("Starting initialization from snapshot, this may take a significant amount of time");
             }
+
+            if (initaddaction) {
+                ilog("Initializing actions table on chain for local development");
+            }
             try {
-                my->init(shutdown, snapshot);
+                my->init(shutdown, initaddaction, snapshot);
             } catch (boost::interprocess::bad_alloc &e) {
                 if (snapshot)
                     elog("db storage not configured to have enough storage for the provided snapshot, please increase and retry snapshot");

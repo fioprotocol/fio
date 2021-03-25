@@ -172,6 +172,7 @@ namespace eosio {
         fc::optional<bfs::path> snapshot_path;
 
 
+
         // retained references to channels for easy publication
         channels::pre_accepted_block::channel_type &pre_accepted_block_channel;
         channels::accepted_block_header::channel_type &accepted_block_header_channel;
@@ -343,7 +344,8 @@ namespace eosio {
                  "replace reversible block database with blocks imported from specified file and then exit")
                 ("export-reversible-blocks", bpo::value<bfs::path>(),
                  "export reversible block database in portable format into specified file and then exit")
-                ("snapshot", bpo::value<bfs::path>(), "File to read Snapshot State from");
+                ("snapshot", bpo::value<bfs::path>(), "File to read Snapshot State from")
+                ("init-addaction", bpo::bool_switch()->default_value(false), "Perform dev testing init of actions on chain");
 
     }
 
@@ -884,6 +886,10 @@ if( options.count(name) ) { \
                 wlog("The --import-reversible-blocks option should be used by itself.");
             }
 
+            if (options.count("init-addaction")) {
+                my->chain_config->init_add_action = options.at("init-addaction").as<bool>();
+            }
+
             if (options.count("snapshot")) {
                 my->snapshot_path = options.at("snapshot").as<bfs::path>();
                 EOS_ASSERT(fc::exists(*my->snapshot_path), plugin_config_exception,
@@ -1071,10 +1077,10 @@ if( options.count(name) ) { \
                 if (my->snapshot_path) {
                     auto infile = std::ifstream(my->snapshot_path->generic_string(), (std::ios::in | std::ios::binary));
                     auto reader = std::make_shared<istream_snapshot_reader>(infile);
-                    my->chain->startup(shutdown, reader);
+                    my->chain->startup(shutdown, my->chain_config->init_add_action, reader);
                     infile.close();
                 } else {
-                    my->chain->startup(shutdown);
+                    my->chain->startup(shutdown, my->chain_config->init_add_action);
                 }
             } catch (const database_guard_exception &e) {
                 log_guard_exception(e);

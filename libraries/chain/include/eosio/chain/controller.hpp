@@ -98,6 +98,7 @@ namespace eosio {
                 bool contracts_console = false;
                 bool allow_ram_billing_in_notify = false;
                 bool disable_all_subjective_mitigations = false; //< for testing purposes only
+                bool init_add_action = false;
 
                 genesis_state genesis;
                 wasm_interface::vm_type wasm_runtime = chain::config::default_wasm_runtime;
@@ -128,7 +129,7 @@ namespace eosio {
 
             void add_indices();
 
-            void startup(std::function<bool()> shutdown, const snapshot_reader_ptr &snapshot = nullptr);
+            void startup(std::function<bool()> shutdown, const bool &initaddaction = false, const snapshot_reader_ptr &snapshot = nullptr);
 
             void preactivate_feature(const digest_type &feature_digest);
 

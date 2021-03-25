@@ -213,7 +213,7 @@ namespace eosio {
         void base_tester::open(protocol_feature_set &&pfs, const snapshot_reader_ptr &snapshot) {
             control.reset(new controller(cfg, std::move(pfs)));
             control->add_indices();
-            control->startup([]() { return false; }, snapshot);
+            control->startup([]() { return false; }, false, snapshot);
             chain_transactions.clear();
             control->accepted_block.connect([this](const block_state_ptr &block_state) {
                 FC_ASSERT(block_state->block);
