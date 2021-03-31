@@ -30,6 +30,7 @@ namespace eosio {
 
         static const name REQOBTACCOUNT =     name("fio.reqobt");
         static const name FeeContract =       name("fio.fee");
+        static const name StakingContract =   name("fio.staking");
         static const name AddressContract =   name("fio.address");
         static const name TPIDContract =      name("fio.tpid");
         static const name TokenContract =     name("fio.token");
