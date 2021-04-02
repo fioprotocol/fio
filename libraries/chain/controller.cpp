@@ -1037,6 +1037,13 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
+
+
+
+
+
+
+
                 
                //these actions are added to the action mapping here to permit the launch of
                //test networks for development testing and private test net testing.
@@ -1054,6 +1061,24 @@ namespace eosio {
 
                 const auto &ins7 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(regaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setdomainpub);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bind2eosio);
                     a.contractname = "fio.address";
                     a.blocktimestamp = 1;
                 });
@@ -1076,18 +1101,6 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
 
-                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(setdomainpub);
-                    a.contractname = "fio.address";
-                    a.blocktimestamp = 1;
-                });
-
-                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(regdomain);
-                    a.contractname = "fio.address";
-                    a.blocktimestamp = 1;
-                });
-
                 const auto &treas6 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(startclock);
                     a.contractname = "fio.treasury";
@@ -1097,12 +1110,6 @@ namespace eosio {
                 const auto &fee7 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(createfee);
                     a.contractname = "fio.fee";
-                    a.blocktimestamp = 1;
-                });
-
-                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(bind2eosio);
-                    a.contractname = "fio.address";
                     a.blocktimestamp = 1;
                 });
 
@@ -1353,6 +1360,40 @@ namespace eosio {
                     a.contractname = "eosio";
                     a.blocktimestamp = 1;
                 });
+
+               // ./clio -u http://$host push action eosio addaction '{"action":"recordobt","contract":"fio.reqobt","actor":"eosio"}' --permission eosio
+                  const auto &recobt1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(recordobt);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+               // ./clio -u http://$host push action eosio addaction '{"action":"updatebounty","contract":"fio.tpid","actor":"eosio"}' --permission eosio
+                const auto &tpid1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatebounty);
+                    a.contractname = "fio.tpid";
+                    a.blocktimestamp = 1;
+                });
+               // ./clio -u http://$host push action eosio addaction '{"action":"execute","contract":"eosio.wrap","actor":"eosio"}' --permission eosio
+                const auto &wrap1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(execute);
+                    a.contractname = "eosio.wrap";
+                    a.blocktimestamp = 1;
+                });
+               // ./clio -u http://$host push action eosio addaction '{"action":"unapprove","contract":"eosio.msig","actor":"eosio"}' --permission eosio
+                const auto &msig1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unapprove);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+               // ./clio -u http://$host push action eosio addaction '{"action":"unstakefio","contract":"fio.staking","actor":"eosio"}' --permission eosio
+                const auto &staking1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unstakefio);
+                    a.contractname = "fio.staking";
+                    a.blocktimestamp = 1;
+                });
+
+
+
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
