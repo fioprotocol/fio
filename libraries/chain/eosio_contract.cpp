@@ -106,7 +106,6 @@ namespace eosio {
                                create.actor == FeeContract ||
                                create.actor == AddressContract ||
                                create.actor == TPIDContract ||
-                               create.actor == StakingContract ||
                                create.actor == TokenContract ||
                                create.actor == TREASURYACCOUNT ||
                                create.actor == FIOSYSTEMACCOUNT ||
@@ -175,7 +174,6 @@ namespace eosio {
                                rem.actor == FeeContract ||
                                rem.actor == AddressContract ||
                                rem.actor == TPIDContract ||
-                               rem.actor == StakingContract ||
                                rem.actor == TokenContract ||
                                rem.actor == TREASURYACCOUNT ||
                                rem.actor == FIOSYSTEMACCOUNT ||
@@ -302,7 +300,6 @@ namespace eosio {
                            act.account == FeeContract ||
                            act.account == AddressContract ||
                            act.account == TPIDContract ||
-                           act.account == StakingContract ||
                            act.account == TokenContract ||
                            act.account == TREASURYACCOUNT ||
                            act.account == FIOSYSTEMACCOUNT ||
