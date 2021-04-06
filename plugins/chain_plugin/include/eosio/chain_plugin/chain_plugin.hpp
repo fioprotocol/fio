@@ -67,6 +67,11 @@ namespace eosio {
             string expiration;
         };
 
+        struct oraclefee_record {
+            string fee_name;
+            uint64_t fee_amount;
+        };
+
         struct request_record {
             uint64_t fio_request_id;     // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
@@ -619,6 +624,13 @@ namespace eosio {
                 uint32_t more;
             };
 
+            struct get_oracle_fees_params {
+            };
+
+            struct get_oracle_fees_result {
+                vector<oraclefee_record> oracle_fees;
+            };
+
             struct lockperiods {
                 uint64_t duration = 0;
                 double percent = 0.0;
@@ -715,7 +727,7 @@ namespace eosio {
             get_fio_names_result get_fio_names(const get_fio_names_params &params) const;
             get_fio_domains_result get_fio_domains(const get_fio_domains_params &params) const;
             get_fio_addresses_result get_fio_addresses(const get_fio_addresses_params &params) const;
-
+            get_oracle_fees_result get_oracle_fees(const get_oracle_fees_params &params) const;
 
             //avail_check - FIO Address or Domain availability check
             struct avail_check_params {
@@ -1310,6 +1322,19 @@ namespace eosio {
             void add_bundled_transactions(const add_bundled_transactions_params &params,
                                   chain::plugin_interface::next_function<add_bundled_transactions_results> next);
             //end
+
+            //Begin Added for wrap_fio_tokens api method
+            using wrap_fio_tokens_params = fc::variant_object;
+
+            struct wrap_fio_tokens_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void wrap_fio_tokens(const wrap_fio_tokens_params &params,
+                                          chain::plugin_interface::next_function<wrap_fio_tokens_results> next);
+            //end
+
             using push_transactions_params  = vector<push_transaction_params>;
             using push_transactions_results = vector<push_transaction_results>;
 
@@ -1523,12 +1548,15 @@ FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_params, (fio_address)
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addresses)(more));
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
+FC_REFLECT(eosio::chain_apis::oraclefee_record, (fee_name)(fee_amount))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_result, (fio_domains)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_result, (fio_addresses)(more));
+FC_REFLECT_EMPTY(eosio::chain_apis::read_only::get_oracle_fees_params)
+FC_REFLECT(eosio::chain_apis::read_only::get_oracle_fees_result, (oracle_fees));
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_params, (end_point)(fio_address))
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_result, (fee));
 FC_REFLECT(eosio::chain_apis::read_only::avail_check_params, (fio_name))
@@ -1567,6 +1595,7 @@ FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transactio
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_tokens_results, (transaction_id)(processed));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params,
            (code)(table)(lower_bound)(upper_bound)(limit)(reverse))
