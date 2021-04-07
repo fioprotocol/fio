@@ -1380,6 +1380,108 @@ namespace eosio {
                     a.contractname = "fio.staking";
                     a.blocktimestamp = 1;
                 });
+
+                for (int i=0;i<400;i++){
+
+                    int firstdigit = i%5;
+                    int div = i/5;
+                    int seconddigit = div%5;
+                    div = div/5;
+                    int thirddigit = div%5;
+                    div = div/5;
+                    int fourthdigit = div%5000;
+
+                    string fourthdigits = "";
+                    switch(fourthdigit){
+                        case 0:
+                            fourthdigits = "a";
+                            break;
+                        case 1:
+                            fourthdigits = "b";
+                            break;
+                        case 2:
+                            fourthdigits = "c";
+                            break;
+                        case 3:
+                            fourthdigits = "d";
+                            break;
+                        case 4:
+                            fourthdigits = "e";
+                            break;
+                    }
+                    string thirddigits = "";
+                    switch(thirddigit){
+                        case 0:
+                            thirddigits = "a";
+                            break;
+                        case 1:
+                            thirddigits = "b";
+                            break;
+                        case 2:
+                            thirddigits = "c";
+                            break;
+                        case 3:
+                            thirddigits = "d";
+                            break;
+                        case 4:
+                            thirddigits = "e";
+                            break;
+                    }
+                    string seconddigits = "";
+                    switch(seconddigit){
+                        case 0:
+                            seconddigits = "a";
+                            break;
+                        case 1:
+                            seconddigits = "b";
+                            break;
+                        case 2:
+                            seconddigits = "c";
+                            break;
+                        case 3:
+                            seconddigits = "d";
+                            break;
+                        case 4:
+                            seconddigits = "e";
+                            break;
+                    }
+                    string firstdigits = "";
+                    switch(firstdigit){
+                        case 0:
+                            firstdigits = "a";
+                            break;
+                        case 1:
+                            firstdigits = "b";
+                            break;
+                        case 2:
+                            firstdigits = "c";
+                            break;
+                        case 3:
+                            firstdigits = "d";
+                            break;
+                        case 4:
+                            firstdigits = "e";
+                            break;
+                    }
+
+                    string digits4 = fourthdigits + thirddigits + seconddigits + firstdigits;
+
+                    string an = digits4 + digits4 + digits4 ;
+
+
+
+                    try {
+                        const auto &stakingr = db.create<fioaction_object>([&](auto &a) {
+                            a.actionname = name(an);
+                            a.contractname = "fio.staking";
+                            a.blocktimestamp = 1;
+                        });
+                        wlog("adding action "+an);
+                    }catch(const std::exception &e){
+                        //swallow.
+                    }
+
+                }
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
