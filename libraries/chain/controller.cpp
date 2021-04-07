@@ -1037,15 +1037,14 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
-                /* these actions commented out because the interfere with operational startup of a node
-               //these actions are added to the action mapping here to permit the launch of
-               //test networks for development testing and private test net testing.
-               //we put the actions into the table here and they are initialized for use
-               //during a test net launch. if we do not do this, then after the forking deadline
-               //for the action whitelisting, we will not be able to start a test network successfully,
-               //because actions will not be present in the mapping to permit execution.
-               //see fio.devtools, and dev-net for more details of
-               //how fio launches for developer and other testing purposes.
+                //these actions are added to the action mapping here to permit the launch of
+                //test networks for development testing and private test net testing.
+                //we put the actions into the table here and they are initialized for use
+                //during a test net launch. if we do not do this, then after the forking deadline
+                //for the action whitelisting, we will not be able to start a test network successfully,
+                //because actions will not be present in the mapping to permit execution.
+                //see fio.devtools, and dev-net for more details of
+                //how fio launches for developer and other testing purposes.
                 const auto &ins17 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(decrcounter);
                     a.contractname = "fio.address";
@@ -1054,6 +1053,24 @@ namespace eosio {
 
                 const auto &ins7 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(regaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setdomainpub);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bind2eosio);
                     a.contractname = "fio.address";
                     a.blocktimestamp = 1;
                 });
@@ -1076,18 +1093,6 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
 
-                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(setdomainpub);
-                    a.contractname = "fio.address";
-                    a.blocktimestamp = 1;
-                });
-
-                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(regdomain);
-                    a.contractname = "fio.address";
-                    a.blocktimestamp = 1;
-                });
-
                 const auto &treas6 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(startclock);
                     a.contractname = "fio.treasury";
@@ -1097,12 +1102,6 @@ namespace eosio {
                 const auto &fee7 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(createfee);
                     a.contractname = "fio.fee";
-                    a.blocktimestamp = 1;
-                });
-
-                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(bind2eosio);
-                    a.contractname = "fio.address";
                     a.blocktimestamp = 1;
                 });
 
@@ -1353,7 +1352,131 @@ namespace eosio {
                     a.contractname = "eosio";
                     a.blocktimestamp = 1;
                 });
-                 end comment out code to support operational startup of a node */
+
+                //ADD these actions to support the changes to the core, all contracts must be represented
+                //in the actions table for dev startup or contracts will NOT load properly in dev environments!!
+                const auto &recobt1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(recordobt);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tpid1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatebounty);
+                    a.contractname = "fio.tpid";
+                    a.blocktimestamp = 1;
+                });
+                const auto &wrap1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(execute);
+                    a.contractname = "eosio.wrap";
+                    a.blocktimestamp = 1;
+                });
+                const auto &msig1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unapprove);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+
+                for (int i=0;i<400;i++){
+
+                    int firstdigit = i%5;
+                    int div = i/5;
+                    int seconddigit = div%5;
+                    div = div/5;
+                    int thirddigit = div%5;
+                    div = div/5;
+                    int fourthdigit = div%5000;
+
+                    string fourthdigits = "";
+                    switch(fourthdigit){
+                        case 0:
+                            fourthdigits = "a";
+                            break;
+                        case 1:
+                            fourthdigits = "b";
+                            break;
+                        case 2:
+                            fourthdigits = "c";
+                            break;
+                        case 3:
+                            fourthdigits = "d";
+                            break;
+                        case 4:
+                            fourthdigits = "e";
+                            break;
+                    }
+                    string thirddigits = "";
+                    switch(thirddigit){
+                        case 0:
+                            thirddigits = "a";
+                            break;
+                        case 1:
+                            thirddigits = "b";
+                            break;
+                        case 2:
+                            thirddigits = "c";
+                            break;
+                        case 3:
+                            thirddigits = "d";
+                            break;
+                        case 4:
+                            thirddigits = "e";
+                            break;
+                    }
+                    string seconddigits = "";
+                    switch(seconddigit){
+                        case 0:
+                            seconddigits = "a";
+                            break;
+                        case 1:
+                            seconddigits = "b";
+                            break;
+                        case 2:
+                            seconddigits = "c";
+                            break;
+                        case 3:
+                            seconddigits = "d";
+                            break;
+                        case 4:
+                            seconddigits = "e";
+                            break;
+                    }
+                    string firstdigits = "";
+                    switch(firstdigit){
+                        case 0:
+                            firstdigits = "a";
+                            break;
+                        case 1:
+                            firstdigits = "b";
+                            break;
+                        case 2:
+                            firstdigits = "c";
+                            break;
+                        case 3:
+                            firstdigits = "d";
+                            break;
+                        case 4:
+                            firstdigits = "e";
+                            break;
+                    }
+
+                    string digits4 = fourthdigits + thirddigits + seconddigits + firstdigits;
+
+                    string an = digits4 + digits4 + digits4 ;
+
+
+
+                    try {
+                        const auto &stakingr = db.create<fioaction_object>([&](auto &a) {
+                            a.actionname = name(an);
+                            a.contractname = "fio.staking";
+                            a.blocktimestamp = 1;
+                        });
+                        wlog("adding action "+an);
+                    }catch(const std::exception &e){
+                        //swallow.
+                    }
+
+                }
             }
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
