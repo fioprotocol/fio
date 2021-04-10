@@ -114,9 +114,12 @@ namespace eosio {
                 }
 
                 auto name_str = name(create.action).to_string();
+                auto contract_str = name(create.contract).to_string();
 
                 EOS_ASSERT(!create.action.empty(), action_validate_exception, "Action invalid or not found");
                 EOS_ASSERT(name_str.size() <= 12, action_validate_exception, "Action invalid or not found");
+                EOS_ASSERT(!create.contract.empty(), action_validate_exception, "Contract name invalid or not found");
+                EOS_ASSERT(contract_str.size() <= 12, action_validate_exception, "Contract name invalid or not found");
                 EOS_ASSERT(!create.actor.empty(), action_validate_exception, "Invalid Signature");
                 EOS_ASSERT(!create.contract.empty(), action_validate_exception, "Invalid Contract");
 
