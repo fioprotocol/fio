@@ -1037,6 +1037,8 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
+                /* comment out init for release of bahamas, these changes prohibit genesis node syncing of the chain
+                 * in operations so we remove them for the release image.
                 //these actions are added to the action mapping here to permit the launch of
                 //test networks for development testing and private test net testing.
                 //we put the actions into the table here and they are initialized for use
@@ -1375,7 +1377,9 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
+                 end comment out local init.  */
             }
+
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
             fc::scoped_exit<std::function<void()>> make_block_restore_point() {
