@@ -77,23 +77,24 @@ namespace eosio {
                 context.require_authorization(create.actor);
 
                 auto &db = context.db;
-                //read the actions table get distinct contract names
-                //returns end iterator if index not found during playback.
-                const auto &idx = db.get_index<fioaction_index, by_actionname>();
-                vector<name> sysaccts;
 
-                // iterate through contract names in actions table
-                //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
-                for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
-                    name nm = name(itr->contractname);
-                    if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
-                        sysaccts.insert(sysaccts.begin(),nm);
-                    }
-                }
-
-                //if there are system accounts in the list, then the actions table exists,
+                //if its after the hardfork time use the table contents, if not then
                 // use the list to enforce the permitted system accounts
-                if (sysaccts.size() > 0){
+                const int32_t HF2_BLOCK_TIME = 1600876800  + 15720000; //Wed Sep 23 16:00:00 UTC 2020 + 6 months is end of march
+                if ((context.control.head_block_time().sec_since_epoch() > HF2_BLOCK_TIME)){
+                    //read the actions table get distinct contract names
+                    //returns end iterator if index not found during playback.
+                    const auto &idx = db.get_index<fioaction_index, by_actionname>();
+                    vector<name> sysaccts;
+
+                    // iterate through contract names in actions table
+                    //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
+                    for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
+                        name nm = name(itr->contractname);
+                        if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
+                            sysaccts.insert(sysaccts.begin(),nm);
+                        }
+                    }
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
                 }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
@@ -148,23 +149,24 @@ namespace eosio {
                 context.require_authorization(rem.actor);
 
                 auto &db = context.db;
-                //read the actions table get distinct contract names
-                //returns end iterator if index not found during playback.
-                const auto &idx = db.get_index<fioaction_index, by_actionname>();
-                vector<name> sysaccts;
 
-                // iterate through contract names in actions table
-                //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
-                for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
-                    name nm = name(itr->contractname);
-                    if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
-                        sysaccts.insert(sysaccts.begin(),nm);
-                    }
-                }
-
-                //if there are system accounts in the list, then the actions table exists,
+                //if its after the hardfork time use the table contents, if not then
                 // use the list to enforce the permitted system accounts
-                if (sysaccts.size() > 0){
+                const int32_t HF2_BLOCK_TIME = 1600876800  + 15720000; //Wed Sep 23 16:00:00 UTC 2020 + 6 months is end of march
+                if ((context.control.head_block_time().sec_since_epoch() > HF2_BLOCK_TIME)){
+                    //read the actions table get distinct contract names
+                    //returns end iterator if index not found during playback.
+                    const auto &idx = db.get_index<fioaction_index, by_actionname>();
+                    vector<name> sysaccts;
+
+                    // iterate through contract names in actions table
+                    //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
+                    for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
+                        name nm = name(itr->contractname);
+                        if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
+                            sysaccts.insert(sysaccts.begin(),nm);
+                        }
+                    }
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), rem.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
                 }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
@@ -274,23 +276,23 @@ namespace eosio {
             auto act = context.get_action().data_as<setcode>();
             context.require_authorization(act.account);
 
-            //read the actions table get distinct contract names
-            //returns end iterator if index not found during playback.
-            const auto &idx = db.get_index<fioaction_index, by_actionname>();
-            vector<name> sysaccts;
-
-            // iterate through contract names in actions table
-            //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
-            for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
-                name nm = name(itr->contractname);
-                if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
-                    sysaccts.insert(sysaccts.begin(),nm);
-                }
-            }
-
-            //if there are system accounts in the list, then the actions table exists,
+            //if its after the hardfork time use the table contents, if not then
             // use the list to enforce the permitted system accounts
-            if (sysaccts.size() > 0){
+            const int32_t HF2_BLOCK_TIME = 1600876800  + 15720000; //Wed Sep 23 16:00:00 UTC 2020 + 6 months is end of march
+            if ((context.control.head_block_time().sec_since_epoch() > HF2_BLOCK_TIME)){
+                //read the actions table get distinct contract names
+                //returns end iterator if index not found during playback.
+                const auto &idx = db.get_index<fioaction_index, by_actionname>();
+                vector<name> sysaccts;
+
+                // iterate through contract names in actions table
+                //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
+                for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
+                    name nm = name(itr->contractname);
+                    if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
+                        sysaccts.insert(sysaccts.begin(),nm);
+                    }
+                }
                 EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), act.account) != sysaccts.end()
                         ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
             }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
