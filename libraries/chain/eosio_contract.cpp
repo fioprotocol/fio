@@ -77,27 +77,25 @@ namespace eosio {
                 context.require_authorization(create.actor);
 
                 auto &db = context.db;
-                //read the actions table get distinct contract names
-                //returns end iterator if index not found during playback.
-                const auto &idx = db.get_index<fioaction_index, by_actionname>();
-                vector<name> sysaccts;
 
-                // iterate through contract names in actions table
-                //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
-                for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
-                    name nm = name(itr->contractname);
-                    if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
-                        sysaccts.insert(sysaccts.begin(),nm);
+               //if its after release 2.0.0 in block time, use the new logic.
+                if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
+                    //read the actions table get distinct contract names
+                    //returns end iterator if index not found during playback.
+                    const auto &idx = db.get_index<fioaction_index, by_actionname>();
+                    vector<name> sysaccts;
+
+                    // iterate through contract names in actions table
+                    //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
+                    for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
+                        name nm = name(itr->contractname);
+                        if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
+                            sysaccts.insert(sysaccts.begin(),nm);
+                        }
                     }
-                }
-
-                //if there are system accounts in the list, then the actions table exists,
-                // use the list to enforce the permitted system accounts
-                if (sysaccts.size() > 0){
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-                }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
-                    // so use the list of accounts for before actions table
+                }else{ //use the old logic, the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
                                create.actor == MSIGACCOUNT ||
                                create.actor == WRAPACCOUNT ||
@@ -148,27 +146,25 @@ namespace eosio {
                 context.require_authorization(rem.actor);
 
                 auto &db = context.db;
-                //read the actions table get distinct contract names
-                //returns end iterator if index not found during playback.
-                const auto &idx = db.get_index<fioaction_index, by_actionname>();
-                vector<name> sysaccts;
 
-                // iterate through contract names in actions table
-                //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
-                for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
-                    name nm = name(itr->contractname);
-                    if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
-                        sysaccts.insert(sysaccts.begin(),nm);
+                //if its after release 2.0.0 in block time use the new logic
+                if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
+                    //read the actions table get distinct contract names
+                    //returns end iterator if index not found during playback.
+                    const auto &idx = db.get_index<fioaction_index, by_actionname>();
+                    vector<name> sysaccts;
+
+                    // iterate through contract names in actions table
+                    //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
+                    for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
+                        name nm = name(itr->contractname);
+                        if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
+                            sysaccts.insert(sysaccts.begin(),nm);
+                        }
                     }
-                }
-
-                //if there are system accounts in the list, then the actions table exists,
-                // use the list to enforce the permitted system accounts
-                if (sysaccts.size() > 0){
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), rem.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-                }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
-                    // so use the list of accounts for before actions table
+                }else{ //use the old logic the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
                                rem.actor == MSIGACCOUNT ||
                                rem.actor == WRAPACCOUNT ||
@@ -274,27 +270,24 @@ namespace eosio {
             auto act = context.get_action().data_as<setcode>();
             context.require_authorization(act.account);
 
-            //read the actions table get distinct contract names
-            //returns end iterator if index not found during playback.
-            const auto &idx = db.get_index<fioaction_index, by_actionname>();
-            vector<name> sysaccts;
+            //if its after release 2.0.0 in block time use the new logic.
+            if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
+                //read the actions table get distinct contract names
+                //returns end iterator if index not found during playback.
+                const auto &idx = db.get_index<fioaction_index, by_actionname>();
+                vector<name> sysaccts;
 
-            // iterate through contract names in actions table
-            //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
-            for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
-                name nm = name(itr->contractname);
-                if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
-                    sysaccts.insert(sysaccts.begin(),nm);
+                // iterate through contract names in actions table
+                //if its before the actions table in playback, we wont execute this loop. idx will be end iterator.
+                for ( auto itr = idx.begin(); itr != idx.end(); itr++ ) {
+                    name nm = name(itr->contractname);
+                    if (std::find(sysaccts.begin(), sysaccts.end(), nm) == sysaccts.end()) {
+                        sysaccts.insert(sysaccts.begin(),nm);
+                    }
                 }
-            }
-
-            //if there are system accounts in the list, then the actions table exists,
-            // use the list to enforce the permitted system accounts
-            if (sysaccts.size() > 0){
                 EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), act.account) != sysaccts.end()
                         ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-            }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
-                // so use the list of accounts for before actions table
+            }else{ //use the old logic the list of well known system accounts before release 2.0.0
                 EOS_ASSERT(act.account == SYSTEMACCOUNT ||
                            act.account == MSIGACCOUNT ||
                            act.account == WRAPACCOUNT ||
