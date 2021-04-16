@@ -78,10 +78,8 @@ namespace eosio {
 
                 auto &db = context.db;
 
-                //if its after the hardfork time use the table contents, if not then
-                // use the list to enforce the permitted system accounts
-                const int32_t HF2_BLOCK_TIME = 1600876800  + 15720000; //Wed Sep 23 16:00:00 UTC 2020 + 6 months is end of march
-                if ((context.control.head_block_time().sec_since_epoch() > HF2_BLOCK_TIME)){
+               //if its after release 2.0.0 in block time, use the new logic.
+                if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
                     //read the actions table get distinct contract names
                     //returns end iterator if index not found during playback.
                     const auto &idx = db.get_index<fioaction_index, by_actionname>();
@@ -97,8 +95,7 @@ namespace eosio {
                     }
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-                }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
-                    // so use the list of accounts for before actions table
+                }else{ //use the old logic, the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
                                create.actor == MSIGACCOUNT ||
                                create.actor == WRAPACCOUNT ||
@@ -150,10 +147,8 @@ namespace eosio {
 
                 auto &db = context.db;
 
-                //if its after the hardfork time use the table contents, if not then
-                // use the list to enforce the permitted system accounts
-                const int32_t HF2_BLOCK_TIME = 1600876800  + 15720000; //Wed Sep 23 16:00:00 UTC 2020 + 6 months is end of march
-                if ((context.control.head_block_time().sec_since_epoch() > HF2_BLOCK_TIME)){
+                //if its after release 2.0.0 in block time use the new logic
+                if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
                     //read the actions table get distinct contract names
                     //returns end iterator if index not found during playback.
                     const auto &idx = db.get_index<fioaction_index, by_actionname>();
@@ -169,8 +164,7 @@ namespace eosio {
                     }
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), rem.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-                }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
-                    // so use the list of accounts for before actions table
+                }else{ //use the old logic the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
                                rem.actor == MSIGACCOUNT ||
                                rem.actor == WRAPACCOUNT ||
@@ -276,10 +270,8 @@ namespace eosio {
             auto act = context.get_action().data_as<setcode>();
             context.require_authorization(act.account);
 
-            //if its after the hardfork time use the table contents, if not then
-            // use the list to enforce the permitted system accounts
-            const int32_t HF2_BLOCK_TIME = 1600876800  + 15720000; //Wed Sep 23 16:00:00 UTC 2020 + 6 months is end of march
-            if ((context.control.head_block_time().sec_since_epoch() > HF2_BLOCK_TIME)){
+            //if its after release 2.0.0 in block time use the new logic.
+            if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
                 //read the actions table get distinct contract names
                 //returns end iterator if index not found during playback.
                 const auto &idx = db.get_index<fioaction_index, by_actionname>();
@@ -295,8 +287,7 @@ namespace eosio {
                 }
                 EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), act.account) != sysaccts.end()
                         ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-            }else{ //if there are no system accounts in the list, then we are before the actions table in the playback.
-                // so use the list of accounts for before actions table
+            }else{ //use the old logic the list of well known system accounts before release 2.0.0
                 EOS_ASSERT(act.account == SYSTEMACCOUNT ||
                            act.account == MSIGACCOUNT ||
                            act.account == WRAPACCOUNT ||
