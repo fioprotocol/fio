@@ -38,6 +38,8 @@ namespace eosio {
         static const name FIOSYSTEMACCOUNT=   name("fio.system");
         static const name FIOACCOUNT =   name("fio");
 
+        static const int POST_RELEASE_200_BLOCK_TIME  = 1616596800; //Wed Mar 24 14:40:00 UTC 2021
+
         /**
          * @defgroup native_action_handlers Native Action Handlers
          */
