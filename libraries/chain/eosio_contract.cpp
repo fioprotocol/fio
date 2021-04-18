@@ -93,7 +93,7 @@ namespace eosio {
                             sysaccts.insert(sysaccts.begin(),nm);
                         }
                     }
-                    if (std::find(sysaccts.begin(), sysaccts.end(), create.actor) == sysaccts.end()){
+                  /*  if (std::find(sysaccts.begin(), sysaccts.end(), create.actor) == sysaccts.end()){
                         EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
                                    create.actor == MSIGACCOUNT ||
                                    create.actor == WRAPACCOUNT ||
@@ -107,11 +107,11 @@ namespace eosio {
                                    create.actor == FIOSYSTEMACCOUNT ||
                                    create.actor == FIOACCOUNT
                                 ,fio_invalid_account_or_action,"Invalid signature.");
-                    }else {
+                    }else {*/
                         EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end(),
                                    fio_invalid_account_or_action,
                                    " signing account not in actions table, set code not permitted.");
-                    }
+                  //  }
                 }else{ //use the old logic, the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
                                create.actor == MSIGACCOUNT ||
@@ -180,7 +180,7 @@ namespace eosio {
                         }
                     }
 
-                    if (std::find(sysaccts.begin(), sysaccts.end(), rem.actor) == sysaccts.end()){
+                 /*   if (std::find(sysaccts.begin(), sysaccts.end(), rem.actor) == sysaccts.end()){
                         EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
                                            rem.actor == MSIGACCOUNT ||
                                            rem.actor == WRAPACCOUNT ||
@@ -194,11 +194,11 @@ namespace eosio {
                                            rem.actor == FIOSYSTEMACCOUNT ||
                                            rem.actor == FIOACCOUNT
                                 ,fio_invalid_account_or_action,"Invalid signature.");
-                    }else {
+                    }else { */
                         EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), rem.actor) != sysaccts.end(),
                                    fio_invalid_account_or_action,
                                    " signing account not in actions table, remove action not permitted.");
-                    }
+                   // }
 
                   }else{ //use the old logic the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
@@ -322,7 +322,7 @@ namespace eosio {
                     }
                 }
 
-                if (std::find(sysaccts.begin(), sysaccts.end(), act.account) == sysaccts.end()){
+              /*  if (std::find(sysaccts.begin(), sysaccts.end(), act.account) == sysaccts.end()){
                     EOS_ASSERT(act.account == SYSTEMACCOUNT ||
                                        act.account == MSIGACCOUNT ||
                                        act.account == WRAPACCOUNT ||
@@ -336,11 +336,11 @@ namespace eosio {
                                        act.account == FIOSYSTEMACCOUNT ||
                                        act.account == FIOACCOUNT
                             ,fio_invalid_account_or_action,"Invalid signature.");
-                }else {
+                }else {*/
                     EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), act.account) != sysaccts.end(),
                                fio_invalid_account_or_action,
                                " signing account not in actions table, set code not permitted.");
-                }
+              //  }
             }else{ //use the old logic the list of well known system accounts before release 2.0.0
                 EOS_ASSERT(act.account == SYSTEMACCOUNT ||
                            act.account == MSIGACCOUNT ||
