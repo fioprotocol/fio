@@ -93,6 +93,7 @@ namespace eosio {
                             sysaccts.insert(sysaccts.begin(),nm);
                         }
                     }
+                    wlog( "in the logic checking actions table. sysaccts size ${details}", ("details", sysaccts.size()) );
                     if (sysaccts.size() > 0){
                       EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end()
                             ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
