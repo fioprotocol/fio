@@ -1354,6 +1354,7 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
 
+                /*
                 //SPECIAL NOTE for fork testing on FIO dev net when bootstrapped with 2.0
                 //be sure to comment out these actions if your dev net was boot strapped using dev tools
                 //from version 2.0.0
@@ -1379,6 +1380,7 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
+                 */
 
             }
 
