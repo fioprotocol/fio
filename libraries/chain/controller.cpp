@@ -1354,6 +1354,7 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
 
+                /*
                 //ADD these actions to support the changes to the core, all contracts must be represented
                 //in the actions table for dev startup or contracts will NOT load properly in dev environments!!
                 const auto &recobt1 = db.create<fioaction_object>([&](auto &a) {
@@ -1376,6 +1377,7 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
+                 */
             }
 
 
