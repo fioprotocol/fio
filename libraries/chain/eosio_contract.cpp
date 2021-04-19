@@ -78,7 +78,13 @@ namespace eosio {
 
                 auto &db = context.db;
 
-               //if its after release 2.0.0 in block time, use the new logic.
+                // for main net playback, if its after release 2.0.0 in block time use the new logic.
+                //NOTE -- on private test nets, it will always be after this main net block time, because
+                // genesis of the dev net is after this time, so we need to
+                //add logic to ensure that if the item isnt found, we fall back to the old logic.
+                //this allows dev nets to sync correctly.
+                //we need to have the block time for the main net playback, we need the extra checks
+                //for when we initialize a dev net..
                 if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
                     //read the actions table get distinct contract names
                     //returns end iterator if index not found during playback.
@@ -93,8 +99,26 @@ namespace eosio {
                             sysaccts.insert(sysaccts.begin(),nm);
                         }
                     }
-                    EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end()
-                            ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
+                    //EXTRA logic to ensure dev net initialized networks sync correctly
+                    if (std::find(sysaccts.begin(), sysaccts.end(), create.actor) == sysaccts.end()){
+                        EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
+                                   create.actor == MSIGACCOUNT ||
+                                   create.actor == WRAPACCOUNT ||
+                                   create.actor == ASSERTACCOUNT ||
+                                   create.actor == REQOBTACCOUNT ||
+                                   create.actor == FeeContract ||
+                                   create.actor == AddressContract ||
+                                   create.actor == TPIDContract ||
+                                   create.actor == TokenContract ||
+                                   create.actor == TREASURYACCOUNT ||
+                                   create.actor == FIOSYSTEMACCOUNT ||
+                                   create.actor == FIOACCOUNT
+                                ,fio_invalid_account_or_action,"Invalid signature.");
+                    }else {
+                        EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), create.actor) != sysaccts.end(),
+                                   fio_invalid_account_or_action,
+                                   " signing account not in actions table, set code not permitted.");
+                    }
                 }else{ //use the old logic, the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(create.actor == SYSTEMACCOUNT ||
                                create.actor == MSIGACCOUNT ||
@@ -147,7 +171,13 @@ namespace eosio {
 
                 auto &db = context.db;
 
-                //if its after release 2.0.0 in block time use the new logic
+                // for main net playback, if its after release 2.0.0 in block time use the new logic.
+                //NOTE -- on private test nets, it will always be after this main net block time, because
+                // genesis of the dev net is after this time, so we need to
+                //add logic to ensure that if the item isnt found, we fall back to the old logic.
+                //this allows dev nets to sync correctly.
+                //we need to have the block time for the main net playback, we need the extra checks
+                //for when we initialize a dev net..
                 if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
                     //read the actions table get distinct contract names
                     //returns end iterator if index not found during playback.
@@ -162,9 +192,29 @@ namespace eosio {
                             sysaccts.insert(sysaccts.begin(),nm);
                         }
                     }
-                    EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), rem.actor) != sysaccts.end()
-                            ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
-                }else{ //use the old logic the list of well known fio accounts before 2.0.0
+
+                    //EXTRA checks to ensure dev net initialized networks sync properly
+                    if (std::find(sysaccts.begin(), sysaccts.end(), rem.actor) == sysaccts.end()){
+                        EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
+                                           rem.actor == MSIGACCOUNT ||
+                                           rem.actor == WRAPACCOUNT ||
+                                           rem.actor == ASSERTACCOUNT ||
+                                           rem.actor == REQOBTACCOUNT ||
+                                           rem.actor == FeeContract ||
+                                           rem.actor == AddressContract ||
+                                           rem.actor == TPIDContract ||
+                                           rem.actor == TokenContract ||
+                                           rem.actor == TREASURYACCOUNT ||
+                                           rem.actor == FIOSYSTEMACCOUNT ||
+                                           rem.actor == FIOACCOUNT
+                                ,fio_invalid_account_or_action,"Invalid signature.");
+                    }else {
+                        EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), rem.actor) != sysaccts.end(),
+                                   fio_invalid_account_or_action,
+                                   " signing account not in actions table, remove action not permitted.");
+                    }
+
+                  }else{ //use the old logic the list of well known fio accounts before 2.0.0
                     EOS_ASSERT(rem.actor == SYSTEMACCOUNT ||
                                rem.actor == MSIGACCOUNT ||
                                rem.actor == WRAPACCOUNT ||
@@ -270,7 +320,13 @@ namespace eosio {
             auto act = context.get_action().data_as<setcode>();
             context.require_authorization(act.account);
 
-            //if its after release 2.0.0 in block time use the new logic.
+            // for main net playback, if its after release 2.0.0 in block time use the new logic.
+            //NOTE -- on private test nets, it will always be after this main net block time, because
+            // genesis of the dev net is after this time, so we need to
+            //add logic to ensure that if the item isnt found, we fall back to the old logic.
+            //this allows dev nets to sync correctly.
+            //we need to have the block time for the main net playback, we need the extra checks
+            //for when we initialize a dev net..
             if ((context.control.head_block_time().sec_since_epoch() > POST_RELEASE_200_BLOCK_TIME)){
                 //read the actions table get distinct contract names
                 //returns end iterator if index not found during playback.
@@ -285,8 +341,26 @@ namespace eosio {
                         sysaccts.insert(sysaccts.begin(),nm);
                     }
                 }
-                EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), act.account) != sysaccts.end()
-                        ,fio_invalid_account_or_action," signing account not in actions table, set code not permitted.");
+                //EXTRA checks for dev net initialized networks, to ensure sync works correctly!
+                if (std::find(sysaccts.begin(), sysaccts.end(), act.account) == sysaccts.end()){
+                    EOS_ASSERT(act.account == SYSTEMACCOUNT ||
+                                       act.account == MSIGACCOUNT ||
+                                       act.account == WRAPACCOUNT ||
+                                       act.account == ASSERTACCOUNT ||
+                                       act.account == REQOBTACCOUNT ||
+                                       act.account == FeeContract ||
+                                       act.account == AddressContract ||
+                                       act.account == TPIDContract ||
+                                       act.account == TokenContract ||
+                                       act.account == TREASURYACCOUNT ||
+                                       act.account == FIOSYSTEMACCOUNT ||
+                                       act.account == FIOACCOUNT
+                            ,fio_invalid_account_or_action,"Invalid signature.");
+                }else {
+                    EOS_ASSERT(std::find(sysaccts.begin(), sysaccts.end(), act.account) != sysaccts.end(),
+                               fio_invalid_account_or_action,
+                               " signing account not in actions table, set code not permitted.");
+                }
             }else{ //use the old logic the list of well known system accounts before release 2.0.0
                 EOS_ASSERT(act.account == SYSTEMACCOUNT ||
                            act.account == MSIGACCOUNT ||
