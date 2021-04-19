@@ -1037,7 +1037,7 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
-/* comment out
+
                 //these actions are added to the action mapping here to permit the launch of
                 //test networks for development testing and private test net testing.
                 //we put the actions into the table here and they are initialized for use
@@ -1354,7 +1354,10 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
 
-                //ADD these actions to support the changes to the core, all contracts must be represented
+                //SPECIAL NOTE for fork testing on FIO dev net when bootstrapped with 2.0
+                //be sure to comment out these actions if your dev net was boot strapped using dev tools
+                //from version 2.0.0
+                //WE ADD these actions to support the changes to the core for 3.0.x dev environments, all contracts must be represented
                 //in the actions table for dev startup or contracts will NOT load properly in dev environments!!
                 const auto &recobt1 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(recordobt);
@@ -1376,8 +1379,8 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
+                 
 
- end comment */
             }
 
 
