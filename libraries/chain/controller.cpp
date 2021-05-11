@@ -1037,15 +1037,15 @@ namespace eosio {
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
 
-                
-               //these actions are added to the action mapping here to permit the launch of
-               //test networks for development testing and private test net testing.
-               //we put the actions into the table here and they are initialized for use
-               //during a test net launch. if we do not do this, then after the forking deadline
-               //for the action whitelisting, we will not be able to start a test network successfully,
-               //because actions will not be present in the mapping to permit execution.
-               //see fio.devtools, and dev-net for more details of
-               //how fio launches for developer and other testing purposes.
+
+                //these actions are added to the action mapping here to permit the launch of
+                //test networks for development testing and private test net testing.
+                //we put the actions into the table here and they are initialized for use
+                //during a test net launch. if we do not do this, then after the forking deadline
+                //for the action whitelisting, we will not be able to start a test network successfully,
+                //because actions will not be present in the mapping to permit execution.
+                //see fio.devtools, and dev-net for more details of
+                //how fio launches for developer and other testing purposes.
                 const auto &ins17 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(decrcounter);
                     a.contractname = "fio.address";
@@ -1054,6 +1054,24 @@ namespace eosio {
 
                 const auto &ins7 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(regaddress);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(setdomainpub);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(regdomain);
+                    a.contractname = "fio.address";
+                    a.blocktimestamp = 1;
+                });
+
+                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(bind2eosio);
                     a.contractname = "fio.address";
                     a.blocktimestamp = 1;
                 });
@@ -1076,18 +1094,6 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
 
-                const auto &ins14 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(setdomainpub);
-                    a.contractname = "fio.address";
-                    a.blocktimestamp = 1;
-                });
-
-                const auto &ins8 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(regdomain);
-                    a.contractname = "fio.address";
-                    a.blocktimestamp = 1;
-                });
-
                 const auto &treas6 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(startclock);
                     a.contractname = "fio.treasury";
@@ -1097,12 +1103,6 @@ namespace eosio {
                 const auto &fee7 = db.create<fioaction_object>([&](auto &a) {
                     a.actionname = N(createfee);
                     a.contractname = "fio.fee";
-                    a.blocktimestamp = 1;
-                });
-
-                const auto &ins15 = db.create<fioaction_object>([&](auto &a) {
-                    a.actionname = N(bind2eosio);
-                    a.contractname = "fio.address";
                     a.blocktimestamp = 1;
                 });
 
@@ -1353,7 +1353,36 @@ namespace eosio {
                     a.contractname = "eosio";
                     a.blocktimestamp = 1;
                 });
+
+                //SPECIAL NOTE for fork testing on FIO dev net when bootstrapped with 2.0
+                //be sure to comment out these actions if your dev net was boot strapped using dev tools
+                //from version 2.0.0
+                //WE ADD these actions to support the changes to the core for 3.0.x dev environments, all contracts must be represented
+                //in the actions table for dev startup or contracts will NOT load properly in dev environments!!
+                const auto &recobt1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(recordobt);
+                    a.contractname = "fio.reqobt";
+                    a.blocktimestamp = 1;
+                });
+                const auto &tpid1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(updatebounty);
+                    a.contractname = "fio.tpid";
+                    a.blocktimestamp = 1;
+                });
+                const auto &wrap1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(execute);
+                    a.contractname = "eosio.wrap";
+                    a.blocktimestamp = 1;
+                });
+                const auto &msig1 = db.create<fioaction_object>([&](auto &a) {
+                    a.actionname = N(unapprove);
+                    a.contractname = "eosio.msig";
+                    a.blocktimestamp = 1;
+                });
+                 
+
             }
+
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
             fc::scoped_exit<std::function<void()>> make_block_restore_point() {
