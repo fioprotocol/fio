@@ -1617,6 +1617,8 @@ if( options.count(name) ) { \
         const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
         const name fio_code = N(eosio);    // FIO system account
         const string fio_scope = "eosio";   // FIO system scope
+        const name fio_staking_code = N(fio.staking);    // FIO system account
+        const string fio_staking_scope = "fio.staking";   // FIO system scope
 
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
@@ -1625,6 +1627,7 @@ if( options.count(name) ) { \
         const name fio_domains_table = N(domains); // FIO Domains Table
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
         const name fio_locks_table = N(locktokens); // FIO locktokens Table
+        const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
 
         const uint16_t FEEMAXLENGTH = 32;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
@@ -2554,6 +2557,27 @@ if( options.count(name) ) { \
             return result;
         } // get_fio_addresses
 
+        fc::variant get_staking_row(const database &db, const abi_def &abi, const abi_serializer &abis,
+                                    const fc::microseconds &abi_serializer_max_time_ms, bool shorten_abi_errors) {
+            const auto table_type = get_table_type(abi, N(staking));
+            EOS_ASSERT(table_type == read_only::KEYi64, chain::contract_table_query_exception,
+                       "Invalid table type ${type} for table global", ("type", table_type));
+
+            const auto *const table_id = db.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(N(fio.staking), N(fio.staking), N(staking)));
+            EOS_ASSERT(table_id, chain::contract_table_query_exception, "Missing table staking");
+
+            const auto &kv_index = db.get_index<key_value_index, by_scope_primary>();
+            const auto it = kv_index.find(boost::make_tuple(table_id->id, N(staking)));
+            EOS_ASSERT(it != kv_index.end(), chain::contract_table_query_exception, "Missing row in table staking");
+
+            vector<char> data;
+            read_only::copy_inline_row(*it, data);
+            return abis.binary_to_variant(abis.get_table_type(N(staking)), data, abi_serializer_max_time_ms,
+                                          shorten_abi_errors);
+        }
+
+
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
@@ -2637,10 +2661,58 @@ if( options.count(name) ) { \
                 lockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
             }
 
+            //get the account staking info
+
+            const abi_def staking_abi = eosio::chain_apis::get_abi(db, fio_staking_code);
+
+            get_table_rows_params staking_table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_staking_code,
+                    .scope       = fio_staking_scope,
+                    .table       = fio_accountstake_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result staking_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    staking_table_row_params, staking_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            uint64_t stakeamount = 0;
+            uint64_t srpamount = 0;
+            if (!staking_rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(staking_rows_result.rows.size() == 1, "Unexpected number of results found in accountstake",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                stakeamount = staking_rows_result.rows[0]["total_staked_fio"].as_uint64();
+                srpamount = staking_rows_result.rows[0]["total_srp"].as_uint64();
+            }
+
+
+            //end get account staking info
             if (!cursor.empty()) {
+                const abi_def abi = eosio::chain_apis::get_abi(db, N(fio.staking));
+                const abi_serializer abis{abi, abi_serializer_max_time};
+                const auto &d = db.db();
+                uint64_t combinedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["combined_token_pool"].as_uint64();
+                uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["global_srp_count"].as_uint64();
+
+                uint64_t rateofexchange =  1;
+                if (combinedtokenpool >= 1000000000000000) {
+                    rateofexchange = combinedtokenpool / globalsrpcount;
+                }
+
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
                 result.available = rVal - lockamount;
+                result.staked = stakeamount;
+                result.srps = srpamount;
+                result.roe = rateofexchange;
             }
 
             return result;
@@ -3160,9 +3232,24 @@ if( options.count(name) ) { \
                 if (fioname_result.rows.empty()) {
                     return result;
                 }
+
+                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
+                //This is not the local computer time, it is in fact the block time.
+                uint32_t present_time = (uint32_t) time(0);
+                //if the domain is expired then return an empty result.
+                if (present_time > name_expiration) {
+                    return result;
+                }
             }
 
             if (domain_result.rows.empty()) {
+                return result;
+            }
+
+            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            uint32_t present_time = (uint32_t) time(0);
+
+            if (present_time > domain_expiration) {
                 return result;
             }
 
@@ -3358,6 +3445,7 @@ if( options.count(name) ) { \
             return abis.binary_to_variant(abis.get_table_type(N(global)), data, abi_serializer_max_time_ms,
                                           shorten_abi_errors);
         }
+
 
         read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const {
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);

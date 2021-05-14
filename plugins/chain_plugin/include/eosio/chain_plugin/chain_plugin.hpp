@@ -649,6 +649,9 @@ namespace eosio {
             struct get_fio_balance_result {
                 uint64_t balance;
                 uint64_t available;
+                uint64_t staked = 0;
+                uint64_t srps = 0;
+                uint64_t roe = 0;
             };
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
@@ -1578,7 +1581,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_currency_balance_params, (code)(acc
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
-FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)(available));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)(available)(staked)(srps)(roe));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_params, (fio_public_key));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_result, (actor));
 FC_REFLECT(eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)(limit))
