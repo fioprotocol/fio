@@ -1627,6 +1627,7 @@ if( options.count(name) ) { \
         const name fio_domains_table = N(domains); // FIO Domains Table
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
         const name fio_locks_table = N(locktokens); // FIO locktokens Table
+        const name fio_mainnet_locks_table = N(lockedtokens); // FIO lockedtokens Table
         const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
 
         const uint16_t FEEMAXLENGTH = 32;
@@ -2631,12 +2632,38 @@ if( options.count(name) ) { \
             balance_params.account = ::eosio::string_to_name(fio_account.c_str());
             cursor = get_currency_balance(balance_params);
 
-            //get lock tokens, subtract remaining lock amount if it exists
+
             string account_name;
             fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
             const abi_def sys_abi = eosio::chain_apis::get_abi(db, fio_code);
 
+            //get the locked tokens, subtract the remaining lock amount if it exists.
+            //get lock tokens, subtract remaining lock amount if it exists
+            get_table_rows_params mtable_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_code,
+                    .scope       = fio_scope,
+                    .table       = fio_mainnet_locks_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result mrows_result =
+                    get_table_rows_ex<key_value_index>(mtable_row_params, sys_abi);
+
+            uint64_t lockamount = 0;
+            if (!mrows_result.rows.empty()) {
+
+                FIO_404_ASSERT(mrows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                lockamount = mrows_result.rows[0]["remaining_locked_amount"].as_uint64();
+            }
+
+
+            //get lock tokens, subtract remaining lock amount if it exists
             get_table_rows_params table_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_code,
@@ -2652,14 +2679,16 @@ if( options.count(name) ) { \
                         return v;
                     });
 
-            uint64_t lockamount = 0;
+
             if (!rows_result.rows.empty()) {
 
-                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
+                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found general locks",
                                fioio::ErrorUnexpectedNumberResults);
 
-                lockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+                lockamount += rows_result.rows[0]["remaining_lock_amount"].as_uint64();
             }
+
+
 
             //get the account staking info
 
@@ -2709,7 +2738,7 @@ if( options.count(name) ) { \
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
-                result.available = rVal - lockamount;
+                result.available = rVal - stakeamount - lockamount;
                 result.staked = stakeamount;
                 result.srps = srpamount;
                 result.roe = rateofexchange;
