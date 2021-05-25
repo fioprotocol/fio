@@ -2520,6 +2520,7 @@ if( options.count(name) ) { \
 
             std::string nam;
             uint64_t namexpiration;
+            uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
             char buffer[80];
@@ -2540,12 +2541,14 @@ if( options.count(name) ) { \
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
                     if (nam.find('@') != std::string::npos) {
                         namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
+                        rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
+
+
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
                         strftime(buffer, 80, "%Y-%m-%dT%T", timeinfo);
-
-                        fioaddress_record fa{nam, buffer};
+                        fioaddress_record fa{nam, buffer,rem_bundle};
                         result.fio_addresses.push_back(fa);
                     }
                     result.more = (table_rows_result.rows.size()-pos)-1;
