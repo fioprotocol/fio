@@ -620,9 +620,9 @@ namespace eosio {
                 uint32_t more;
             };
 
-            struct lockperiods {
+            struct lockperiodv2 {
                 uint64_t duration = 0;
-                double percent = 0.0;
+                uint64_t amount = 0;
             };
 
             struct get_locks_params {
@@ -635,7 +635,7 @@ namespace eosio {
                     uint64_t time_stamp = 0;  //time the lock was created.
                     uint64_t payouts_performed = 0;
                     uint32_t can_vote = 0;
-                    vector<lockperiods> unlock_periods;
+                    vector<lockperiodv2> unlock_periods;
             };
 
             get_locks_result get_locks(const get_locks_params &params) const;
@@ -1487,7 +1487,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_params,
                    encode_type)(reverse)(show_payer))
 FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_result, (rows)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_locks_params, (fio_public_key))
-FC_REFLECT(eosio::chain_apis::read_only::lockperiods, (duration)(percent))
+FC_REFLECT(eosio::chain_apis::read_only::lockperiodv2, (duration)(amount))
 FC_REFLECT(eosio::chain_apis::read_only::get_locks_result, (lock_amount)(remaining_lock_amount)(time_stamp)(payouts_performed)(can_vote)(unlock_periods))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more)(time_limit_exceeded_error))

@@ -1626,7 +1626,7 @@ if( options.count(name) ) { \
         const name fio_fees_table = N(fiofees); // FIO fees Table
         const name fio_domains_table = N(domains); // FIO Domains Table
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
-        const name fio_locks_table = N(locktokens); // FIO locktokens Table
+        const name fio_locks_table = N(locktokensv2); // FIO locktokens Table
         const name fio_mainnet_locks_table = N(lockedtokens); // FIO lockedtokens Table
         const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
 
@@ -1681,8 +1681,8 @@ if( options.count(name) ) { \
 
             for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
                 uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
-                double percent = rows_result.rows[0]["periods"][i]["percent"].as_uint64();
-                lockperiods lp{duration, percent};
+                uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
+                lockperiodv2 lp{duration, amount};
                 result.unlock_periods.push_back(lp);
             }
             return result;
