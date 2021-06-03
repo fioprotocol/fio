@@ -111,12 +111,15 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_fio_names, 200),
                                      CHAIN_RO_CALL(get_fio_domains, 200),
                                      CHAIN_RO_CALL(get_fio_addresses, 200),
+                                     CHAIN_RO_CALL(get_locks, 200),
                                      CHAIN_RO_CALL(get_fee, 200),
                                      CHAIN_RO_CALL(get_actions, 200),
                                      CHAIN_RO_CALL(avail_check, 200),
                                      CHAIN_RO_CALL(serialize_json, 200),
                                      CHAIN_RO_CALL(get_pub_address, 200),
+                                     CHAIN_RO_CALL(get_pub_addresses, 200),
                                      CHAIN_RO_CALL(get_pending_fio_requests, 200),
+                                     CHAIN_RO_CALL(get_received_fio_requests, 200),
                                      CHAIN_RO_CALL(get_cancelled_fio_requests, 200),
                                      CHAIN_RO_CALL(get_obt_data, 200),
                                      CHAIN_RO_CALL(get_whitelist, 200),
@@ -141,8 +144,12 @@ namespace eosio {
                                                          chain_apis::read_write::remove_all_pub_addresses_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_tokens_pub_key,
                                                          chain_apis::read_write::transfer_tokens_pub_key_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(transfer_locked_tokens,
+                                                         chain_apis::read_write::transfer_locked_tokens_results, 202),
                                      CHAIN_RW_CALL_ASYNC(burn_expired,
                                                          chain_apis::read_write::burn_expired_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(compute_fees,
+                                                         chain_apis::read_write::compute_fees_results, 202),
                                      CHAIN_RW_CALL_ASYNC(unregister_producer,
                                                          chain_apis::read_write::unregister_producer_results, 202),
                                      CHAIN_RW_CALL_ASYNC(register_producer,
@@ -151,6 +158,8 @@ namespace eosio {
                                                          chain_apis::read_write::unregister_proxy_results, 202),
                                      CHAIN_RW_CALL_ASYNC(register_proxy,
                                                          chain_apis::read_write::register_proxy_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(burn_fio_address,
+                                                         chain_apis::read_write::burn_fio_address_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_fio_domain,
                                                          chain_apis::read_write::transfer_fio_domain_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_fio_address,
@@ -183,7 +192,9 @@ namespace eosio {
                                      CHAIN_RW_CALL_ASYNC(pay_tpid_rewards,
                                                          chain_apis::read_write::pay_tpid_rewards_results, 202),
                                      CHAIN_RW_CALL_ASYNC(claim_bp_rewards,
-                                                         chain_apis::read_write::claim_bp_rewards_results, 202)
+                                                         chain_apis::read_write::claim_bp_rewards_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(add_bundled_transactions,
+                                                         chain_apis::read_write::add_bundled_transactions_results, 202)
 
                              });
     }

@@ -250,15 +250,17 @@ function ensure-boost() {
         B2_FLAGS="-q -j${JOBS} --with-iostreams --with-date_time --with-filesystem --with-system --with-program_options --with-chrono --with-test install"
         BOOTSTRAP_FLAGS=""
         if [[ $ARCH == "Linux" ]] && $PIN_COMPILER; then
-            B2_FLAGS="toolset=clang cxxflags='-stdlib=libc++ -D__STRICT_ANSI__ -nostdinc++ -I${CLANG_ROOT}/include/c++/v1' linkflags='-stdlib=libc++' link=static threading=multi --with-iostreams --with-date_time --with-filesystem --with-system --with-program_options --with-chrono --with-test -q -j${JOBS} install"
+            B2_FLAGS="toolset=clang cxxflags='-stdlib=libc++ -D__STRICT_ANSI__ -nostdinc++ -I${CLANG_ROOT}/include/c++/v1 -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fpie' linkflags='-stdlib=libc++ -pie' link=static threading=multi --with-iostreams --with-date_time --with-filesystem --with-system --with-program_options --with-chrono --with-test -q -j${JOBS} install"
             BOOTSTRAP_FLAGS="--with-toolset=clang"
+        elif $PIN_COMPILER; then
+            local SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
         fi
-		execute bash -c "cd $SRC_DIR && \
-        curl -LO https://dl.bintray.com/boostorg/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
+        execute bash -c "cd $SRC_DIR && \
+        curl -LO https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
         && tar -xjf boost_$BOOST_VERSION.tar.bz2 \
         && cd $BOOST_ROOT \
-        && ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=$BOOST_ROOT \
-        && ./b2 ${B2_FLAGS} \
+        && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=$BOOST_ROOT \
+        && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} \
         && cd .. \
         && rm -f boost_$BOOST_VERSION.tar.bz2 \
         && rm -rf $BOOST_LINK_LOCATION"        
@@ -304,27 +306,27 @@ function build-clang() {
         if [[ ! -d $CLANG_ROOT ]]; then
             execute bash -c "cd ${TEMP_DIR} \
             && rm -rf clang8 \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/llvm.git clang8 \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git clang8 \
             && cd clang8 && git checkout $PINNED_COMPILER_LLVM_COMMIT \
             && cd tools \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/lld.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/lld.git \
             && cd lld && git checkout $PINNED_COMPILER_LLD_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/polly.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/polly.git \
             && cd polly && git checkout $PINNED_COMPILER_POLLY_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/clang.git clang && cd clang \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang.git clang && cd clang \
             && git checkout $PINNED_COMPILER_CLANG_COMMIT \
             && patch -p2 < \"$REPO_ROOT/scripts/helpers/clang-devtoolset8-support.patch\" \
             && cd tools && mkdir extra && cd extra \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/clang-tools-extra.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang-tools-extra.git \
             && cd clang-tools-extra && git checkout $PINNED_COMPILER_CLANG_TOOLS_EXTRA_COMMIT && cd .. \
             && cd ../../../../projects \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/libcxx.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxx.git \
             && cd libcxx && git checkout $PINNED_COMPILER_LIBCXX_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/libcxxabi.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxxabi.git \
             && cd libcxxabi && git checkout $PINNED_COMPILER_LIBCXXABI_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/libunwind.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libunwind.git \
             && cd libunwind && git checkout $PINNED_COMPILER_LIBUNWIND_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://git.llvm.org/git/compiler-rt.git \
+            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/compiler-rt.git \
             && cd compiler-rt && git checkout $PINNED_COMPILER_COMPILER_RT_COMMIT && cd ../ \
             && cd ${TEMP_DIR}/clang8 \
             && mkdir build && cd build \

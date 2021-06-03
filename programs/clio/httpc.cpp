@@ -56,59 +56,56 @@ namespace eosio {
                 boost::asio::connect(sock, endpoints);
             }
 
+
             template<class T>
-            std::string do_txrx(T &socket, boost::asio::streambuf &request_buff, unsigned int &status_code) {
-                // Send the request.
-                boost::asio::write(socket, request_buff);
+            std::string do_txrx(T& socket, boost::asio::streambuf& request_buff, unsigned int& status_code) {
+               // Send the request.
+               boost::asio::write(socket, request_buff);
 
-                // Read the response status line. The response streambuf will automatically
-                // grow to accommodate the entire line. The growth may be limited by passing
-                // a maximum size to the streambuf constructor.
-                boost::asio::streambuf response;
-                boost::asio::read_until(socket, response, "\r\n");
+               // Read the response status line. The response streambuf will automatically
+               // grow to accommodate the entire line. The growth may be limited by passing
+               // a maximum size to the streambuf constructor.
+               boost::asio::streambuf response;
+               boost::asio::read_until(socket, response, "\r\n");
 
-                // Check that response is OK.
-                std::istream response_stream(&response);
-                std::string http_version;
-                response_stream >> http_version;
-                response_stream >> status_code;
+               // Check that response is OK.
+               std::istream response_stream(&response);
+               std::string http_version;
+               response_stream >> http_version;
+               response_stream >> status_code;
 
-                EOS_ASSERT(status_code != 400, invalid_http_request, "The server has rejected the request as invalid!");
+               std::string status_message;
+               std::getline(response_stream, status_message);
+               EOS_ASSERT( !(!response_stream || http_version.substr(0, 5) != "HTTP/"), invalid_http_response, "Invalid Response" );
 
-                std::string status_message;
-                std::getline(response_stream, status_message);
-                EOS_ASSERT(!(!response_stream || http_version.substr(0, 5) != "HTTP/"), invalid_http_response,
-                           "Invalid Response");
+               // Read the response headers, which are terminated by a blank line.
+               boost::asio::read_until(socket, response, "\r\n\r\n");
 
-                // Read the response headers, which are terminated by a blank line.
-                boost::asio::read_until(socket, response, "\r\n\r\n");
+               // Process the response headers.
+               std::string header;
+               int response_content_length = -1;
+               std::regex clregex(R"xx(^content-length:\s+(\d+))xx", std::regex_constants::icase);
+               while (std::getline(response_stream, header) && header != "\r") {
+                  std::smatch match;
+                  if(std::regex_search(header, match, clregex))
+                     response_content_length = std::stoi(match[1]);
+               }
 
-                // Process the response headers.
-                std::string header;
-                int response_content_length = -1;
-                std::regex clregex(R"xx(^content-length:\s+(\d+))xx", std::regex_constants::icase);
-                while (std::getline(response_stream, header) && header != "\r") {
-                    std::smatch match;
-                    if (std::regex_search(header, match, clregex))
-                        response_content_length = std::stoi(match[1]);
-                }
+               // Attempt to read the response body using the length indicated by the
+               // Content-length header. If the header was not present just read all available bytes.
+               if( response_content_length != -1 ) {
+                  response_content_length -= response.size();
+                  if( response_content_length > 0 )
+                     boost::asio::read(socket, response, boost::asio::transfer_exactly(response_content_length));
+               } else {
+                  boost::system::error_code ec;
+                  boost::asio::read(socket, response, boost::asio::transfer_all(), ec);
+                  EOS_ASSERT(!ec || ec == boost::asio::ssl::error::stream_truncated, http_exception, "Unable to read http response: ${err}", ("err",ec.message()));
+               }
 
-                // Attempt to read the response body using the length indicated by the
-                // Content-length header. If the header was not present just read all available bytes.
-                if (response_content_length != -1) {
-                    response_content_length -= response.size();
-                    if (response_content_length > 0)
-                        boost::asio::read(socket, response, boost::asio::transfer_exactly(response_content_length));
-                } else {
-                    boost::system::error_code ec;
-                    boost::asio::read(socket, response, boost::asio::transfer_all(), ec);
-                    EOS_ASSERT(!ec || ec == boost::asio::ssl::error::stream_truncated, http_exception,
-                               "Unable to read http response: ${err}", ("err", ec.message()));
-                }
-
-                std::stringstream re;
-                re << &response;
-                return re.str();
+               std::stringstream re;
+               re << &response;
+               return re.str();
             }
 
             parsed_url parse_url(const string &server_url) {
@@ -271,6 +268,7 @@ namespace eosio {
                               << fc::json::to_pretty_string(response_result) << std::endl
                               << "---------------------" << std::endl;
                 }
+
                 if (status_code == 200 || status_code == 201 || status_code == 202) {
                     return response_result;
                 } else if (status_code == 404) {
@@ -288,6 +286,9 @@ namespace eosio {
                         throw chain::missing_net_api_plugin_exception(
                                 FC_LOG_MESSAGE(error, "Net API plugin is not enabled"));
                     }
+                } else if (status_code == 400 || status_code == 401 || status_code == 402 || status_code == 403 || status_code == 404) {
+                  EOS_ASSERT(false, http_request_fail, "Error code ${c}\n: ${msg}\n",
+                             ("c", status_code)("msg", re));
                 } else {
                     auto &&error_info = response_result.as<eosio::error_results>().error;
                     // Construct fc exception from error

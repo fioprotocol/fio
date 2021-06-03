@@ -65,6 +65,7 @@ namespace eosio {
         struct fioaddress_record {
             string fio_address;
             string expiration;
+            uint64_t remaining_bundled_tx = 0;
         };
 
         struct request_record {
@@ -470,18 +471,38 @@ namespace eosio {
             struct get_pending_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_pending_fio_requests_result {
                 vector <request_record> requests;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_pending_fio_requests_result
             get_pending_fio_requests(const get_pending_fio_requests_params &params) const;
 
             //end get pending fio requests
+
+            //begin get received fio requests
+            struct get_received_fio_requests_params {
+                string fio_public_key;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_received_fio_requests_result {
+                vector <request_status_record> requests;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_received_fio_requests_result
+            get_received_fio_requests(const get_received_fio_requests_params &params) const;
+
+            //end get pending fio requests
+
 
             //begin get actions fio requests
             struct get_actions_params {
@@ -501,12 +522,13 @@ namespace eosio {
             struct get_cancelled_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_cancelled_fio_requests_result {
                 vector <request_status_record> requests;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_cancelled_fio_requests_result
@@ -518,13 +540,13 @@ namespace eosio {
             struct get_sent_fio_requests_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_sent_fio_requests_result {
                 vector<request_status_record> requests;
-                int block_num;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_sent_fio_requests_result
@@ -535,12 +557,13 @@ namespace eosio {
             struct get_obt_data_params {
                 string fio_public_key;  // FIO public address to find requests for..
                 int32_t offset = 0;
-                int32_t limit = 0;
+                int32_t limit = 1000;
             };
 
             struct get_obt_data_result {
                 vector<obt_records> obt_data_records;
                 uint32_t more;
+                optional<bool> time_limit_exceeded_error;
             };
 
             get_obt_data_result
@@ -597,6 +620,26 @@ namespace eosio {
                 uint32_t more;
             };
 
+            struct lockperiods {
+                uint64_t duration = 0;
+                double percent = 0.0;
+            };
+
+            struct get_locks_params {
+                fc::string fio_public_key;
+            };
+
+            struct get_locks_result {
+                    uint64_t lock_amount=0;
+                    uint64_t remaining_lock_amount = 0;
+                    uint64_t time_stamp = 0;  //time the lock was created.
+                    uint64_t payouts_performed = 0;
+                    uint32_t can_vote = 0;
+                    vector<lockperiods> unlock_periods;
+            };
+
+            get_locks_result get_locks(const get_locks_params &params) const;
+
 
 
             struct get_fio_balance_params {
@@ -605,6 +648,7 @@ namespace eosio {
 
             struct get_fio_balance_result {
                 uint64_t balance;
+                uint64_t available;
             };
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;
@@ -618,11 +662,6 @@ namespace eosio {
             };
 
             get_actor_result get_actor(const get_actor_params &params) const;
-
-            void obt_data_search(uint32_t search_limit, get_obt_data_result &result, const abi_def &reqobt_abi,
-                                 const get_table_rows_result &table_rows_result, uint32_t &search_results,
-                                 uint32_t &search_offset, uint32_t &returnCount, bool &search_finished,
-                                 const bool id_req) const;
 
             //Fio API get_fee
             struct get_fee_params {
@@ -647,6 +686,27 @@ namespace eosio {
             };
 
             get_pub_address_result get_pub_address(const get_pub_address_params &params) const;
+
+            struct get_pub_addresses_params {
+                fc::string fio_address;
+                int32_t offset = 0;
+                int32_t limit = 0;
+
+            };
+
+            struct address_info {
+              fc::string chain_code;
+              fc::string token_code;
+              fc::string public_address;
+
+            };
+            struct get_pub_addresses_result {
+                vector<address_info> public_addresses;
+                bool more;
+            };
+
+            get_pub_addresses_result get_pub_addresses(const get_pub_addresses_params &params) const;
+
 
             /**
              * Lookup FIO domains and addresses based upon public address
@@ -989,6 +1049,15 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function<transfer_tokens_pub_key_results> next);
 
+            using transfer_locked_tokens_params = fc::variant_object;
+            struct transfer_locked_tokens_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void transfer_locked_tokens(const transfer_locked_tokens_params &params,
+                                         chain::plugin_interface::next_function<transfer_locked_tokens_results> next);
+
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
             struct renew_fio_domain_results {
@@ -1013,6 +1082,16 @@ namespace eosio {
 
             //end renew_address
 
+            //begin burn_fio_address
+            using burn_fio_address_params = fc::variant_object;
+            struct burn_fio_address_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void burn_fio_address(const burn_fio_address_params &params,
+                                     chain::plugin_interface::next_function<burn_fio_address_results> next);
+
             //begin transfer_fio_domain
             using transfer_fio_domain_params = fc::variant_object;
             struct transfer_fio_domain_results {
@@ -1033,7 +1112,7 @@ namespace eosio {
             void transfer_fio_address(const transfer_fio_address_params &params,
                                      chain::plugin_interface::next_function<transfer_fio_address_results> next);
 
-            //begin burn_expired
+
             using burn_expired_params = fc::variant_object;
             struct burn_expired_results {
                 chain::transaction_id_type transaction_id;
@@ -1043,9 +1122,15 @@ namespace eosio {
             void burn_expired(const burn_expired_params &params,
                               chain::plugin_interface::next_function<burn_expired_results> next);
 
-            //end burn_expired
+            using compute_fees_params = fc::variant_object;
+            struct compute_fees_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
 
-            //begin unregister_producer
+            void compute_fees(const compute_fees_params &params,
+                              chain::plugin_interface::next_function<compute_fees_results> next);
+
             using unregister_producer_params = fc::variant_object;
             struct unregister_producer_results {
                 chain::transaction_id_type transaction_id;
@@ -1054,9 +1139,7 @@ namespace eosio {
 
             void unregister_producer(const unregister_producer_params &params,
                                      chain::plugin_interface::next_function<unregister_producer_results> next);
-            //end unregister_producer
 
-            //begin register_producer
             using register_producer_params = fc::variant_object;
             struct register_producer_results {
                 chain::transaction_id_type transaction_id;
@@ -1065,7 +1148,6 @@ namespace eosio {
 
             void register_producer(const register_producer_params &params,
                                    chain::plugin_interface::next_function<register_producer_results> next);
-            //end register_producer
 
             using vote_producer_params = fc::variant_object;
             struct vote_producer_results {
@@ -1217,6 +1299,18 @@ namespace eosio {
                                   chain::plugin_interface::next_function<claim_bp_rewards_results> next);
 
             //End added for new claim_bp_rewards api method.
+
+            //Begin Added for add_bundled_transactions api method
+            using add_bundled_transactions_params = fc::variant_object;
+
+            struct add_bundled_transactions_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void add_bundled_transactions(const add_bundled_transactions_params &params,
+                                  chain::plugin_interface::next_function<add_bundled_transactions_results> next);
+            //end
             using push_transactions_params  = vector<push_transaction_params>;
             using push_transactions_results = vector<push_transaction_results>;
 
@@ -1389,16 +1483,21 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_params,
            (json)(code)(scope)(table)(table_key)(lower_bound)(upper_bound)(limit)(key_type)(index_position)(
                    encode_type)(reverse)(show_payer))
 FC_REFLECT(eosio::chain_apis::read_only::get_table_rows_result, (rows)(more));
+FC_REFLECT(eosio::chain_apis::read_only::get_locks_params, (fio_public_key))
+FC_REFLECT(eosio::chain_apis::read_only::lockperiods, (duration)(percent))
+FC_REFLECT(eosio::chain_apis::read_only::get_locks_result, (lock_amount)(remaining_lock_amount)(time_stamp)(payouts_performed)(can_vote)(unlock_periods))
 FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_pending_fio_requests_result, (requests)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_received_fio_requests_params, (fio_public_key)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_received_fio_requests_result, (requests)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_cancelled_fio_requests_result, (requests)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_sent_fio_requests_result, (requests)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_actions_params, (offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_actions_result, (actions)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
-FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more))
+FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
 FC_REFLECT(eosio::chain_apis::whitelist_info, (fio_public_key_hash)(content))
@@ -1420,8 +1519,11 @@ FC_REFLECT(eosio::chain_apis::obt_records,
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)(chain_code))
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address));
+FC_REFLECT(eosio::chain_apis::read_only::address_info, (public_address)(token_code)(chain_code))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_params, (fio_address)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addresses)(more));
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
-FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration))
+FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)(remaining_bundled_tx))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))
@@ -1435,6 +1537,7 @@ FC_REFLECT(eosio::chain_apis::read_only::avail_check_result, (is_registered));
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain))
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration));
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::burn_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_domain_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::set_fio_domain_public_results, (transaction_id)(processed));
@@ -1448,7 +1551,9 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::transfer_locked_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::compute_fees_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::unregister_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_producer_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::vote_producer_results, (transaction_id)(processed));
@@ -1462,6 +1567,7 @@ FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results, (transactio
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params,
            (code)(table)(lower_bound)(upper_bound)(limit)(reverse))
@@ -1472,7 +1578,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_currency_balance_params, (code)(acc
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
-FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance));
+FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)(available));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_params, (fio_public_key));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_result, (actor));
 FC_REFLECT(eosio::chain_apis::read_only::get_producers_params, (json)(lower_bound)(limit))

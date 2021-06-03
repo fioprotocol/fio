@@ -88,8 +88,12 @@ namespace fioio {
     constexpr auto ErrorTransactionTooLarge = ident | httpDataError | 152;   // Transaction too large
     constexpr auto ErrorRequestStatusInvalid = ident | httpDataError | 153;   // the specified request context record was not found
     constexpr auto ErrorActorIsSystemAccount = ident | httpDataError | 154;   // the specified actor is a FIO system account
-    constexpr auto ErrorNoFioActionsFound = ident | httpLocationError | 155;   // no actions found
-    constexpr auto ErrorDomainOwner = ident | httpInvalidError | 156;
+    constexpr auto ErrorInvalidUnlockPeriods = ident | httpDataError | 155;   //Invalid unlock periods.
+    constexpr auto ErrorInvalidValue = ident | httpDataError | 155;   //Invalid value.
+    constexpr auto ErrorNoGeneralLocksFound = ident | httpLocationError | 156;   // no fio requests found
+    constexpr auto ErrorUnexpectedNumberResults = ident | httpLocationError | 156;   // unexpected number of results
+    constexpr auto ErrorNoFioActionsFound = ident | httpLocationError | 157;   // no actions found
+    constexpr auto ErrorDomainOwner = ident | httpInvalidError | 158;
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
@@ -155,7 +159,7 @@ namespace fioio {
 
     struct Code_403_Result : public Http_Result {
         Code_403_Result(uint64_t code) :
-                Http_Result("invalid_signature", "Request signature not valid or not allowed.") {
+                Http_Result("invalid_signature", "Request signature is not valid or this user is not allowed to sign this transaction.") {
             if (code == fioio::ErrorTransaction) {
                 type = "invalid_transaction";
                 message = "Signed transaction is not valid or is not formatted properly";

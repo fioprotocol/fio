@@ -249,6 +249,15 @@ namespace eosio {
                       }
                     }
 
+                    if (act.act.name == N(trnsloctoks)) {
+                        const auto xferdata = act.act.data_as<eosio::trnsloctoks>();
+                        if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
+                           filter_out.find({act.receiver, 0, xferdata.actor}) == filter_out.end() &&
+                           filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
+                            result.insert(fioio::key_to_account(xferdata.payee_public_key));
+                        }
+                    }
+
                     if (act.act.name == N(xferaddress)) {
                       const auto xferdata = act.act.data_as<eosio::xferaddress>();
                       if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
@@ -257,6 +266,20 @@ namespace eosio {
                         result.insert(fioio::key_to_account(xferdata.new_owner_fio_public_key));
                       }
                     }
+
+                    if (act.act.name == N(updateauth)) {
+                        const auto update = act.act.data_as<chain::updateauth>();
+                        if(filter_out.find({act.receiver, act.act.name, update.account}) == filter_out.end()) {
+                          result.insert(update.account);
+                        }
+                    }
+
+                    if (act.act.name == N(deleteauth)) {
+                        const auto deleteauth = act.act.data_as<chain::deleteauth>();
+                        if(filter_out.find({act.receiver, act.act.name, deleteauth.account}) == filter_out.end()) {
+                          result.insert(deleteauth.account);
+                        }
+                      }
                 }
             }
             return result;
@@ -494,7 +517,7 @@ namespace eosio {
             // Find latest stored action (will have lowest available ACCOUNT seq number)
             const auto max_itr = idx.lower_bound( boost::make_tuple( n, 0 ) );
             const auto min_seq_number = max_itr->account_sequence_num;
-            if (min_seq_number > 0) {  // Reject outside of retention policy boundary.
+            if (min_seq_number > 0 && max_itr != idx.end()) {  // Reject outside of retention policy boundary.
               const auto max_seq_number = min_seq_number + history->history_per_account;
               EOS_ASSERT( start >= min_seq_number, chain::plugin_range_not_satisfiable, "start position is earlier than account retention policy (${p}). Latest available: ${l}. Requested start: ${r}", ("p",history->history_per_account)("l",min_seq_number)("r",start) );
               // Below should actually never occur..?
@@ -509,6 +532,7 @@ namespace eosio {
 
             get_actions_result result;
             result.last_irreversible_block = chain.last_irreversible_block_num();
+
             while (start_itr != end_itr) {
                 uint64_t action_sequence_num;
                 int64_t account_sequence_num;
@@ -549,8 +573,7 @@ namespace eosio {
                 }
             }
             return result;
-        }
-
+        } //get actions
 
         read_only::get_transaction_result read_only::get_transaction(const read_only::get_transaction_params &p) const {
             auto &chain = history->chain_plug->chain();
