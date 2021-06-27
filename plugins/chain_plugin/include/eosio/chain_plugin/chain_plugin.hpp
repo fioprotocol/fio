@@ -113,6 +113,7 @@ namespace eosio {
         };
 
         struct nft_info {
+            optional<string> fio_address;
             string chain_code;
             string contract_address;
             string token_id;
@@ -594,6 +595,23 @@ namespace eosio {
 
             get_nfts_fio_address_result
             get_nfts_fio_address(const get_nfts_fio_address_params &params) const;
+            ////////////////////////
+
+            // get_nfts_hash
+            struct get_nfts_hash_params {
+                string hash;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_nfts_hash_result {
+                vector<nft_info> nfts;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_nfts_hash_result
+            get_nfts_hash(const get_nfts_hash_params &params) const;
             ////////////////////////
 
 
@@ -1527,7 +1545,9 @@ FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(o
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_params, (fio_address)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_result, (nfts)(more)(time_limit_exceeded_error))
-FC_REFLECT(eosio::chain_apis::nft_info, (chain_code)(contract_address)(token_id)(url)(hash)(metadata))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_hash_params, (hash)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_hash_result, (nfts)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::nft_info, (fio_address)(chain_code)(contract_address)(token_id)(url)(hash)(metadata))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
 FC_REFLECT(eosio::chain_apis::whitelist_info, (fio_public_key_hash)(content))
