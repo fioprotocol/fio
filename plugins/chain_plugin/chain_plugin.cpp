@@ -2303,11 +2303,11 @@ if( options.count(name) ) { \
            get_nfts_fio_address_result result;
 
            if (search_offset < address_result.rows.size() ) {
-               int64_t leftover = address_result.rows.size() - (search_offset+search_limit);
-               if (leftover < 0){
-                   leftover = 0;
+               int64_t remaining = address_result.rows.size() - (search_offset+search_limit);
+               if (remaining < 0){
+                   remaining = 0;
                }
-               result.more = leftover;
+               result.more = remaining;
                for (size_t pos = 0 + search_offset; pos < address_result.rows.size();pos++) {
                    if((search_limit > 0)&&(pos-search_offset >= search_limit)){
                        break;
