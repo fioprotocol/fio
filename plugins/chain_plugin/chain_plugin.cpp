@@ -2261,6 +2261,75 @@ if( options.count(name) ) { \
             return result;
         }
 
+        read_only::get_nfts_fio_address_result read_only::get_nfts_fio_address(const read_only::get_nfts_fio_address_params &params) const {
+
+           fioio::FioAddress fa;
+           fioio::getFioAddressStruct(params.fio_address, fa);
+           uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+           FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
+                          fioio::ErrorFioNameNotReg);
+           FIO_400_ASSERT(params.limit >= 0, "limit", to_string(params.limit), "Invalid limit",
+                          fioio::ErrorPagingInvalid);
+           FIO_400_ASSERT(params.offset >= 0, "offset", to_string(params.offset), "Invalid offset",
+                          fioio::ErrorPagingInvalid);
+
+
+
+           std::string fioaddresshash = "0x";
+           fioaddresshash.append(
+                   fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+           get_table_rows_params address_table_row_params = get_table_rows_params{.json=true,
+                   .code = N(fio.address),
+                   .scope = "fio.address",
+                   .table = N(nfts),
+                   .lower_bound = fioaddresshash,
+                   .upper_bound = fioaddresshash,
+                   .encode_type = "hex",
+                   .index_position = "5"};
+
+           get_table_rows_result address_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                   address_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                       return v;
+                   });
+
+           FIO_404_ASSERT(!address_result.rows.empty(), "No NFTS are mapped", fioio::ErrorPubAddressNotFound);
+
+           uint32_t search_limit = params.limit;
+           uint32_t search_offset = params.offset;
+
+           get_nfts_fio_address_result result;
+
+           if (search_offset < address_result.rows.size() ) {
+               int64_t leftover = address_result.rows.size() - (search_offset+search_limit);
+               if (leftover < 0){
+                   leftover = 0;
+               }
+               result.more = leftover;
+               for (size_t pos = 0 + search_offset; pos < address_result.rows.size();pos++) {
+                   if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                       break;
+                   }
+
+                   string chain_code = address_result.rows[pos]["chain_code"].as_string();
+                   string contract_address = address_result.rows[pos]["contract_address"].as_string();
+                   string token_id = std::to_string(address_result.rows[pos]["token_id"].as_uint64());
+                   string url = address_result.rows[pos]["url"].as_string();
+                   string hash = address_result.rows[pos]["hash"].as_string();
+                   string metadata = address_result.rows[pos]["metadata"].as_string();
+
+                   nft_info nft{chain_code, contract_address, token_id, url, hash, metadata };
+                   result.nfts.push_back(nft);    //pushback results in nftinfo record
+                   result.more = (address_result.rows.size()-pos)-1;
+               }
+           }
+
+           return result;
+        }
+
+
         void read_only::GetFIOAccount(name account, read_only::get_table_rows_result &account_result) const {
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);

@@ -112,6 +112,15 @@ namespace eosio {
             string content;
         };
 
+        struct nft_info {
+            string chain_code;
+            string contract_address;
+            string token_id;
+            string url;
+            string hash;
+            string metadata;
+        };
+
         template<typename>
         struct resolver_factory;
 
@@ -569,6 +578,24 @@ namespace eosio {
             get_obt_data_result
             get_obt_data(const get_obt_data_params &params) const;
             //end get obt data
+
+            // get_nfts_fio_address
+            struct get_nfts_fio_address_params {
+                string fio_address;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_nfts_fio_address_result {
+                vector<nft_info> nfts;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_nfts_fio_address_result
+            get_nfts_fio_address(const get_nfts_fio_address_params &params) const;
+            ////////////////////////
+
 
             struct get_whitelist_params {
                 string fio_public_key;
@@ -1498,6 +1525,9 @@ FC_REFLECT(eosio::chain_apis::read_only::get_actions_params, (offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_actions_result, (actions)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_params, (fio_address)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_result, (nfts)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::nft_info, (chain_code)(contract_address)(token_id)(url)(hash)(metadata))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
 FC_REFLECT(eosio::chain_apis::whitelist_info, (fio_public_key_hash)(content))
