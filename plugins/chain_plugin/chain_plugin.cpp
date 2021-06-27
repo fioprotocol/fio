@@ -2313,14 +2313,14 @@ if( options.count(name) ) { \
                        break;
                    }
 
-                   string chain_code = address_result.rows[pos]["chain_code"].as_string();
-                   string contract_address = address_result.rows[pos]["contract_address"].as_string();
-                   string token_id = std::to_string(address_result.rows[pos]["token_id"].as_uint64());
-                   string url = address_result.rows[pos]["url"].as_string();
-                   string hash = address_result.rows[pos]["hash"].as_string();
-                   string metadata = address_result.rows[pos]["metadata"].as_string();
-
-                   nft_info nft{nullptr, chain_code, contract_address, token_id, url, hash, metadata };
+                   nft_info nft = nft_info {
+                    .chain_code = address_result.rows[pos]["chain_code"].as_string(),
+                    .contract_address =  address_result.rows[pos]["contract_address"].as_string(),
+                    .token_id = std::to_string(address_result.rows[pos]["token_id"].as_uint64()),
+                    .url = address_result.rows[pos]["url"].as_string(),
+                    .hash = address_result.rows[pos]["hash"].as_string(),
+                    .metadata = address_result.rows[pos]["metadata"].as_string()
+                   };
                    result.nfts.push_back(nft);    //pushback results in nftinfo record
                    result.more = (address_result.rows.size()-pos)-1;
                }
@@ -2378,15 +2378,16 @@ if( options.count(name) ) { \
                        break;
                    }
 
-                   string fio_address = hash_result.rows[pos]["fio_address"].as_string();
-                   string chain_code = hash_result.rows[pos]["chain_code"].as_string();
-                   string contract_address = hash_result.rows[pos]["contract_address"].as_string();
-                   string token_id = std::to_string(hash_result.rows[pos]["token_id"].as_uint64());
-                   string url = hash_result.rows[pos]["url"].as_string();
-                   string hash = hash_result.rows[pos]["hash"].as_string();
-                   string metadata = hash_result.rows[pos]["metadata"].as_string();
-
-                   nft_info nft{ fio_address, chain_code, contract_address, token_id, url, hash, metadata };
+                   nft_info nft = nft_info {
+                     //optional fio_address parameter is initialized 
+                    .fio_address = hash_result.rows[pos]["fio_address"].as_string(),
+                    .chain_code = hash_result.rows[pos]["chain_code"].as_string(),
+                    .contract_address = hash_result.rows[pos]["contract_address"].as_string(),
+                    .token_id = std::to_string(hash_result.rows[pos]["token_id"].as_uint64()),
+                    .url = hash_result.rows[pos]["url"].as_string(),
+                    .hash = hash_result.rows[pos]["hash"].as_string(),
+                    .metadata = hash_result.rows[pos]["metadata"].as_string()
+                   };
                    result.nfts.push_back(nft);    //pushback results in nftinfo record
                    result.more = (hash_result.rows.size()-pos)-1;
                }
