@@ -2281,7 +2281,7 @@ if( options.count(name) ) { \
 
            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
-           get_table_rows_params address_table_row_params = get_table_rows_params{.json=true,
+           get_table_rows_params nft_table_row_params = get_table_rows_params{.json=true,
                    .code = N(fio.address),
                    .scope = "fio.address",
                    .table = N(nfts),
@@ -2291,7 +2291,7 @@ if( options.count(name) ) { \
                    .index_position = "2"};
 
            get_table_rows_result address_result = get_table_rows_by_seckey<index128_index, uint128_t>(
-                   address_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                   nft_table_row_params, abi, [](uint128_t v) -> uint128_t {
                        return v;
                    });
 
