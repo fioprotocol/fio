@@ -2288,7 +2288,7 @@ if( options.count(name) ) { \
                    .lower_bound = fioaddresshash,
                    .upper_bound = fioaddresshash,
                    .encode_type = "hex",
-                   .index_position = "5"};
+                   .index_position = "2"};
 
            get_table_rows_result address_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                    address_table_row_params, abi, [](uint128_t v) -> uint128_t {
@@ -2328,7 +2328,6 @@ if( options.count(name) ) { \
 
            return result;
         }
-
 
         void read_only::GetFIOAccount(name account, read_only::get_table_rows_result &account_result) const {
 
