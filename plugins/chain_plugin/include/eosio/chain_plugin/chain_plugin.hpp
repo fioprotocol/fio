@@ -599,7 +599,7 @@ namespace eosio {
 
             // get_nfts_hash
             struct get_nfts_hash_params {
-                string hash;  // FIO public address to find requests for..
+                string hash;  
                 int32_t offset = 0;
                 int32_t limit = 1000;
             };
@@ -614,6 +614,25 @@ namespace eosio {
             get_nfts_hash(const get_nfts_hash_params &params) const;
             ////////////////////////
 
+
+            // get_nfts_contract
+            struct get_nfts_contract_params {
+                string chain_code;
+                string contract_address;
+                string token_id;
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_nfts_contract_result {
+                vector<nft_info> nfts;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_nfts_contract_result
+            get_nfts_contract(const get_nfts_contract_params &params) const;
+            ////////////////////////
 
             struct get_whitelist_params {
                 string fio_public_key;
@@ -1547,6 +1566,8 @@ FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_params, (fio_addre
 FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_result, (nfts)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::read_only::get_nfts_hash_params, (hash)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_nfts_hash_result, (nfts)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_contract_params, (chain_code)(contract_address)(token_id)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_contract_result, (nfts)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::nft_info, (fio_address)(chain_code)(contract_address)(token_id)(url)(hash)(metadata))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
