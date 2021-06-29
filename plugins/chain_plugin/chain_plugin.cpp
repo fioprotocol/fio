@@ -2317,7 +2317,7 @@ if( options.count(name) ) { \
                     // Per FIP-27 specification, do not set fio_address member of nft for get_nfts_fio_address. Set all other members.
                     .chain_code = address_result.rows[pos]["chain_code"].as_string(),
                     .contract_address =  address_result.rows[pos]["contract_address"].as_string(),
-                    .token_id = std::to_string(address_result.rows[pos]["token_id"].as_uint64()),
+                    .token_id = address_result.rows[pos]["token_id"].as_string(),
                     .url = address_result.rows[pos]["url"].as_string(),
                     .hash = address_result.rows[pos]["hash"].as_string(),
                     .metadata = address_result.rows[pos]["metadata"].as_string()
@@ -2384,7 +2384,7 @@ if( options.count(name) ) { \
                     .fio_address = hash_result.rows[pos]["fio_address"].as_string(),
                     .chain_code = hash_result.rows[pos]["chain_code"].as_string(),
                     .contract_address = hash_result.rows[pos]["contract_address"].as_string(),
-                    .token_id = std::to_string(hash_result.rows[pos]["token_id"].as_uint64()),
+                    .token_id = hash_result.rows[pos]["token_id"].as_string(),
                     .url = hash_result.rows[pos]["url"].as_string(),
                     .hash = hash_result.rows[pos]["hash"].as_string(),
                     .metadata = hash_result.rows[pos]["metadata"].as_string()
@@ -2449,14 +2449,14 @@ if( options.count(name) ) { \
                    }
 
                   if (contract_result.rows[pos]["chain_code"].as_string() == params.chain_code ) {
-                    if (params.token_id.empty() || contract_result.rows[pos]["token_id"].as_uint64() == (uint64_t) std::stoi(params.token_id)) {
+                    if (params.token_id.empty() || contract_result.rows[pos]["token_id"].as_string() == params.token_id) {
 
                     nft_info nft = nft_info {
                       //optional fio_address member is initialized for this endpoint
                      .fio_address = contract_result.rows[pos]["fio_address"].as_string(),
                      .chain_code = contract_result.rows[pos]["chain_code"].as_string(),
                      .contract_address = contract_result.rows[pos]["contract_address"].as_string(),
-                     .token_id = std::to_string(contract_result.rows[pos]["token_id"].as_uint64()),
+                     .token_id = contract_result.rows[pos]["token_id"].as_string(),
                      .url = contract_result.rows[pos]["url"].as_string(),
                      .hash = contract_result.rows[pos]["hash"].as_string(),
                      .metadata = contract_result.rows[pos]["metadata"].as_string()
