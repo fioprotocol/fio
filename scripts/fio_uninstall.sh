@@ -123,3 +123,6 @@ if [[ $ARCH == "Darwin" ]]; then
       done
    done
 fi
+
+rm -rf build
+rm -rf ${EOSIO_INSTALL_DIR}
