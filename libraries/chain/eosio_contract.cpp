@@ -110,6 +110,7 @@ namespace eosio {
                                    create.actor == AddressContract ||
                                    create.actor == TPIDContract ||
                                    create.actor == TokenContract ||
+                                   create.actor == FIOOracleContract ||
                                    create.actor == TREASURYACCOUNT ||
                                    create.actor == FIOSYSTEMACCOUNT ||
                                    create.actor == FIOACCOUNT
@@ -129,6 +130,7 @@ namespace eosio {
                                create.actor == AddressContract ||
                                create.actor == TPIDContract ||
                                create.actor == TokenContract ||
+                               create.actor == FIOOracleContract ||
                                create.actor == TREASURYACCOUNT ||
                                create.actor == FIOSYSTEMACCOUNT ||
                                create.actor == FIOACCOUNT
@@ -204,6 +206,7 @@ namespace eosio {
                                            rem.actor == AddressContract ||
                                            rem.actor == TPIDContract ||
                                            rem.actor == TokenContract ||
+                                           rem.actor == FIOOracleContract ||
                                            rem.actor == TREASURYACCOUNT ||
                                            rem.actor == FIOSYSTEMACCOUNT ||
                                            rem.actor == FIOACCOUNT
@@ -224,6 +227,7 @@ namespace eosio {
                                rem.actor == AddressContract ||
                                rem.actor == TPIDContract ||
                                rem.actor == TokenContract ||
+                               rem.actor == FIOOracleContract ||
                                rem.actor == TREASURYACCOUNT ||
                                rem.actor == FIOSYSTEMACCOUNT ||
                                rem.actor == FIOACCOUNT
@@ -352,6 +356,7 @@ namespace eosio {
                                        act.account == AddressContract ||
                                        act.account == TPIDContract ||
                                        act.account == TokenContract ||
+                                       act.account == FIOOracleContract ||
                                        act.account == TREASURYACCOUNT ||
                                        act.account == FIOSYSTEMACCOUNT ||
                                        act.account == FIOACCOUNT
@@ -371,6 +376,7 @@ namespace eosio {
                            act.account == AddressContract ||
                            act.account == TPIDContract ||
                            act.account == TokenContract ||
+                           act.account == FIOOracleContract ||
                            act.account == TREASURYACCOUNT ||
                            act.account == FIOSYSTEMACCOUNT ||
                            act.account == FIOACCOUNT
