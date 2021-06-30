@@ -73,11 +73,6 @@ namespace eosio {
             uint64_t fee_amount;
         };
 
-        struct oraclefee_record {
-            string fee_name;
-            uint64_t fee_amount;
-        };
-
         struct request_record {
             uint64_t fio_request_id;     // one up index starting at 0
             string payer_fio_address;   // sender FIO address e.g. john.xyz
