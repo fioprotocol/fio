@@ -111,6 +111,7 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_fio_names, 200),
                                      CHAIN_RO_CALL(get_fio_domains, 200),
                                      CHAIN_RO_CALL(get_fio_addresses, 200),
+                                     CHAIN_RO_CALL(get_oracle_fees, 200),
                                      CHAIN_RO_CALL(get_locks, 200),
                                      CHAIN_RO_CALL(get_fee, 200),
                                      CHAIN_RO_CALL(get_actions, 200),
@@ -193,6 +194,8 @@ namespace eosio {
                                                          chain_apis::read_write::pay_tpid_rewards_results, 202),
                                      CHAIN_RW_CALL_ASYNC(claim_bp_rewards,
                                                          chain_apis::read_write::claim_bp_rewards_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(wrap_fio_tokens,
+                                                         chain_apis::read_write::wrap_fio_tokens_results, 202),
                                      CHAIN_RW_CALL_ASYNC(add_bundled_transactions,
                                                          chain_apis::read_write::add_bundled_transactions_results, 202)
 
