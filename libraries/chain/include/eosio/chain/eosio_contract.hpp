@@ -33,7 +33,6 @@ namespace eosio {
         static const name AddressContract =   name("fio.address");
         static const name TPIDContract =      name("fio.tpid");
         static const name TokenContract =     name("fio.token");
-        static const name FIOOracleContract = name("fio.oracle");
         static const name FOUNDATIONACCOUNT = name("tw4tjkmo4eyd");
         static const name TREASURYACCOUNT =   name("fio.treasury");
         static const name FIOSYSTEMACCOUNT=   name("fio.system");
