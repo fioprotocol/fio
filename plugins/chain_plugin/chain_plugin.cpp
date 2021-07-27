@@ -2736,7 +2736,7 @@ if( options.count(name) ) { \
 
                 uint64_t rateofexchange =  1;
                 if (combinedtokenpool >= 1000000000000000) {
-                    rateofexchange = combinedtokenpool / globalsrpcount;
+                    rateofexchange = (uint64_t)((double)((double)(combinedtokenpool) / (double)(globalsrpcount)) * 1000000000.0);
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
