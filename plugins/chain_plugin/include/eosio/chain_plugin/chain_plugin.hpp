@@ -651,7 +651,7 @@ namespace eosio {
                 uint64_t available;
                 uint64_t staked = 0;
                 uint64_t srps = 0;
-                uint64_t roe = 0;
+                double roe = 0;
             };
 
             get_fio_balance_result get_fio_balance(const get_fio_balance_params &params) const;

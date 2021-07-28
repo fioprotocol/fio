@@ -2734,9 +2734,9 @@ if( options.count(name) ) { \
                 uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
                         shorten_abi_errors)["global_srp_count"].as_uint64();
 
-                uint64_t rateofexchange =  1;
+                double rateofexchange =  1.0;
                 if (combinedtokenpool >= 1000000000000000) {
-                    rateofexchange = combinedtokenpool / globalsrpcount;
+                    rateofexchange = (double)((double)(combinedtokenpool) / (double)(globalsrpcount));
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
