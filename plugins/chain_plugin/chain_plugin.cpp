@@ -2735,7 +2735,8 @@ if( options.count(name) ) { \
                         shorten_abi_errors)["global_srp_count"].as_uint64();
 
                 double rateofexchange =  1.0;
-                if (combinedtokenpool >= 1000000000000000) {
+                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
+                if ((combinedtokenpool >= 1000000000000000) && (db.head_block_time().sec_since_epoch() > ENABLESTAKINGREWARDSEPOCHSEC)) {
                     rateofexchange = (double)((double)(combinedtokenpool) / (double)(globalsrpcount));
                 }
 
