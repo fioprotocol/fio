@@ -1677,7 +1677,7 @@ if( options.count(name) ) { \
             result.remaining_lock_amount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
             result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
             result.payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
-            result.can_vote = rows_result.rows[0]["payouts_performed"].as_uint64();
+            result.can_vote = rows_result.rows[0]["can_vote"].as_uint64();
 
             for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
                 uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
@@ -2584,6 +2584,7 @@ if( options.count(name) ) { \
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
+            bool debugout = false;
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
@@ -2641,8 +2642,7 @@ if( options.count(name) ) { \
             name account = name{account_name};
             const abi_def sys_abi = eosio::chain_apis::get_abi(db, fio_code);
 
-            //get the locked tokens, subtract the remaining lock amount if it exists.
-            //get lock tokens, subtract remaining lock amount if it exists
+            //get genesis/main net lock tokens, subtract remaining lock amount if it exists
             get_table_rows_params mtable_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_code,
@@ -2665,9 +2665,8 @@ if( options.count(name) ) { \
                 lockamount = mrows_result.rows[0]["remaining_locked_amount"].as_uint64();
             }
 
-
-            //get lock tokens, subtract remaining lock amount if it exists
-            get_table_rows_params table_row_params = get_table_rows_params{
+            //get the locked tokens, subtract the remaining lock amount if it exists.
+            get_table_rows_params gtable_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_code,
                     .scope       = fio_scope,
@@ -2677,20 +2676,69 @@ if( options.count(name) ) { \
                     .key_type       = "i64",
                     .index_position = "2"};
 
-            get_table_rows_result rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    table_row_params, sys_abi, [](uint64_t v) -> uint64_t {
+            get_table_rows_result grows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    gtable_row_params, sys_abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
-
-            if (!rows_result.rows.empty()) {
-
-                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found general locks",
-                               fioio::ErrorUnexpectedNumberResults);
-
-                lockamount += rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+            uint64_t nowepoch = db.head_block_time().sec_since_epoch();
+            if (debugout) {
+                dlog(" account name is ${v} \n", ("v", account_name));
+                dlog(" now is ${v} \n", ("v", nowepoch));
             }
 
+            uint64_t additional_available_fio_locks = 0;
+            if (!grows_result.rows.empty()) {
+
+                FIO_404_ASSERT(grows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                uint64_t timestamp = grows_result.rows[0]["timestamp"].as_uint64();
+                if (debugout) {
+                    dlog(" timestamp is ${v} \n", ("v", timestamp));
+                }
+                uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
+                uint64_t timesincelockcreated = 0;
+
+                if(nowepoch > timestamp) {
+                    timesincelockcreated = nowepoch - timestamp;
+                    if (debugout) {
+                        dlog(" time since lock created is ${v} \n", ("v", timesincelockcreated));
+                    }
+                }
+
+                if (timesincelockcreated > 0) {
+                    //traverse the locks and compute the amount available but not yet accounted by the system.
+                    //this makes the available accurate when the user has not called transfer, or vote yet
+                    //but has locked funds that are eligible for spending in their general lock.
+                    for (int i = 0; i < grows_result.rows[0]["periods"].size(); i++) {
+                        uint64_t duration = grows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                        uint64_t amount = grows_result.rows[0]["periods"][i]["amount"].as_uint64();
+                        if (debugout) {
+                            dlog(" lock period  ${v} duration ${d} amount ${a} \n",
+                                 ("v", i)("d", duration)("a", amount));
+                        }
+                        if(duration > timesincelockcreated)
+                        {
+                            if (debugout) {
+                                dlog(" breaking out on lock period ${p} \n", ("p", i));
+                            }
+                            break;
+                        }
+                        if(i > ((int)payouts_performed - 1)){
+                            if (debugout) {
+                                dlog(" additional amount added to available by lock interpretation is ${v} \n",
+                                     ("v", amount));
+                            }
+                            additional_available_fio_locks += amount;
+                        }
+                    }
+                }
+
+                //correct the remaining lock amount to account for tokens that are unlocked before system
+                //accounting is updated by calling transfer or vote.
+                lockamount += grows_result.rows[0]["remaining_lock_amount"].as_uint64() - additional_available_fio_locks;
+            }
 
 
             //get the account staking info
@@ -2733,20 +2781,25 @@ if( options.count(name) ) { \
                         shorten_abi_errors)["combined_token_pool"].as_uint64();
                 uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
                         shorten_abi_errors)["global_srp_count"].as_uint64();
-
+                int64_t activated =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                                                           shorten_abi_errors)["staking_rewards_activated"].as_int64();
                 double rateofexchange =  1.0;
-                if (combinedtokenpool >= 1000000000000000) {
+                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
+                if ((activated > 0) || ((combinedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
                     rateofexchange = (double)((double)(combinedtokenpool) / (double)(globalsrpcount));
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
+                if (debugout) {
+                    dlog("rval is ${r} stake amount is ${s} lock amount is ${l} \n",
+                         ("r", rVal)("s", stakeamount)("l", lockamount));
+                }
                 result.available = rVal - stakeamount - lockamount;
                 result.staked = stakeamount;
                 result.srps = srpamount;
                 result.roe = rateofexchange;
             }
-
             return result;
         } //get_fio_balance
 
