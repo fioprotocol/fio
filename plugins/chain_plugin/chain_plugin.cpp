@@ -2777,16 +2777,20 @@ if( options.count(name) ) { \
                 const abi_def abi = eosio::chain_apis::get_abi(db, N(fio.staking));
                 const abi_serializer abis{abi, abi_serializer_max_time};
                 const auto &d = db.db();
+                uint64_t stakedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["staked_token_pool"].as_uint64();
                 uint64_t combinedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
-                        shorten_abi_errors)["combined_token_pool"].as_uint64();
+                                                            shorten_abi_errors)["combined_token_pool"].as_uint64();
                 uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
                         shorten_abi_errors)["global_srp_count"].as_uint64();
                 int64_t activated =  get_staking_row(d, abi, abis, abi_serializer_max_time,
                                                            shorten_abi_errors)["staking_rewards_activated"].as_int64();
-                double rateofexchange =  1.0;
-                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
-                if ((activated > 0) || ((combinedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
-                    rateofexchange = (double)((double)(combinedtokenpool) / (double)(globalsrpcount));
+                int64_t rateofexchange =  1000000000;
+               const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
+                if ((activated > 0) || ((stakedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
+
+                    //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
+                    rateofexchange = (int64_t)((double)((double)(stakedtokenpool) / (double)(combinedtokenpool)) * 1000000000.0);
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
@@ -2798,7 +2802,10 @@ if( options.count(name) ) { \
                 result.available = rVal - stakeamount - lockamount;
                 result.staked = stakeamount;
                 result.srps = srpamount;
-                result.roe = rateofexchange;
+                double t = (double)(((double)rateofexchange)/1000000000.0);  //output t in this format nnnnnnnnnn.ddddddddd
+                char s[100];
+                sprintf(s,"%.9f",t);
+                result.roe = (string)s;
             }
             return result;
         } //get_fio_balance
