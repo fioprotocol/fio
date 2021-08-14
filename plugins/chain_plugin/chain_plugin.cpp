@@ -2788,9 +2788,8 @@ if( options.count(name) ) { \
                 int64_t rateofexchange =  1000000000;
                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
                 if ((activated > 0) || ((stakedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
-
                     //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
-                    rateofexchange = (int64_t)((double)((double)(stakedtokenpool) / (double)(combinedtokenpool)) * 1000000000.0);
+                    rateofexchange = (int64_t)((double)((double)(combinedtokenpool) / (double)(globalsrpcount)) * 1000000000.0);
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
