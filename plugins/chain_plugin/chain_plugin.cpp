@@ -2785,11 +2785,14 @@ if( options.count(name) ) { \
                         shorten_abi_errors)["global_srp_count"].as_uint64();
                 int64_t activated =  get_staking_row(d, abi, abis, abi_serializer_max_time,
                                                            shorten_abi_errors)["staking_rewards_activated"].as_int64();
-                int64_t rateofexchange =  1000000000;
+                long double roesufspersrp =  1.0;
                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
                 if ((activated > 0) || ((stakedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
                     //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
-                    rateofexchange = (int64_t)((double)((double)(combinedtokenpool) / (double)(globalsrpcount)) * 1000000000.0);
+                    roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
+                    if(roesufspersrp < 1.0){
+                        roesufspersrp = 1.0;
+                    }
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
@@ -2801,9 +2804,8 @@ if( options.count(name) ) { \
                 result.available = rVal - stakeamount - lockamount;
                 result.staked = stakeamount;
                 result.srps = srpamount;
-                double t = (double)(((double)rateofexchange)/1000000000.0);  //output t in this format nnnnnnnnnn.ddddddddd
                 char s[100];
-                sprintf(s,"%.9f",t);
+                sprintf(s,"%.9Lf",roesufspersrp);
                 result.roe = (string)s;
             }
             return result;
