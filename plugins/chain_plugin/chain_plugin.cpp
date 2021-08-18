@@ -2805,7 +2805,7 @@ if( options.count(name) ) { \
                 result.staked = stakeamount;
                 result.srps = srpamount;
                 char s[100];
-                sprintf(s,"%Lg",roesufspersrp);
+                sprintf(s,"%.15Lf",roesufspersrp);
                 result.roe = (string)s;
             }
             return result;
