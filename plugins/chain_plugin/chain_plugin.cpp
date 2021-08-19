@@ -1673,18 +1673,56 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
                            fioio::ErrorUnexpectedNumberResults);
 
-            result.lock_amount = rows_result.rows[0]["lock_amount"].as_uint64();
-            result.remaining_lock_amount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+            uint64_t nowepoch = db.head_block_time().sec_since_epoch();
+            uint64_t newlockamount = rows_result.rows[0]["lock_amount"].as_uint64();
+            uint64_t tlockamount = 0;
+            uint64_t newremaininglockamount = 0;
+
+            uint64_t additional_available_fio_locks = 0;
+            if (!rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                uint64_t timestamp = rows_result.rows[0]["timestamp"].as_uint64();
+
+                uint32_t payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
+                uint64_t timesincelockcreated = 0;
+
+                if (nowepoch > timestamp) {
+                    timesincelockcreated = nowepoch - timestamp;
+                }
+
+                //traverse the locks and compute the amount available but not yet accounted by the system.
+                //this makes the available accurate when the user has not called transfer, or vote yet
+                //but has locked funds that are eligible for spending in their general lock.
+                for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
+                    uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                    uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
+                  
+                    if (duration <= timesincelockcreated) {
+                        newlockamount -= amount;
+                        if (i > ((int) payouts_performed - 1)) {
+                            tlockamount += amount;
+                        }
+                    } else { //lock periods after now get added to the results.
+                        lockperiodv2 lp{duration, amount};
+                        result.unlock_periods.push_back(lp);
+                    }
+
+                }
+
+                //correct the remaining lock amount to account for tokens that are unlocked before system
+                //accounting is updated by calling transfer or vote.
+                newremaininglockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64() - tlockamount;
+
+            }
+            result.lock_amount = newlockamount;
+            result.remaining_lock_amount = newremaininglockamount;
             result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
-            result.payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
+            result.payouts_performed = 0;
             result.can_vote = rows_result.rows[0]["can_vote"].as_uint64();
 
-            for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
-                uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
-                uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
-                lockperiodv2 lp{duration, amount};
-                result.unlock_periods.push_back(lp);
-            }
             return result;
         }
 
