@@ -2828,6 +2828,8 @@ if( options.count(name) ) { \
                 if ((activated > 0) || ((stakedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
                     //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
                     roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
+                    //round it after the 9th decimal place
+                    roesufspersrp = roundl(roesufspersrp * 1000000000.0) / 1000000000.0;
                     if(roesufspersrp < 1.0){
                         roesufspersrp = 1.0;
                     }
