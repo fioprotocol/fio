@@ -2529,7 +2529,7 @@ if( options.count(name) ) { \
                     });
 
             std::string nam;
-            uint64_t namexpiration;
+            uint64_t namexpiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
             uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
@@ -2543,9 +2543,7 @@ if( options.count(name) ) { \
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
                     if (nam.find('@') !=
                         std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
-                        namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
                         rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
-
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
@@ -2730,7 +2728,7 @@ if( options.count(name) ) { \
                     });
 
             std::string nam;
-            uint64_t namexpiration;
+            uint64_t namexpiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
             uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
@@ -2751,10 +2749,7 @@ if( options.count(name) ) { \
                     }
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
                     if (nam.find('@') != std::string::npos) {
-                        namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
                         rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
-
-
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
@@ -3149,7 +3144,7 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found",
                                fioio::ErrorPubAddressNotFound);
 
-                uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+                uint32_t name_expiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
                 FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameEmpty);
 
@@ -3181,7 +3176,6 @@ if( options.count(name) ) { \
 
             return result;
         } // get_pub_address
-
 
 
         /***
@@ -3270,7 +3264,7 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!fioname_result.rows.empty(), "FIO Address does not exist",
                                fioio::ErrorPubAddressNotFound);
 
-                uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+                uint32_t name_expiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
                 FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "FIO Address does not exist",
                                fioio::ErrorFioNameEmpty);
 
