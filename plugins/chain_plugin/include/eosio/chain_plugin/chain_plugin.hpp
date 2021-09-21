@@ -599,7 +599,7 @@ namespace eosio {
 
             // get_nfts_hash
             struct get_nfts_hash_params {
-                string hash;  
+                string hash;
                 int32_t offset = 0;
                 int32_t limit = 1000;
             };
@@ -1057,6 +1057,39 @@ namespace eosio {
 
             void register_fio_address(const register_fio_address_params &params,
                                       chain::plugin_interface::next_function<register_fio_address_results> next);
+
+            using add_nft_params = fc::variant_object;
+
+            struct add_nft_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void add_nft(const add_nft_params &params,
+                                      chain::plugin_interface::next_function<add_nft_results> next);
+
+
+            using remove_nft_params = fc::variant_object;
+
+            struct remove_nft_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_nft(const remove_nft_params &params,
+                                      chain::plugin_interface::next_function<remove_nft_results> next);
+
+
+            using remove_all_nfts_params = fc::variant_object;
+
+            struct remove_all_nfts_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_all_nfts(const remove_all_nfts_params &params,
+                                      chain::plugin_interface::next_function<remove_all_nfts_results> next);
+
 
             using set_fio_domain_public_params = fc::variant_object;
             struct set_fio_domain_public_results {
@@ -1608,6 +1641,9 @@ FC_REFLECT(eosio::chain_apis::read_only::avail_check_result, (is_registered));
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain))
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration));
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::add_nft_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_nft_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_all_nfts_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_domain_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_address_results, (transaction_id)(processed));
