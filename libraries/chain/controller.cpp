@@ -1379,10 +1379,8 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
-
+                
                 */
-
-
             }
         
 
