@@ -112,6 +112,16 @@ namespace eosio {
             string content;
         };
 
+        struct nft_info {
+            optional<string> fio_address;
+            string chain_code;
+            string contract_address;
+            string token_id;
+            string url;
+            string hash;
+            string metadata;
+        };
+
         template<typename>
         struct resolver_factory;
 
@@ -570,6 +580,60 @@ namespace eosio {
             get_obt_data(const get_obt_data_params &params) const;
             //end get obt data
 
+            // get_nfts_fio_address
+            struct get_nfts_fio_address_params {
+                string fio_address;  // FIO public address to find requests for..
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_nfts_fio_address_result {
+                vector<nft_info> nfts;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_nfts_fio_address_result
+            get_nfts_fio_address(const get_nfts_fio_address_params &params) const;
+            ////////////////////////
+
+            // get_nfts_hash
+            struct get_nfts_hash_params {
+                string hash;
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_nfts_hash_result {
+                vector<nft_info> nfts;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_nfts_hash_result
+            get_nfts_hash(const get_nfts_hash_params &params) const;
+            ////////////////////////
+
+
+            // get_nfts_contract
+            struct get_nfts_contract_params {
+                string chain_code;
+                string contract_address;
+                string token_id;
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_nfts_contract_result {
+                vector<nft_info> nfts;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_nfts_contract_result
+            get_nfts_contract(const get_nfts_contract_params &params) const;
+            ////////////////////////
+
             struct get_whitelist_params {
                 string fio_public_key;
             };
@@ -996,6 +1060,39 @@ namespace eosio {
 
             void register_fio_address(const register_fio_address_params &params,
                                       chain::plugin_interface::next_function<register_fio_address_results> next);
+
+            using add_nft_params = fc::variant_object;
+
+            struct add_nft_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void add_nft(const add_nft_params &params,
+                                      chain::plugin_interface::next_function<add_nft_results> next);
+
+
+            using remove_nft_params = fc::variant_object;
+
+            struct remove_nft_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_nft(const remove_nft_params &params,
+                                      chain::plugin_interface::next_function<remove_nft_results> next);
+
+
+            using remove_all_nfts_params = fc::variant_object;
+
+            struct remove_all_nfts_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_all_nfts(const remove_all_nfts_params &params,
+                                      chain::plugin_interface::next_function<remove_all_nfts_results> next);
+
 
             using set_fio_domain_public_params = fc::variant_object;
             struct set_fio_domain_public_results {
@@ -1501,6 +1598,13 @@ FC_REFLECT(eosio::chain_apis::read_only::get_actions_params, (offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_actions_result, (actions)(more))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_obt_data_result, (obt_data_records)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_params, (fio_address)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_fio_address_result, (nfts)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_hash_params, (hash)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_hash_result, (nfts)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_contract_params, (chain_code)(contract_address)(token_id)(offset)(limit))
+FC_REFLECT(eosio::chain_apis::read_only::get_nfts_contract_result, (nfts)(more)(time_limit_exceeded_error))
+FC_REFLECT(eosio::chain_apis::nft_info, (fio_address)(chain_code)(contract_address)(token_id)(url)(hash)(metadata))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
 FC_REFLECT(eosio::chain_apis::whitelist_info, (fio_public_key_hash)(content))
@@ -1540,6 +1644,9 @@ FC_REFLECT(eosio::chain_apis::read_only::avail_check_result, (is_registered));
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_params, (key)(chain))
 FC_REFLECT(eosio::chain_apis::read_only::fio_key_lookup_result, (name)(expiration));
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_address_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::add_nft_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_nft_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_all_nfts_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_domain_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_fio_address_results, (transaction_id)(processed));
