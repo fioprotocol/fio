@@ -1379,11 +1379,10 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
-                 
-                 */
-
+                
+                */
             }
-
+        
 
             // The returned scoped_exit should not exceed the lifetime of the pending which existed when make_block_restore_point was called.
             fc::scoped_exit<std::function<void()>> make_block_restore_point() {
