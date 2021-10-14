@@ -3024,19 +3024,16 @@ if( options.count(name) ) { \
                 uint64_t stakedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
                         shorten_abi_errors)["staked_token_pool"].as_uint64();
                 uint64_t combinedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
-                                                            shorten_abi_errors)["combined_token_pool"].as_uint64();
+                                                            shorten_abi_errors)["last_combined_token_pool"].as_uint64();
                 uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
-                        shorten_abi_errors)["global_srp_count"].as_uint64();
-                int64_t activated =  get_staking_row(d, abi, abis, abi_serializer_max_time,
-                                                           shorten_abi_errors)["staking_rewards_activated"].as_int64();
-                long double roesufspersrp =  1.0;
-               const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
-                if ((activated > 0) || ((stakedtokenpool >= 1000000000000000) && (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC))) {
+                        shorten_abi_errors)["last_global_srp_count"].as_uint64();
+                long double roesufspersrp =  0.5;
+                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
+                if (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC) {
                     //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
                     roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
-                    if(roesufspersrp < 1.0){
-                        roesufspersrp = 1.0;
-                    }
+                    //round it after the 9th decimal place
+                    roesufspersrp = roundl(roesufspersrp * 1000000000.0) / 1000000000.0;
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
