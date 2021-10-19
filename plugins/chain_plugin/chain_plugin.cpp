@@ -2826,8 +2826,8 @@ if( options.count(name) ) { \
                 if (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC) {
                     //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
                     roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
-                    //round it after the 9th decimal place
-                    roesufspersrp = roundl(roesufspersrp * 1000000000.0) / 1000000000.0;
+                    //round it after the 15th decimal place
+                    roesufspersrp = roundl(roesufspersrp * 1000000000000000.0) / 1000000000000000.00;
                 }
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
