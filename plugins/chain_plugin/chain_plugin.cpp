@@ -2622,7 +2622,6 @@ if( options.count(name) ) { \
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
-            bool debugout = false;
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
                            "Invalid FIO Public Key",
                            fioio::ErrorPubKeyValid);
@@ -2720,10 +2719,6 @@ if( options.count(name) ) { \
                     });
 
             uint64_t nowepoch = db.head_block_time().sec_since_epoch();
-            if (debugout) {
-                dlog(" account name is ${v} \n", ("v", account_name));
-                dlog(" now is ${v} \n", ("v", nowepoch));
-            }
 
             uint64_t additional_available_fio_locks = 0;
             if (!grows_result.rows.empty()) {
@@ -2732,17 +2727,11 @@ if( options.count(name) ) { \
                                fioio::ErrorUnexpectedNumberResults);
 
                 uint64_t timestamp = grows_result.rows[0]["timestamp"].as_uint64();
-                if (debugout) {
-                    dlog(" timestamp is ${v} \n", ("v", timestamp));
-                }
                 uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
                 uint64_t timesincelockcreated = 0;
 
                 if(nowepoch > timestamp) {
                     timesincelockcreated = nowepoch - timestamp;
-                    if (debugout) {
-                        dlog(" time since lock created is ${v} \n", ("v", timesincelockcreated));
-                    }
                 }
 
                 if (timesincelockcreated > 0) {
@@ -2752,22 +2741,11 @@ if( options.count(name) ) { \
                     for (int i = 0; i < grows_result.rows[0]["periods"].size(); i++) {
                         uint64_t duration = grows_result.rows[0]["periods"][i]["duration"].as_uint64();
                         uint64_t amount = grows_result.rows[0]["periods"][i]["amount"].as_uint64();
-                        if (debugout) {
-                            dlog(" lock period  ${v} duration ${d} amount ${a} \n",
-                                 ("v", i)("d", duration)("a", amount));
-                        }
                         if(duration > timesincelockcreated)
                         {
-                            if (debugout) {
-                                dlog(" breaking out on lock period ${p} \n", ("p", i));
-                            }
                             break;
                         }
                         if(i > ((int)payouts_performed - 1)){
-                            if (debugout) {
-                                dlog(" additional amount added to available by lock interpretation is ${v} \n",
-                                     ("v", amount));
-                            }
                             additional_available_fio_locks += amount;
                         }
                     }
@@ -2824,7 +2802,6 @@ if( options.count(name) ) { \
                 long double roesufspersrp =  0.5;
                 const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
                 if (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC) {
-                    //make sure this is done EXACTLY like it is in the contracts for computation of ROE.
                     roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
                     //round it after the 15th decimal place
                     roesufspersrp = roundl(roesufspersrp * 1000000000000000.0) / 1000000000000000.00;
@@ -2832,10 +2809,6 @@ if( options.count(name) ) { \
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
-                if (debugout) {
-                    dlog("rval is ${r} stake amount is ${s} lock amount is ${l} \n",
-                         ("r", rVal)("s", stakeamount)("l", lockamount));
-                }
                 result.available = rVal - stakeamount - lockamount;
                 result.staked = stakeamount;
                 result.srps = srpamount;
