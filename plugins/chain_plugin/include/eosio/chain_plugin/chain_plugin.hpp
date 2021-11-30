@@ -78,6 +78,19 @@ namespace eosio {
             string time_stamp;    // FIO blockchain request received timestamp
         };
 
+        struct listing_record {
+            uint64_t id;
+            string commission_fee;
+            uint64_t date_listed;
+            uint64_t date_updated;
+            string domain;
+            string domainhash;
+            string owner;
+            string ownerhash;
+            uint64_t sale_price;
+            uint64_t status;
+        };
+
         struct obt_records {
             string payer_fio_address;   // sender FIO address e.g. john.xyz
             string payee_fio_address;     // receiver FIO address e.g. jane.xyz
@@ -472,6 +485,27 @@ namespace eosio {
 
             get_scheduled_transactions_result
             get_scheduled_transactions(const get_scheduled_transactions_params &params) const;
+
+            ////////////////
+            // FIO ESCROW //
+            //begin get fio escrow listings by status
+            struct get_escrow_listings_params {
+                int32_t status;         // status = 1: on sale, status = 2: Sold, status = 3; Cancelled
+                string actor;
+                int32_t offset = 0;
+                int32_t limit = 1000;
+            };
+
+            struct get_escrow_listings_result {
+                vector <listing_record> listings;
+                uint32_t more;
+                optional<bool> time_limit_exceeded_error;
+            };
+
+            get_escrow_listings_result
+            get_escrow_listings(const get_escrow_listings_params &params) const;
+
+            //end get fio escrow listings by status
 
             ////////////////
             // FIO COMMON //
@@ -1607,6 +1641,8 @@ FC_REFLECT(eosio::chain_apis::read_only::get_nfts_contract_result, (nfts)(more)(
 FC_REFLECT(eosio::chain_apis::nft_info, (fio_address)(chain_code)(contract_address)(token_id)(url)(hash)(metadata))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_whitelist_result, (whitelisted_parties))
+FC_REFLECT(eosio::chain_apis::read_only::get_escrow_listings_params, (status)(offset)(limit)(actor))
+FC_REFLECT(eosio::chain_apis::read_only::get_escrow_listings_result, (listings)(more)(time_limit_exceeded_error))
 FC_REFLECT(eosio::chain_apis::whitelist_info, (fio_public_key_hash)(content))
 FC_REFLECT(eosio::chain_apis::read_only::check_whitelist_params, (fio_public_key_hash))
 FC_REFLECT(eosio::chain_apis::read_only::check_whitelist_result, (in_whitelist))
@@ -1623,6 +1659,8 @@ FC_REFLECT(eosio::chain_apis::obt_records,
            (payer_fio_address)(payee_fio_address)(payer_fio_public_key)(payee_fio_public_key)(content)(fio_request_id)(
                    time_stamp)
                    (status))
+FC_REFLECT(eosio::chain_apis::listing_record,
+           (id)(commission_fee)(date_listed)(date_updated)(domain)(domainhash)(owner)(ownerhash)(sale_price)(status))
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)(chain_code))
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address));

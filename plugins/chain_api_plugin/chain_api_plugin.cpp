@@ -128,6 +128,7 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_nfts_fio_address, 200),
                                      CHAIN_RO_CALL(get_nfts_hash, 200),
                                      CHAIN_RO_CALL(get_nfts_contract, 200),
+                                     CHAIN_RO_CALL(get_escrow_listings, 200),
                                      CHAIN_RW_CALL_ASYNC(push_block, chain_apis::read_write::push_block_results, 202),
                                      CHAIN_RW_CALL_ASYNC(push_transaction,
                                                          chain_apis::read_write::push_transaction_results, 202),
