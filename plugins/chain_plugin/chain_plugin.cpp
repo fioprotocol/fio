@@ -1857,19 +1857,28 @@ if( options.count(name) ) { \
                     uint64_t date_listed = requests_rows_result.rows[i + search_offset]["date_listed"].as_uint64();
                     uint64_t date_updated = requests_rows_result.rows[i + search_offset]["date_updated"].as_uint64();
                     string domain = requests_rows_result.rows[i + search_offset]["domain"].as_string();
-                    string domainhash = requests_rows_result.rows[i + search_offset]["domainhash"].as_string();
                     string owner = requests_rows_result.rows[i + search_offset]["owner"].as_string();
-                    string ownerhash = requests_rows_result.rows[i + search_offset]["ownerhash"].as_string();
                     uint64_t sale_price = requests_rows_result.rows[i + search_offset]["sale_price"].as_uint64();
                     uint64_t status = requests_rows_result.rows[i + search_offset]["status"].as_uint64();
 
                     if ((!actorRequired) || (actorRequired && p.actor == owner)) {
-                        time_t temptime;
-                        struct tm *timeinfo;
-                        char buffer[80];
+                        time_t created_temptime;
+                        time_t updated_temptime;
+                        struct tm *created_timeinfo;
+                        struct tm *updated_timeinfo;
+                        char created_buffer[80];
+                        char updated_buffer[80];
 
-                        listing_record rr{id, commission_fee, date_listed, date_updated, domain,
-                                domainhash, owner, ownerhash,sale_price, status};
+                        created_temptime = date_listed;
+                        created_timeinfo = gmtime(&created_temptime);
+                        strftime(created_buffer, 80, "%Y-%m-%dT%T", created_timeinfo);
+
+                        updated_temptime = date_updated;
+                        updated_timeinfo = gmtime(&updated_temptime);
+                        strftime(updated_buffer, 80, "%Y-%m-%dT%T", updated_timeinfo);
+
+                        listing_record rr{id, commission_fee, created_buffer, updated_buffer, domain,
+                                 owner, sale_price, status};
 
                         result.listings.push_back(rr);
                         records_returned++;
