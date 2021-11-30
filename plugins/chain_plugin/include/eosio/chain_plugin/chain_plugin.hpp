@@ -81,12 +81,10 @@ namespace eosio {
         struct listing_record {
             uint64_t id;
             string commission_fee;
-            uint64_t date_listed;
-            uint64_t date_updated;
+            string date_listed;
+            string date_updated;
             string domain;
-            string domainhash;
             string owner;
-            string ownerhash;
             uint64_t sale_price;
             uint64_t status;
         };
@@ -1660,7 +1658,7 @@ FC_REFLECT(eosio::chain_apis::obt_records,
                    time_stamp)
                    (status))
 FC_REFLECT(eosio::chain_apis::listing_record,
-           (id)(commission_fee)(date_listed)(date_updated)(domain)(domainhash)(owner)(ownerhash)(sale_price)(status))
+           (id)(commission_fee)(date_listed)(date_updated)(domain)(owner)(sale_price)(status))
 
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_params, (fio_address)(token_code)(chain_code))
 FC_REFLECT(eosio::chain_apis::read_only::get_pub_address_result, (public_address));
