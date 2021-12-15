@@ -1699,7 +1699,7 @@ if( options.count(name) ) { \
                 for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
                     uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
                     uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
-                  
+
                     if (duration <= timesincelockcreated) {
                         newlockamount -= amount;
                         if (i > ((int) payouts_performed - 1)) {
@@ -2491,7 +2491,7 @@ if( options.count(name) ) { \
                    }
 
                   if (contract_result.rows[pos]["chain_code"].as_string() == params.chain_code ) {
-                    if (params.token_id.empty() || contract_result.rows[pos]["token_id"].as_string() == params.token_id) {
+                    if (contract_result.rows[pos]["token_id"].as_string().empty() || contract_result.rows[pos]["token_id"].as_string() == params.token_id || params.token_id.empty()) {
 
                     nft_info nft = nft_info {
                       //optional fio_address member is initialized for this endpoint
