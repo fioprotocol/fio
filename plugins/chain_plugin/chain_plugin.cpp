@@ -1617,6 +1617,8 @@ if( options.count(name) ) { \
         const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
         const name fio_code = N(eosio);    // FIO system account
         const string fio_scope = "eosio";   // FIO system scope
+        const name fio_staking_code = N(fio.staking);    // FIO system account
+        const string fio_staking_scope = "fio.staking";   // FIO system scope
 
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
@@ -1624,7 +1626,9 @@ if( options.count(name) ) { \
         const name fio_fees_table = N(fiofees); // FIO fees Table
         const name fio_domains_table = N(domains); // FIO Domains Table
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
-        const name fio_locks_table = N(locktokens); // FIO locktokens Table
+        const name fio_locks_table = N(locktokensv2); // FIO locktokens Table
+        const name fio_mainnet_locks_table = N(lockedtokens); // FIO lockedtokens Table
+        const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
 
         const uint16_t FEEMAXLENGTH = 32;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
@@ -1669,18 +1673,56 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
                            fioio::ErrorUnexpectedNumberResults);
 
-            result.lock_amount = rows_result.rows[0]["lock_amount"].as_uint64();
-            result.remaining_lock_amount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
-            result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
-            result.payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
-            result.can_vote = rows_result.rows[0]["payouts_performed"].as_uint64();
+            uint64_t nowepoch = db.head_block_time().sec_since_epoch();
+            uint64_t newlockamount = rows_result.rows[0]["lock_amount"].as_uint64();
+            uint64_t tlockamount = 0;
+            uint64_t newremaininglockamount = 0;
 
-            for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
-                uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
-                double percent = rows_result.rows[0]["periods"][i]["percent"].as_uint64();
-                lockperiods lp{duration, percent};
-                result.unlock_periods.push_back(lp);
+            uint64_t additional_available_fio_locks = 0;
+            if (!rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                uint64_t timestamp = rows_result.rows[0]["timestamp"].as_uint64();
+
+                uint32_t payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
+                uint64_t timesincelockcreated = 0;
+
+                if (nowepoch > timestamp) {
+                    timesincelockcreated = nowepoch - timestamp;
+                }
+
+                //traverse the locks and compute the amount available but not yet accounted by the system.
+                //this makes the available accurate when the user has not called transfer, or vote yet
+                //but has locked funds that are eligible for spending in their general lock.
+                for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
+                    uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                    uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
+                  
+                    if (duration <= timesincelockcreated) {
+                        newlockamount -= amount;
+                        if (i > ((int) payouts_performed - 1)) {
+                            tlockamount += amount;
+                        }
+                    } else { //lock periods after now get added to the results.
+                        lockperiodv2 lp{duration, amount};
+                        result.unlock_periods.push_back(lp);
+                    }
+
+                }
+
+                //correct the remaining lock amount to account for tokens that are unlocked before system
+                //accounting is updated by calling transfer or vote.
+                newremaininglockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64() - tlockamount;
+
             }
+            result.lock_amount = newlockamount;
+            result.remaining_lock_amount = newremaininglockamount;
+            result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
+            result.payouts_performed = 0;
+            result.can_vote = rows_result.rows[0]["can_vote"].as_uint64();
+
             return result;
         }
 
@@ -2763,6 +2805,27 @@ if( options.count(name) ) { \
             return result;
         } // get_fio_addresses
 
+        fc::variant get_staking_row(const database &db, const abi_def &abi, const abi_serializer &abis,
+                                    const fc::microseconds &abi_serializer_max_time_ms, bool shorten_abi_errors) {
+            const auto table_type = get_table_type(abi, N(staking));
+            EOS_ASSERT(table_type == read_only::KEYi64, chain::contract_table_query_exception,
+                       "Invalid table type ${type} for table global", ("type", table_type));
+
+            const auto *const table_id = db.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(N(fio.staking), N(fio.staking), N(staking)));
+            EOS_ASSERT(table_id, chain::contract_table_query_exception, "Missing table staking");
+
+            const auto &kv_index = db.get_index<key_value_index, by_scope_primary>();
+            const auto it = kv_index.find(boost::make_tuple(table_id->id, N(staking)));
+            EOS_ASSERT(it != kv_index.end(), chain::contract_table_query_exception, "Missing row in table staking");
+
+            vector<char> data;
+            read_only::copy_inline_row(*it, data);
+            return abis.binary_to_variant(abis.get_table_type(N(staking)), data, abi_serializer_max_time_ms,
+                                          shorten_abi_errors);
+        }
+
+
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
             FIO_400_ASSERT(fioio::isPubKeyValid(fioKey), "fio_public_key", p.fio_public_key.c_str(),
@@ -2816,13 +2879,37 @@ if( options.count(name) ) { \
             balance_params.account = ::eosio::string_to_name(fio_account.c_str());
             cursor = get_currency_balance(balance_params);
 
-            //get lock tokens, subtract remaining lock amount if it exists
+
             string account_name;
             fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
             const abi_def sys_abi = eosio::chain_apis::get_abi(db, fio_code);
 
-            get_table_rows_params table_row_params = get_table_rows_params{
+            //get genesis/main net lock tokens, subtract remaining lock amount if it exists
+            get_table_rows_params mtable_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_code,
+                    .scope       = fio_scope,
+                    .table       = fio_mainnet_locks_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result mrows_result =
+                    get_table_rows_ex<key_value_index>(mtable_row_params, sys_abi);
+
+            uint64_t lockamount = 0;
+            if (!mrows_result.rows.empty()) {
+
+                FIO_404_ASSERT(mrows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                lockamount = mrows_result.rows[0]["remaining_locked_amount"].as_uint64();
+            }
+
+            //get the locked tokens, subtract the remaining lock amount if it exists.
+            get_table_rows_params gtable_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_code,
                     .scope       = fio_scope,
@@ -2832,26 +2919,109 @@ if( options.count(name) ) { \
                     .key_type       = "i64",
                     .index_position = "2"};
 
-            get_table_rows_result rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    table_row_params, sys_abi, [](uint64_t v) -> uint64_t {
+            get_table_rows_result grows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    gtable_row_params, sys_abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
-            uint64_t lockamount = 0;
-            if (!rows_result.rows.empty()) {
+            uint64_t nowepoch = db.head_block_time().sec_since_epoch();
 
-                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
+            uint64_t additional_available_fio_locks = 0;
+            if (!grows_result.rows.empty()) {
+
+                FIO_404_ASSERT(grows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
                                fioio::ErrorUnexpectedNumberResults);
 
-                lockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+                uint64_t timestamp = grows_result.rows[0]["timestamp"].as_uint64();
+                uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
+                uint64_t timesincelockcreated = 0;
+
+                if(nowepoch > timestamp) {
+                    timesincelockcreated = nowepoch - timestamp;
+                }
+
+                if (timesincelockcreated > 0) {
+                    //traverse the locks and compute the amount available but not yet accounted by the system.
+                    //this makes the available accurate when the user has not called transfer, or vote yet
+                    //but has locked funds that are eligible for spending in their general lock.
+                    for (int i = 0; i < grows_result.rows[0]["periods"].size(); i++) {
+                        uint64_t duration = grows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                        uint64_t amount = grows_result.rows[0]["periods"][i]["amount"].as_uint64();
+                        if(duration > timesincelockcreated)
+                        {
+                            break;
+                        }
+                        if(i > ((int)payouts_performed - 1)){
+                            additional_available_fio_locks += amount;
+                        }
+                    }
+                }
+
+                //correct the remaining lock amount to account for tokens that are unlocked before system
+                //accounting is updated by calling transfer or vote.
+                lockamount += grows_result.rows[0]["remaining_lock_amount"].as_uint64() - additional_available_fio_locks;
             }
 
+
+            //get the account staking info
+
+            const abi_def staking_abi = eosio::chain_apis::get_abi(db, fio_staking_code);
+
+            get_table_rows_params staking_table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_staking_code,
+                    .scope       = fio_staking_scope,
+                    .table       = fio_accountstake_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result staking_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    staking_table_row_params, staking_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            uint64_t stakeamount = 0;
+            uint64_t srpamount = 0;
+            if (!staking_rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(staking_rows_result.rows.size() == 1, "Unexpected number of results found in accountstake",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                stakeamount = staking_rows_result.rows[0]["total_staked_fio"].as_uint64();
+                srpamount = staking_rows_result.rows[0]["total_srp"].as_uint64();
+            }
+
+
+            //end get account staking info
             if (!cursor.empty()) {
+                const abi_def abi = eosio::chain_apis::get_abi(db, N(fio.staking));
+                const abi_serializer abis{abi, abi_serializer_max_time};
+                const auto &d = db.db();
+                uint64_t stakedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["staked_token_pool"].as_uint64();
+                uint64_t combinedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                                                            shorten_abi_errors)["last_combined_token_pool"].as_uint64();
+                uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["last_global_srp_count"].as_uint64();
+                long double roesufspersrp =  0.5;
+                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
+                if (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC) {
+                    roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
+                    //round it after the 15th decimal place
+                    roesufspersrp = roundl(roesufspersrp * 1000000000000000.0) / 1000000000000000.00;
+                }
+
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
-                result.available = rVal - lockamount;
+                result.available = rVal - stakeamount - lockamount;
+                result.staked = stakeamount;
+                result.srps = srpamount;
+                char s[100];
+                sprintf(s,"%.15Lf",roesufspersrp);
+                result.roe = (string)s;
             }
-
             return result;
         } //get_fio_balance
 
@@ -3368,9 +3538,24 @@ if( options.count(name) ) { \
                 if (fioname_result.rows.empty()) {
                     return result;
                 }
+
+                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
+                //This is not the local computer time, it is in fact the block time.
+                uint32_t present_time = (uint32_t) time(0);
+                //if the domain is expired then return an empty result.
+                if (present_time > name_expiration) {
+                    return result;
+                }
             }
 
             if (domain_result.rows.empty()) {
+                return result;
+            }
+
+            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            uint32_t present_time = (uint32_t) time(0);
+
+            if (present_time > domain_expiration) {
                 return result;
             }
 
@@ -3566,6 +3751,7 @@ if( options.count(name) ) { \
             return abis.binary_to_variant(abis.get_table_type(N(global)), data, abi_serializer_max_time_ms,
                                           shorten_abi_errors);
         }
+
 
         read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const {
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
