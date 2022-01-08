@@ -1036,8 +1036,8 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
-                
-/*
+
+                // add begin comment here prior to release
 
                 //these actions are added to the action mapping here to permit the launch of
                 //test networks for development testing and private test net testing.
@@ -1381,8 +1381,7 @@ namespace eosio {
                     a.contractname = "eosio.msig";
                     a.blocktimestamp = 1;
                 });
-                 
-                */
+                // add ending comment here before release
             }
         
 
