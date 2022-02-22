@@ -1036,7 +1036,7 @@ namespace eosio {
                                                                                   majority_permission.id,
                                                                                   active_producers_authority,
                                                                                   conf.genesis.initial_timestamp);
-
+                /*
                 // add begin comment here prior to release
 
                 //these actions are added to the action mapping here to permit the launch of
@@ -1382,6 +1382,7 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
                 // add ending comment here before release
+                */
             }
         
 
