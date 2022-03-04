@@ -3665,13 +3665,7 @@ if( options.count(name) ) { \
                     return result;
                 }
 
-                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
-                //This is not the local computer time, it is in fact the block time.
-                uint32_t present_time = (uint32_t) time(0);
-                //if the domain is expired then return an empty result.
-                if (present_time > name_expiration) {
-                    return result;
-                }
+               //if the address is there then its registered, let the logic fall through.
             }
 
             if (domain_result.rows.empty()) {
