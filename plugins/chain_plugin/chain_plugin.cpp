@@ -2960,6 +2960,9 @@ if( options.count(name) ) { \
             get_fio_balance_result result;
             vector<asset> cursor;
             result.balance = 0;
+            //set available in result to defaults, if nothing present, 0
+            result.available = 0;
+
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -3662,25 +3665,14 @@ if( options.count(name) ) { \
                     return result;
                 }
 
-                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
-                //This is not the local computer time, it is in fact the block time.
-                uint32_t present_time = (uint32_t) time(0);
-                //if the domain is expired then return an empty result.
-                if (present_time > name_expiration) {
-                    return result;
-                }
+               //if the address is there then its registered, let the logic fall through.
             }
 
             if (domain_result.rows.empty()) {
                 return result;
             }
 
-            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
-            uint32_t present_time = (uint32_t) time(0);
-
-            if (present_time > domain_expiration) {
-                return result;
-            }
+            //if its there then it is_registered, regardless of expiration
 
             // name checked and set
             result.is_registered = true;
