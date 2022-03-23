@@ -1616,9 +1616,13 @@ if( options.count(name) ) { \
         const string fio_whitelst_scope = "fio.whitelst";   // FIO whitelst contract scope
         const name fio_code = N(eosio);    // FIO system account
         const string fio_scope = "eosio";   // FIO system scope
-
         const name fio_oracle_code = N(fio.oracle); // Oracle code
         const string fio_oracle_scope = "fio.oracle";   // Oracle scope
+        const name fio_staking_code = N(fio.staking);    // FIO system account
+        const string fio_staking_scope = "fio.staking";   // FIO system scope
+        // fio.escrow
+        const name fio_escrow_code = N(fio.escrow); // FIO Escrow account
+        const string fio_escrow_scope = "fio.escrow";
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
         const name fio_address_table = N(fionames); // FIO Address Table
@@ -1627,6 +1631,9 @@ if( options.count(name) ) { \
         const name fio_accounts_table = N(accountmap); // FIO Chains Table
         const name fio_locks_table = N(locktokens); // FIO locktokens Table
         const name fio_oracles_table = N(oracless); // FIO Registered Oracles
+        const name fio_locks_table = N(locktokensv2); // FIO locktokens Table
+        const name fio_mainnet_locks_table = N(lockedtokens); // FIO lockedtokens Table
+        const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
 
         const uint16_t FEEMAXLENGTH = 32;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
@@ -1671,18 +1678,56 @@ if( options.count(name) ) { \
             FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
                            fioio::ErrorUnexpectedNumberResults);
 
-            result.lock_amount = rows_result.rows[0]["lock_amount"].as_uint64();
-            result.remaining_lock_amount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
-            result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
-            result.payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
-            result.can_vote = rows_result.rows[0]["payouts_performed"].as_uint64();
+            uint64_t nowepoch = db.head_block_time().sec_since_epoch();
+            uint64_t newlockamount = rows_result.rows[0]["lock_amount"].as_uint64();
+            uint64_t tlockamount = 0;
+            uint64_t newremaininglockamount = 0;
 
-            for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
-                uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
-                double percent = rows_result.rows[0]["periods"][i]["percent"].as_uint64();
-                lockperiods lp{duration, percent};
-                result.unlock_periods.push_back(lp);
+            uint64_t additional_available_fio_locks = 0;
+            if (!rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                uint64_t timestamp = rows_result.rows[0]["timestamp"].as_uint64();
+
+                uint32_t payouts_performed = rows_result.rows[0]["payouts_performed"].as_uint64();
+                uint64_t timesincelockcreated = 0;
+
+                if (nowepoch > timestamp) {
+                    timesincelockcreated = nowepoch - timestamp;
+                }
+
+                //traverse the locks and compute the amount available but not yet accounted by the system.
+                //this makes the available accurate when the user has not called transfer, or vote yet
+                //but has locked funds that are eligible for spending in their general lock.
+                for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
+                    uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                    uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
+
+                    if (duration <= timesincelockcreated) {
+                        newlockamount -= amount;
+                        if (i > ((int) payouts_performed - 1)) {
+                            tlockamount += amount;
+                        }
+                    } else { //lock periods after now get added to the results.
+                        lockperiodv2 lp{duration, amount};
+                        result.unlock_periods.push_back(lp);
+                    }
+
+                }
+
+                //correct the remaining lock amount to account for tokens that are unlocked before system
+                //accounting is updated by calling transfer or vote.
+                newremaininglockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64() - tlockamount;
+
             }
+            result.lock_amount = newlockamount;
+            result.remaining_lock_amount = newremaininglockamount;
+            result.time_stamp = rows_result.rows[0]["timestamp"].as_uint64();
+            result.payouts_performed = 0;
+            result.can_vote = rows_result.rows[0]["can_vote"].as_uint64();
+
             return result;
         }
 
@@ -1735,6 +1780,127 @@ if( options.count(name) ) { \
             results.more = count;
             return results;
         } // get_actions
+
+        /***
+      * get escrow listings
+      * @param p status is the value of the status. status = 1: on sale, status = 2: Sold, status = 3; Cancelled
+      * @return listings that are of the status in the request object
+      */
+        read_only::get_escrow_listings_result
+        read_only::get_escrow_listings(const read_only::get_escrow_listings_params &p) const {
+
+            bool actorRequired = false;
+
+            if(p.actor.size()) {
+                actorRequired = true;
+            }
+
+            FIO_400_ASSERT(p.status > 0 && p.status <= 3, "status", to_string(p.status),
+                           "Invalid status value",
+                           fioio::ErrorInvalidValue);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            get_escrow_listings_result result;
+            string fio_escrow_lookup_table = "domainsales";   // table name
+            const abi_def escrow_abi = eosio::chain_apis::get_abi(db, fio_escrow_code);
+            uint32_t records_returned = 0;
+            uint32_t records_size = 0;
+            uint32_t search_offset = p.offset;
+
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_escrow_code,
+                    .scope          = fio_escrow_scope,
+                    .table          = fio_escrow_lookup_table,
+                    .lower_bound    = to_string(p.status),
+                    .upper_bound    = to_string(p.status),
+                    .key_type       = "i64",
+                    .index_position = "4"};
+
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, escrow_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            if (!requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                records_size = requests_rows_result.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset >= records_size) { records_size = 0; }
+                FIO_404_ASSERT(!(records_size == 0), "No Escrow Listings", fioio::ErrorNoEscrowListingsFound);
+
+                // get proper count for `more` value
+                if(actorRequired) {
+                    records_size = 0;
+                    // iterate through everything
+                    for (auto & row : requests_rows_result.rows) {
+                        // only count record if the owner matches the actor parameter
+                        if(p.actor == row["owner"].as_string()) {
+                            records_size++;
+                        }
+                    }
+                    // if no matches
+                    FIO_404_ASSERT(!(records_size == 0), "No Escrow Listings", fioio::ErrorNoEscrowListingsFound);
+                }
+
+                for (size_t i = 0; i < search_limit; i++) {
+                    if((i + search_offset) == requests_rows_result.rows.size()){ break; }
+                    //get all the attributes of the listing
+                    uint64_t id = requests_rows_result.rows[i + search_offset]["id"].as_uint64();
+                    string commission_fee = requests_rows_result.rows[i + search_offset]["commission_fee"].as_string();
+                    uint64_t date_listed = requests_rows_result.rows[i + search_offset]["date_listed"].as_uint64();
+                    uint64_t date_updated = requests_rows_result.rows[i + search_offset]["date_updated"].as_uint64();
+                    string domain = requests_rows_result.rows[i + search_offset]["domain"].as_string();
+                    string owner = requests_rows_result.rows[i + search_offset]["owner"].as_string();
+                    uint64_t sale_price = requests_rows_result.rows[i + search_offset]["sale_price"].as_uint64();
+                    uint64_t status = requests_rows_result.rows[i + search_offset]["status"].as_uint64();
+
+                    if ((!actorRequired) || (actorRequired && p.actor == owner)) {
+                        time_t created_temptime;
+                        time_t updated_temptime;
+                        struct tm *created_timeinfo;
+                        struct tm *updated_timeinfo;
+                        char created_buffer[80];
+                        char updated_buffer[80];
+
+                        created_temptime = date_listed;
+                        created_timeinfo = gmtime(&created_temptime);
+                        strftime(created_buffer, 80, "%Y-%m-%dT%T", created_timeinfo);
+
+                        updated_temptime = date_updated;
+                        updated_timeinfo = gmtime(&updated_temptime);
+                        strftime(updated_buffer, 80, "%Y-%m-%dT%T", updated_timeinfo);
+
+                        listing_record rr{id, commission_fee, created_buffer, updated_buffer, domain,
+                                 owner, sale_price, status};
+
+                        result.listings.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            FIO_404_ASSERT(!(result.listings.size() == 0), "No Escrow Listings", fioio::ErrorNoEscrowListingsFound);
+            result.more = records_size - records_returned - search_offset;
+            // fix uint overflow
+            if(result.more >= requests_rows_result.rows.size()) {
+                result.more = 0;
+            }
+            return result;
+        } // get_escrow_listings
 
         /***
         * get pending fio requests.
@@ -2263,6 +2429,217 @@ if( options.count(name) ) { \
             return result;
         }
 
+        read_only::get_nfts_fio_address_result read_only::get_nfts_fio_address(const read_only::get_nfts_fio_address_params &params) const {
+
+           fioio::FioAddress fa;
+           fioio::getFioAddressStruct(params.fio_address, fa);
+           FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
+                          fioio::ErrorFioNameNotReg);
+           uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+           FIO_400_ASSERT(params.limit >= 0, "limit", to_string(params.limit), "Invalid limit",
+                          fioio::ErrorPagingInvalid);
+           FIO_400_ASSERT(params.offset >= 0, "offset", to_string(params.offset), "Invalid offset",
+                          fioio::ErrorPagingInvalid);
+
+
+
+           std::string fioaddresshash = "0x";
+           fioaddresshash.append(
+                   fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+           get_table_rows_params nft_table_row_params = get_table_rows_params{.json=true,
+                   .code = N(fio.address),
+                   .scope = "fio.address",
+                   .table = N(nfts),
+                   .lower_bound = fioaddresshash,
+                   .upper_bound = fioaddresshash,
+                   .encode_type = "hex",
+                   .index_position = "2"};
+
+           get_table_rows_result address_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                   nft_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                       return v;
+                   });
+
+           FIO_404_ASSERT(!address_result.rows.empty(), "No NFTS are mapped", fioio::ErrorPubAddressNotFound);
+
+           uint32_t search_limit = params.limit;
+           uint32_t search_offset = params.offset;
+
+           get_nfts_fio_address_result result;
+
+           if (search_offset < address_result.rows.size() ) {
+               int64_t remaining = address_result.rows.size() - (search_offset+search_limit);
+               if (remaining < 0){
+                   remaining = 0;
+               }
+               result.more = remaining;
+               for (size_t pos = 0 + search_offset; pos < address_result.rows.size();pos++) {
+                   if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                       break;
+                   }
+
+                   nft_info nft = nft_info {
+                    // Per FIP-27 specification, do not set fio_address member of nft for get_nfts_fio_address. Set all other members.
+                    .chain_code = address_result.rows[pos]["chain_code"].as_string(),
+                    .contract_address =  address_result.rows[pos]["contract_address"].as_string(),
+                    .token_id = address_result.rows[pos]["token_id"].as_string(),
+                    .url = address_result.rows[pos]["url"].as_string(),
+                    .hash = address_result.rows[pos]["hash"].as_string(),
+                    .metadata = address_result.rows[pos]["metadata"].as_string()
+                   };
+                   result.nfts.push_back(nft);    //pushback results in nftinfo record
+                   result.more = (address_result.rows.size()-pos)-1;
+               }
+           }
+
+           return result;
+        }
+
+        read_only::get_nfts_hash_result read_only::get_nfts_hash(const read_only::get_nfts_hash_params &params) const {
+
+           FIO_400_ASSERT(!params.hash.empty() && params.hash.length() <= 64, "hash", params.hash, "Invalid NFT Hash",
+                          fioio::ErrorFioNameNotReg);
+           uint128_t hashedstring = fioio::string_to_uint128_t(params.hash.c_str());
+           FIO_400_ASSERT(params.limit >= 0, "limit", to_string(params.limit), "Invalid limit",
+                          fioio::ErrorPagingInvalid);
+           FIO_400_ASSERT(params.offset >= 0, "offset", to_string(params.offset), "Invalid offset",
+                          fioio::ErrorPagingInvalid);
+
+
+           std::string hash = "0x";
+           hash.append(
+                   fioio::to_hex_little_endian(reinterpret_cast<const char *>(&hashedstring), sizeof(hashedstring)));
+
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+           get_table_rows_params nft_table_row_params = get_table_rows_params{.json=true,
+                   .code = N(fio.address),
+                   .scope = "fio.address",
+                   .table = N(nfts),
+                   .lower_bound = hash,
+                   .upper_bound = hash,
+                   .encode_type = "hex",
+                   .index_position = "4"};
+
+           get_table_rows_result hash_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                   nft_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                       return v;
+                   });
+
+           FIO_404_ASSERT(!hash_result.rows.empty(), "No NFTS are mapped", fioio::ErrorPubAddressNotFound);
+
+           uint32_t search_limit = params.limit;
+           uint32_t search_offset = params.offset;
+
+           get_nfts_hash_result result;
+
+           if (search_offset < hash_result.rows.size() ) {
+               int64_t remaining = hash_result.rows.size() - (search_offset+search_limit);
+               if (remaining < 0){
+                   remaining = 0;
+               }
+               result.more = remaining;
+               for (size_t pos = 0 + search_offset; pos < hash_result.rows.size();pos++) {
+                   if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                       break;
+                   }
+
+                   nft_info nft = nft_info {
+                     //optional fio_address member is initialized for this endpoint
+                    .fio_address = hash_result.rows[pos]["fio_address"].as_string(),
+                    .chain_code = hash_result.rows[pos]["chain_code"].as_string(),
+                    .contract_address = hash_result.rows[pos]["contract_address"].as_string(),
+                    .token_id = hash_result.rows[pos]["token_id"].as_string(),
+                    .url = hash_result.rows[pos]["url"].as_string(),
+                    .hash = hash_result.rows[pos]["hash"].as_string(),
+                    .metadata = hash_result.rows[pos]["metadata"].as_string()
+                   };
+                   result.nfts.push_back(nft);    //pushback results in nftinfo record
+                   result.more = (hash_result.rows.size()-pos)-1;
+               }
+           }
+
+           return result;
+        }
+
+        read_only::get_nfts_contract_result read_only::get_nfts_contract(const read_only::get_nfts_contract_params &params) const {
+
+           FIO_400_ASSERT(!params.chain_code.empty() && params.chain_code.length() <= 10, "chain_code", params.chain_code, "Invalid chain code",
+                          fioio::ErrorFioNameNotReg);
+           FIO_400_ASSERT(!params.contract_address.empty(), "contract_address", params.contract_address, "Invalid contract address",
+                          fioio::ErrorFioNameNotReg);
+           FIO_400_ASSERT(params.limit >= 0, "limit", to_string(params.limit), "Invalid limit",
+                          fioio::ErrorPagingInvalid);
+           FIO_400_ASSERT(params.offset >= 0, "offset", to_string(params.offset), "Invalid offset",
+                          fioio::ErrorPagingInvalid);
+
+           uint128_t contractaddress = fioio::string_to_uint128_t(params.contract_address.c_str());
+
+           std::string contracthash = "0x";
+           contracthash.append(
+                   fioio::to_hex_little_endian(reinterpret_cast<const char *>(&contractaddress), sizeof(contractaddress)));
+
+           const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+           get_table_rows_params nft_table_row_params = get_table_rows_params{.json=true,
+                   .code = N(fio.address),
+                   .scope = "fio.address",
+                   .table = N(nfts),
+                   .lower_bound = contracthash,
+                   .upper_bound = contracthash,
+                   .encode_type = "hex",
+                   .index_position = "3"};
+
+           get_table_rows_result contract_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                   nft_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                       return v;
+                   });
+
+           FIO_404_ASSERT(!contract_result.rows.empty(), "No NFTS are mapped", fioio::ErrorPubAddressNotFound);
+
+           uint32_t search_limit = params.limit;
+           uint32_t search_offset = params.offset;
+
+           get_nfts_contract_result result;
+
+           if (search_offset < contract_result.rows.size() ) {
+               int64_t remaining = contract_result.rows.size() - (search_offset+search_limit);
+               if (remaining < 0){
+                   remaining = 0;
+               }
+               result.more = remaining;
+               for (size_t pos = 0 + search_offset; pos < contract_result.rows.size();pos++) {
+                   if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                       break;
+                   }
+
+                  if (contract_result.rows[pos]["chain_code"].as_string() == params.chain_code ) {
+                    if (contract_result.rows[pos]["token_id"].as_string().empty() || contract_result.rows[pos]["token_id"].as_string() == params.token_id || params.token_id.empty()) {
+
+                    nft_info nft = nft_info {
+                      //optional fio_address member is initialized for this endpoint
+                     .fio_address = contract_result.rows[pos]["fio_address"].as_string(),
+                     .chain_code = contract_result.rows[pos]["chain_code"].as_string(),
+                     .contract_address = contract_result.rows[pos]["contract_address"].as_string(),
+                     .token_id = contract_result.rows[pos]["token_id"].as_string(),
+                     .url = contract_result.rows[pos]["url"].as_string(),
+                     .hash = contract_result.rows[pos]["hash"].as_string(),
+                     .metadata = contract_result.rows[pos]["metadata"].as_string()
+                    };
+                    result.nfts.push_back(nft);    //pushback results in nftinfo record
+                    result.more = (contract_result.rows.size()-pos)-1;
+                    }
+                  }
+                }
+           }
+
+           return result;
+        }
+
+
         void read_only::GetFIOAccount(name account, read_only::get_table_rows_result &account_result) const {
 
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -2320,7 +2697,7 @@ if( options.count(name) ) { \
                     });
 
             std::string nam;
-            uint64_t namexpiration;
+            uint64_t namexpiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
             uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
@@ -2334,9 +2711,7 @@ if( options.count(name) ) { \
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
                     if (nam.find('@') !=
                         std::string::npos) { //if it's not a domain record in the keynames table (no '.'),
-                        namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
                         rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
-
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
@@ -2521,7 +2896,7 @@ if( options.count(name) ) { \
                     });
 
             std::string nam;
-            uint64_t namexpiration;
+            uint64_t namexpiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
             uint64_t rem_bundle;
             time_t temptime;
             struct tm *timeinfo;
@@ -2542,10 +2917,7 @@ if( options.count(name) ) { \
                     }
                     nam = (string) table_rows_result.rows[pos]["name"].as_string();
                     if (nam.find('@') != std::string::npos) {
-                        namexpiration = table_rows_result.rows[pos]["expiration"].as_uint64();
                         rem_bundle = (uint64_t) table_rows_result.rows[pos]["bundleeligiblecountdown"].as_uint64();
-
-
 
                         temptime = namexpiration;
                         timeinfo = gmtime(&temptime);
@@ -2558,6 +2930,27 @@ if( options.count(name) ) { \
             }
             return result;
         } // get_fio_addresses
+
+        fc::variant get_staking_row(const database &db, const abi_def &abi, const abi_serializer &abis,
+                                    const fc::microseconds &abi_serializer_max_time_ms, bool shorten_abi_errors) {
+            const auto table_type = get_table_type(abi, N(staking));
+            EOS_ASSERT(table_type == read_only::KEYi64, chain::contract_table_query_exception,
+                       "Invalid table type ${type} for table global", ("type", table_type));
+
+            const auto *const table_id = db.find<chain::table_id_object, chain::by_code_scope_table>(
+                    boost::make_tuple(N(fio.staking), N(fio.staking), N(staking)));
+            EOS_ASSERT(table_id, chain::contract_table_query_exception, "Missing table staking");
+
+            const auto &kv_index = db.get_index<key_value_index, by_scope_primary>();
+            const auto it = kv_index.find(boost::make_tuple(table_id->id, N(staking)));
+            EOS_ASSERT(it != kv_index.end(), chain::contract_table_query_exception, "Missing row in table staking");
+
+            vector<char> data;
+            read_only::copy_inline_row(*it, data);
+            return abis.binary_to_variant(abis.get_table_type(N(staking)), data, abi_serializer_max_time_ms,
+                                          shorten_abi_errors);
+        }
+
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
@@ -2612,13 +3005,37 @@ if( options.count(name) ) { \
             balance_params.account = ::eosio::string_to_name(fio_account.c_str());
             cursor = get_currency_balance(balance_params);
 
-            //get lock tokens, subtract remaining lock amount if it exists
+
             string account_name;
             fioio::key_to_account(fioKey, account_name);
             name account = name{account_name};
             const abi_def sys_abi = eosio::chain_apis::get_abi(db, fio_code);
 
-            get_table_rows_params table_row_params = get_table_rows_params{
+            //get genesis/main net lock tokens, subtract remaining lock amount if it exists
+            get_table_rows_params mtable_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_code,
+                    .scope       = fio_scope,
+                    .table       = fio_mainnet_locks_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result mrows_result =
+                    get_table_rows_ex<key_value_index>(mtable_row_params, sys_abi);
+
+            uint64_t lockamount = 0;
+            if (!mrows_result.rows.empty()) {
+
+                FIO_404_ASSERT(mrows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                lockamount = mrows_result.rows[0]["remaining_locked_amount"].as_uint64();
+            }
+
+            //get the locked tokens, subtract the remaining lock amount if it exists.
+            get_table_rows_params gtable_row_params = get_table_rows_params{
                     .json        = true,
                     .code        = fio_code,
                     .scope       = fio_scope,
@@ -2628,26 +3045,109 @@ if( options.count(name) ) { \
                     .key_type       = "i64",
                     .index_position = "2"};
 
-            get_table_rows_result rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    table_row_params, sys_abi, [](uint64_t v) -> uint64_t {
+            get_table_rows_result grows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    gtable_row_params, sys_abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
-            uint64_t lockamount = 0;
-            if (!rows_result.rows.empty()) {
+            uint64_t nowepoch = db.head_block_time().sec_since_epoch();
 
-                FIO_404_ASSERT(rows_result.rows.size() == 1, "Unexpected number of results found",
+            uint64_t additional_available_fio_locks = 0;
+            if (!grows_result.rows.empty()) {
+
+                FIO_404_ASSERT(grows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
                                fioio::ErrorUnexpectedNumberResults);
 
-                lockamount = rows_result.rows[0]["remaining_lock_amount"].as_uint64();
+                uint64_t timestamp = grows_result.rows[0]["timestamp"].as_uint64();
+                uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
+                uint64_t timesincelockcreated = 0;
+
+                if(nowepoch > timestamp) {
+                    timesincelockcreated = nowepoch - timestamp;
+                }
+
+                if (timesincelockcreated > 0) {
+                    //traverse the locks and compute the amount available but not yet accounted by the system.
+                    //this makes the available accurate when the user has not called transfer, or vote yet
+                    //but has locked funds that are eligible for spending in their general lock.
+                    for (int i = 0; i < grows_result.rows[0]["periods"].size(); i++) {
+                        uint64_t duration = grows_result.rows[0]["periods"][i]["duration"].as_uint64();
+                        uint64_t amount = grows_result.rows[0]["periods"][i]["amount"].as_uint64();
+                        if(duration > timesincelockcreated)
+                        {
+                            break;
+                        }
+                        if(i > ((int)payouts_performed - 1)){
+                            additional_available_fio_locks += amount;
+                        }
+                    }
+                }
+
+                //correct the remaining lock amount to account for tokens that are unlocked before system
+                //accounting is updated by calling transfer or vote.
+                lockamount += grows_result.rows[0]["remaining_lock_amount"].as_uint64() - additional_available_fio_locks;
             }
 
+
+            //get the account staking info
+
+            const abi_def staking_abi = eosio::chain_apis::get_abi(db, fio_staking_code);
+
+            get_table_rows_params staking_table_row_params = get_table_rows_params{
+                    .json        = true,
+                    .code        = fio_staking_code,
+                    .scope       = fio_staking_scope,
+                    .table       = fio_accountstake_table,
+                    .lower_bound = boost::lexical_cast<string>(account.value),
+                    .upper_bound = boost::lexical_cast<string>(account.value),
+                    .key_type       = "i64",
+                    .index_position = "2"};
+
+            get_table_rows_result staking_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    staking_table_row_params, staking_abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            uint64_t stakeamount = 0;
+            uint64_t srpamount = 0;
+            if (!staking_rows_result.rows.empty()) {
+
+                FIO_404_ASSERT(staking_rows_result.rows.size() == 1, "Unexpected number of results found in accountstake",
+                               fioio::ErrorUnexpectedNumberResults);
+
+                stakeamount = staking_rows_result.rows[0]["total_staked_fio"].as_uint64();
+                srpamount = staking_rows_result.rows[0]["total_srp"].as_uint64();
+            }
+
+
+            //end get account staking info
             if (!cursor.empty()) {
+                const abi_def abi = eosio::chain_apis::get_abi(db, N(fio.staking));
+                const abi_serializer abis{abi, abi_serializer_max_time};
+                const auto &d = db.db();
+                uint64_t stakedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["staked_token_pool"].as_uint64();
+                uint64_t combinedtokenpool =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                                                            shorten_abi_errors)["last_combined_token_pool"].as_uint64();
+                uint64_t globalsrpcount =  get_staking_row(d, abi, abis, abi_serializer_max_time,
+                        shorten_abi_errors)["last_global_srp_count"].as_uint64();
+                long double roesufspersrp =  0.5;
+                const int32_t ENABLESTAKINGREWARDSEPOCHSEC = 1627686000;  //July 30 5:00PM MST 11:00PM GMT
+                if (nowepoch > ENABLESTAKINGREWARDSEPOCHSEC) {
+                    roesufspersrp = (long double)(combinedtokenpool) / (long double)(globalsrpcount);
+                    //round it after the 15th decimal place
+                    roesufspersrp = roundl(roesufspersrp * 1000000000000000.0) / 1000000000000000.00;
+                }
+
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
-                result.available = rVal - lockamount;
+                result.available = rVal - stakeamount - lockamount;
+                result.staked = stakeamount;
+                result.srps = srpamount;
+                char s[100];
+                sprintf(s,"%.15Lf",roesufspersrp);
+                result.roe = (string)s;
             }
-
             return result;
         } //get_fio_balance
 
@@ -2994,7 +3494,7 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found",
                                fioio::ErrorPubAddressNotFound);
 
-                uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+                uint32_t name_expiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
                 FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameEmpty);
 
@@ -3026,7 +3526,6 @@ if( options.count(name) ) { \
 
             return result;
         } // get_pub_address
-
 
 
         /***
@@ -3115,7 +3614,7 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!fioname_result.rows.empty(), "FIO Address does not exist",
                                fioio::ErrorPubAddressNotFound);
 
-                uint32_t name_expiration = (uint32_t) fioname_result.rows[0]["expiration"].as_uint64();
+                uint32_t name_expiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
                 FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "FIO Address does not exist",
                                fioio::ErrorFioNameEmpty);
 
@@ -3219,9 +3718,24 @@ if( options.count(name) ) { \
                 if (fioname_result.rows.empty()) {
                     return result;
                 }
+
+                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
+                //This is not the local computer time, it is in fact the block time.
+                uint32_t present_time = (uint32_t) time(0);
+                //if the domain is expired then return an empty result.
+                if (present_time > name_expiration) {
+                    return result;
+                }
             }
 
             if (domain_result.rows.empty()) {
+                return result;
+            }
+
+            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+            uint32_t present_time = (uint32_t) time(0);
+
+            if (present_time > domain_expiration) {
                 return result;
             }
 
@@ -3417,6 +3931,7 @@ if( options.count(name) ) { \
             return abis.binary_to_variant(abis.get_table_type(N(global)), data, abi_serializer_max_time_ms,
                                           shorten_abi_errors);
         }
+
 
         read_only::get_producers_result read_only::get_producers(const read_only::get_producers_params &p) const {
             const abi_def abi = eosio::chain_apis::get_abi(db, config::system_account_name);
@@ -3947,6 +4462,171 @@ if( options.count(name) ) { \
                 chain_plugin::handle_db_exhaustion();
             } CATCH_AND_CALL(next);
         }
+
+/***
+* add_nft - Add an nft to the nfts table table for a registered fio_address
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+        void read_write::add_nft(const read_write::add_nft_params &params,
+                                              next_function<read_write::add_nft_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 4,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("add_nft called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "addnft", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::add_nft_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+
+/***
+* remove_nft - Remove an nft from the nfts table table for a registered fio_address
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+        void read_write::remove_nft(const read_write::remove_nft_params &params,
+                                              next_function<read_write::remove_nft_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 4,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("remove_nft called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "remnft", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::remove_nft_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+  /***
+  * remove_all_nfts - Push registered nfts for a fio_address to the nft burn queue to be erased later
+  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+  */
+          void read_write::remove_all_nfts(const read_write::remove_all_nfts_params &params,
+                                                next_function<read_write::remove_all_nfts_results> next) {
+              try {
+                  FIO_403_ASSERT(params.size() == 4,
+                                 fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                  auto pretty_input = std::make_shared<packed_transaction>();
+                  auto resolver = make_resolver(this, abi_serializer_max_time);
+                  transaction_metadata_ptr ptrx;
+                  dlog("remove_all_nfts called");
+                  try {
+                      abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                      ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                  } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                  transaction trx = pretty_input->get_transaction();
+                  vector<action> &actions = trx.actions;
+                  dlog("\n");
+                  dlog(actions[0].name.to_string());
+                  FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+                  FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                  FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+                  FIO_403_ASSERT(actions[0].name.to_string() == "remallnfts", fioio::InvalidAccountOrAction);
+
+                  app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                          const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                      if (result.contains<fc::exception_ptr>()) {
+                          next(result.get<fc::exception_ptr>());
+                      } else {
+                          auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                          try {
+                              fc::variant output;
+                              try {
+                                  output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                              } catch (chain::abi_exception &) {
+                                  output = *trx_trace_ptr;
+                              }
+                              const chain::transaction_id_type &id = trx_trace_ptr->id;
+                              next(read_write::remove_all_nfts_results{id, output});
+                          } CATCH_AND_CALL(next);
+                      }
+                  });
+
+
+              } catch (boost::interprocess::bad_alloc &) {
+                  chain_plugin::handle_db_exhaustion();
+              } CATCH_AND_CALL(next);
+          }
+
+
 
 /***
 * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
