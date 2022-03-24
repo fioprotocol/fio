@@ -1608,8 +1608,7 @@ if( options.count(name) ) { \
 
         const name fio_system_code = N(fio.address);    // FIO name contract account, init in the top of this class
         const string fio_system_scope = "fio.address";   // FIO name contract scope
-        const name fio_reqobt_code = N(
-                fio.reqobt);    // FIO request obt contract account, init in the top of this class
+        const name fio_reqobt_code = N(fio.reqobt);    // FIO request obt contract account, init in the top of this class
         const string fio_reqobt_scope = "fio.reqobt";   // FIO request obt contract scope
         const name fio_fee_code = N(fio.fee);    // FIO fee account, init in the top of this class
         const string fio_fee_scope = "fio.fee";   // FIO fee contract scope
@@ -1619,9 +1618,10 @@ if( options.count(name) ) { \
         const string fio_scope = "eosio";   // FIO system scope
         const name fio_staking_code = N(fio.staking);    // FIO system account
         const string fio_staking_scope = "fio.staking";   // FIO system scope
-        // fio.escrow
         const name fio_escrow_code = N(fio.escrow); // FIO Escrow account
         const string fio_escrow_scope = "fio.escrow";
+        const name fio_oracle_code = N(fio.oracle); // Oracle code
+        const string fio_oracle_scope = "fio.oracle";   // Oracle scope
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
         const name fio_address_table = N(fionames); // FIO Address Table
@@ -1631,6 +1631,7 @@ if( options.count(name) ) { \
         const name fio_locks_table = N(locktokensv2); // FIO locktokens Table
         const name fio_mainnet_locks_table = N(lockedtokens); // FIO lockedtokens Table
         const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
+        const name fio_oracles_table = N(oracless); // FIO Registered Oracles
 
         const uint16_t FEEMAXLENGTH = 32;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
@@ -3261,6 +3262,61 @@ if( options.count(name) ) { \
             return result;
         } // get_fee
 
+         /*** v1/chain/get_oracle_fees
+        * Returns current fees for wrapping
+        * @param
+        * @return result
+        */
+        read_only::get_oracle_fees_result read_only::get_oracle_fees(const read_only::get_oracle_fees_params &p) const {
+            get_oracle_fees_result result;
+            vector <uint64_t> token_fees;
+            vector <uint64_t> nft_fees;
+            vector <oraclefee_record> final_fees;
+            const abi_def oracle_abi = eosio::chain_apis::get_abi(db, fio_oracle_code);
+
+            get_table_rows_params fio_table_row_params = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_oracle_code,
+                    .scope          = fio_oracle_scope,
+                    .table          = fio_oracles_table};
+
+            get_table_rows_result oracle_result =
+                    get_table_rows_ex<key_value_index>(fio_table_row_params, oracle_abi);
+
+            FIO_404_ASSERT(!oracle_result.rows.empty(), "No Registered Oracles", fioio::ErrorPubAddressNotFound);
+
+            uint8_t oracle_num = oracle_result.rows.size();
+            size_t temp_int = 0;
+
+            for (size_t i = 0; i < oracle_num; i++) {
+                oraclefee_record temp;
+                nft_fees.push_back(oracle_result.rows[i]["fees"][temp_int]["fee_amount"].as_uint64());
+                token_fees.push_back(oracle_result.rows[i]["fees"][temp_int+1]["fee_amount"].as_uint64());
+            }
+
+            sort(nft_fees.begin(), nft_fees.end());
+            sort(token_fees.begin(), token_fees.end());
+
+            uint64_t feeNftFinal;
+            uint64_t feeTokenFinal;
+
+            if (oracle_num % 2 == 0) {
+                feeNftFinal = ((nft_fees[oracle_num / 2 - 1] + nft_fees[oracle_num / 2]) / 2) * oracle_num;
+                feeTokenFinal = ((token_fees[oracle_num / 2 - 1] + token_fees[oracle_num / 2]) / 2) * oracle_num;
+            } else {
+                feeNftFinal = nft_fees[oracle_num / 2] * oracle_num;
+                feeTokenFinal = token_fees[oracle_num / 2] * oracle_num;
+            }
+
+            oraclefee_record domain = {"wrap_fio_domain", feeNftFinal};
+            oraclefee_record tokens = {"wrap_fio_tokens", feeTokenFinal};
+            final_fees.push_back(domain);
+            final_fees.push_back(tokens);
+
+            result.oracle_fees = final_fees;
+            return result;
+        }
+
 
         /*** v1/chain/get_whitelist
         * Retrieves the whitelist associated with the specified public key
@@ -4181,6 +4237,58 @@ if( options.count(name) ) { \
 
                             const chain::transaction_id_type &id = trx_trace_ptr->id;
                             next(read_write::new_funds_request_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        void read_write::wrap_fio_tokens(const read_write::wrap_fio_tokens_params &params,
+                                         next_function<read_write::wrap_fio_tokens_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 4,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("wrap_fio_tokens called");
+
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.oracle", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "wraptokens", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::wrap_fio_tokens_results{id, output});
                         } CATCH_AND_CALL(next);
                     }
                 });
