@@ -1468,6 +1468,18 @@ namespace eosio {
                                  chain::plugin_interface::next_function<wrap_fio_tokens_results> next);
             //end
 
+             //Begin Added for wrap_fio_domains api method
+            using wrap_fio_domains_params = fc::variant_object;
+
+            struct wrap_fio_domains_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void wrap_fio_domains(const wrap_fio_domains_params &params,
+                                 chain::plugin_interface::next_function<wrap_fio_domains_results> next);
+            //end
+
             using push_transactions_params  = vector<push_transaction_params>;
             using push_transactions_results = vector<push_transaction_results>;
 
@@ -1743,6 +1755,7 @@ FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction
 FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_tokens_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_domains_results, (transaction_id)(processed));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params,
            (code)(table)(lower_bound)(upper_bound)(limit)(reverse))
