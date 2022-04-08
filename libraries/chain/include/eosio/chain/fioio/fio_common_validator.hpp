@@ -87,7 +87,7 @@ namespace fioio {
 
     inline bool validateChainNameFormat(const string &chain) {
         if (chain.length() >= 1 && chain.length() <= 10) {
-            if (chain.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
+            if (chain.find_first_not_of("$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
                 std::string::npos) {
                 return false;
             }

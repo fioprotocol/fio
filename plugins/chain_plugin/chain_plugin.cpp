@@ -1619,7 +1619,9 @@ if( options.count(name) ) { \
         const string fio_scope = "eosio";   // FIO system scope
         const name fio_staking_code = N(fio.staking);    // FIO system account
         const string fio_staking_scope = "fio.staking";   // FIO system scope
-
+        // fio.escrow
+        const name fio_escrow_code = N(fio.escrow); // FIO Escrow account
+        const string fio_escrow_scope = "fio.escrow";
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
         const name fio_address_table = N(fionames); // FIO Address Table
@@ -1699,7 +1701,7 @@ if( options.count(name) ) { \
                 for (int i = 0; i < rows_result.rows[0]["periods"].size(); i++) {
                     uint64_t duration = rows_result.rows[0]["periods"][i]["duration"].as_uint64();
                     uint64_t amount = rows_result.rows[0]["periods"][i]["amount"].as_uint64();
-                  
+
                     if (duration <= timesincelockcreated) {
                         newlockamount -= amount;
                         if (i > ((int) payouts_performed - 1)) {
@@ -1775,6 +1777,127 @@ if( options.count(name) ) { \
             results.more = count;
             return results;
         } // get_actions
+
+        /***
+      * get escrow listings
+      * @param p status is the value of the status. status = 1: on sale, status = 2: Sold, status = 3; Cancelled
+      * @return listings that are of the status in the request object
+      */
+        read_only::get_escrow_listings_result
+        read_only::get_escrow_listings(const read_only::get_escrow_listings_params &p) const {
+
+            bool actorRequired = false;
+
+            if(p.actor.size()) {
+                actorRequired = true;
+            }
+
+            FIO_400_ASSERT(p.status > 0 && p.status <= 3, "status", to_string(p.status),
+                           "Invalid status value",
+                           fioio::ErrorInvalidValue);
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            get_escrow_listings_result result;
+            string fio_escrow_lookup_table = "domainsales";   // table name
+            const abi_def escrow_abi = eosio::chain_apis::get_abi(db, fio_escrow_code);
+            uint32_t records_returned = 0;
+            uint32_t records_size = 0;
+            uint32_t search_offset = p.offset;
+
+            get_table_rows_params fio_table_row_params2 = get_table_rows_params{
+                    .json           = true,
+                    .code           = fio_escrow_code,
+                    .scope          = fio_escrow_scope,
+                    .table          = fio_escrow_lookup_table,
+                    .lower_bound    = to_string(p.status),
+                    .upper_bound    = to_string(p.status),
+                    .key_type       = "i64",
+                    .index_position = "4"};
+
+            get_table_rows_result requests_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fio_table_row_params2, escrow_abi,
+                    [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            if (!requests_rows_result.rows.empty()) {
+                uint32_t search_limit;
+                auto start_time = fc::time_point::now();
+                auto end_time = start_time;
+                records_size = requests_rows_result.rows.size();
+                search_limit = p.limit > 1000 || p.limit == 0 ? 1000 : p.limit;
+                if (search_limit > records_size) { search_limit = records_size; }
+                if (search_offset >= records_size) { records_size = 0; }
+                FIO_404_ASSERT(!(records_size == 0), "No Escrow Listings", fioio::ErrorNoEscrowListingsFound);
+
+                // get proper count for `more` value
+                if(actorRequired) {
+                    records_size = 0;
+                    // iterate through everything
+                    for (auto & row : requests_rows_result.rows) {
+                        // only count record if the owner matches the actor parameter
+                        if(p.actor == row["owner"].as_string()) {
+                            records_size++;
+                        }
+                    }
+                    // if no matches
+                    FIO_404_ASSERT(!(records_size == 0), "No Escrow Listings", fioio::ErrorNoEscrowListingsFound);
+                }
+
+                for (size_t i = 0; i < search_limit; i++) {
+                    if((i + search_offset) == requests_rows_result.rows.size()){ break; }
+                    //get all the attributes of the listing
+                    uint64_t id = requests_rows_result.rows[i + search_offset]["id"].as_uint64();
+                    string commission_fee = requests_rows_result.rows[i + search_offset]["commission_fee"].as_string();
+                    uint64_t date_listed = requests_rows_result.rows[i + search_offset]["date_listed"].as_uint64();
+                    uint64_t date_updated = requests_rows_result.rows[i + search_offset]["date_updated"].as_uint64();
+                    string domain = requests_rows_result.rows[i + search_offset]["domain"].as_string();
+                    string owner = requests_rows_result.rows[i + search_offset]["owner"].as_string();
+                    uint64_t sale_price = requests_rows_result.rows[i + search_offset]["sale_price"].as_uint64();
+                    uint64_t status = requests_rows_result.rows[i + search_offset]["status"].as_uint64();
+
+                    if ((!actorRequired) || (actorRequired && p.actor == owner)) {
+                        time_t created_temptime;
+                        time_t updated_temptime;
+                        struct tm *created_timeinfo;
+                        struct tm *updated_timeinfo;
+                        char created_buffer[80];
+                        char updated_buffer[80];
+
+                        created_temptime = date_listed;
+                        created_timeinfo = gmtime(&created_temptime);
+                        strftime(created_buffer, 80, "%Y-%m-%dT%T", created_timeinfo);
+
+                        updated_temptime = date_updated;
+                        updated_timeinfo = gmtime(&updated_temptime);
+                        strftime(updated_buffer, 80, "%Y-%m-%dT%T", updated_timeinfo);
+
+                        listing_record rr{id, commission_fee, created_buffer, updated_buffer, domain,
+                                 owner, sale_price, status};
+
+                        result.listings.push_back(rr);
+                        records_returned++;
+                        end_time = fc::time_point::now();
+                        if (end_time - start_time > fc::microseconds(100000)) {
+                            result.time_limit_exceeded_error = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            FIO_404_ASSERT(!(result.listings.size() == 0), "No Escrow Listings", fioio::ErrorNoEscrowListingsFound);
+            result.more = records_size - records_returned - search_offset;
+            // fix uint overflow
+            if(result.more >= requests_rows_result.rows.size()) {
+                result.more = 0;
+            }
+            return result;
+        } // get_escrow_listings
 
         /***
         * get pending fio requests.
@@ -2491,7 +2614,7 @@ if( options.count(name) ) { \
                    }
 
                   if (contract_result.rows[pos]["chain_code"].as_string() == params.chain_code ) {
-                    if (params.token_id.empty() || contract_result.rows[pos]["token_id"].as_string() == params.token_id) {
+                    if (contract_result.rows[pos]["token_id"].as_string().empty() || contract_result.rows[pos]["token_id"].as_string() == params.token_id || params.token_id.empty()) {
 
                     nft_info nft = nft_info {
                       //optional fio_address member is initialized for this endpoint
@@ -2837,6 +2960,9 @@ if( options.count(name) ) { \
             get_fio_balance_result result;
             vector<asset> cursor;
             result.balance = 0;
+            //set available in result to defaults, if nothing present, 0
+            result.available = 0;
+
 
             uint128_t keyhash = fioio::string_to_uint128_t(fioKey.c_str());
             const abi_def system_abi = eosio::chain_apis::get_abi(db, fio_system_code);
@@ -3539,25 +3665,14 @@ if( options.count(name) ) { \
                     return result;
                 }
 
-                uint32_t name_expiration = (uint32_t) (fioname_result.rows[0]["expiration"].as_uint64());
-                //This is not the local computer time, it is in fact the block time.
-                uint32_t present_time = (uint32_t) time(0);
-                //if the domain is expired then return an empty result.
-                if (present_time > name_expiration) {
-                    return result;
-                }
+               //if the address is there then its registered, let the logic fall through.
             }
 
             if (domain_result.rows.empty()) {
                 return result;
             }
 
-            uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
-            uint32_t present_time = (uint32_t) time(0);
-
-            if (present_time > domain_expiration) {
-                return result;
-            }
+            //if its there then it is_registered, regardless of expiration
 
             // name checked and set
             result.is_registered = true;
