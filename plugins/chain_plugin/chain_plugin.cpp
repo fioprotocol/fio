@@ -3286,7 +3286,8 @@ if( options.count(name) ) { \
             get_table_rows_result oracle_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params, oracle_abi);
 
-            FIO_404_ASSERT(oracle_result.rows.size() < 3, "Not Enough Registered Oracles", fioio::ErrorPubAddressNotFound);
+            uint8_t oracle_size = oracle_result.rows.size();
+            FIO_404_ASSERT(3 <= oracle_size, "Not enough registered oracles.", fioio::ErrorPubAddressNotFound);
 
             uint8_t oracle_num = oracle_result.rows.size();
             size_t temp_int = 0;
