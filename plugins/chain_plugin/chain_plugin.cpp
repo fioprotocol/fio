@@ -3063,7 +3063,7 @@ if( options.count(name) ) { \
                 uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
                 uint64_t timesincelockcreated = 0;
 
-                if(nowepoch > timestamp) {
+                if (nowepoch > timestamp) {
                     timesincelockcreated = nowepoch - timestamp;
                 }
 
@@ -3074,11 +3074,10 @@ if( options.count(name) ) { \
                     for (int i = 0; i < grows_result.rows[0]["periods"].size(); i++) {
                         uint64_t duration = grows_result.rows[0]["periods"][i]["duration"].as_uint64();
                         uint64_t amount = grows_result.rows[0]["periods"][i]["amount"].as_uint64();
-                        if(duration > timesincelockcreated)
-                        {
+                        if (duration > timesincelockcreated) {
                             break;
                         }
-                        if(i > ((int)payouts_performed - 1)){
+                        if (i > ((int) payouts_performed - 1)) {
                             additional_available_fio_locks += amount;
                         }
                     }
@@ -3086,7 +3085,11 @@ if( options.count(name) ) { \
 
                 //correct the remaining lock amount to account for tokens that are unlocked before system
                 //accounting is updated by calling transfer or vote.
-                lockamount += grows_result.rows[0]["remaining_lock_amount"].as_uint64() - additional_available_fio_locks;
+                uint64_t remains = grows_result.rows[0]["remaining_lock_amount"].as_uint64();
+                if (((remains >= 0) && (additional_available_fio_locks >= 0)) &&
+                    (remains > additional_available_fio_locks)) {
+                    lockamount += remains - additional_available_fio_locks;
+                }
             }
 
 
@@ -3142,7 +3145,11 @@ if( options.count(name) ) { \
 
                 uint64_t rVal = (uint64_t) cursor[0].get_amount();
                 result.balance = rVal;
-                result.available = rVal - stakeamount - lockamount;
+                if( ((stakeamount >= 0) && (lockamount >=0)) && rVal > (stakeamount + lockamount)) {
+                    result.available = rVal - stakeamount - lockamount;
+                }else{
+                    result.available = 0;
+                }
                 result.staked = stakeamount;
                 result.srps = srpamount;
                 char s[100];
