@@ -3296,14 +3296,11 @@ if( options.count(name) ) { \
             uint8_t oracle_size = oracle_result.rows.size();
             FIO_404_ASSERT(3 <= oracle_size, "Not enough registered oracles.", fioio::ErrorPubAddressNotFound);
 
-            uint8_t oracle_num = oracle_result.rows.size();
             size_t temp_int = 0;
 
-            for (size_t i = 0; i < oracle_num; i++) {
-                FIO_404_ASSERT(!oracle_result.rows[i]["fees"][temp_int].is_null() || !oracle_result.rows[i]["fees"][temp_int+1].is_null(), 
-                    "Not enough oracle fee votes.", fioio::ErrorPubAddressNotFound);
-                
-                oraclefee_record temp;
+            for (size_t i = 0; i < oracle_size; i++) {
+                FIO_404_ASSERT(oracle_result.rows[i]["fees"].size(), "Not enough oracle fee votes.", fioio::ErrorPubAddressNotFound);
+
                 nft_fees.push_back(oracle_result.rows[i]["fees"][temp_int]["fee_amount"].as_uint64());
                 token_fees.push_back(oracle_result.rows[i]["fees"][temp_int+1]["fee_amount"].as_uint64());
             }
@@ -3314,12 +3311,12 @@ if( options.count(name) ) { \
             uint64_t feeNftFinal;
             uint64_t feeTokenFinal;
 
-            if (oracle_num % 2 == 0) {
-                feeNftFinal = ((nft_fees[oracle_num / 2 - 1] + nft_fees[oracle_num / 2]) / 2) * oracle_num;
-                feeTokenFinal = ((token_fees[oracle_num / 2 - 1] + token_fees[oracle_num / 2]) / 2) * oracle_num;
+            if (oracle_size % 2 == 0) {
+                feeNftFinal = ((nft_fees[oracle_size / 2 - 1] + nft_fees[oracle_size / 2]) / 2) * oracle_size;
+                feeTokenFinal = ((token_fees[oracle_size / 2 - 1] + token_fees[oracle_size / 2]) / 2) * oracle_size;
             } else {
-                feeNftFinal = nft_fees[oracle_num / 2] * oracle_num;
-                feeTokenFinal = token_fees[oracle_num / 2] * oracle_num;
+                feeNftFinal = nft_fees[oracle_size / 2] * oracle_size;
+                feeTokenFinal = token_fees[oracle_size / 2] * oracle_size;
             }
 
             oraclefee_record domain = {"wrap_fio_domain", feeNftFinal};
