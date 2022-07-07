@@ -1711,7 +1711,7 @@ FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_result, (fio_domains)(more));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_params, (fio_public_key)(offset)(limit))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_addresses_result, (fio_addresses)(more));
-FC_REFLECT_EMPTY(eosio::chain_apis::read_only::get_oracle_fees_params)
+FC_REFLECT_EMPTY(eosio::chain_apis::read_only::get_oracle_fees_params);
 FC_REFLECT(eosio::chain_apis::read_only::get_oracle_fees_result, (oracle_fees));
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_params, (end_point)(fio_address))
 FC_REFLECT(eosio::chain_apis::read_only::get_fee_result, (fee));
