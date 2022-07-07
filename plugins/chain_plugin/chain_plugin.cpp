@@ -3299,7 +3299,7 @@ if( options.count(name) ) { \
             size_t temp_int = 0;
 
             for (size_t i = 0; i < oracle_size; i++) {
-                FIO_404_ASSERT(oracle_result.rows[i]["fees"].size(), "Not enough oracle fee votes.", fioio::ErrorPubAddressNotFound);
+                FIO_404_ASSERT(oracle_result.rows[i]["fees"].size() > 0, "Not enough oracle fee votes.", fioio::ErrorPubAddressNotFound);
 
                 nft_fees.push_back(oracle_result.rows[i]["fees"][temp_int]["fee_amount"].as_uint64());
                 token_fees.push_back(oracle_result.rows[i]["fees"][temp_int+1]["fee_amount"].as_uint64());
