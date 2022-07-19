@@ -693,6 +693,16 @@ namespace eosio {
             check_whitelist_result
             check_whitelist(const check_whitelist_params &params) const;
 
+            //FIP-36 begin
+            struct get_account_fio_public_key_params {
+                name account;
+            };
+
+            struct get_account_fio_public_key_result {
+                string fio_public_key;
+            };
+            //FIP-36 end
+
             struct get_fio_names_params {
                 string fio_public_key;
             };
@@ -817,6 +827,10 @@ namespace eosio {
             };
 
             get_pub_addresses_result get_pub_addresses(const get_pub_addresses_params &params) const;
+
+            //FIP-36 begin
+            get_account_fio_public_key_result get_account_fio_public_key(const get_account_fio_public_key_params &params) const;
+            //FIP-36 end
 
 
             /**
@@ -1705,6 +1719,10 @@ FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addre
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)(remaining_bundled_tx))
 FC_REFLECT(eosio::chain_apis::oraclefee_record, (fee_name)(fee_amount))
+//FIP-36 begin
+FC_REFLECT(eosio::chain_apis::read_only::get_account_fio_public_key_params, (account))
+FC_REFLECT(eosio::chain_apis::read_only::get_account_fio_public_key_result, (fio_public_key));
+//FIP-36 end
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))

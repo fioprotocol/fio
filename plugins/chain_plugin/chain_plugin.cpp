@@ -2654,6 +2654,39 @@ if( options.count(name) ) { \
             account_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params, system_abi);
         }
+        //FIP-36 begin
+        read_only::get_account_fio_public_key_result read_only::get_account_fio_public_key(const read_only::get_account_fio_public_key_params &p) const {
+
+            get_account_fio_public_key_result result;
+            //get the pub key from the accountmap table.
+            string fioKey;
+            get_table_rows_result account_result;
+            GetFIOAccount(p.account,account_result);
+            FIO_404_ASSERT(!account_result.rows.empty(), "account map does not contain specified account",
+                           fioio::ErrorNotFound);
+
+            FIO_404_ASSERT(account_result.rows.size() == 1, "Unexpected number of results found account in account map",
+                           fioio::ErrorUnexpectedNumberResults);
+
+            fioKey = account_result.rows[0]["clientkey"].as_string();
+
+            //hash it and re-verify
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name pubkeyaccount = name{account_name};
+
+            FIO_404_ASSERT(p.account.value == pubkeyaccount.value, "account map does not match specified account",
+                           fioio::ErrorNotFound);
+
+            result.fio_public_key = fioKey;
+
+
+
+            return result;
+
+
+        }
+        //FIP-36 end
 
 
         /*** v1/chain/get_fio_names
