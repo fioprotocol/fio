@@ -158,6 +158,10 @@ namespace eosio {
                                                          chain_apis::read_write::remove_all_pub_addresses_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_tokens_pub_key,
                                                          chain_apis::read_write::transfer_tokens_pub_key_results, 202),
+                                     //FIP-38 begin
+                                     CHAIN_RW_CALL_ASYNC(new_fio_chain_account,
+                                                         chain_apis::read_write::new_fio_chain_account_results, 202),
+                                     //FIP-38 end
                                      CHAIN_RW_CALL_ASYNC(transfer_locked_tokens,
                                                          chain_apis::read_write::transfer_locked_tokens_results, 202),
                                      CHAIN_RW_CALL_ASYNC(burn_expired,

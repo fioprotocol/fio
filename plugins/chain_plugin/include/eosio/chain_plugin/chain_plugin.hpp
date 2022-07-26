@@ -1207,6 +1207,18 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function<transfer_tokens_pub_key_results> next);
 
+            //FIP-38 begin
+            using new_fio_chain_account_params = fc::variant_object;
+            struct new_fio_chain_account_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void new_fio_chain_account(const new_fio_chain_account_params &params,
+                                         chain::plugin_interface::next_function<new_fio_chain_account_results> next);
+            //FIP-38 end
+
+
             using transfer_locked_tokens_params = fc::variant_object;
             struct transfer_locked_tokens_results {
                 chain::transaction_id_type transaction_id;
@@ -1755,6 +1767,9 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+//FIP-38 begin
+FC_REFLECT(eosio::chain_apis::read_write::new_fio_chain_account_results, (transaction_id)(processed));
+//FIP-38 end
 FC_REFLECT(eosio::chain_apis::read_write::transfer_locked_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::compute_fees_results, (transaction_id)(processed));
