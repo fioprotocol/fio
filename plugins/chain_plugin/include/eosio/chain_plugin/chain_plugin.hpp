@@ -1228,6 +1228,18 @@ namespace eosio {
             void transfer_locked_tokens(const transfer_locked_tokens_params &params,
                                          chain::plugin_interface::next_function<transfer_locked_tokens_results> next);
 
+            //FIP-39 begin
+            using update_encrypt_key_params = fc::variant_object;
+            struct update_encrypt_key_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void update_encrypt_key(const update_encrypt_key_params &params,
+                                  chain::plugin_interface::next_function<update_encrypt_key_results> next);
+
+            //FIP-39 end
+
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
             struct renew_fio_domain_results {
@@ -1782,6 +1794,9 @@ FC_REFLECT(eosio::chain_apis::read_write::submit_fee_ratios_results, (transactio
 FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::renew_fio_domain_results, (transaction_id)(processed));
+//FIP-39 begin
+FC_REFLECT(eosio::chain_apis::read_write::update_encrypt_key_results, (transaction_id)(processed));
+//FIP-39 end
 FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));

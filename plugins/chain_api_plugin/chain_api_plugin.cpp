@@ -197,6 +197,10 @@ namespace eosio {
                                                          chain_apis::read_write::submit_fee_ratios_results, 202),
                                      CHAIN_RW_CALL_ASYNC(submit_fee_multiplier,
                                                          chain_apis::read_write::submit_fee_multiplier_results, 202),
+                                                         //FIP-39 begin
+                                     CHAIN_RW_CALL_ASYNC(update_encrypt_key,
+                                                         chain_apis::read_write::update_encrypt_key_results, 202),
+                                                         //FIP-39 end
                                      CHAIN_RW_CALL_ASYNC(renew_fio_domain,
                                                          chain_apis::read_write::renew_fio_domain_results, 202),
                                      CHAIN_RW_CALL_ASYNC(renew_fio_address,
