@@ -759,6 +759,20 @@ namespace eosio {
             get_locks_result get_locks(const get_locks_params &params) const;
 
 
+            //FIP-39 begin
+
+            struct get_encrypt_key_params {
+                fc::string fio_address;
+            };
+
+            struct get_encrypt_key_result {
+                string encrypt_public_key = "";
+            };
+
+            get_encrypt_key_result get_encrypt_key(const get_encrypt_key_params &params) const;
+
+            //FIP-39 end
+
 
             struct get_fio_balance_params {
                 fc::string fio_public_key;
@@ -1237,6 +1251,7 @@ namespace eosio {
 
             void update_encrypt_key(const update_encrypt_key_params &params,
                                   chain::plugin_interface::next_function<update_encrypt_key_results> next);
+
 
             //FIP-39 end
 
@@ -1813,6 +1828,10 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_result, (rows)(more)
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
+//FIP-39 begin
+FC_REFLECT(eosio::chain_apis::read_only::get_encrypt_key_params, (fio_address));
+FC_REFLECT(eosio::chain_apis::read_only::get_encrypt_key_result, (encrypt_public_key));
+//FIP-39 end
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)(available)(staked)(srps)(roe));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_params, (fio_public_key));

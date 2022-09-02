@@ -107,6 +107,9 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_required_keys, 200),
                                      CHAIN_RO_CALL(get_transaction_id, 200),
                                      CHAIN_RO_CALL(get_fio_balance, 200),
+                                     //FIP-39 begin
+                                     CHAIN_RO_CALL(get_encrypt_key, 200),
+                                     //FIP-39 end
                                      CHAIN_RO_CALL(get_actor, 200),
                                      CHAIN_RO_CALL(get_fio_names, 200),
                                      //FIP-36 begin
