@@ -1137,6 +1137,16 @@ namespace eosio {
             void remove_all_nfts(const remove_all_nfts_params &params,
                                       chain::plugin_interface::next_function<remove_all_nfts_results> next);
 
+            using register_fio_domain_address_params = fc::variant_object;
+            struct register_fio_domain_address_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void register_fio_domain_address(const register_fio_domain_address_params &params,
+                                       chain::plugin_interface::next_function<register_fio_domain_address_results> next);
+
+
 
             using set_fio_domain_public_params = fc::variant_object;
             struct set_fio_domain_public_results {
