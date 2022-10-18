@@ -1766,6 +1766,7 @@ FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction
 FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_domains_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_address_results, (transaction_id)(processed));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params,
            (code)(table)(lower_bound)(upper_bound)(limit)(reverse))
