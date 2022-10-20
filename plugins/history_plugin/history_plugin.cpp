@@ -240,6 +240,17 @@ namespace eosio {
                       }
                     }
 
+                    if (act.act.name == N(regdomadd)) {
+                      const auto regdata = act.act.data_as<eosio::regdomadd>();
+                      if (!regdata.owner_fio_public_key.empty()) {
+                        if(filter_out.find({act.receiver, act.act.name, regdata.actor}) == filter_out.end() &&
+                           filter_out.find({act.receiver, 0, regdata.actor}) == filter_out.end() &&
+                           filter_out.find({regdata.actor, 0, 0}) == filter_out.end()) {
+                             result.insert(fioio::key_to_account(regdata.owner_fio_public_key));
+                         }
+                      }
+                    }
+
                     if (act.act.name == N(xferdomain)) {
                       const auto xferdata = act.act.data_as<eosio::xferdomain>();
                       if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
