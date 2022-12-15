@@ -249,6 +249,15 @@ namespace eosio {
                       }
                     }
 
+                    if (act.act.name == N(xferescrow)) {
+                      const auto xferdata = act.act.data_as<eosio::xferescrow>();
+                      if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({act.receiver, 0, xferdata.actor}) == filter_out.end() &&
+                         filter_out.find({xferdata.actor, 0, 0}) == filter_out.end()) {
+                        result.insert(fioio::key_to_account(xferdata.public_key));
+                      }
+                    }
+
                     if (act.act.name == N(trnsloctoks)) {
                         const auto xferdata = act.act.data_as<eosio::trnsloctoks>();
                         if(filter_out.find({act.receiver, act.act.name, xferdata.actor}) == filter_out.end() &&
