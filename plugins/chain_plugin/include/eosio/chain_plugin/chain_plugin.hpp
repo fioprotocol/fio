@@ -944,7 +944,8 @@ namespace eosio {
                         auto cur_time = fc::time_point::now();
                         auto end_time = cur_time + fc::microseconds(WALKVALUE); /// 100ms max time
                         vector<char> data;
-                        for (unsigned int count = 0; cur_time <= end_time && count < p.limit &&
+                        for (unsigned int count = 0; //cur_time <= end_time &&
+                                                     count < p.limit &&
                                                      itr != end_itr; ++itr, cur_time = fc::time_point::now()) {
                             const auto *itr2 = d.find<chain::key_value_object, chain::by_scope_primary>(
                                     boost::make_tuple(t_id->id, itr->primary_key));
