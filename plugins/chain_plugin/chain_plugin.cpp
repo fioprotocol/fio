@@ -3221,16 +3221,17 @@ if( options.count(name) ) { \
             bool isbundleeligible = ((uint64_t) (table_rows_result.rows[0]["type"].as_uint64()) == 1);
             uint64_t feeamount = (uint64_t) table_rows_result.rows[0]["suf_amount"].as_uint64();
 
-            if (isbundleeligible) {
+            if (isbundleeligible && !p.fio_address.empty() ) {
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
                 fioio::FioAddress fa;
-                fioio::getFioAddressStruct(p.fio_address, fa);
+                fioio::getFioAddressStruct(p.fio_address.c_str(), fa);
                 uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+
                 FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
-                               fioio::ErrorFioNameNotReg);
+                            fioio::ErrorFioNameNotReg);
 
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
