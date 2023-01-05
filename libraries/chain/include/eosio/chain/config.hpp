@@ -124,7 +124,10 @@ namespace eosio {
  */
             const static int producer_repetitions = 12;
             const static int max_producers = 125;
-
+            //FIP-46 begin
+            const static int secondary_index_max_read_time_microseconds = 1000 * 100; //1 second read time permitted on secondary indices
+            const static int primary_index_max_read_time_microseconds = 1000 * 10;  //100 milliseconds read time permitted for pirmary indices.
+            //FIP-46 end
             const static size_t maximum_tracked_dpos_confirmations = 1024;     ///<
             static_assert(maximum_tracked_dpos_confirmations >= ((max_producers * 2 / 3) + 1) * producer_repetitions,
                           "Settings never allow for DPOS irreversibility");
