@@ -1137,6 +1137,16 @@ namespace eosio {
             void remove_all_nfts(const remove_all_nfts_params &params,
                                       chain::plugin_interface::next_function<remove_all_nfts_results> next);
 
+            using register_fio_domain_address_params = fc::variant_object;
+            struct register_fio_domain_address_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void register_fio_domain_address(const register_fio_domain_address_params &params,
+                                       chain::plugin_interface::next_function<register_fio_domain_address_results> next);
+
+
 
             using set_fio_domain_public_params = fc::variant_object;
             struct set_fio_domain_public_results {
@@ -1756,6 +1766,7 @@ FC_REFLECT(eosio::chain_apis::read_write::claim_bp_rewards_results, (transaction
 FC_REFLECT(eosio::chain_apis::read_write::add_bundled_transactions_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::wrap_fio_domains_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_address_results, (transaction_id)(processed));
 
 FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_params,
            (code)(table)(lower_bound)(upper_bound)(limit)(reverse))
