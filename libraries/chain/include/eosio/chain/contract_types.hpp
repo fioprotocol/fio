@@ -173,6 +173,21 @@ namespace eosio {
             }
         };
 
+        struct xferescrow {
+          string fio_domain;
+          string public_key;
+          bool isEscrow;
+          name actor;
+
+            static account_name get_account() {
+                return N(fio.address);
+            }
+
+            static action_name get_name() {
+                return N(xferescrow);
+            }
+        };
+
         struct xferaddress {
           string fio_address;
           string new_owner_fio_public_key;
@@ -343,6 +358,7 @@ FC_REFLECT(eosio::chain::regdomain, (fio_domain)(owner_fio_public_key)(max_fee)(
 FC_REFLECT(eosio::chain::regdomadd, (fio_address)(is_public)(owner_fio_public_key)(max_fee)(tpid)(actor))
 FC_REFLECT(eosio::chain::burnaddress, (fio_address)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::xferdomain, (fio_domain)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
+FC_REFLECT(eosio::chain::xferescrow, (fio_domain)(public_key)(isEscrow)(actor))
 FC_REFLECT(eosio::chain::xferaddress, (fio_address)(new_owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::lockperiodv2, (duration)(amount))
 FC_REFLECT(eosio::chain::trnsloctoks, (payee_public_key)(can_vote)(periods)(amount)(max_fee)(actor)(tpid))
