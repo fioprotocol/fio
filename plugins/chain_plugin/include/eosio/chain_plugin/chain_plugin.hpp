@@ -957,7 +957,7 @@ namespace eosio {
                     auto walk_table_row_range = [&](auto itr, auto end_itr) {
                         auto cur_time = fc::time_point::now();
                         //FIP-46 begin
-                        auto end_time = cur_time + fc::microseconds(PRIMARY_INDEX_MAX_READ_TIME_MICROSECONDS);
+                        auto end_time = cur_time + fc::microseconds(SECONDARY_INDEX_MAX_READ_TIME_MICROSECONDS);
                         //FIP-46 end
                         vector<char> data;
                         for (unsigned int count = 0; cur_time <= end_time && count < p.limit &&
