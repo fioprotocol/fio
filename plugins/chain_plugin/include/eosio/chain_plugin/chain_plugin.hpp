@@ -695,7 +695,7 @@ namespace eosio {
 
             //FIP-36 begin
             struct get_account_fio_public_key_params {
-                name account;
+                string account;
             };
 
             struct get_account_fio_public_key_result {

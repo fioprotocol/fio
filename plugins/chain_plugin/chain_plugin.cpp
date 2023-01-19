@@ -2661,8 +2661,15 @@ if( options.count(name) ) { \
             //get the pub key from the accountmap table.
             string fioKey;
             get_table_rows_result account_result;
-            GetFIOAccount(p.account,account_result);
-            FIO_404_ASSERT(!account_result.rows.empty(), "account map does not contain specified account",
+
+            FIO_400_ASSERT(fioio::isAccountValid(p.account), "account", p.account, "Invalid FIO Account format",
+                           fioio::ErrorInvalidAccount);
+
+            name accountnm = name{p.account};
+            GetFIOAccount(accountnm,account_result);
+
+
+            FIO_404_ASSERT(!account_result.rows.empty(), "Account not found",
                            fioio::ErrorNotFound);
 
             FIO_404_ASSERT(account_result.rows.size() == 1, "Unexpected number of results found account in account map",
@@ -2675,7 +2682,7 @@ if( options.count(name) ) { \
             fioio::key_to_account(fioKey, account_name);
             name pubkeyaccount = name{account_name};
 
-            FIO_404_ASSERT(p.account.value == pubkeyaccount.value, "account map does not match specified account",
+            FIO_404_ASSERT(accountnm.value == pubkeyaccount.value, "account map does not match specified account",
                            fioio::ErrorNotFound);
 
             result.fio_public_key = fioKey;
