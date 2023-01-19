@@ -53,13 +53,13 @@ namespace eosio {
         /*
          * These 2 constants are added to provide those who host an API node the ability to modify these values
          * if there is ever a need to provide API nodes increased time for processing of table information within read only getters.
-         * In FIO we provide 1 second of processing time to an API node for the processing of secondary index information,
+         * In FIO we provide 1/10 second of processing time to an API node for the processing of secondary index information,
          * this provides API nodes the ability to return reliable results when tables contain up to tens of thousdands of rows per secondary index.
          * EOSIO historically used a single constant WALKTIME for both primary key and secondary key reads, which were both set to 100 milliseconds, this
          * limited the number of rows per secondary index to something well under 5k rows per secondary index for reliable results in
          * a read only getter. SEE EOS ISSUE #3965 https://github.com/EOSIO/eos/issues/3965
          */
-        const static int SECONDARY_INDEX_MAX_READ_TIME_MICROSECONDS = 1000 * 100; //1 second read time permitted on secondary indices
+        const static int SECONDARY_INDEX_MAX_READ_TIME_MICROSECONDS = 1000 * 100; // 1/10 second read time permitted on secondary indices
         const static int PRIMARY_INDEX_MAX_READ_TIME_MICROSECONDS = 1000 * 10;  //100 milliseconds read time permitted for pirmary indices.
         //FIP-46 end
 
