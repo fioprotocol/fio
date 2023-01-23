@@ -3031,29 +3031,29 @@ if( options.count(name) ) { \
                            fioio::ErrorNoFeesFoundForEndpoint);
 
             uint64_t handleid = names_table_rows_result.rows[0]["id"].as_uint64();
-            //now get that handle id from handleinfo table.
-            get_table_rows_params handleinfo_table_row_params = get_table_rows_params{.json=true,
+            //now get that handle id from fionameinfo table.
+            get_table_rows_params fionameinfo_table_row_params = get_table_rows_params{.json=true,
                     .code=fio_system_code,
                     .scope=fio_system_scope,
-                    .table="handleinfo",
+                    .table="fionameinfo",
                     .lower_bound=boost::lexical_cast<string>(handleid),
                     .upper_bound=boost::lexical_cast<string>(handleid),
                     .key_type       = "i64",
                     .index_position ="2"};
 
-            get_table_rows_result handleinfo_table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
-                    handleinfo_table_row_params, abi, [](uint64_t v) -> uint64_t {
+            get_table_rows_result fionameinfo_table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fionameinfo_table_row_params, abi, [](uint64_t v) -> uint64_t {
                         return v;
                     });
 
             bool found = true;
-            if(handleinfo_table_rows_result.rows.empty()){
+            if(fionameinfo_table_rows_result.rows.empty()){
                found = false;
             }else{
                 bool descmatch = false;
-                for (size_t pos = 0; pos < handleinfo_table_rows_result.rows.size(); pos++) {
-                    string datadesc = handleinfo_table_rows_result.rows[pos]["datadesc"].as_string();
-                    string datavalue = handleinfo_table_rows_result.rows[pos]["datavalue"].as_string();
+                for (size_t pos = 0; pos < fionameinfo_table_rows_result.rows.size(); pos++) {
+                    string datadesc = fionameinfo_table_rows_result.rows[pos]["datadesc"].as_string();
+                    string datavalue = fionameinfo_table_rows_result.rows[pos]["datavalue"].as_string();
                     if (datadesc.compare("FIO_REQUEST_CONTENT_ENCRYPTION_PUB_KEY") == 0)
                     {
                         result1.encrypt_public_key = datavalue;
@@ -3105,59 +3105,26 @@ if( options.count(name) ) { \
 
                 uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
                 uint32_t present_time = (uint32_t) time(0);
+
+
                 FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
                                fioio::ErrorFioNameEmpty);
 
-                //set name result to be the domain results.
-                name_result = domain_result;
-
-                if (!fa.fioname.empty()) {
-
-                    std::string hexvalnamehash = "0x";
-                    hexvalnamehash.append(
-                            fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
-
-                    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
-                            .code=fio_system_code,
-                            .scope=fio_system_scope,
-                            .table=fio_address_table,
-                            .lower_bound=hexvalnamehash,
-                            .upper_bound=hexvalnamehash,
-                            .encode_type="hex",
-                            .index_position ="5"};
-
-                    fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
-                            name_table_row_params, abi, [](uint128_t v) -> uint128_t {
-                                return v;
-                            });
-
-                    FIO_404_ASSERT(!fioname_result.rows.empty(), "Public address not found",
-                                   fioio::ErrorPubAddressNotFound);
-
-                    uint32_t name_expiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
-                    FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
-                                   fioio::ErrorFioNameEmpty);
-
-                    //set the result to the name results
-                    name_result = fioname_result;
-                } else {
-                    FIO_404_ASSERT(!p.fio_address.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
-                }
-
+                
                 string defaultPubAddress = "";
 
-                for (int i = 0; i < name_result.rows[0]["addresses"].size(); i++) {
-                    string tToken = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["token_code"].as_string());
-                    string tChain = fioio::makeLowerCase(name_result.rows[0]["addresses"][i]["chain_code"].as_string());
+                for (int i = 0; i < names_table_rows_result.rows[0]["addresses"].size(); i++) {
+                    string tToken = fioio::makeLowerCase(names_table_rows_result.rows[0]["addresses"][i]["token_code"].as_string());
+                    string tChain = fioio::makeLowerCase(names_table_rows_result.rows[0]["addresses"][i]["chain_code"].as_string());
 
                     if ((tToken == tokenCode) && (tChain == chainCode)) {
-                        result1.encrypt_public_key = name_result.rows[0]["addresses"][i]["public_address"].as_string();
+                        result1.encrypt_public_key = names_table_rows_result.rows[0]["addresses"][i]["public_address"].as_string();
                         break;
                     }
                     if ((tToken == defaultCode) && (tChain == chainCode)) {
-                        defaultPubAddress = name_result.rows[0]["addresses"][i]["public_address"].as_string();
+                        defaultPubAddress = names_table_rows_result.rows[0]["addresses"][i]["public_address"].as_string();
                     }
-                    if (i == name_result.rows[0]["addresses"].size() - 1 && defaultPubAddress != "" ) {
+                    if (i == names_table_rows_result.rows[0]["addresses"].size() - 1 && defaultPubAddress != "" ) {
                         result1.encrypt_public_key = defaultPubAddress;
                     }
                 }
