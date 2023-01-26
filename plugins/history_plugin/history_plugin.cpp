@@ -208,14 +208,24 @@ namespace eosio {
                       }
                     }
 
-                    if (act.act.name == N(trnsfiopubky)) {
-                      const auto  transferdata = act.act.data_as<eosio::trnsfiopubky>();
+                    if (act.act.name == N(newfioacc)) {
+                      const auto  transferdata = act.act.data_as<eosio::newfioacc>();
                     if(filter_out.find({act.receiver, act.act.name, transferdata.actor}) == filter_out.end() &&
                        filter_out.find({act.receiver, 0, transferdata.actor}) == filter_out.end() &&
                        filter_out.find({transferdata.actor, 0, 0}) == filter_out.end()) {
-                        result.insert(fioio::key_to_account(transferdata.payee_public_key));
+                        result.insert(fioio::key_to_account(transferdata.fio_public_key));
                       }
                     }
+
+                    if (act.act.name == N(trnsfiopubky)) {
+                        const auto  transferdata = act.act.data_as<eosio::trnsfiopubky>();
+                        if(filter_out.find({act.receiver, act.act.name, transferdata.actor}) == filter_out.end() &&
+                           filter_out.find({act.receiver, 0, transferdata.actor}) == filter_out.end() &&
+                           filter_out.find({transferdata.actor, 0, 0}) == filter_out.end()) {
+                            result.insert(fioio::key_to_account(transferdata.payee_public_key));
+                        }
+                    }
+
 
                     if (act.act.name == N(regaddress)) {
                      const auto regdata = act.act.data_as<eosio::regaddress>();

@@ -68,6 +68,23 @@ namespace eosio {
             }
         };
 
+        struct newfioacc {
+            string fio_public_key;
+            authority owner;
+            authority active;
+            int64_t max_fee;
+            name actor;
+            string tpid;
+
+            static account_name get_account() {
+                return N(eosio);
+            }
+
+            static action_name get_name() {
+                return N(newfioacc);
+            }
+        };
+
         struct lockperiodv2 {
             int64_t duration = 0; //duration in seconds. each duration is seconds after grant creation.
             int64_t amount; //this is the percent to be unlocked
@@ -320,6 +337,7 @@ FC_REFLECT(eosio::chain::unlinkauth, (account)(code)(type))
 FC_REFLECT(eosio::chain::canceldelay, (canceling_auth)(trx_id))
 FC_REFLECT(eosio::chain::onerror, (sender_id)(sent_trx))
 FC_REFLECT(eosio::chain::trnsfiopubky, (payee_public_key)(amount)(max_fee)(actor)(tpid))
+FC_REFLECT(eosio::chain::newfioacc, (fio_public_key)(owner)(active)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::regaddress, (fio_address)(owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::regdomain, (fio_domain)(owner_fio_public_key)(max_fee)(actor)(tpid))
 FC_REFLECT(eosio::chain::burnaddress, (fio_address)(max_fee)(actor)(tpid))
