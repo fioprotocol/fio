@@ -707,6 +707,16 @@ namespace eosio {
             check_whitelist_result
             check_whitelist(const check_whitelist_params &params) const;
 
+            //FIP-36 begin
+            struct get_account_fio_public_key_params {
+                string account;
+            };
+
+            struct get_account_fio_public_key_result {
+                string fio_public_key;
+            };
+            //FIP-36 end
+
             struct get_fio_names_params {
                 string fio_public_key;
             };
@@ -762,6 +772,20 @@ namespace eosio {
 
             get_locks_result get_locks(const get_locks_params &params) const;
 
+
+            //FIP-39 begin
+
+            struct get_encrypt_key_params {
+                fc::string fio_address;
+            };
+
+            struct get_encrypt_key_result {
+                string encrypt_public_key = "";
+            };
+
+            get_encrypt_key_result get_encrypt_key(const get_encrypt_key_params &params) const;
+
+            //FIP-39 end
 
 
             struct get_fio_balance_params {
@@ -831,6 +855,10 @@ namespace eosio {
             };
 
             get_pub_addresses_result get_pub_addresses(const get_pub_addresses_params &params) const;
+
+            //FIP-36 begin
+            get_account_fio_public_key_result get_account_fio_public_key(const get_account_fio_public_key_params &params) const;
+            //FIP-36 end
 
 
             /**
@@ -1221,6 +1249,18 @@ namespace eosio {
             void transfer_tokens_pub_key(const transfer_tokens_pub_key_params &params,
                                          chain::plugin_interface::next_function<transfer_tokens_pub_key_results> next);
 
+            //FIP-38 begin
+            using new_fio_chain_account_params = fc::variant_object;
+            struct new_fio_chain_account_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void new_fio_chain_account(const new_fio_chain_account_params &params,
+                                         chain::plugin_interface::next_function<new_fio_chain_account_results> next);
+            //FIP-38 end
+
+
             using transfer_locked_tokens_params = fc::variant_object;
             struct transfer_locked_tokens_results {
                 chain::transaction_id_type transaction_id;
@@ -1229,6 +1269,19 @@ namespace eosio {
 
             void transfer_locked_tokens(const transfer_locked_tokens_params &params,
                                          chain::plugin_interface::next_function<transfer_locked_tokens_results> next);
+
+            //FIP-39 begin
+            using update_encrypt_key_params = fc::variant_object;
+            struct update_encrypt_key_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void update_encrypt_key(const update_encrypt_key_params &params,
+                                  chain::plugin_interface::next_function<update_encrypt_key_results> next);
+
+
+            //FIP-39 end
 
             //begin renew_domain
             using renew_fio_domain_params = fc::variant_object;
@@ -1733,6 +1786,10 @@ FC_REFLECT(eosio::chain_apis::read_only::get_pub_addresses_result, (public_addre
 FC_REFLECT(eosio::chain_apis::fiodomain_record, (fio_domain)(expiration)(is_public))
 FC_REFLECT(eosio::chain_apis::fioaddress_record, (fio_address)(expiration)(remaining_bundled_tx))
 FC_REFLECT(eosio::chain_apis::oraclefee_record, (fee_name)(fee_amount))
+//FIP-36 begin
+FC_REFLECT(eosio::chain_apis::read_only::get_account_fio_public_key_params, (account))
+FC_REFLECT(eosio::chain_apis::read_only::get_account_fio_public_key_result, (fio_public_key));
+//FIP-36 end
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_params, (fio_public_key))
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_names_result, (fio_domains)(fio_addresses));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_domains_params, (fio_public_key)(offset)(limit))
@@ -1765,6 +1822,9 @@ FC_REFLECT(eosio::chain_apis::read_write::add_pub_address_results, (transaction_
 FC_REFLECT(eosio::chain_apis::read_write::remove_pub_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::remove_all_pub_addresses_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_pub_key_results, (transaction_id)(processed));
+//FIP-38 begin
+FC_REFLECT(eosio::chain_apis::read_write::new_fio_chain_account_results, (transaction_id)(processed));
+//FIP-38 end
 FC_REFLECT(eosio::chain_apis::read_write::transfer_locked_tokens_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::burn_expired_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::compute_fees_results, (transaction_id)(processed));
@@ -1777,6 +1837,9 @@ FC_REFLECT(eosio::chain_apis::read_write::submit_fee_ratios_results, (transactio
 FC_REFLECT(eosio::chain_apis::read_write::unregister_proxy_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::register_proxy_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::renew_fio_domain_results, (transaction_id)(processed));
+//FIP-39 begin
+FC_REFLECT(eosio::chain_apis::read_write::update_encrypt_key_results, (transaction_id)(processed));
+//FIP-39 end
 FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));
@@ -1794,6 +1857,10 @@ FC_REFLECT(eosio::chain_apis::read_only::get_table_by_scope_result, (rows)(more)
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_balance_params, (code)(account)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_params, (code)(symbol));
 FC_REFLECT(eosio::chain_apis::read_only::get_currency_stats_result, (supply)(max_supply)(issuer));
+//FIP-39 begin
+FC_REFLECT(eosio::chain_apis::read_only::get_encrypt_key_params, (fio_address));
+FC_REFLECT(eosio::chain_apis::read_only::get_encrypt_key_result, (encrypt_public_key));
+//FIP-39 end
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_params, (fio_public_key));
 FC_REFLECT(eosio::chain_apis::read_only::get_fio_balance_result, (balance)(available)(staked)(srps)(roe));
 FC_REFLECT(eosio::chain_apis::read_only::get_actor_params, (fio_public_key));

@@ -2654,6 +2654,46 @@ if( options.count(name) ) { \
             account_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params, system_abi);
         }
+        //FIP-36 begin
+        read_only::get_account_fio_public_key_result read_only::get_account_fio_public_key(const read_only::get_account_fio_public_key_params &p) const {
+
+            get_account_fio_public_key_result result;
+            //get the pub key from the accountmap table.
+            string fioKey;
+            get_table_rows_result account_result;
+
+            FIO_400_ASSERT(fioio::isAccountValid(p.account), "account", p.account, "Invalid FIO Account format",
+                           fioio::ErrorInvalidAccount);
+
+            name accountnm = name{p.account};
+            GetFIOAccount(accountnm,account_result);
+
+
+            FIO_404_ASSERT(!account_result.rows.empty(), "Account not found",
+                           fioio::ErrorNotFound);
+
+            FIO_404_ASSERT(account_result.rows.size() == 1, "Unexpected number of results found account in account map",
+                           fioio::ErrorUnexpectedNumberResults);
+
+            fioKey = account_result.rows[0]["clientkey"].as_string();
+
+            //hash it and re-verify
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name pubkeyaccount = name{account_name};
+
+            FIO_404_ASSERT(accountnm.value == pubkeyaccount.value, "account map does not match specified account",
+                           fioio::ErrorNotFound);
+
+            result.fio_public_key = fioKey;
+
+
+
+            return result;
+
+
+        }
+        //FIP-36 end
 
 
         /*** v1/chain/get_fio_names
@@ -2948,6 +2988,155 @@ if( options.count(name) ) { \
             return abis.binary_to_variant(abis.get_table_type(N(staking)), data, abi_serializer_max_time_ms,
                                           shorten_abi_errors);
         }
+
+        //FIP-39 begin
+
+        read_only::get_encrypt_key_result read_only::get_encrypt_key(const read_only::get_encrypt_key_params &p) const {
+
+            get_encrypt_key_result result1;
+
+            fioio::FioAddress fa;
+            fioio::getFioAddressStruct(p.fio_address, fa);
+            uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
+                           fioio::ErrorFioNameNotReg);
+
+            std::string hexvalnamehash = "0x";
+            hexvalnamehash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_address_table,
+                    .lower_bound=hexvalnamehash,
+                    .upper_bound=hexvalnamehash,
+                    .encode_type="hex",
+                    .index_position ="5"};
+
+            get_table_rows_result names_table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                    name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                        return v;
+                    });
+
+            FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", fa.fioaddress.c_str(),
+                           "No such FIO address",
+                           fioio::ErrorFioNameNotReg);
+
+            //128 bit indexes returned multiple rows unexpectedly during integration testing, this code ensures
+            // that if the index search returns multiple rows unexpectedly the results are not processed.
+            FIO_404_ASSERT(names_table_rows_result.rows.size() == 1, "Multiple names found for fio address",
+                           fioio::ErrorNoFeesFoundForEndpoint);
+
+            uint64_t handleid = names_table_rows_result.rows[0]["id"].as_uint64();
+            //now get that handle id from fionameinfo table.
+            get_table_rows_params fionameinfo_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table="fionameinfo",
+                    .lower_bound=boost::lexical_cast<string>(handleid),
+                    .upper_bound=boost::lexical_cast<string>(handleid),
+                    .key_type       = "i64",
+                    .index_position ="2"};
+
+            get_table_rows_result fionameinfo_table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fionameinfo_table_row_params, abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            bool found = true;
+            if(fionameinfo_table_rows_result.rows.empty()){
+               found = false;
+            }else{
+                bool descmatch = false;
+                for (size_t pos = 0; pos < fionameinfo_table_rows_result.rows.size(); pos++) {
+                    string datadesc = fionameinfo_table_rows_result.rows[pos]["datadesc"].as_string();
+                    string datavalue = fionameinfo_table_rows_result.rows[pos]["datavalue"].as_string();
+                    if (datadesc.compare("FIO_REQUEST_CONTENT_ENCRYPTION_PUB_KEY") == 0)
+                    {
+                        result1.encrypt_public_key = datavalue;
+                        descmatch = true;
+                    }
+
+                }
+                if (!descmatch){
+                    found = false;
+                }
+
+            }
+
+            if (!found)
+            {
+                //go get the pub key for FIO FIO for this address.
+                const name code = ::eosio::string_to_name("fio.address");
+                const abi_def abi = eosio::chain_apis::get_abi(db, code);
+                const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+                const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
+                const string chainCode = fioio::makeLowerCase("FIO");
+                const string tokenCode = fioio::makeLowerCase("FIO");
+                const string defaultCode = "*";
+
+                //these are the results for the table searches for domain ansd fio name
+                get_table_rows_result domain_result;
+                get_table_rows_result fioname_result;
+                get_table_rows_result name_result;
+
+                std::string hexvaldomainhash = "0x";
+                hexvaldomainhash.append(
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
+
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=code,
+                        .scope=fio_system_scope,
+                        .table=fio_domains_table,
+                        .lower_bound=hexvaldomainhash,
+                        .upper_bound=hexvaldomainhash,
+                        .encode_type="hex",
+                        .index_position ="4"};
+
+                domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
+
+                FIO_404_ASSERT(!domain_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+                uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+                uint32_t present_time = (uint32_t) time(0);
+
+
+                FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
+                               fioio::ErrorFioNameEmpty);
+
+                
+                string defaultPubAddress = "";
+
+                for (int i = 0; i < names_table_rows_result.rows[0]["addresses"].size(); i++) {
+                    string tToken = fioio::makeLowerCase(names_table_rows_result.rows[0]["addresses"][i]["token_code"].as_string());
+                    string tChain = fioio::makeLowerCase(names_table_rows_result.rows[0]["addresses"][i]["chain_code"].as_string());
+
+                    if ((tToken == tokenCode) && (tChain == chainCode)) {
+                        result1.encrypt_public_key = names_table_rows_result.rows[0]["addresses"][i]["public_address"].as_string();
+                        break;
+                    }
+                    if ((tToken == defaultCode) && (tChain == chainCode)) {
+                        defaultPubAddress = names_table_rows_result.rows[0]["addresses"][i]["public_address"].as_string();
+                    }
+                    if (i == names_table_rows_result.rows[0]["addresses"].size() - 1 && defaultPubAddress != "" ) {
+                        result1.encrypt_public_key = defaultPubAddress;
+                    }
+                }
+
+                FIO_404_ASSERT(!(result1.encrypt_public_key == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            }
+
+            return result1;
+        } //get_encrypt_key
+
+        //FIP-39 end
 
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
@@ -5116,6 +5305,60 @@ void read_write::register_fio_domain_address(const read_write::register_fio_doma
 
 
 
+        //FIP-38 begin
+        void read_write::new_fio_chain_account(const read_write::new_fio_chain_account_params &params,
+                                                 next_function<read_write::new_fio_chain_account_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 6,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("new_fio_chain_account called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "newfioacc", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::new_fio_chain_account_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+        //FIP-38 end
+
+
+
         /***
          * transfer_locked_tokens - Transfers locked FIO tokens from actor to fio pub address
          * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
@@ -5896,7 +6139,68 @@ void read_write::register_fio_domain_address(const read_write::register_fio_doma
         }
 
 
-/***
+
+        //FIP-39 begin
+        /***
+ * update_encrypt_key - This endpoint will update the encryption key used for obt content.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::update_encrypt_key(const read_write::update_encrypt_key_params &params,
+                                          next_function<read_write::update_encrypt_key_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 5,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("update encrypt key called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "updcryptkey", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::update_encrypt_key_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        //FIP-39 end
+
+
+        /***
  * renew_address - This endpoint will renew the specified address.
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)

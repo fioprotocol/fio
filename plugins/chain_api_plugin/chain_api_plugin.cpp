@@ -107,8 +107,14 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_required_keys, 200),
                                      CHAIN_RO_CALL(get_transaction_id, 200),
                                      CHAIN_RO_CALL(get_fio_balance, 200),
+                                     //FIP-39 begin
+                                     CHAIN_RO_CALL(get_encrypt_key, 200),
+                                     //FIP-39 end
                                      CHAIN_RO_CALL(get_actor, 200),
                                      CHAIN_RO_CALL(get_fio_names, 200),
+                                     //FIP-36 begin
+                                     CHAIN_RO_CALL(get_account_fio_public_key, 200),
+                                     //FIP-36 end
                                      CHAIN_RO_CALL(get_fio_domains, 200),
                                      CHAIN_RO_CALL(get_fio_addresses, 200),
                                      CHAIN_RO_CALL(get_oracle_fees, 200),
@@ -155,6 +161,10 @@ namespace eosio {
                                                          chain_apis::read_write::remove_all_pub_addresses_results, 202),
                                      CHAIN_RW_CALL_ASYNC(transfer_tokens_pub_key,
                                                          chain_apis::read_write::transfer_tokens_pub_key_results, 202),
+                                     //FIP-38 begin
+                                     CHAIN_RW_CALL_ASYNC(new_fio_chain_account,
+                                                         chain_apis::read_write::new_fio_chain_account_results, 202),
+                                     //FIP-38 end
                                      CHAIN_RW_CALL_ASYNC(transfer_locked_tokens,
                                                          chain_apis::read_write::transfer_locked_tokens_results, 202),
                                      CHAIN_RW_CALL_ASYNC(burn_expired,
@@ -190,6 +200,10 @@ namespace eosio {
                                                          chain_apis::read_write::submit_fee_ratios_results, 202),
                                      CHAIN_RW_CALL_ASYNC(submit_fee_multiplier,
                                                          chain_apis::read_write::submit_fee_multiplier_results, 202),
+                                                         //FIP-39 begin
+                                     CHAIN_RW_CALL_ASYNC(update_encrypt_key,
+                                                         chain_apis::read_write::update_encrypt_key_results, 202),
+                                                         //FIP-39 end
                                      CHAIN_RW_CALL_ASYNC(renew_fio_domain,
                                                          chain_apis::read_write::renew_fio_domain_results, 202),
                                      CHAIN_RW_CALL_ASYNC(renew_fio_address,
