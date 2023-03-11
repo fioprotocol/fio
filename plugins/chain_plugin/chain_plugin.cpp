@@ -1946,6 +1946,7 @@ if( options.count(name) ) { \
                         return v;
                     });
 
+
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
                 auto start_time = fc::time_point::now();
@@ -1967,7 +1968,39 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
 
-                    if (fioKey == payer_fio_public_key) {
+
+                    //get the owner account of the payer_fio_address
+                        const uint128_t payer_address_hash = fioio::string_to_uint128_t(payer_fio_addr.c_str());
+                    const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+                        std::string hexvalnamehash = "0x";
+                        hexvalnamehash.append(
+                                fioio::to_hex_little_endian(reinterpret_cast<const char *>(&payer_address_hash), sizeof(payer_address_hash)));
+
+                        get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                                .code=fio_system_code,
+                                .scope=fio_system_scope,
+                                .table=fio_address_table,
+                                .lower_bound=hexvalnamehash,
+                                .upper_bound=hexvalnamehash,
+                                .encode_type="hex",
+                                .index_position ="5"};
+
+                        // Do secondary key lookup
+                        auto fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                                name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                                    return v;
+                                });
+
+                        //empty is an error, payer fio address does not exist.
+                        FIO_404_ASSERT(fioname_result.rows.size() == 1, "Error finding owner of payer fio address",
+                                       fioio::ErrorUnexpectedNumberResults);
+
+                        string owning_accountstr = fioname_result.rows[0]["owner_account"].as_string();
+                        name payer_address_owner = name{owning_accountstr};
+
+                        
+                        //present results where payer address owning account == the account owning the specified pub key
+                        if (account == payer_address_owner) {
                         time_t temptime;
                         struct tm *timeinfo;
                         char buffer[80];
@@ -2062,7 +2095,39 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
-                    if (fioKey == payee_fio_public_key) {
+
+                    //get the owner account of the payee_fio_address
+                    const uint128_t payee_address_hash = fioio::string_to_uint128_t(payee_fio_addr.c_str());
+                    const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+                    std::string hexvalnamehash = "0x";
+                    hexvalnamehash.append(
+                            fioio::to_hex_little_endian(reinterpret_cast<const char *>(&payee_address_hash), sizeof(payee_address_hash)));
+
+                    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                            .code=fio_system_code,
+                            .scope=fio_system_scope,
+                            .table=fio_address_table,
+                            .lower_bound=hexvalnamehash,
+                            .upper_bound=hexvalnamehash,
+                            .encode_type="hex",
+                            .index_position ="5"};
+
+                    // Do secondary key lookup
+                    auto fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                            name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                                return v;
+                            });
+
+                    //empty is an error, payer fio address does not exist.
+                    FIO_404_ASSERT(fioname_result.rows.size() == 1, "Error finding owner of payer fio address",
+                                   fioio::ErrorUnexpectedNumberResults);
+
+                    string owning_accountstr = fioname_result.rows[0]["owner_account"].as_string();
+                    name payee_address_owner = name{owning_accountstr};
+
+                    //present results where payee address owning account == the account owning the specified pub key
+                    if (account == payee_address_owner) {
                         time_t temptime;
                         struct tm *timeinfo;
                         char buffer[80];
@@ -2156,7 +2221,39 @@ if( options.count(name) ) { \
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
-                    if (fioKey == payer_fio_public_key) {
+
+                    //get the owner account of the payer_fio_address
+                    const uint128_t payer_address_hash = fioio::string_to_uint128_t(payer_fio_addr.c_str());
+                    const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+                    std::string hexvalnamehash = "0x";
+                    hexvalnamehash.append(
+                            fioio::to_hex_little_endian(reinterpret_cast<const char *>(&payer_address_hash), sizeof(payer_address_hash)));
+
+                    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                            .code=fio_system_code,
+                            .scope=fio_system_scope,
+                            .table=fio_address_table,
+                            .lower_bound=hexvalnamehash,
+                            .upper_bound=hexvalnamehash,
+                            .encode_type="hex",
+                            .index_position ="5"};
+
+                    // Do secondary key lookup
+                    auto fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                            name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                                return v;
+                            });
+
+                    //empty is an error, payer fio address does not exist.
+                    FIO_404_ASSERT(fioname_result.rows.size() == 1, "Error finding owner of payer fio address",
+                                   fioio::ErrorUnexpectedNumberResults);
+
+                    string owning_accountstr = fioname_result.rows[0]["owner_account"].as_string();
+                    name payer_address_owner = name{owning_accountstr};
+
+                    //present results where payer address owning account == the account owning the specified pub key
+                    if (account == payer_address_owner) {
                         string status = "requested";
                         if (statusint == 1) {
                             status = "rejected";
@@ -2260,7 +2357,38 @@ if( options.count(name) ) { \
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
-                    if (fioKey == payee_fio_public_key) {
+                    //get the owner account of the payee_fio_address
+                    const uint128_t payee_address_hash = fioio::string_to_uint128_t(payee_fio_addr.c_str());
+                    const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+                    std::string hexvalnamehash = "0x";
+                    hexvalnamehash.append(
+                            fioio::to_hex_little_endian(reinterpret_cast<const char *>(&payee_address_hash), sizeof(payee_address_hash)));
+
+                    get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                            .code=fio_system_code,
+                            .scope=fio_system_scope,
+                            .table=fio_address_table,
+                            .lower_bound=hexvalnamehash,
+                            .upper_bound=hexvalnamehash,
+                            .encode_type="hex",
+                            .index_position ="5"};
+
+                    // Do secondary key lookup
+                    auto fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                            name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                                return v;
+                            });
+
+                    //empty is an error, payer fio address does not exist.
+                    FIO_404_ASSERT(fioname_result.rows.size() == 1, "Error finding owner of payer fio address",
+                                   fioio::ErrorUnexpectedNumberResults);
+
+                    string owning_accountstr = fioname_result.rows[0]["owner_account"].as_string();
+                    name payee_address_owner = name{owning_accountstr};
+
+                    //present results where payee address owning account == the account owning the specified pub key
+                    if (account == payee_address_owner) {
                         string status = "requested";
                         if (statusint == 1) {
                             status = "rejected";
@@ -3869,6 +3997,7 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(validateFioNameFormat(fa), "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
             //declare variables.
+            //fuck2
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
