@@ -3891,8 +3891,6 @@ if( options.count(name) ) { \
 
             FIO_400_ASSERT(validateFioNameFormat(fa), "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
-            //declare variables.
-            //fuck2
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
@@ -3913,7 +3911,6 @@ if( options.count(name) ) { \
                     .encode_type="hex",
                     .index_position ="4"};
 
-            // Do secondary key lookup
             domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                     name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                         return v;
@@ -3932,8 +3929,7 @@ if( options.count(name) ) { \
                         .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position ="5"};
-
-                // Do secondary key lookup
+                
                 fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                             return v;
