@@ -2741,7 +2741,7 @@ if( options.count(name) ) { \
             FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
                            fioio::ErrorPagingInvalid);
 
-
+            
             uint32_t search_limit = p.limit;
             uint32_t search_offset = p.offset;
 
@@ -2763,7 +2763,7 @@ if( options.count(name) ) { \
                                                                                                         return v;
                                                                                                     });
 
-            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions", fioio::ErrorInvalidAccount);
+            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions or Domain does not exist", fioio::ErrorInvalidAccount);
 
             std::string grantee_account;
             std::string permission_name;
@@ -2888,7 +2888,7 @@ if( options.count(name) ) { \
                                                                                                           return v;
                                                                                                       });
 
-            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions", fioio::ErrorInvalidAccount);
+            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions or Domain does not exist", fioio::ErrorInvalidAccount);
 
             std::string grantee_account;
             std::string permission_name;
@@ -3024,7 +3024,7 @@ if( options.count(name) ) { \
                                                                                                           return v;
                                                                                                       });
 
-            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions", fioio::ErrorInvalidAccount);
+            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions or Domain does not exist", fioio::ErrorInvalidAccount);
 
             std::string grantee_account;
             std::string permission_name;
