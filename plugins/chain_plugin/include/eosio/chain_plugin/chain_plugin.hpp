@@ -787,6 +787,56 @@ namespace eosio {
 
             //FIP-39 end
 
+            //FIP-40
+            struct get_grantee_permissions_params {
+                fc::string grantee_account;
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+
+            struct permission_info {
+                fc::string grantee_account;
+                fc::string permission_name;
+                fc::string permission_info;
+                fc::string object_name;
+                fc::string grantor_account;
+            };
+
+
+            struct get_grantee_permissions_result {
+                vector<permission_info> permissions;
+                bool more;
+            };
+
+            get_grantee_permissions_result get_grantee_permissions(const get_grantee_permissions_params &params) const;
+
+            struct get_grantor_permissions_params {
+                fc::string grantor_account;
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+
+            struct get_grantor_permissions_result {
+                vector<permission_info> permissions;
+                bool more;
+            };
+
+            get_grantor_permissions_result get_grantor_permissions(const get_grantor_permissions_params &params) const;
+
+            struct get_object_permissions_params {
+                fc::string permission_name;
+                fc::string object_name;
+                int32_t offset = 0;
+                int32_t limit = 0;
+            };
+
+            struct get_object_permissions_result {
+                vector<permission_info> permissions;
+                bool more;
+            };
+
+            get_object_permissions_result get_object_permissions(const get_object_permissions_params &params) const;
+
 
             struct get_fio_balance_params {
                 fc::string fio_public_key;
@@ -1140,6 +1190,30 @@ namespace eosio {
 
             void push_transaction(const push_transaction_params &params,
                                   chain::plugin_interface::next_function<push_transaction_results> next);
+
+
+            //FIP-40
+            using add_fio_permission_params = fc::variant_object;
+
+            struct add_fio_permission_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void add_fio_permission(const add_fio_permission_params &params,
+                                    chain::plugin_interface::next_function<add_fio_permission_results> next);
+
+            using remove_fio_permission_params = fc::variant_object;
+
+            struct remove_fio_permission_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void remove_fio_permission(const remove_fio_permission_params &params,
+                                       chain::plugin_interface::next_function<remove_fio_permission_results> next);
+
+
 
             using register_fio_address_params = fc::variant_object;
 
@@ -1840,6 +1914,17 @@ FC_REFLECT(eosio::chain_apis::read_write::renew_fio_domain_results, (transaction
 //FIP-39 begin
 FC_REFLECT(eosio::chain_apis::read_write::update_encrypt_key_results, (transaction_id)(processed));
 //FIP-39 end
+//FIP-40
+FC_REFLECT(eosio::chain_apis::read_only::get_grantee_permissions_params, (grantee_account)(offset)(limit));
+FC_REFLECT(eosio::chain_apis::read_only::permission_info, (grantee_account)(permission_name)(permission_info)(object_name)(grantor_account));
+FC_REFLECT(eosio::chain_apis::read_only::get_grantee_permissions_result, (permissions)(more));
+FC_REFLECT(eosio::chain_apis::read_only::get_grantor_permissions_params, (grantor_account)(offset)(limit));
+FC_REFLECT(eosio::chain_apis::read_only::get_grantor_permissions_result, (permissions)(more));
+FC_REFLECT(eosio::chain_apis::read_only::get_object_permissions_params, (permission_name)(object_name)(offset)(limit));
+FC_REFLECT(eosio::chain_apis::read_only::get_object_permissions_result, (permissions)(more));
+FC_REFLECT(eosio::chain_apis::read_write::add_fio_permission_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::remove_fio_permission_results, (transaction_id)(processed));
+
 FC_REFLECT(eosio::chain_apis::read_write::renew_fio_address_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::new_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::pay_tpid_rewards_results, (transaction_id)(processed));

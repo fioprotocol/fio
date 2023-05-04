@@ -76,15 +76,11 @@ namespace fioio {
         }
 
         // must contain only these chars ".,abcdefghijklmmopqrstuvwxyz12345
-        if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz12345.,") != std::string::npos) {
+        if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz12345.") != std::string::npos) {
             return false;
         }
 
-        // first char must be lower case a-z
-        if (name.find_first_of("abcdefghijklmnopqrstuvwxyz") != 0) {
-            return false;
-        }
-
+        
         //must not end in a dot
         if(name.back() == '.'){
             return false;

@@ -115,6 +115,10 @@ namespace eosio {
                                      //FIP-36 begin
                                      CHAIN_RO_CALL(get_account_fio_public_key, 200),
                                      //FIP-36 end
+                                     //FIP-40
+                                     CHAIN_RO_CALL(get_grantee_permissions, 200),
+                                     CHAIN_RO_CALL(get_grantor_permissions, 200),
+                                     CHAIN_RO_CALL(get_object_permissions, 200),
                                      CHAIN_RO_CALL(get_fio_domains, 200),
                                      CHAIN_RO_CALL(get_fio_addresses, 200),
                                      CHAIN_RO_CALL(get_oracle_fees, 200),
@@ -136,6 +140,10 @@ namespace eosio {
                                      CHAIN_RO_CALL(get_nfts_hash, 200),
                                      CHAIN_RO_CALL(get_nfts_contract, 200),
                                      CHAIN_RO_CALL(get_escrow_listings, 200),
+                                     CHAIN_RW_CALL_ASYNC(add_fio_permission,
+                                                         chain_apis::read_write::add_fio_permission_results, 202),
+                                     CHAIN_RW_CALL_ASYNC(remove_fio_permission,
+                                                         chain_apis::read_write::remove_fio_permission_results, 202),
                                      CHAIN_RW_CALL_ASYNC(push_block, chain_apis::read_write::push_block_results, 202),
                                      CHAIN_RW_CALL_ASYNC(push_transaction,
                                                          chain_apis::read_write::push_transaction_results, 202),
