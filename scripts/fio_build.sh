@@ -35,10 +35,10 @@ SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD imag
 function usage() {
    printf "Usage: $0 OPTION...
   -P          Build with pinned clang and libcxx
-  -o TYPE     Build <Debug|Release|RelWithDebInfo|MinSizeRel> (default: Release)
-  -s NAME     Core Symbol Name <1-7 characters> (default: SYS)
+  -o TYPE     Build <Debug|Release|RelWithDebInfo|MinSizeRel>. Default: Release
+  -s NAME     Core Symbol Name <1-7 characters>. Default: SYS
   -b DIR      Use pre-built boost in DIR
-  -i DIR      Directory to use for installing dependencies & FIO (default: $HOME)
+  -i DIR      Install Directory (FIO binary, dependencies). Default: $HOME/fio
   -y          Noninteractive mode (answers yes to every prompt)
   -c          Enable Code Coverage
   -d          Generate Doxygen
