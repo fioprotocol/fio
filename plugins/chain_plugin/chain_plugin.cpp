@@ -3634,6 +3634,27 @@ if( options.count(name) ) { \
                 dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
                 dlog(to_string(mrows_result.rows.size()));
                 dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
 
                 FIO_404_ASSERT(mrows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
                                fioio::ErrorUnexpectedNumberResults);
