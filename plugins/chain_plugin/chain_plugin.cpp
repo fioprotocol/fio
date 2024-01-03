@@ -3630,6 +3630,10 @@ if( options.count(name) ) { \
 
             uint64_t lockamount = 0;
             if (!mrows_result.rows.empty()) {
+                //fuck
+                dlog("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED locks row count ");
+                dlog(to_string(mrows_result.rows.size()));
+                dlog("\n");
 
                 FIO_404_ASSERT(mrows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
                                fioio::ErrorUnexpectedNumberResults);
