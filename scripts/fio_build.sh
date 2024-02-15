@@ -128,6 +128,11 @@ echo "Current branch: $( execute git rev-parse --abbrev-ref HEAD 2>/dev/null )"
 
 ( [[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]]  && [[ ! $NAME == "CentOS Linux" ]]) && set -i # Ubuntu doesn't support interactive mode since it uses dash + Some folks are having this issue on Darwin; colors aren't supported yet anyway
 
+if [[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]]; then
+  echo "${COLOR_RED}Only Ubuntu and MacOS Darwin are currently supported. Cannot proceed."
+  exit 1
+fi
+
 # Ensure sudo is available (only if not using the root user)
 ensure-sudo
 # Test that which is on the system before proceeding

@@ -18,6 +18,7 @@ elif [[ $NAME == "Ubuntu" ]]; then
     if ! APTGET=$( command -v apt-get 2>/dev/null ); then echo "${COLOR_RED}APT-GET must be installed to compile FIO${COLOR_NC}" && exit 1; fi
 fi
 
+echo VERSION: $VERSION_ID
 # Obtain dependency versions; Must come first in the script
 . ./scripts/helpers/.environment
 # Load general helpers
@@ -153,8 +154,9 @@ function prompt-mongo-install() {
 
 function ensure-compiler() {
     # Support build-essentials on ubuntu
-    if [[ $NAME == "CentOS Linux" ]] || [[ $VERSION_ID == "16.04" ]] || ( $PIN_COMPILER && [[ $VERSION_ID == "18.04" ]] ); then
-        export CXX=${CXX:-'g++'}
+    #if [[ $NAME == "CentOS Linux" ]] || [[ $VERSION_ID == "16.04" ]] || ( $PIN_COMPILER && [[ $VERSION_ID == "18.04" ]] ); then
+    if [[ $NAME == "CentOS Linux" ]] || [[ $VERSION_ID == "16.04" ]] || ( $PIN_COMPILER && ( [[ $VERSION_ID == "18.04" ]] || [[ $VERSION_ID == "20.04" ]] ) ); then
+	export CXX=${CXX:-'g++'}
         export CC=${CC:-'gcc'}
     fi
     export CXX=${CXX:-'clang++'}
@@ -301,46 +303,88 @@ function ensure-llvm() {
 }
 
 function build-clang() {
-    if $BUILD_CLANG; then
-        echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
-        if [[ ! -d $CLANG_ROOT ]]; then
-            execute bash -c "cd ${TEMP_DIR} \
-            && rm -rf clang8 \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git clang8 \
-            && cd clang8 && git checkout $PINNED_COMPILER_LLVM_COMMIT \
-            && cd tools \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/lld.git \
-            && cd lld && git checkout $PINNED_COMPILER_LLD_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/polly.git \
-            && cd polly && git checkout $PINNED_COMPILER_POLLY_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang.git clang && cd clang \
-            && git checkout $PINNED_COMPILER_CLANG_COMMIT \
-            && patch -p2 < \"$REPO_ROOT/scripts/helpers/clang-devtoolset8-support.patch\" \
-            && cd tools && mkdir extra && cd extra \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang-tools-extra.git \
-            && cd clang-tools-extra && git checkout $PINNED_COMPILER_CLANG_TOOLS_EXTRA_COMMIT && cd .. \
-            && cd ../../../../projects \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxx.git \
-            && cd libcxx && git checkout $PINNED_COMPILER_LIBCXX_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxxabi.git \
-            && cd libcxxabi && git checkout $PINNED_COMPILER_LIBCXXABI_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libunwind.git \
-            && cd libunwind && git checkout $PINNED_COMPILER_LIBUNWIND_COMMIT && cd ../ \
-            && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/compiler-rt.git \
-            && cd compiler-rt && git checkout $PINNED_COMPILER_COMPILER_RT_COMMIT && cd ../ \
-            && cd ${TEMP_DIR}/clang8 \
-            && mkdir build && cd build \
-            && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${CLANG_ROOT}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
-            && make -j${JOBS} \
-            && make install \
-            && rm -rf ${TEMP_DIR}/clang8"
-            echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
-            echo ""
-        else
-            echo " - Clang 8 found @ ${CLANG_ROOT}"
-            echo ""
-        fi
-        export CXX=$CPP_COMP
-        export CC=$CC_COMP
+  if $BUILD_CLANG; then
+    echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
+    if [[ ! -d $CLANG_ROOT ]]; then
+      if [[ $NAME == "Ubuntu" ]] && [[ $VERSION_ID == "20.04" ]]; then
+        echo "Building clang for glibc 2.31"
+        build-clang-glibc231
+      else
+        build-clang-glibc219
+      fi
+      echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
+      echo ""
+    else
+      echo " - Clang 8 found @ ${CLANG_ROOT}"
+      echo ""
     fi
+    export CXX=$CPP_COMP
+    export CC=$CC_COMP
+  fi
+}
+
+function build-clang_glibc219() {
+  execute bash -c "cd ${TEMP_DIR} \
+  && rm -rf clang8 \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git clang8 \
+  && cd clang8 && git checkout $PINNED_COMPILER_LLVM_COMMIT \
+  && cd tools \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/lld.git \
+  && cd lld && git checkout $PINNED_COMPILER_LLD_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/polly.git \
+  && cd polly && git checkout $PINNED_COMPILER_POLLY_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang.git clang && cd clang \
+  && git checkout $PINNED_COMPILER_CLANG_COMMIT \
+  && patch -p2 < \"$REPO_ROOT/scripts/helpers/clang-devtoolset8-support.patch\" \
+  && cd tools && mkdir extra && cd extra \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang-tools-extra.git \
+  && cd clang-tools-extra && git checkout $PINNED_COMPILER_CLANG_TOOLS_EXTRA_COMMIT && cd .. \
+  && cd ../../../../projects \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxx.git \
+  && cd libcxx && git checkout $PINNED_COMPILER_LIBCXX_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxxabi.git \
+  && cd libcxxabi && git checkout $PINNED_COMPILER_LIBCXXABI_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libunwind.git \
+  && cd libunwind && git checkout $PINNED_COMPILER_LIBUNWIND_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/compiler-rt.git \
+  && cd compiler-rt && git checkout $PINNED_COMPILER_COMPILER_RT_COMMIT \
+  && cd ${TEMP_DIR}/clang8 \
+  && mkdir build && cd build \
+  && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${CLANG_ROOT}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
+  && make -j${JOBS} \
+  && make install \
+  && rm -rf ${TEMP_DIR}/clang8"
+}
+
+function build-clang-glibc231() {
+  execute bash -c "cd ${TEMP_DIR} \
+  && rm -rf clang8 \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git clang8 \
+  && cd clang8 && git checkout $PINNED_COMPILER_LLVM_COMMIT \
+  && cd tools \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/lld.git \
+  && cd lld && git checkout $PINNED_COMPILER_LLD_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/polly.git \
+  && cd polly && git checkout $PINNED_COMPILER_POLLY_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang.git clang && cd clang \
+  && git checkout $PINNED_COMPILER_CLANG_COMMIT \
+  && patch -p2 < \"$REPO_ROOT/scripts/helpers/clang-devtoolset8-support.patch\" \
+  && cd tools && mkdir extra && cd extra \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/clang-tools-extra.git \
+  && cd clang-tools-extra && git checkout $PINNED_COMPILER_CLANG_TOOLS_EXTRA_COMMIT && cd .. \
+  && cd ../../../../projects \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxx.git \
+  && cd libcxx && git checkout $PINNED_COMPILER_LIBCXX_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libcxxabi.git \
+  && cd libcxxabi && git checkout $PINNED_COMPILER_LIBCXXABI_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/libunwind.git \
+  && cd libunwind && git checkout $PINNED_COMPILER_LIBUNWIND_COMMIT && cd ../ \
+  && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/compiler-rt.git \
+  && cd compiler-rt && git checkout $PINNED_COMPILER_COMPILER_RT_COMMIT \
+  && git apply \"$REPO_ROOT/scripts/helpers/clang8-sanitizer_common-glibc2.31-947f969.patch\" \
+  && cd ${TEMP_DIR}/clang8 \
+  && mkdir build && cd build \
+  && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${CLANG_ROOT}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
+  && make -j${JOBS} \
+  && make install"
 }
