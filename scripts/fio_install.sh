@@ -54,6 +54,8 @@ else
     [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
     sleep 2s
     cd fio.cdt
+    echo "Checking out upgrade branch. Remove on merge to develop!" 
+    git checkout feature/bd-4618-ubuntu-upgrade
     git submodule update --init --recursive
     ./build.sh
     sudo ./install.sh
