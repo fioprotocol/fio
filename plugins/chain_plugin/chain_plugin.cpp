@@ -3658,8 +3658,9 @@ if( options.count(name) ) { \
             uint64_t additional_available_fio_locks = 0;
             if (!grows_result.rows.empty()) {
 
-                FIO_404_ASSERT(grows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
-                               fioio::ErrorUnexpectedNumberResults);
+                if (grows_result.rows.size() > 1) {
+                    dlog(" multiple lock table entries for account " + account.to_string());
+                    }
 
                 uint64_t timestamp = grows_result.rows[0]["timestamp"].as_uint64();
                 uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
