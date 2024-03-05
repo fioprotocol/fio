@@ -1,15 +1,14 @@
-        
-# FIO
+## Welcome to the FIO Protocol Github.
+FIO Protocol is an open-source project and anyone is welcomed and encouraged to contribute.
 
-The Foundation for Interwallet Operability (FIO) is a consortium of leading blockchain wallets, exchanges and payments providers that seeks to accelerate blockchain adoption by reducing the risk, complexity, and inconvenience of sending and receiving cryptoassets.
+## Resources
+Before contributing:
+* Review [Contributing to FIO](CONTRIBUTING.md)
+* For information on FIO Protocol, visit the [FIO website](https://fio.foundation).
+* For information on the FIO Chain, API, and SDKs visit the [FIO Protocol Developer Hub](https://developers.fioprotocol.io).
+* To join the community, visit [Discord](https://discord.com/invite/pHBmJCc)       
 
-For information on FIO, visit the [FIO website](https://fio.foundation).
-
-For information on the FIO Chain, API, and SDKs, including detailed clone, build and deploy instructions, visit the [FIO Protocol Developer Hub](https://developers.fioprotocol.io)
-
-To get updates on the development roadmap, releases, and technical documentation visit the [development wiki](https://fioprotocol.atlassian.net/jira/software/c/projects/BD/boards/2/roadmap).
-
-# Build of the FIO source
+## Build
 
 The build script first installs all dependencies and then builds FIO. The script has several options, including '-P' (pinned build), '-i' (install directory), and '-o' (build type, i.e. Release, Debug, etc.). Providing no options will use default options, i.e. a local build directory, $HOME/fio, as the install directory.
 
@@ -24,7 +23,7 @@ cd ~/fioprotocol/fio/scripts
 
 The build process writes temporary content to the `fio/build` folder. After building, the program binaries can be found at `fio/build/programs`.
 
-### Install the FIO binaries
+## Install
 
 For ease of contract development, FIO will be installed in the `~/fio` folder using the fio_install.sh script within the `fio/scripts` folder. Adequate permission is required to install in system folders, e.g., `/usr/local/bin`.
 
