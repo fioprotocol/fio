@@ -17,16 +17,6 @@ The Foundation for Interwallet Operability (FIO) or, in short, the FIO Protocol,
 The build and install scripts are located in ./scripts directory.
 
 While there are several options, there are two primary build targets; the default build with no arguments, `./fio_build.sh`, will build a dev-centric FIO chain, good for development and testing, and a release-centric build with the '-P' argument, `./fio_build.sh -P`, which is a pinned build (to clang) for formal testing and release to the BP community. Execute `./fio_build.sh -h` to output the complete usage.
-=======
-## Welcome to the FIO Protocol Github.
-FIO Protocol is an open-source project and anyone is welcomed and encouraged to contribute.
-
-## Resources
-Before contributing:
-* Review [Contributing to FIO](CONTRIBUTING.md)
-* For information on FIO Protocol, visit the [FIO website](https://fio.foundation).
-* For information on the FIO Chain, API, and SDKs visit the [FIO Protocol Developer Hub](https://developers.fioprotocol.io).
-* To join the community, visit [Discord](https://discord.com/invite/pHBmJCc)       
 
 ## Build
 The build script first installs all dependencies and then builds FIO. The script has several options, including '-P' (pinned build), '-i' (install directory), and '-o' (build type, i.e. Release, Debug, etc.). Providing no options will use default options, i.e. a local build directory, $HOME/fio, as the install directory.
