@@ -1622,6 +1622,8 @@ if( options.count(name) ) { \
         const string fio_escrow_scope = "fio.escrow";
         const name fio_oracle_code = N(fio.oracle); // Oracle code
         const string fio_oracle_scope = "fio.oracle";   // Oracle scope
+        const name fio_perms_code = N(fio.perms);
+        const string fio_perms_scope = "fio.perms";
 
         const name fio_whitelist_table = N(whitelist); // FIO Address Table
         const name fio_address_table = N(fionames); // FIO Address Table
@@ -1632,6 +1634,8 @@ if( options.count(name) ) { \
         const name fio_mainnet_locks_table = N(lockedtokens); // FIO lockedtokens Table
         const name fio_accountstake_table = N(accountstake); // FIO locktokens Table
         const name fio_oracles_table = N(oracless); // FIO Registered Oracles
+        const name fio_permissions_table = N(permissions);
+        const name fio_accesses_table = N(accesses);
 
         const uint16_t FEEMAXLENGTH = 32;
         const uint16_t FIOPUBLICKEYLENGTH = 53;
@@ -1946,6 +1950,7 @@ if( options.count(name) ) { \
                         return v;
                     });
 
+
             if (!requests_rows_result.rows.empty()) {
                 uint32_t search_limit;
                 auto start_time = fc::time_point::now();
@@ -1957,9 +1962,10 @@ if( options.count(name) ) { \
                 FIO_404_ASSERT(!(records_size == 0), "No pending FIO Requests", fioio::ErrorNoFioRequestsFound);
 
                 for (size_t i = 0; i < search_limit; i++) {
-                    if((i + search_offset) == requests_rows_result.rows.size()){ break; }
+                    if ((i + search_offset) == requests_rows_result.rows.size()) { break; }
                     //get all the attributes of the fio request
-                    uint64_t fio_request_id = requests_rows_result.rows[i + search_offset]["fio_request_id"].as_uint64();
+                    uint64_t fio_request_id = requests_rows_result.rows[i +
+                                                                        search_offset]["fio_request_id"].as_uint64();
                     string payee_fio_addr = requests_rows_result.rows[i + search_offset]["payee_fio_addr"].as_string();
                     string payer_fio_addr = requests_rows_result.rows[i + search_offset]["payer_fio_addr"].as_string();
                     string content = requests_rows_result.rows[i + search_offset]["req_content"].as_string();
@@ -1967,7 +1973,13 @@ if( options.count(name) ) { \
                     string payer_fio_public_key = requests_rows_result.rows[i + search_offset]["payer_key"].as_string();
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
 
-                    if (fioKey == payer_fio_public_key) {
+                    //get the owning account
+                    string the_accountstr = requests_rows_result.rows[i + search_offset]["payer_account"].as_string();
+                    name the_account = name{the_accountstr};
+
+
+                    //present results where payer address owning account == the account owning the specified pub key
+                    if (account == the_account) {
                         time_t temptime;
                         struct tm *timeinfo;
                         char buffer[80];
@@ -2062,7 +2074,12 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
 
-                    if (fioKey == payee_fio_public_key) {
+                    //get the owning account
+                    string the_accountstr = requests_rows_result.rows[i + search_offset]["payee_account"].as_string();
+                    name the_account = name{the_accountstr};
+
+                    //present results where payee address owning account == the account owning the specified pub key
+                    if (account == the_account) {
                         time_t temptime;
                         struct tm *timeinfo;
                         char buffer[80];
@@ -2155,8 +2172,14 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
+                    //get the owning account
+                    string the_accountstr = requests_rows_result.rows[i + search_offset]["payer_account"].as_string();
+                    name the_account = name{the_accountstr};
 
-                    if (fioKey == payer_fio_public_key) {
+
+
+                    //present results where payer address owning account == the account owning the specified pub key
+                    if (account == the_account) {
                         string status = "requested";
                         if (statusint == 1) {
                             status = "rejected";
@@ -2259,8 +2282,12 @@ if( options.count(name) ) { \
                     string payee_fio_public_key = requests_rows_result.rows[i + search_offset]["payee_key"].as_string();
                     uint8_t statusint = requests_rows_result.rows[i + search_offset]["fio_data_type"].as_uint64();
                     uint64_t time_stamp = requests_rows_result.rows[i + search_offset]["req_time"].as_uint64();
+                    //get the owning account
+                    string the_accountstr = requests_rows_result.rows[i + search_offset]["payee_account"].as_string();
+                    name the_account = name{the_accountstr};
 
-                    if (fioKey == payee_fio_public_key) {
+                    //present results where payee address owning account == the account owning the specified pub key
+                    if (account == the_account) {
                         string status = "requested";
                         if (statusint == 1) {
                             status = "rejected";
@@ -2654,6 +2681,432 @@ if( options.count(name) ) { \
             account_result =
                     get_table_rows_ex<key_value_index>(fio_table_row_params, system_abi);
         }
+        //FIP-36 begin
+        read_only::get_account_fio_public_key_result read_only::get_account_fio_public_key(const read_only::get_account_fio_public_key_params &p) const {
+
+            get_account_fio_public_key_result result;
+            //get the pub key from the accountmap table.
+            string fioKey;
+            get_table_rows_result account_result;
+
+            FIO_400_ASSERT(fioio::isAccountValid(p.account), "account", p.account, "Invalid FIO Account format",
+                           fioio::ErrorInvalidAccount);
+
+            name accountnm = name{p.account};
+            GetFIOAccount(accountnm,account_result);
+
+
+            FIO_404_ASSERT(!account_result.rows.empty(), "Account not found",
+                           fioio::ErrorNotFound);
+
+            FIO_404_ASSERT(account_result.rows.size() == 1, "Unexpected number of results found account in account map",
+                           fioio::ErrorUnexpectedNumberResults);
+
+            fioKey = account_result.rows[0]["clientkey"].as_string();
+
+            //hash it and re-verify
+            string account_name;
+            fioio::key_to_account(fioKey, account_name);
+            name pubkeyaccount = name{account_name};
+
+            FIO_404_ASSERT(accountnm.value == pubkeyaccount.value, "account map does not match specified account",
+                           fioio::ErrorNotFound);
+
+            result.fio_public_key = fioKey;
+
+
+
+            return result;
+
+
+        }
+        //FIP-36 end
+
+        //FIP-40
+        /*** v1/chain/get_grantee_permissions
+        * Retrieves the permissions for the specified grantee account name
+        */
+        read_only::get_grantee_permissions_result read_only::get_grantee_permissions(const read_only::get_grantee_permissions_params &p) const {
+
+            get_grantee_permissions_result result;
+
+            FIO_400_ASSERT(fioio::isAccountValid(p.grantee_account), "grantee_account", p.grantee_account, "Invalid FIO Account format",
+                           fioio::ErrorInvalidAccount);
+
+            name accountnm = name{p.grantee_account};
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+            
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_perms_code);
+
+
+            get_table_rows_params accesses_row_params = get_table_rows_params{.json=true,
+                    .code=fio_perms_code,
+                    .scope=fio_perms_scope,
+                    .table=fio_accesses_table,
+                    .lower_bound=boost::lexical_cast<string>(accountnm.value),
+                    .upper_bound=boost::lexical_cast<string>(accountnm.value),
+                    .key_type       = "i64",
+                    .index_position = "3"};
+
+            get_table_rows_result accesses_result = get_table_rows_by_seckey<index64_index, uint64_t>(accesses_row_params,
+                                                                                                    abi,
+                                                                                                    [](uint64_t v) -> uint64_t {
+                                                                                                        return v;
+                                                                                                    });
+
+            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions or Domain does not exist", fioio::ErrorInvalidAccount);
+
+            std::string grantee_account;
+            std::string permission_name;
+            std::string object_name;
+            std::string perm_info;
+            std::string grantor_account;
+            uint64_t id = accesses_result.rows[0]["permission_id"].as_uint64();
+
+            get_table_rows_params permissions_row_params = get_table_rows_params{.json=true,
+                    .code=fio_perms_code,
+                    .scope=fio_perms_scope,
+                    .table=fio_permissions_table,
+                    .lower_bound=boost::lexical_cast<string>(id),
+                    .upper_bound=boost::lexical_cast<string>(id),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result permissions_result =
+                    get_table_rows_ex<key_value_index>(permissions_row_params, abi);
+
+
+            FIO_404_ASSERT(!permissions_result.rows.empty(), "Permission not found", fioio::ErrorInvalidAccount);
+            //get the permission record.
+
+            permission_name = ((string) permissions_result.rows[0]["permission_name"].as_string());
+            object_name = ((string) permissions_result.rows[0]["object_name"].as_string());
+            perm_info = ((string) permissions_result.rows[0]["auxiliary_info"].as_string());
+            grantor_account = ((string) permissions_result.rows[0]["grantor_account"].as_string());
+
+
+            if (search_offset < accesses_result.rows.size() ) {
+                int64_t leftover = accesses_result.rows.size() - (search_offset+search_limit);
+                if (leftover < 0){
+                    leftover = 0;
+                }
+                result.more = leftover;
+                for (size_t pos = 0 + search_offset; pos < accesses_result.rows.size();pos++) {
+                    if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                        break;
+                    }
+
+                    uint64_t tid = accesses_result.rows[pos]["permission_id"].as_uint64();
+                    if(tid != id)
+                    {
+                        permissions_row_params = get_table_rows_params{.json=true,
+                                .code=fio_perms_code,
+                                .scope=fio_perms_scope,
+                                .table=fio_permissions_table,
+                                .lower_bound=boost::lexical_cast<string>(tid),
+                                .upper_bound=boost::lexical_cast<string>(tid),
+                                .key_type       = "i64",
+                                .index_position = "1"};
+
+                        permissions_result =
+                                get_table_rows_ex<key_value_index>(permissions_row_params, abi);
+
+                        FIO_404_ASSERT(!permissions_result.rows.empty(), "Permission not found", fioio::ErrorInvalidAccount);
+
+                        permission_name = ((string) permissions_result.rows[0]["permission_name"].as_string());
+                        object_name = ((string) permissions_result.rows[0]["object_name"].as_string());
+                        perm_info = ((string) permissions_result.rows[0]["auxiliary_info"].as_string());
+                        grantor_account = ((string) permissions_result.rows[0]["grantor_account"].as_string());
+
+                    }
+                    grantee_account = ((string) accesses_result.rows[pos]["grantee_account"].as_string());
+
+                    permission_info inf = permission_info{
+                        .grantee_account = grantee_account,
+                        .permission_name = permission_name,
+                        .permission_info = perm_info,
+                        .object_name = object_name,
+                        .grantor_account = grantor_account
+                    };
+
+
+                    result.permissions.push_back(inf);
+                    result.more = (accesses_result.rows.size()-pos)-1;
+                }
+            }
+
+
+            return result;
+        } // get_grantee_permissions
+
+        /*** v1/chain/get_grantor_permissions
+       * Retrieves the permissions for the specified grantor account name
+       */
+        read_only::get_grantor_permissions_result read_only::get_grantor_permissions(const read_only::get_grantor_permissions_params &p) const {
+            // assert if empty chain key
+            get_grantor_permissions_result result;
+
+            FIO_400_ASSERT(fioio::isAccountValid(p.grantor_account), "grantor_account", p.grantor_account, "Invalid FIO Account format",
+                           fioio::ErrorInvalidAccount);
+
+            name accountnm = name{p.grantor_account};
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_perms_code);
+
+
+            get_table_rows_params accesses_row_params = get_table_rows_params{.json=true,
+                    .code=fio_perms_code,
+                    .scope=fio_perms_scope,
+                    .table=fio_accesses_table,
+                    .lower_bound=boost::lexical_cast<string>(accountnm.value),
+                    .upper_bound=boost::lexical_cast<string>(accountnm.value),
+                    .key_type       = "i64",
+                    .index_position = "5"};
+
+            get_table_rows_result accesses_result = get_table_rows_by_seckey<index64_index, uint64_t>(accesses_row_params,
+                                                                                                      abi,
+                                                                                                      [](uint64_t v) -> uint64_t {
+                                                                                                          return v;
+                                                                                                      });
+
+            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions or Domain does not exist", fioio::ErrorInvalidAccount);
+
+            std::string grantee_account;
+            std::string permission_name;
+            std::string object_name;
+            std::string perm_info;
+            std::string grantor_account;
+            uint64_t id = accesses_result.rows[0]["permission_id"].as_uint64();
+
+            get_table_rows_params permissions_row_params = get_table_rows_params{.json=true,
+                    .code=fio_perms_code,
+                    .scope=fio_perms_scope,
+                    .table=fio_permissions_table,
+                    .lower_bound=boost::lexical_cast<string>(id),
+                    .upper_bound=boost::lexical_cast<string>(id),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result permissions_result =
+                    get_table_rows_ex<key_value_index>(permissions_row_params, abi);
+
+
+            FIO_404_ASSERT(!permissions_result.rows.empty(), "Permission not found", fioio::ErrorInvalidAccount);
+            //get the permission record.
+
+            permission_name = ((string) permissions_result.rows[0]["permission_name"].as_string());
+            object_name = ((string) permissions_result.rows[0]["object_name"].as_string());
+            perm_info = ((string) permissions_result.rows[0]["auxiliary_info"].as_string());
+            grantor_account = ((string) permissions_result.rows[0]["grantor_account"].as_string());
+
+
+            if (search_offset < accesses_result.rows.size() ) {
+                int64_t leftover = accesses_result.rows.size() - (search_offset+search_limit);
+                if (leftover < 0){
+                    leftover = 0;
+                }
+                result.more = leftover;
+                for (size_t pos = 0 + search_offset; pos < accesses_result.rows.size();pos++) {
+                    if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                        break;
+                    }
+
+                    uint64_t tid = accesses_result.rows[pos]["permission_id"].as_uint64();
+                    if(tid != id)
+                    {
+                        permissions_row_params = get_table_rows_params{.json=true,
+                                .code=fio_perms_code,
+                                .scope=fio_perms_scope,
+                                .table=fio_permissions_table,
+                                .lower_bound=boost::lexical_cast<string>(tid),
+                                .upper_bound=boost::lexical_cast<string>(tid),
+                                .key_type       = "i64",
+                                .index_position = "1"};
+
+                        permissions_result =
+                                get_table_rows_ex<key_value_index>(permissions_row_params, abi);
+
+                        FIO_404_ASSERT(!permissions_result.rows.empty(), "Permission not found", fioio::ErrorInvalidAccount);
+
+                        permission_name = ((string) permissions_result.rows[0]["permission_name"].as_string());
+                        object_name = ((string) permissions_result.rows[0]["object_name"].as_string());
+                        perm_info = ((string) permissions_result.rows[0]["auxiliary_info"].as_string());
+                        grantor_account = ((string) permissions_result.rows[0]["grantor_account"].as_string());
+
+                    }
+                    grantee_account = ((string) accesses_result.rows[pos]["grantee_account"].as_string());
+
+                    permission_info inf = permission_info{
+                            .grantee_account = grantee_account,
+                            .permission_name = permission_name,
+                            .permission_info = perm_info,
+                            .object_name = object_name,
+                            .grantor_account = grantor_account
+                    };
+
+
+                    result.permissions.push_back(inf);
+                    result.more = (accesses_result.rows.size()-pos)-1;
+                }
+            }
+
+
+            return result;
+        } // get_actor_permissions
+
+        /*** v1/chain/get_object_permissions
+       * Retrieves the permissions for the specified permission and object name
+       */
+        read_only::get_object_permissions_result read_only::get_object_permissions(const read_only::get_object_permissions_params &p) const {
+            // assert if empty chain key
+            get_object_permissions_result result;
+
+
+            FIO_400_ASSERT(p.permission_name.compare("register_address_on_domain") == 0, "permission_name", p.permission_name, "Invalid permission name",
+                           fioio::ErrorInvalidPermission);
+
+            FIO_400_ASSERT(p.object_name.length() > 0, "object_name", p.object_name, "Invalid object name",
+                           fioio::ErrorInvalidPermission);
+
+
+            FIO_400_ASSERT(p.limit >= 0, "limit", to_string(p.limit), "Invalid limit",
+                           fioio::ErrorPagingInvalid);
+
+            FIO_400_ASSERT(p.offset >= 0, "offset", to_string(p.offset), "Invalid offset",
+                           fioio::ErrorPagingInvalid);
+
+
+            uint32_t search_limit = p.limit;
+            uint32_t search_offset = p.offset;
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_perms_code);
+
+
+            string hashstr = p.object_name + p.permission_name;
+            uint128_t names_hash = fioio::string_to_uint128_t(hashstr.c_str());
+            std::string hexvalnameshash = "0x";
+            hexvalnameshash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&names_hash), sizeof(names_hash)));
+
+
+
+            get_table_rows_params accesses_row_params = get_table_rows_params{.json=true,
+                    .code=fio_perms_code,
+                    .scope=fio_perms_scope,
+                    .table=fio_accesses_table,
+                    .lower_bound=hexvalnameshash,
+                    .upper_bound=hexvalnameshash,
+                    .key_type       = "hex",
+                    .index_position = "6"};
+
+            get_table_rows_result accesses_result = get_table_rows_by_seckey<index128_index, uint128_t>(accesses_row_params,
+                                                                                                      abi,
+                                                                                                      [](uint128_t v) -> uint128_t {
+                                                                                                          return v;
+                                                                                                      });
+
+            FIO_404_ASSERT(!accesses_result.rows.empty(), "No Permissions or Domain does not exist", fioio::ErrorInvalidAccount);
+
+            std::string grantee_account;
+            std::string permission_name;
+            std::string object_name;
+            std::string perm_info;
+            std::string grantor_account;
+            uint64_t id = accesses_result.rows[0]["permission_id"].as_uint64();
+            get_table_rows_params permissions_row_params = get_table_rows_params{.json=true,
+                    .code=fio_perms_code,
+                    .scope=fio_perms_scope,
+                    .table=fio_permissions_table,
+                    .lower_bound=boost::lexical_cast<string>(id),
+                    .upper_bound=boost::lexical_cast<string>(id),
+                    .key_type       = "i64",
+                    .index_position = "1"};
+
+            get_table_rows_result permissions_result =
+                    get_table_rows_ex<key_value_index>(permissions_row_params, abi);
+
+
+            FIO_404_ASSERT(!permissions_result.rows.empty(), "Permission not found", fioio::ErrorInvalidAccount);
+            //get the permission record.
+
+            permission_name = ((string) permissions_result.rows[0]["permission_name"].as_string());
+            object_name = ((string) permissions_result.rows[0]["object_name"].as_string());
+            perm_info = ((string) permissions_result.rows[0]["auxiliary_info"].as_string());
+            grantor_account = ((string) permissions_result.rows[0]["grantor_account"].as_string());
+
+
+            if (search_offset < accesses_result.rows.size() ) {
+                int64_t leftover = accesses_result.rows.size() - (search_offset+search_limit);
+                if (leftover < 0){
+                    leftover = 0;
+                }
+                result.more = leftover;
+                for (size_t pos = 0 + search_offset; pos < accesses_result.rows.size();pos++) {
+                    if((search_limit > 0)&&(pos-search_offset >= search_limit)){
+                        break;
+                    }
+
+                    uint64_t tid = accesses_result.rows[pos]["permission_id"].as_uint64();
+                    if(tid != id)
+                    {
+                        permissions_row_params = get_table_rows_params{.json=true,
+                                .code=fio_perms_code,
+                                .scope=fio_perms_scope,
+                                .table=fio_permissions_table,
+                                .lower_bound=boost::lexical_cast<string>(tid),
+                                .upper_bound=boost::lexical_cast<string>(tid),
+                                .key_type       = "i64",
+                                .index_position = "1"};
+
+                        permissions_result =
+                                get_table_rows_ex<key_value_index>(permissions_row_params, abi);
+
+                        FIO_404_ASSERT(!permissions_result.rows.empty(), "Permission not found", fioio::ErrorInvalidAccount);
+
+                        permission_name = ((string) permissions_result.rows[0]["permission_name"].as_string());
+                        object_name = ((string) permissions_result.rows[0]["object_name"].as_string());
+                        perm_info = ((string) permissions_result.rows[0]["auxiliary_info"].as_string());
+                        grantor_account = ((string) permissions_result.rows[0]["grantor_account"].as_string());
+
+                    }
+                    grantee_account = ((string) accesses_result.rows[pos]["grantee_account"].as_string());
+
+                    permission_info inf = permission_info{
+                            .grantee_account = grantee_account,
+                            .permission_name = permission_name,
+                            .permission_info = perm_info,
+                            .object_name = object_name,
+                            .grantor_account = grantor_account
+                    };
+
+
+                    result.permissions.push_back(inf);
+                    result.more = (accesses_result.rows.size()-pos)-1;
+                }
+            }
+
+            return result;
+        } // get_object_permissions
+
 
 
         /*** v1/chain/get_fio_names
@@ -2949,6 +3402,155 @@ if( options.count(name) ) { \
                                           shorten_abi_errors);
         }
 
+        //FIP-39 begin
+
+        read_only::get_encrypt_key_result read_only::get_encrypt_key(const read_only::get_encrypt_key_params &p) const {
+
+            get_encrypt_key_result result1;
+
+            fioio::FioAddress fa;
+            fioio::getFioAddressStruct(p.fio_address, fa);
+            uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+            FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
+                           fioio::ErrorFioNameNotReg);
+
+            std::string hexvalnamehash = "0x";
+            hexvalnamehash.append(
+                    fioio::to_hex_little_endian(reinterpret_cast<const char *>(&name_hash), sizeof(name_hash)));
+
+            const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
+
+            get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table=fio_address_table,
+                    .lower_bound=hexvalnamehash,
+                    .upper_bound=hexvalnamehash,
+                    .encode_type="hex",
+                    .index_position ="5"};
+
+            get_table_rows_result names_table_rows_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                    name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                        return v;
+                    });
+
+            FIO_400_ASSERT(!names_table_rows_result.rows.empty(), "fio_address", fa.fioaddress.c_str(),
+                           "No such FIO address",
+                           fioio::ErrorFioNameNotReg);
+
+            //128 bit indexes returned multiple rows unexpectedly during integration testing, this code ensures
+            // that if the index search returns multiple rows unexpectedly the results are not processed.
+            FIO_404_ASSERT(names_table_rows_result.rows.size() == 1, "Multiple names found for fio address",
+                           fioio::ErrorNoFeesFoundForEndpoint);
+
+            uint64_t handleid = names_table_rows_result.rows[0]["id"].as_uint64();
+            //now get that handle id from fionameinfo table.
+            get_table_rows_params fionameinfo_table_row_params = get_table_rows_params{.json=true,
+                    .code=fio_system_code,
+                    .scope=fio_system_scope,
+                    .table="fionameinfo",
+                    .lower_bound=boost::lexical_cast<string>(handleid),
+                    .upper_bound=boost::lexical_cast<string>(handleid),
+                    .key_type       = "i64",
+                    .index_position ="2"};
+
+            get_table_rows_result fionameinfo_table_rows_result = get_table_rows_by_seckey<index64_index, uint64_t>(
+                    fionameinfo_table_row_params, abi, [](uint64_t v) -> uint64_t {
+                        return v;
+                    });
+
+            bool found = true;
+            if(fionameinfo_table_rows_result.rows.empty()){
+               found = false;
+            }else{
+                bool descmatch = false;
+                for (size_t pos = 0; pos < fionameinfo_table_rows_result.rows.size(); pos++) {
+                    string datadesc = fionameinfo_table_rows_result.rows[pos]["datadesc"].as_string();
+                    string datavalue = fionameinfo_table_rows_result.rows[pos]["datavalue"].as_string();
+                    if (datadesc.compare("FIO_REQUEST_CONTENT_ENCRYPTION_PUB_KEY") == 0)
+                    {
+                        result1.encrypt_public_key = datavalue;
+                        descmatch = true;
+                    }
+
+                }
+                if (!descmatch){
+                    found = false;
+                }
+
+            }
+
+            if (!found)
+            {
+                //go get the pub key for FIO FIO for this address.
+                const name code = ::eosio::string_to_name("fio.address");
+                const abi_def abi = eosio::chain_apis::get_abi(db, code);
+                const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+                const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
+                const string chainCode = fioio::makeLowerCase("FIO");
+                const string tokenCode = fioio::makeLowerCase("FIO");
+                const string defaultCode = "*";
+
+                //these are the results for the table searches for domain ansd fio name
+                get_table_rows_result domain_result;
+                get_table_rows_result fioname_result;
+                get_table_rows_result name_result;
+
+                std::string hexvaldomainhash = "0x";
+                hexvaldomainhash.append(
+                        fioio::to_hex_little_endian(reinterpret_cast<const char *>(&domain_hash), sizeof(domain_hash)));
+
+                get_table_rows_params name_table_row_params = get_table_rows_params{.json=true,
+                        .code=code,
+                        .scope=fio_system_scope,
+                        .table=fio_domains_table,
+                        .lower_bound=hexvaldomainhash,
+                        .upper_bound=hexvaldomainhash,
+                        .encode_type="hex",
+                        .index_position ="4"};
+
+                domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
+                        name_table_row_params, abi, [](uint128_t v) -> uint128_t {
+                            return v;
+                        });
+
+                FIO_404_ASSERT(!domain_result.rows.empty(), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+                uint32_t domain_expiration = (uint32_t) (domain_result.rows[0]["expiration"].as_uint64());
+                uint32_t present_time = (uint32_t) time(0);
+
+
+                FIO_400_ASSERT(!(present_time > domain_expiration), "fio_address", p.fio_address, "Invalid FIO Address",
+                               fioio::ErrorFioNameEmpty);
+
+                
+                string defaultPubAddress = "";
+
+                for (int i = 0; i < names_table_rows_result.rows[0]["addresses"].size(); i++) {
+                    string tToken = fioio::makeLowerCase(names_table_rows_result.rows[0]["addresses"][i]["token_code"].as_string());
+                    string tChain = fioio::makeLowerCase(names_table_rows_result.rows[0]["addresses"][i]["chain_code"].as_string());
+
+                    if ((tToken == tokenCode) && (tChain == chainCode)) {
+                        result1.encrypt_public_key = names_table_rows_result.rows[0]["addresses"][i]["public_address"].as_string();
+                        break;
+                    }
+                    if ((tToken == defaultCode) && (tChain == chainCode)) {
+                        defaultPubAddress = names_table_rows_result.rows[0]["addresses"][i]["public_address"].as_string();
+                    }
+                    if (i == names_table_rows_result.rows[0]["addresses"].size() - 1 && defaultPubAddress != "" ) {
+                        result1.encrypt_public_key = defaultPubAddress;
+                    }
+                }
+
+                FIO_404_ASSERT(!(result1.encrypt_public_key == ""), "Public address not found", fioio::ErrorPubAddressNotFound);
+
+            }
+
+            return result1;
+        } //get_encrypt_key
+
+        //FIP-39 end
+
 
         read_only::get_fio_balance_result read_only::get_fio_balance(const read_only::get_fio_balance_params &p) const {
             string fioKey = p.fio_public_key;
@@ -3056,8 +3658,9 @@ if( options.count(name) ) { \
             uint64_t additional_available_fio_locks = 0;
             if (!grows_result.rows.empty()) {
 
-                FIO_404_ASSERT(grows_result.rows.size() == 1, "Unexpected number of results found for main net locks",
-                               fioio::ErrorUnexpectedNumberResults);
+                if (grows_result.rows.size() > 1) {
+                    dlog(" multiple lock table entries for account " + account.to_string());
+                    }
 
                 uint64_t timestamp = grows_result.rows[0]["timestamp"].as_uint64();
                 uint32_t payouts_performed = grows_result.rows[0]["payouts_performed"].as_uint64();
@@ -3221,16 +3824,17 @@ if( options.count(name) ) { \
             bool isbundleeligible = ((uint64_t) (table_rows_result.rows[0]["type"].as_uint64()) == 1);
             uint64_t feeamount = (uint64_t) table_rows_result.rows[0]["suf_amount"].as_uint64();
 
-            if (isbundleeligible) {
+            if (isbundleeligible && !p.fio_address.empty() ) {
                 //read the fio names table using the specified address
                 //read the fees table.
                 const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
 
                 fioio::FioAddress fa;
-                fioio::getFioAddressStruct(p.fio_address, fa);
+                fioio::getFioAddressStruct(p.fio_address.c_str(), fa);
                 uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
+
                 FIO_400_ASSERT(validateFioNameFormat(fa), "fio_address", fa.fioaddress.c_str(), "Invalid FIO Address",
-                               fioio::ErrorFioNameNotReg);
+                            fioio::ErrorFioNameNotReg);
 
                 std::string hexvalnamehash = "0x";
                 hexvalnamehash.append(
@@ -3678,7 +4282,6 @@ if( options.count(name) ) { \
 
             FIO_400_ASSERT(validateFioNameFormat(fa), "fio_name", fa.fioaddress, "Invalid FIO Name", fioio::ErrorInvalidFioNameFormat);
 
-            //declare variables.
             const abi_def abi = eosio::chain_apis::get_abi(db, fio_system_code);
             const uint128_t name_hash = fioio::string_to_uint128_t(fa.fioaddress.c_str());
             const uint128_t domain_hash = fioio::string_to_uint128_t(fa.fiodomain.c_str());
@@ -3699,7 +4302,6 @@ if( options.count(name) ) { \
                     .encode_type="hex",
                     .index_position ="4"};
 
-            // Do secondary key lookup
             domain_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                     name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                         return v;
@@ -3718,8 +4320,7 @@ if( options.count(name) ) { \
                         .upper_bound=hexvalnamehash,
                         .encode_type="hex",
                         .index_position ="5"};
-
-                // Do secondary key lookup
+                
                 fioname_result = get_table_rows_by_seckey<index128_index, uint128_t>(
                         name_table_row_params, abi, [](uint128_t v) -> uint128_t {
                             return v;
@@ -4678,8 +5279,119 @@ if( options.count(name) ) { \
           }
 
 
+        /***
+* add_fio_permission -  add a permission to a grantee account, for details of permissions see fio.perms.hpp
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+        void read_write::add_fio_permission(const read_write::add_fio_permission_params &params,
+                                              next_function<read_write::add_fio_permission_results> next) {
+            try {
 
-/***
+
+                FIO_403_ASSERT(params.size() == 4,
+                               fioio::ErrorTransaction);
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("add fio permission called ");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.perms", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "addperm", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::add_fio_permission_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+
+        /***
+* remove_fio_permission -  remove a permission on a grantee account, for details of permissions see fio.perms.hpp
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+        void read_write::remove_fio_permission(const read_write::remove_fio_permission_params &params,
+                                            next_function<read_write::remove_fio_permission_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 4,
+                               fioio::ErrorTransaction);
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("remove fio permission called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.perms", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "remperm", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::remove_fio_permission_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+
+        /***
 * Register_fio_name - Register a fio_address or fio_domain into the fionames (fioaddresses) or fiodomains tables respectively
 * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
 * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
@@ -4732,6 +5444,60 @@ if( options.count(name) ) { \
                 chain_plugin::handle_db_exhaustion();
             } CATCH_AND_CALL(next);
         }
+
+/***
+* register_fio_domain_address - Registers a fio domain and address
+* @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+* @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+*/
+void read_write::register_fio_domain_address(const read_write::register_fio_domain_address_params &params,
+                                    next_function<read_write::register_fio_domain_address_results> next) {
+    try {
+        FIO_403_ASSERT(params.size() == 4,
+                        fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+        auto pretty_input = std::make_shared<packed_transaction>();
+        auto resolver = make_resolver(this, abi_serializer_max_time);
+        transaction_metadata_ptr ptrx;
+        dlog("register_fio_domain_address called");
+        try {
+            abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+            ptrx = std::make_shared<transaction_metadata>(pretty_input);
+        } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+        transaction trx = pretty_input->get_transaction();
+        vector<action> &actions = trx.actions;
+        dlog("\n");
+        dlog(actions[0].name.to_string());
+        FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+        FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+        FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+        FIO_403_ASSERT(actions[0].name.to_string() == "regdomadd", fioio::InvalidAccountOrAction);
+
+        app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+            if (result.contains<fc::exception_ptr>()) {
+                next(result.get<fc::exception_ptr>());
+            } else {
+                auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                try {
+                    fc::variant output;
+                    try {
+                        output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                    } catch (chain::abi_exception &) {
+                        output = *trx_trace_ptr;
+                    }
+                    const chain::transaction_id_type &id = trx_trace_ptr->id;
+                    next(read_write::register_fio_domain_address_results{id, output});
+                } CATCH_AND_CALL(next);
+            }
+        });
+
+
+    } catch (boost::interprocess::bad_alloc &) {
+        chain_plugin::handle_db_exhaustion();
+    } CATCH_AND_CALL(next);
+}
 
 /***
  * set_fio_domain_public - By default all FIO Domains are non-public, meaning only the owner can register FIO Addresses on that domain. Setting them to public allows anyone to register a FIO Address on that domain.
@@ -5058,6 +5824,60 @@ if( options.count(name) ) { \
                 chain_plugin::handle_db_exhaustion();
             } CATCH_AND_CALL(next);
         }
+
+
+
+        //FIP-38 begin
+        void read_write::new_fio_chain_account(const read_write::new_fio_chain_account_params &params,
+                                                 next_function<read_write::new_fio_chain_account_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 6,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("new_fio_chain_account called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                } EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.system", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "newfioacc", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::new_fio_chain_account_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+        //FIP-38 end
 
 
 
@@ -5841,7 +6661,68 @@ if( options.count(name) ) { \
         }
 
 
-/***
+
+        //FIP-39 begin
+        /***
+ * update_encrypt_key - This endpoint will update the encryption key used for obt content.
+ * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
+ * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)
+ */
+        void read_write::update_encrypt_key(const read_write::update_encrypt_key_params &params,
+                                          next_function<read_write::update_encrypt_key_results> next) {
+            try {
+                FIO_403_ASSERT(params.size() == 5,
+                               fioio::ErrorTransaction); // variant object contains authorization, account, name, data
+                auto pretty_input = std::make_shared<packed_transaction>();
+                auto resolver = make_resolver(this, abi_serializer_max_time);
+                transaction_metadata_ptr ptrx;
+                dlog("update encrypt key called");
+                try {
+                    abi_serializer::from_variant(params, *pretty_input, resolver, abi_serializer_max_time);
+                    ptrx = std::make_shared<transaction_metadata>(pretty_input);
+                }
+                EOS_RETHROW_EXCEPTIONS(chain::fio_invalid_trans_exception, "Invalid transaction")
+
+                transaction trx = pretty_input->get_transaction();
+                vector<action> &actions = trx.actions;
+                dlog("\n");
+                dlog(actions[0].name.to_string());
+                FIO_403_ASSERT(trx.total_actions() == 1, fioio::InvalidAccountOrAction);
+
+                FIO_403_ASSERT(actions[0].authorization.size() > 0, fioio::ErrorTransaction);
+                FIO_403_ASSERT(actions[0].account.to_string() == "fio.address", fioio::InvalidAccountOrAction);
+                FIO_403_ASSERT(actions[0].name.to_string() == "updcryptkey", fioio::InvalidAccountOrAction);
+
+                app().get_method<incoming::methods::transaction_async>()(ptrx, true, [this, next](
+                        const fc::static_variant<fc::exception_ptr, transaction_trace_ptr> &result) -> void {
+                    if (result.contains<fc::exception_ptr>()) {
+                        next(result.get<fc::exception_ptr>());
+                    } else {
+                        auto trx_trace_ptr = result.get<transaction_trace_ptr>();
+
+                        try {
+                            fc::variant output;
+                            try {
+                                output = db.to_variant_with_abi(*trx_trace_ptr, abi_serializer_max_time);
+                            } catch (chain::abi_exception &) {
+                                output = *trx_trace_ptr;
+                            }
+                            const chain::transaction_id_type &id = trx_trace_ptr->id;
+                            next(read_write::update_encrypt_key_results{id, output});
+                        } CATCH_AND_CALL(next);
+                    }
+                });
+
+
+            } catch (boost::interprocess::bad_alloc &) {
+                chain_plugin::handle_db_exhaustion();
+            } CATCH_AND_CALL(next);
+        }
+
+        //FIP-39 end
+
+
+        /***
  * renew_address - This endpoint will renew the specified address.
  * @param p Accepts a variant object of from a pushed fio transaction that contains a public key in packed actions
  * @return result, result.transaction_id (chain::transaction_id_type), result.processed (fc::variant)

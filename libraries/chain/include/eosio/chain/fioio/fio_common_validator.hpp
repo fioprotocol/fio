@@ -67,6 +67,29 @@ namespace fioio {
         return true;
     }
 
+
+    inline bool isAccountValid(const string &name) {
+
+        //must not be longer than 12 chars
+        if(name.length() > 12){
+            return false;
+        }
+
+        // must contain only these chars ".,abcdefghijklmmopqrstuvwxyz12345
+        if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz12345.") != std::string::npos) {
+            return false;
+        }
+
+        
+        //must not end in a dot
+        if(name.back() == '.'){
+            return false;
+        }
+
+        return true;
+    }
+
+
     inline bool validateFioNameFormat(const FioAddress &fa) {
         if (fa.domainOnly) {
             if (fa.fiodomain.size() < 1 || fa.fiodomain.size() > maxFioDomainLen) {

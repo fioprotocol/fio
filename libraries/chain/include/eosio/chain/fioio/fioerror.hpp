@@ -95,6 +95,8 @@ namespace fioio {
     constexpr auto ErrorNoFioActionsFound = ident | httpLocationError | 157;   // no actions found
     constexpr auto ErrorDomainOwner = ident | httpInvalidError | 158;
     constexpr auto ErrorNoEscrowListingsFound = ident | httpInvalidError | 159;
+    constexpr auto ErrorInvalidAccount = ident | httpDataError | 160;   // Account name not valid
+    constexpr auto ErrorInvalidPermission = ident | httpDataError | 161;   // permission name not valid
 
     /**
     * Helper funtions for detecting rich error messages and extracting bitfielded values
