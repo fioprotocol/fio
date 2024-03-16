@@ -47,65 +47,65 @@ function usage() {
    exit 1
 }
 
-TIME_BEGIN=$( date -u +%s )
+TIME_BEGIN=$(date -u +%s)
 if [ $# -ne 0 ]; then
    while getopts "o:s:b:i:ycdhmPf" opt; do
       case "${opt}" in
-         o )
-            options=( "Debug" "Release" "RelWithDebInfo" "MinSizeRel" )
-            if [[ "${options[*]}" =~ "${OPTARG}" ]]; then
-               CMAKE_BUILD_TYPE=$OPTARG
-            else
-               echo  "Invalid argument: ${OPTARG}" 1>&2
-               usage
-            fi
+      o)
+         options=("Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+         if [[ "${options[*]}" =~ "${OPTARG}" ]]; then
+            CMAKE_BUILD_TYPE=$OPTARG
+         else
+            echo "Invalid argument: ${OPTARG}" 1>&2
+            usage
+         fi
          ;;
-         s )
-            if [ "${#OPTARG}" -gt 7 ] || [ -z "${#OPTARG}" ]; then
-               echo "Invalid argument: ${OPTARG}" 1>&2
-               usage
-            else
-               CORE_SYMBOL_NAME=$OPTARG
-            fi
+      s)
+         if [ "${#OPTARG}" -gt 7 ] || [ -z "${#OPTARG}" ]; then
+            echo "Invalid argument: ${OPTARG}" 1>&2
+            usage
+         else
+            CORE_SYMBOL_NAME=$OPTARG
+         fi
          ;;
-         b )
-            BOOST_LOCATION=$OPTARG
+      b)
+         BOOST_LOCATION=$OPTARG
          ;;
-         i )
-            INSTALL_LOCATION=$OPTARG
+      i)
+         INSTALL_LOCATION=$OPTARG
          ;;
-         y )
-            NONINTERACTIVE=true
-            PROCEED=true
+      y)
+         NONINTERACTIVE=true
+         PROCEED=true
          ;;
-         f ) 
-            echo "DEPRECATION NOTICE: -f will be removed in the next release..."
+      f)
+         echo "DEPRECATION NOTICE: -f will be removed in the next release..."
          ;; # Needs to be removed in 1.9
-         c )
-            ENABLE_COVERAGE_TESTING=true
+      c)
+         ENABLE_COVERAGE_TESTING=true
          ;;
-         d )
-            ENABLE_DOXYGEN=true
+      d)
+         ENABLE_DOXYGEN=true
          ;;
-         m )
-            ENABLE_MONGO=true
+      m)
+         ENABLE_MONGO=true
          ;;
-         P )
-            PIN_COMPILER=true
+      P)
+         PIN_COMPILER=true
          ;;
-         h )
-            usage
+      h)
+         usage
          ;;
-         ? )
-            echo "Invalid Option!" 1>&2
-            usage
+      ?)
+         echo "Invalid Option!" 1>&2
+         usage
          ;;
-         : )
-            echo "Invalid Option: -${OPTARG} requires an argument." 1>&2
-            usage
+      :)
+         echo "Invalid Option: -${OPTARG} requires an argument." 1>&2
+         usage
          ;;
-         * )
-            usage
+      *)
+         usage
          ;;
       esac
    done
@@ -114,23 +114,23 @@ fi
 export CURRENT_WORKING_DIR=$(pwd) # relative path support
 
 # Ensure we're in the repo root and not inside of scripts
-cd $( dirname "${BASH_SOURCE[0]}" )/..
+cd $(dirname "${BASH_SOURCE[0]}")/..
 
 # Load FIO specific helper functions
 . ./scripts/helpers/fio_helper.sh
 
 $VERBOSE && echo "Build Script Version: ${SCRIPT_VERSION}"
 echo "FIO Version: ${EOSIO_VERSION_FULL}"
-echo "$( date -u )"
+echo "$(date -u)"
 echo "User: ${CURRENT_USER}"
 # echo "git head id: %s" "$( cat .git/refs/heads/master )"
-echo "Current branch: $( execute git rev-parse --abbrev-ref HEAD 2>/dev/null )"
+echo "Current branch: $(execute git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
-( [[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]]  && [[ ! $NAME == "CentOS Linux" ]]) && set -i # Ubuntu doesn't support interactive mode since it uses dash + Some folks are having this issue on Darwin; colors aren't supported yet anyway
+([[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]] && [[ ! $NAME == "CentOS Linux" ]]) && set -i # Ubuntu doesn't support interactive mode since it uses dash + Some folks are having this issue on Darwin; colors aren't supported yet anyway
 
 if [[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]]; then
-  echo "${COLOR_RED}Only Ubuntu(dev,test,prod) and MacOS Darwin(dev) are currently supported. Cannot proceed."
-  exit 1
+   echo "${COLOR_RED}Only Ubuntu(dev,test,prod) and MacOS Darwin(dev) are currently supported. Cannot proceed."
+   exit 1
 fi
 
 # Ensure sudo is available (only if not using the root user)
@@ -153,9 +153,9 @@ execute cd $REPO_ROOT
 ensure-submodules-up-to-date
 
 # Check if cmake already exists
-( [[ -z "${CMAKE}" ]] && [[ ! -z $(command -v cmake 2>/dev/null) ]] ) && export CMAKE=$(command -v cmake 2>/dev/null) && export CMAKE_CURRENT_VERSION=$($CMAKE --version | grep -E "cmake version[[:blank:]]*" | sed 's/.*cmake version //g')
-# If it exists, check that it's > required version + 
-if [[ ! -z $CMAKE_CURRENT_VERSION ]] && [[ $((10#$( echo $CMAKE_CURRENT_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }' ))) -lt $((10#$( echo $CMAKE_REQUIRED_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }' ))) ]]; then
+([[ -z "${CMAKE}" ]] && [[ ! -z $(command -v cmake 2>/dev/null) ]]) && export CMAKE=$(command -v cmake 2>/dev/null) && export CMAKE_CURRENT_VERSION=$($CMAKE --version | grep -E "cmake version[[:blank:]]*" | sed 's/.*cmake version //g')
+# If it exists, check that it's > required version +
+if [[ ! -z $CMAKE_CURRENT_VERSION ]] && [[ $((10#$(echo $CMAKE_CURRENT_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'))) -lt $((10#$(echo $CMAKE_REQUIRED_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'))) ]]; then
    export CMAKE=
    if [[ $ARCH == 'Darwin' ]]; then
       echo "${COLOR_RED}The currently installed cmake version ($CMAKE_CURRENT_VERSION) is less than the required version ($CMAKE_REQUIRED_VERSION). Cannot proceed."
@@ -171,17 +171,17 @@ if [[ $ARCH == "Linux" ]]; then
    export CMAKE=${CMAKE:-${EOSIO_INSTALL_DIR}/bin/cmake}
    [[ ! -e /etc/os-release ]] && print_supported_linux_distros_and_exit
    case $NAME in
-      "Amazon Linux AMI" | "Amazon Linux")
-         echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
-         FILE="${REPO_ROOT}/scripts/helpers/build_amazonlinux.sh"
+   "Amazon Linux AMI" | "Amazon Linux")
+      echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
+      FILE="${REPO_ROOT}/scripts/helpers/build_amazonlinux.sh"
       ;;
-      "CentOS Linux")
-         FILE="${REPO_ROOT}/scripts/helpers/build_centos.sh"
+   "CentOS Linux")
+      FILE="${REPO_ROOT}/scripts/helpers/build_centos.sh"
       ;;
-      "Ubuntu")
-         FILE="${REPO_ROOT}/scripts/helpers/build_ubuntu.sh"
+   "Ubuntu")
+      FILE="${REPO_ROOT}/scripts/helpers/build_ubuntu.sh"
       ;;
-      *) print_supported_linux_distros_and_exit;;
+   *) print_supported_linux_distros_and_exit ;;
    esac
    CMAKE_PREFIX_PATHS="${EOSIO_INSTALL_DIR}"
 fi
@@ -197,13 +197,22 @@ fi
 # Find and replace OPT_DIR in pinned_toolchain.cmake, then move it into build dir
 execute bash -c "sed -e 's~@~$OPT_DIR~g' $SCRIPT_DIR/pinned_toolchain.cmake &> $BUILD_DIR/pinned_toolchain.cmake"
 
+# Set OS and associated system vars
+set_system_vars # JOBS, Memory, disk space available, etc
+
 echo "${COLOR_CYAN}====================================================================================="
 echo "======================= ${COLOR_WHITE}Starting FIO Dependency Install${COLOR_CYAN} ===========================${COLOR_NC}"
 execute cd $SRC_DIR
-set_system_vars # JOBS, Memory, disk space available, etc
 echo "Architecture: ${ARCH}"
 . $FILE # Execute OS specific build file
+
 execute cd $REPO_ROOT
+
+# Save off env vars for later use, i.e. for install
+echo-to-envfile "EOSIO_INSTALL_DIR" ${EOSIO_INSTALL_DIR}
+echo-to-envfile "CMAKE_REQUIRED_VERSION" ${CMAKE_REQUIRED_VERSION}
+echo-to-envfile "CMAKE_INSTALL_DIR" ${EOSIO_INSTALL_DIR}
+echo-to-envfile "CMAKE" ${CMAKE}
 
 echo ""
 echo "${COLOR_CYAN}========================================================================"
@@ -228,7 +237,7 @@ execute bash -c "$CMAKE -DCMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}' -DCORE_SYMBOL_N
 execute make -j$JOBS
 execute cd $REPO_ROOT 1>/dev/null
 
-TIME_END=$(( $(date -u +%s) - $TIME_BEGIN ))
+TIME_END=$(($(date -u +%s) - $TIME_BEGIN))
 
 printf "${bldred}\n"
 printf "      ___                       ___                 \n"
@@ -243,7 +252,7 @@ printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
 printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
 printf "     \\/__/         \\/__/       \\/__/             \n"
 printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
-printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
+printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END / 3600)) $(($TIME_END % 3600 / 60)) $(($TIME_END % 60))
 printf "==============================================================================================\\n${bldred}"
 echo "${COLOR_GREEN}You can now install using: ${REPO_ROOT}/scripts/fio_install.sh${COLOR_NC}"
 echo "${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}"

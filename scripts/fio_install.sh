@@ -33,10 +33,15 @@ VERSION=2.1
 ##########################################################################
 
 # Ensure we're in the repo root and not inside of scripts
-cd $( dirname "${BASH_SOURCE[0]}" )/..
+cd $(dirname "${BASH_SOURCE[0]}")/..
 
 # Load fio specific helper functions
 . ./scripts/helpers/fio_helper.sh
+
+# Load build env (generated during build)
+. ./scripts/.build_env
+
+echo "Capturing env" && env > fio_build_env.out
 
 [[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
@@ -54,7 +59,8 @@ else
     [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
     sleep 2s
     cd fio.cdt
-    echo "Checking out upgrade branch. Remove on merge to develop!" 
+    echo
+    echo "Checking out upgrade branch. Remove on merge to develop!"
     git checkout feature/bd-4618-ubuntu-upgrade
     git submodule update --init --recursive
     ./build.sh
