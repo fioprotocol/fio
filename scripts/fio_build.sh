@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
+#set -x
 SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD image)
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
@@ -49,8 +50,10 @@ function usage() {
 
 TIME_BEGIN=$(date -u +%s)
 if [ $# -ne 0 ]; then
-   while getopts "o:s:b:i:ycdhmPf" opt; do
+   while getopts "ao:s:b:i:ycdhmPf" opt; do
       case "${opt}" in
+      a) #NOOP: use with fio_install.sh
+         ;;
       o)
          options=("Debug" "Release" "RelWithDebInfo" "MinSizeRel")
          if [[ "${options[*]}" =~ "${OPTARG}" ]]; then

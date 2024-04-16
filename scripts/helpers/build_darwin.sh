@@ -35,7 +35,7 @@ ensure-compiler
 ensure-brew-packages "${REPO_ROOT}/scripts/helpers/build_darwin_deps"
 [[ -z "${CMAKE}" ]] && export CMAKE="/usr/local/bin/cmake"
 # CLANG Installation
-build-clang
+ensure-clang
 # LLVM Installation
 ensure-llvm
 # BOOST Installation

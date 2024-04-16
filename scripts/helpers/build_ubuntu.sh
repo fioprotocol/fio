@@ -33,7 +33,7 @@ ensure-compiler
 # CMAKE Installation
 ensure-cmake
 # CLANG Installation
-build-clang
+ensure-clang
 # LLVM Installation
 ensure-llvm
 # BOOST Installation

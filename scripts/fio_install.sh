@@ -32,6 +32,28 @@ VERSION=2.1
 # https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
+BUILD_FIO=${BUILD_FIO:-false}
+if [ $# -ne 0 ]; then
+   while getopts "a" opt; do
+      case "${opt}" in
+      a)
+         BUILD_FIO=true
+         ;;
+      esac
+   done
+fi
+
+# Get directory this script is in
+MY_SCRIPT_DIR=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+
+# Build fio first if -a argument was given
+if $BUILD_FIO; then
+  echo "Building FIO..."
+  # Pass all args to fio_build.sh
+  $MY_SCRIPT_DIR/fio_build.sh "$@"
+  echo
+fi
+
 # Ensure we're in the repo root and not inside of scripts
 cd $(dirname "${BASH_SOURCE[0]}")/..
 

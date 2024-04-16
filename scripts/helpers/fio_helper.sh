@@ -336,30 +336,45 @@ function ensure-llvm() {
     fi
 }
 
-function build-clang() {
-    if $BUILD_CLANG; then
-        echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
-        if [[ ! -d $CLANG_ROOT ]]; then
-            clean-clang
-            clone-clang
-            if [[ $NAME == "Ubuntu" ]]; then
-                if [[ $VERSION_ID == "20.04" ]]; then
-                    apply-clang-ubuntu20-patches
-                fi
-                if [[ $VERSION_ID == "22.04" ]]; then
-                    apply-clang-ubuntu22-patches
-                fi
-            fi
-            build-install-clang
-            echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
-            echo ""
-        else
-            echo " - Clang 8 found @ ${CLANG_ROOT}"
-            echo ""
+function ensure-clang() {
+  if $BUILD_CLANG; then
+    echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
+    if [[ ! -d $CLANG_ROOT ]]; then
+      # Check tmp dir for previous clang build
+      if ! is-clang-built; then
+        clean-clang
+        clone-clang
+        if [[ $NAME == "Ubuntu" ]]; then
+          if [[ $VERSION_ID == "20.04" ]]; then
+            apply-clang-ubuntu20-patches
+          fi
+          if [[ $VERSION_ID == "22.04" ]]; then
+            apply-clang-ubuntu22-patches
+          fi
         fi
-        export CXX=$CPP_COMP
-        export CC=$CC_COMP
+        build-clang
+      fi
+      install-clang
+      echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
+      echo ""
+    else
+      echo " - Clang 8 found @ ${CLANG_ROOT}"
+      echo ""
     fi
+    export CXX=$CPP_COMP
+    export CC=$CC_COMP
+  fi
+}
+
+function is-clang-built() {
+  #if [[ -d ${TEMP_DIR}/clang8 && -d ${TEMP_DIR}/clang8/build && -d ${TEMP_DIR}/clang8/build/bin && -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
+  if [[ -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
+    clang_version=$(${TEMP_DIR}/clang8/build/bin/clang --version | grep version | awk '{print $3}')
+    if [[ $clang_version =~ 8 ]]; then
+      return
+    fi
+  fi
+  false
 }
 
 function clean-clang() {
@@ -392,11 +407,16 @@ function clone-clang() {
         && cd compiler-rt && git checkout $PINNED_COMPILER_COMPILER_RT_COMMIT"
 }
 
-function build-install-clang() {
+function build-clang() {
     execute bash -c "cd ${TEMP_DIR}/clang8 \
         && mkdir build && cd build \
         && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${CLANG_ROOT}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
-        && make -j${JOBS} \
+        && make -j${JOBS}"
+}
+
+function install-clang() {
+    execute bash -c "cd ${TEMP_DIR}/clang8 \
+        && cd build \
         && make install"
 }
 
