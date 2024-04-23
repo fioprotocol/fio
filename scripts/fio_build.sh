@@ -146,8 +146,12 @@ ensure-git-clone
 install-directory-prompt
 # If the same version has already been installed...
 previous-install-prompt
-# Prompt user and asks if we should install mongo or not
-prompt-mongo-install
+# Prompt user for mongo install
+#prompt-mongo-install
+# Prompt user about pinned clang build
+prompt-pinned-clang-build
+# Prompt user about pinned llvm build
+prompt-pinned-llvm-build
 # Setup directories and envs we need (must come last)
 setup
 execute cd $REPO_ROOT
