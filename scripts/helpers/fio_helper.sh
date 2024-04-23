@@ -311,7 +311,7 @@ function ensure-boost() {
 # Prompt user for installation directory.
 function prompt-pinned-llvm-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
-    if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER || $BUILD_CLANG) ]]; then
+    if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER == true || $BUILD_CLANG == true) ]]; then
         if is-llvm-built; then
             while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
@@ -387,7 +387,7 @@ function install-llvm() {
 # Prompt user for installation directory.
 function prompt-pinned-clang-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
-    if [[ ! -d $CLANG_ROOT && $PIN_COMPILER ]]; then
+    if [[ ! -d $CLANG_ROOT && $PIN_COMPILER == true ]]; then
         if is-clang-built; then
             while true; do
                 [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
