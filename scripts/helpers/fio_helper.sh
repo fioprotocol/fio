@@ -377,7 +377,8 @@ function build-llvm() {
 }
 
 function install-llvm() {
-    execute bash -c "cd ${TEMP_DIR} \
+    execute bash -c "cd ${TEMP_DIR}/llvm4 \
+        && cd build \
         && make install"
 }
 
