@@ -311,30 +311,32 @@ function ensure-boost() {
 # Prompt user for installation directory.
 function prompt-pinned-llvm-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
-    if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER || $BUILD_CLANG) && is-llvm-built ]]; then
-        while true; do
+    if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER || $BUILD_CLANG) ]]; then
+        if is-llvm-built; then
+            while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
-            echo ""
-            case $PROCEED in
-            "") echo "What would you like to do?" ;;
-            0 | true | [Yy]*)
-                break
-                ;;
-            1 | false | [Nn]*)
-                echo "Removing previous llvm 4 build..."
-                rm -rf $TEMP_DIR/llvm4
-                break
-                ;;
-            *) echo "Please type 'y' for yes or 'n' for no." ;;
-            esac
-        done
+                echo ""
+                case $PROCEED in
+                "") echo "What would you like to do?" ;;
+                0 | true | [Yy]*)
+                    break
+                    ;;
+                1 | false | [Nn]*)
+                    echo "Removing previous llvm 4 build..."
+                    rm -rf $TEMP_DIR/llvm4
+                    break
+                    ;;
+                *) echo "Please type 'y' for yes or 'n' for no." ;;
+                esac
+            done
+        fi
     fi
 }
 
 function ensure-llvm() {
     echo "${COLOR_CYAN}[Ensuring LLVM 4 support]${COLOR_NC}"
     if [[ ! -d $LLVM_ROOT ]]; then
-        if [[ ! is-llvm-built ]]; then
+        if ! is-llvm-built; then
             if $PIN_COMPILER || $BUILD_CLANG; then
                 CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX='${LLVM_ROOT}' -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE='${BUILD_DIR}/pinned_toolchain.cmake' .."
             else
@@ -360,7 +362,7 @@ function is-llvm-built() {
   #if [[ -d ${TEMP_DIR}/llvm4 && -d ${TEMP_DIR}/llvm4/build && -d ${TEMP_DIR}/llvm4/build/bin && -x ${TEMP_DIR}/llvm/build/bin/llvm-ar ]]; then
   if [[ -x ${TEMP_DIR}/llvm4/build/bin/llvm-ar ]]; then
     llvm_version=$(${TEMP_DIR}/llvm4/build/bin/llvm-ar --version | grep version | awk '{print $3}')
-    if [[ $clang_version =~ 4 ]]; then
+    if [[ $llvm_version =~ 4 ]]; then
       return
     fi
   fi
@@ -385,23 +387,25 @@ function install-llvm() {
 # Prompt user for installation directory.
 function prompt-pinned-clang-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
-    if [[ ! -d $CLANG_ROOT && $PIN_COMPILER && is-clang-built ]]; then
-        while true; do
-            [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
-            echo ""
-            case $PROCEED in
-            "") echo "What would you like to do?" ;;
-            0 | true | [Yy]*)
-                break
-                ;;
-            1 | false | [Nn]*)
-                echo "Removing previous clang 8 build..."
-                rm -rf $TEMP_DIR/clang8
-                break
-                ;;
-            *) echo "Please type 'y' for yes or 'n' for no." ;;
-            esac
-        done
+    if [[ ! -d $CLANG_ROOT && $PIN_COMPILER ]]; then
+        if is-clang-built; then
+            while true; do
+                [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                echo ""
+                case $PROCEED in
+                "") echo "What would you like to do?" ;;
+                0 | true | [Yy]*)
+                    break
+                    ;;
+                1 | false | [Nn]*)
+                    echo "Removing previous clang 8 build..."
+                    rm -rf $TEMP_DIR/clang8
+                    break
+                    ;;
+                *) echo "Please type 'y' for yes or 'n' for no." ;;
+                esac
+            done
+        fi
     fi
 }
 
