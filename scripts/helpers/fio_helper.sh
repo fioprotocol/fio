@@ -260,15 +260,10 @@ function ensure-compiler() {
 function ensure-cmake() {
     echo "${COLOR_CYAN}[Ensuring CMAKE installation]${COLOR_NC}"
     if [[ ! -e "${CMAKE}" ]]; then
-        execute bash -c "cd $SRC_DIR \
-            && curl -LO https://cmake.org/files/v${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}/cmake-${CMAKE_VERSION}.tar.gz \
-            && tar -xzf cmake-${CMAKE_VERSION}.tar.gz \
-            && cd cmake-${CMAKE_VERSION} \
-            && ./bootstrap --prefix=${CMAKE_INSTALL_DIR} \
-            && make -j${JOBS} \
-            && make install \
-            && cd .. \
-            && rm -f cmake-${CMAKE_VERSION}.tar.gz"
+        if ! is-cmake-built; then
+            build-cmake
+        fi
+        install-cmake
         [[ -z "${CMAKE}" ]] && export CMAKE="${BIN_DIR}/cmake"
         echo " - CMAKE successfully installed @ ${CMAKE}"
         echo ""
@@ -276,6 +271,32 @@ function ensure-cmake() {
         echo " - CMAKE found @ ${CMAKE}."
         echo ""
     fi
+}
+
+function is-cmake-built() {
+    if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/bin/cmake ]]; then
+        cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/bin/cmake --version | grep version | awk '{print $3}')
+        if [[ $cmake_version =~ 3 ]]; then
+            return
+        fi
+    fi
+    false
+}
+
+function build-cmake() {
+    execute bash -c "cd $TEMP_DIR \
+        && curl -LO https://cmake.org/files/v${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}/cmake-${CMAKE_VERSION}.tar.gz \
+        && tar -xzf cmake-${CMAKE_VERSION}.tar.gz \
+        && cd cmake-${CMAKE_VERSION} \
+        && ./bootstrap --prefix=${CMAKE_INSTALL_DIR} \
+        && make -j${JOBS}"
+}
+
+function install-cmake() {
+    execute bash -c "cd $TEMP_DIR/cmake-${CMAKE_VERSION} \
+        && make install \
+        && cd .. \
+        && rm -f cmake-${CMAKE_VERSION}.tar.gz"
 }
 
 function ensure-boost() {
@@ -291,15 +312,10 @@ function ensure-boost() {
         elif $PIN_COMPILER; then
             local SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
         fi
-        execute bash -c "cd $SRC_DIR && \
-            curl -LO https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
-            && tar -xjf boost_$BOOST_VERSION.tar.bz2 \
-            && cd $BOOST_ROOT \
-            && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=$BOOST_ROOT \
-            && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} \
-            && cd .. \
-            && rm -f boost_$BOOST_VERSION.tar.bz2 \
-            && rm -rf $BOOST_LINK_LOCATION"
+        if ! is-boost-built; then
+            build-boost
+        fi
+        install-boost
         echo " - Boost library successfully installed @ ${BOOST_ROOT}"
         echo ""
     else
@@ -308,13 +324,39 @@ function ensure-boost() {
     fi
 }
 
+function is-boost-built() {
+    if [[ -x ${TEMP_DIR}/boost_*/boost/version.hpp ]]; then
+        BOOSTVERSION=$(grep "#define BOOST_VERSION" "$TEMP_DIR/boost_*/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
+        if [[ "${BOOSTVERSION}" == "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
+            return
+        fi
+    fi
+    false
+}
+
+function build-boost() {
+    execute bash -c "cd $TEMP_DIR && \
+        curl -LO https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
+        && tar -xjf boost_$BOOST_VERSION.tar.bz2 \
+        && cd boost_$BOOST_VERSION \
+        && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=$BOOST_ROOT"
+}
+
+function install-boost() {
+    execute bash -c "cd $TEMP_DIR/boost_$BOOST_VERSION \
+        && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} \
+        && cd .. \
+        && rm -f boost_$BOOST_VERSION.tar.bz2 \
+        && rm -rf $BOOST_LINK_LOCATION"
+}
+
 # Prompt user for installation directory.
 function prompt-pinned-llvm-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
     if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER == true || $BUILD_CLANG == true) ]]; then
         if is-llvm-built; then
             while true; do
-            [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
                 echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
@@ -359,14 +401,14 @@ function ensure-llvm() {
 }
 
 function is-llvm-built() {
-  #if [[ -d ${TEMP_DIR}/llvm4 && -d ${TEMP_DIR}/llvm4/build && -d ${TEMP_DIR}/llvm4/build/bin && -x ${TEMP_DIR}/llvm/build/bin/llvm-ar ]]; then
-  if [[ -x ${TEMP_DIR}/llvm4/build/bin/llvm-ar ]]; then
-    llvm_version=$(${TEMP_DIR}/llvm4/build/bin/llvm-ar --version | grep version | awk '{print $3}')
-    if [[ $llvm_version =~ 4 ]]; then
-      return
+    #if [[ -d ${TEMP_DIR}/llvm4 && -d ${TEMP_DIR}/llvm4/build && -d ${TEMP_DIR}/llvm4/build/bin && -x ${TEMP_DIR}/llvm/build/bin/llvm-ar ]]; then
+    if [[ -x ${TEMP_DIR}/llvm4/build/bin/llvm-ar ]]; then
+        llvm_version=$(${TEMP_DIR}/llvm4/build/bin/llvm-ar --version | grep version | awk '{print $3}')
+        if [[ $llvm_version =~ 4 ]]; then
+            return
+        fi
     fi
-  fi
-  false
+    false
 }
 
 function build-llvm() {
@@ -410,44 +452,44 @@ function prompt-pinned-clang-build() {
 }
 
 function ensure-clang() {
-  if $BUILD_CLANG; then
-    echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
-    if [[ ! -d $CLANG_ROOT ]]; then
-      # Check tmp dir for previous clang build
-      if ! is-clang-built; then
-        clean-clang
-        clone-clang
-        if [[ $NAME == "Ubuntu" ]]; then
-          if [[ $VERSION_ID == "20.04" ]]; then
-            apply-clang-ubuntu20-patches
-          fi
-          if [[ $VERSION_ID == "22.04" ]]; then
-            apply-clang-ubuntu22-patches
-          fi
+    if $BUILD_CLANG; then
+        echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
+        if [[ ! -d $CLANG_ROOT ]]; then
+            # Check tmp dir for previous clang build
+            if ! is-clang-built; then
+                clean-clang
+                clone-clang
+                if [[ $NAME == "Ubuntu" ]]; then
+                    if [[ $VERSION_ID == "20.04" ]]; then
+                        apply-clang-ubuntu20-patches
+                    fi
+                    if [[ $VERSION_ID == "22.04" ]]; then
+                        apply-clang-ubuntu22-patches
+                    fi
+                fi
+                build-clang
+            fi
+            install-clang
+            echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
+            echo ""
+        else
+            echo " - Clang 8 found @ ${CLANG_ROOT}"
+            echo ""
         fi
-        build-clang
-      fi
-      install-clang
-      echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
-      echo ""
-    else
-      echo " - Clang 8 found @ ${CLANG_ROOT}"
-      echo ""
+        export CXX=$CPP_COMP
+        export CC=$CC_COMP
     fi
-    export CXX=$CPP_COMP
-    export CC=$CC_COMP
-  fi
 }
 
 function is-clang-built() {
-  #if [[ -d ${TEMP_DIR}/clang8 && -d ${TEMP_DIR}/clang8/build && -d ${TEMP_DIR}/clang8/build/bin && -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
-  if [[ -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
-    clang_version=$(${TEMP_DIR}/clang8/build/bin/clang --version | grep version | awk '{print $3}')
-    if [[ $clang_version =~ 8 ]]; then
-      return
+    #if [[ -d ${TEMP_DIR}/clang8 && -d ${TEMP_DIR}/clang8/build && -d ${TEMP_DIR}/clang8/build/bin && -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
+    if [[ -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
+        clang_version=$(${TEMP_DIR}/clang8/build/bin/clang --version | grep version | awk '{print $3}')
+        if [[ $clang_version =~ 8 ]]; then
+            return
+        fi
     fi
-  fi
-  false
+    false
 }
 
 function clean-clang() {
@@ -527,5 +569,5 @@ function echo-to-envfile() {
     local env_name="${1}"
     local env_value="${2}"
 
-    echo "export ${env_name}=${env_value}" >> ./scripts/.build_env
+    echo "export ${env_name}=${env_value}" >>./scripts/.build_env
 }
