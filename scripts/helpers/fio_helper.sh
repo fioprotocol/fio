@@ -538,30 +538,36 @@ function install-clang() {
 function apply-clang-ubuntu20-patches() {
     echo && echo "Applying glibc 2.31 patch to clang for ubuntu 20+..."
     execute bash -c "cd ${TEMP_DIR}/clang8/projects/compiler-rt \
+        && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/clang8-sanitizer_common-glibc2.31-947f969.patch\""
 }
 
 function apply-clang-ubuntu22-patches() {
     apply-clang-ubuntu20-patches
 
-    echo && echo "Applying standard headers patch to clang for ubuntu 22..."
+    echo && echo "Applying standard headers patch and limits patch to clang for ubuntu 22..."
     execute bash -c "cd ${TEMP_DIR}/clang8 \
-        && git apply \"$REPO_ROOT/patches/clang8-standardheaders.patch\""
-
-    echo "Applying limits patch to clang for ubuntu 22..."
-    execute bash -c "cd ${TEMP_DIR}/clang8 \
+        && git checkout -- . \
+        && git apply \"$REPO_ROOT/patches/clang8-standardheaders.patch\" \
         && git apply \"$REPO_ROOT/patches/clang8-limits.patch\""
 }
 
-function apply-fc-ubuntu22-patches() {
+function apply-fio-ubuntu22-patches() {
+    apply-fio-fc-ubuntu22-patches
+    apply-fio-yubihsm-ubuntu22-patches
+}
+
+function apply-fio-fc-ubuntu22-patches() {
     echo && echo "Applying openssl compat patch to fio fc submodule for ubuntu 22..."
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
+        && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/fc-openssl-compat.patch\""
 }
 
-function apply-yubihsm-ubuntu22-patches() {
+function apply-fio-yubihsm-ubuntu22-patches() {
     echo && echo "Applying openssl compat patch to fio yubihsm submodule for ubuntu 22..."
     execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
+        && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/yubihsm-openssl-compat.patch\""
 }
 

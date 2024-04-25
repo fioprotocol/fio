@@ -16,8 +16,7 @@ echo
 echo
 
 # Apply patches to fio fc and yubihsm submodules for ubuntu 22 openssl compatibility
-[[ $VERSION_ID == "22.04" ]] && apply-fc-ubuntu22-patches
-[[ $VERSION_ID == "22.04" ]] && apply-yubihsm-ubuntu22-patches
+[[ $VERSION_ID == "22.04" ]] && apply-fio-ubuntu22-patches
 
 # system clang and build essential for Ubuntu 18 (16 too old)
 ([[ $PIN_COMPILER == false ]] && ([[ $VERSION_ID == "18.04" ]] || [[ $VERSION_ID == "20.04" ]] || [[ $VERSION_ID == "22.04" ]])) && EXTRA_DEPS=(clang,dpkg\ -s)
