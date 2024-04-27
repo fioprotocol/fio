@@ -273,11 +273,15 @@ function ensure-cmake() {
     fi
 }
 
+# CMake may be built but is it configured for the same install directory??? applies to other repos as well
 function is-cmake-built() {
-    if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/bin/cmake ]]; then
-        cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/bin/cmake --version | grep version | awk '{print $3}')
+    if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake ]]; then
+        cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake --version | grep version | awk '{print $3}')
         if [[ $cmake_version =~ 3 ]]; then
-            return
+            cat ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            if [[ $? -eq 0 ]]; then
+                return
+            fi
         fi
     fi
     false
@@ -285,18 +289,20 @@ function is-cmake-built() {
 
 function build-cmake() {
     execute bash -c "cd $TEMP_DIR \
+        && rm -rf cmake-${CMAKE_VERSION} \
         && curl -LO https://cmake.org/files/v${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}/cmake-${CMAKE_VERSION}.tar.gz \
         && tar -xzf cmake-${CMAKE_VERSION}.tar.gz \
+        && rm -f cmake-${CMAKE_VERSION}.tar.gz \
         && cd cmake-${CMAKE_VERSION} \
-        && ./bootstrap --prefix=${CMAKE_INSTALL_DIR} \
+        && mkdir build && cd build \
+        && ../bootstrap --prefix=${CMAKE_INSTALL_DIR} \
         && make -j${JOBS}"
 }
 
 function install-cmake() {
     execute bash -c "cd $TEMP_DIR/cmake-${CMAKE_VERSION} \
-        && make install \
-        && cd .. \
-        && rm -f cmake-${CMAKE_VERSION}.tar.gz"
+        && cd build \
+        && make install"
 }
 
 function ensure-boost() {
@@ -325,29 +331,32 @@ function ensure-boost() {
 }
 
 function is-boost-built() {
-    if [[ -x ${TEMP_DIR}/boost_*/boost/version.hpp ]]; then
-        BOOSTVERSION=$(grep "#define BOOST_VERSION" "$TEMP_DIR/boost_*/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
+    if [[ -r ${TEMP_DIR}/boost_${BOOST_VERSION}/boost/version.hpp ]]; then
+        BOOSTVERSION=$(grep "#define BOOST_VERSION" "${TEMP_DIR}/boost_${BOOST_VERSION}/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
         if [[ "${BOOSTVERSION}" == "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
-            return
+            cat ${TEMP_DIR}/boost_${BOOST_VERSION}/project-config.jam | grep prefix | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            if [[ $? -eq 0 ]]; then
+                return
+            fi
         fi
     fi
     false
 }
 
 function build-boost() {
-    execute bash -c "cd $TEMP_DIR && \
-        curl -LO https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
-        && tar -xjf boost_$BOOST_VERSION.tar.bz2 \
-        && cd boost_$BOOST_VERSION \
-        && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=$BOOST_ROOT"
+    execute bash -c "cd ${TEMP_DIR} \
+        && rm -rf boost_${BOOST_VERSION} \
+        && curl -LO https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION_MAJOR}.${BOOST_VERSION_MINOR}.${BOOST_VERSION_PATCH}/source/boost_${BOOST_VERSION}.tar.bz2 \
+        && tar -xjf boost_${BOOST_VERSION}.tar.bz2 \
+        && rm -f boost_${BOOST_VERSION}.tar.bz2 \
+        && cd boost_${BOOST_VERSION} \
+        && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=${BOOST_ROOT}"
 }
 
 function install-boost() {
-    execute bash -c "cd $TEMP_DIR/boost_$BOOST_VERSION \
+    execute bash -c "cd ${TEMP_DIR}/boost_${BOOST_VERSION} \
         && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} \
-        && cd .. \
-        && rm -f boost_$BOOST_VERSION.tar.bz2 \
-        && rm -rf $BOOST_LINK_LOCATION"
+        && rm -rf ${BOOST_LINK_LOCATION}"
 }
 
 # Prompt user for installation directory.
@@ -389,6 +398,7 @@ function ensure-llvm() {
                 fi
                 CMAKE_FLAGS="-G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD='host' -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release .."
             fi
+            clean-llvm
             build-llvm
         fi
         install-llvm
@@ -405,17 +415,24 @@ function is-llvm-built() {
     if [[ -x ${TEMP_DIR}/llvm4/build/bin/llvm-ar ]]; then
         llvm_version=$(${TEMP_DIR}/llvm4/build/bin/llvm-ar --version | grep version | awk '{print $3}')
         if [[ $llvm_version =~ 4 ]]; then
-            return
+            cat ${TEMP_DIR}/llvm4/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            if [[ $? -eq 0 ]]; then
+                return
+            fi
         fi
     fi
     false
 }
 
+function clean-llvm() {
+    execute bash -c "rm -rf ${TEMP_DIR}/llvm4"
+}
+
 function build-llvm() {
     execute bash -c "cd ${TEMP_DIR} \
-        && git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm4 && cd llvm4 \
-        && mkdir build \
-        && cd build \
+        && git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm4 \
+        && cd llvm4 \
+        && mkdir build && cd build \
         && ${CMAKE} ${CMAKE_FLAGS} \
         && make -j${JOBS}"
 }
@@ -486,7 +503,10 @@ function is-clang-built() {
     if [[ -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
         clang_version=$(${TEMP_DIR}/clang8/build/bin/clang --version | grep version | awk '{print $3}')
         if [[ $clang_version =~ 8 ]]; then
-            return
+            cat ${TEMP_DIR}/clang8/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            if [[ $? -eq 0 ]]; then
+                return
+            fi
         fi
     fi
     false
