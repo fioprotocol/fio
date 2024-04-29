@@ -1,5 +1,5 @@
 export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export REPO_ROOT="${SCRIPT_DIR}/../.."
+export REPO_ROOT=$(realpath "${SCRIPT_DIR}/../..")
 export BUILD_DIR="${REPO_ROOT}/build"
 
 export EOSIO_VERSION_MAJOR=$(cat $REPO_ROOT/CMakeLists.txt | grep -E "^[[:blank:]]*set[[:blank:]]*\([[:blank:]]*VERSION_MAJOR" | tail -1 | sed 's/.*VERSION_MAJOR //g' | sed 's/ //g' | sed 's/"//g' | cut -d\) -f1)
