@@ -88,7 +88,6 @@ else
     git checkout feature/bd-4618-ubuntu-upgrade
     echo && echo "Cleaning fio.cdt build directory..." && echo
     rm -rf build
-    echo && echo "Building fio.cdt..." && echo
     ./build.sh
     sudo ./install.sh
 fi
