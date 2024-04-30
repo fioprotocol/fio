@@ -92,7 +92,7 @@ else
     sudo ./install.sh
 fi
 
-printf "\n${bldred}\n"
+printf "${COLOR_RED}\n"
 printf "      ___                       ___               \n"
 printf "     /\\__\\                     /\\  \\          \n"
 printf "    /:/ _/_      ___          /::\\  \\           \n"
@@ -104,7 +104,7 @@ printf "  \\::/__/        \\:\\/\\__\\   \\:\\  /:/  /    \n"
 printf "   \\:\\  \\         \\::/  /    \\:\\/:/  /      \n"
 printf "    \\:\\__\\        /:/  /      \\::/  /         \n"
 printf "     \\/__/        \\/__/        \\/__/           \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY         \n\n${txtrst}"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY          \n\n${COLOR_NC}"
 
 printf "==============================================================================================\\n"
 printf "${COLOR_GREEN}FIO has been installed to ${CACHED_INSTALL_PATH}${COLOR_NC}"

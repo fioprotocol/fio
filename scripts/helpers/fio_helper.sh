@@ -142,8 +142,8 @@ function previous-install-prompt() {
 
 function resources() {
     echo "${COLOR_CYAN}For more information:"
-    echo "${COLOR_CYAN}FIO website: https://fio.foundation"
-    echo "${COLOR_CYAN}FIO resources: https://developers.fioprotocol.io"
+    echo "${COLOR_CYAN}FIO website: https://fio.net"
+    echo "${COLOR_CYAN}FIO Developer Hub: https://dev.fio.net/"
     echo "${COLOR_CYAN}FIO Telegram channel:${COLOR_NC} https://t.me/joinFIO"
     echo "${COLOR_CYAN}FIO Discord:${COLOR_NC} https://discordapp.com/invite/pHBmJCc"
 }
