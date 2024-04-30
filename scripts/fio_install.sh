@@ -78,33 +78,37 @@ if hash eosio-cpp 2>/dev/null; then
     echo $'Restart Detected\n\n'
 else
     cd ../
+    echo && echo "Cloning fio.cdt..." && echo
     [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
     sleep 2s
     cd fio.cdt
-    echo
-    echo "Checking out upgrade branch. Remove on merge to develop!"
-    git checkout feature/bd-4618-ubuntu-upgrade
     git submodule update --init --recursive
+    git checkout --recurse-submodules -- .
+    echo && echo "Checking out upgrade branch. Remove on merge to develop!" && echo
+    git checkout feature/bd-4618-ubuntu-upgrade
+    echo && echo "Cleaning fio.cdt build directory..." && echo
+    rm -rf build
+    echo && echo "Building fio.cdt..." && echo
     ./build.sh
     sudo ./install.sh
 fi
 
 printf "\n${bldred}\n"
-printf "      ___                       ___                 \n"
-printf "     /\\__\\                     /\\  \\            \n"
-printf "    /:/ _/_       ___         /::\\  \\             \n"
-printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
-printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
-printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
-printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
-printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
-printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
-printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
-printf "     \\/__/         \\/__/       \\/__/             \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${COLOR_NC}"
+printf "      ___                       ___              \n"
+printf "     /\\__\\                     /\\  \\         \n"
+printf "    /:/ _/_      ___          /::\\  \\          \n"
+printf "   /:/ /\\__\\    /\\__\\        /:/\\:\\  \\    \n"
+printf "  /:/ /:/  /   /:/__/       /:/  \\:\\  \\       \n"
+printf " /:/_/:/  /   /::\\  \\      /:/    \\:\\__\\    \n"
+printf " \\:\\/:/  /    \\/\\:\\  \\__   \\:\\    /:/  / \n"
+printf "  \\::/__/        \\:\\/\\__\\   \\:\\  /:/  /   \n"
+printf "   \\:\\  \\         \\::/  /    \\:\\/:/  /     \n"
+printf "    \\:\\__\\        /:/  /      \\::/  /        \n"
+printf "     \\/__/        \\/__/        \\/__/          \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY         \n\n${txtrst}"
 
 printf "==============================================================================================\\n"
-printf "${COLOR_GREEN}FIO has been installed into ${CACHED_INSTALL_PATH}/bin${COLOR_NC}"
+printf "${COLOR_GREEN}FIO has been installed to ${CACHED_INSTALL_PATH}${COLOR_NC}"
 printf "\\n${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 resources
