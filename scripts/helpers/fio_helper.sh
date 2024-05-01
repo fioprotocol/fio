@@ -101,28 +101,28 @@ function install-directory-prompt() {
             case $PROCEED in
             "") echo "What would you like to do?" ;;
             0 | true | [Yy]*)
+                INSTALL_LOCATION=${EOSIO_INSTALL_DIR}
                 break
                 ;;
             1 | false | [Nn]*)
-                printf "Enter the desired installation location." && read -p " " EOSIO_INSTALL_DIR
-                export EOSIO_INSTALL_DIR
+                printf "Enter the desired installation location." && read -p " " INSTALL_LOCATION
+                INSTALL_LOCATION=$input
                 break
                 ;;
             *) echo "Please type 'y' for yes or 'n' for no." ;;
             esac
         done
-    else
-        # Support relative paths : https://github.com/EOSIO/eos/issues/7560
-        [[ ! $INSTALL_LOCATION =~ ^\/ ]] && export INSTALL_LOCATION="${CURRENT_WORKING_DIR}/$INSTALL_LOCATION"
-        export EOSIO_INSTALL_DIR="$INSTALL_LOCATION"
     fi
-    . ./scripts/helpers/.build_vars
-    echo "FIO will be installed to: ${EOSIO_INSTALL_DIR}"
+
+    # Support relative paths : https://github.com/EOSIO/eos/issues/7560
+    [[ ${INSTALL_LOCATION:0:1} != '/' && ${INSTALL_LOCATION:0:2} != ~[/a-z] ]] && INSTALL_LOCATION=${CURRENT_WORKING_DIR}/${INSTALL_LOCATION}
+    [[ ${INSTALL_LOCATION:0:2} == ~[/a-z] ]] && INSTALL_LOCATION="${INSTALL_LOCATION/#\~/$HOME}"
+    export INSTALL_LOCATION=$(realpath ${INSTALL_LOCATION})
 }
 
 function previous-install-prompt() {
-    if [[ -d $EOSIO_INSTALL_DIR ]]; then
-        echo "FIO has already been installed into ${EOSIO_INSTALL_DIR}... It's suggested that you fio_uninstall.sh before re-running this script."
+    if [[ -d $INSTALL_LOCATION ]]; then
+        echo "FIO has already been installed into ${INSTALL_LOCATION}... It's suggested that you fio_uninstall.sh before re-running this script."
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to proceed anyway? (y/n)${COLOR_NC}" && read -p " " PROCEED
             echo ""
@@ -138,6 +138,12 @@ function previous-install-prompt() {
             esac
         done
     fi
+
+    # Now export the eosio install dir and set up the build env
+    export EOSIO_INSTALL_DIR=${INSTALL_LOCATION}
+    . ./scripts/helpers/.build_vars
+
+    echo "FIO will be installed to: ${EOSIO_INSTALL_DIR}"
 }
 
 function resources() {
