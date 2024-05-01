@@ -106,7 +106,6 @@ function install-directory-prompt() {
                 ;;
             1 | false | [Nn]*)
                 printf "Enter the desired installation location." && read -p " " INSTALL_LOCATION
-                INSTALL_LOCATION=$input
                 break
                 ;;
             *) echo "Please type 'y' for yes or 'n' for no." ;;
