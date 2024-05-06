@@ -282,11 +282,8 @@ function ensure-cmake() {
 function is-cmake-built() {
     if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake ]]; then
         cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake --version | grep version | awk '{print $3}')
-        if [[ $cmake_version =~ 3 ]]; then
-            cat ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
-            if [[ $? -eq 0 ]]; then
-                return
-            fi
+        if [[ $cmake_version =~ 3.2 ]]; then
+            return
         fi
     fi
     false
@@ -368,9 +365,9 @@ function install-boost() {
 function prompt-pinned-llvm-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
     if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER == true || $BUILD_CLANG == true) ]]; then
-        if is-llvm-built; then
+        if is-llvm-built && ! $NONINTERACTIVE; then
             while true; do
-                [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
                 echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
@@ -392,26 +389,27 @@ function prompt-pinned-llvm-build() {
 function ensure-llvm() {
     echo "${COLOR_CYAN}[Ensuring LLVM 4 support]${COLOR_NC}"
     if [[ ! -d $LLVM_ROOT ]]; then
-        if ! is-llvm-built; then
-            if $PIN_COMPILER || $BUILD_CLANG; then
-                CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX='${LLVM_ROOT}' -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE='${BUILD_DIR}/pinned_toolchain.cmake' .."
-            else
-                if [[ $NAME == "Ubuntu" ]]; then
-                    execute ln -s /usr/lib/llvm-4.0 $LLVM_ROOT
-                    echo " - LLVM successfully linked from /usr/lib/llvm-4.0 to ${LLVM_ROOT}"
-                    return 0
+        if [[ $NAME == "Ubuntu" && $PIN_COMPILER == false && $BUILD_CLANG == false ]]; then
+            execute ln -s /usr/lib/llvm-4.0 $LLVM_ROOT
+            echo " - LLVM successfully linked from /usr/lib/llvm-4.0 to ${LLVM_ROOT}"
+        else
+            if ! is-llvm-built; then
+                CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release"
+                if $PIN_COMPILER || $BUILD_CLANG; then
+                    CMAKE_FLAGS="${CMAKE_FLAGS} -DCMAKE_TOOLCHAIN_FILE=${BUILD_DIR}/pinned_toolchain.cmake .."
+                else
+                    CMAKE_FLAGS="${CMAKE_FLAGS} -G 'Unix Makefiles' .."
                 fi
-                CMAKE_FLAGS="-G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD='host' -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release .."
+                clean-llvm
+                build-llvm
             fi
-            clean-llvm
-            build-llvm
+            install-llvm
+            echo " - LLVM successfully installed @ ${LLVM_ROOT}"
+            echo
         fi
-        install-llvm
-        echo " - LLVM successfully installed @ ${LLVM_ROOT}"
-        echo ""
     else
         echo " - LLVM found @ ${LLVM_ROOT}."
-        echo ""
+        echo
     fi
 }
 
@@ -452,9 +450,9 @@ function install-llvm() {
 function prompt-pinned-clang-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
     if [[ ! -d $CLANG_ROOT && $PIN_COMPILER == true ]]; then
-        if is-clang-built; then
+        if is-clang-built && ! $NONINTERACTIVE; then
             while true; do
-                [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                printf "${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
                 echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
