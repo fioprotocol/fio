@@ -136,7 +136,7 @@ if ! hash eosio-cpp 2>/dev/null; then
       git checkout feature/bd-4618-ubuntu-upgrade
       echo && echo "Cleaning fio.cdt build directory..." && echo
       rm -rf build
-      ./build.sh
+      ./build.sh -f ${EOSIO_INSTALL_DIR}
       sudo ./install.sh
    else
       echo "The FIO Contract Development Toolkit is not installed. If contract development will be performed, either"
