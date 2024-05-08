@@ -43,13 +43,16 @@ function usage() {
 BUILD_FIO=${BUILD_FIO:-false}
 INSTALL_FIO_CDT=${INSTALL_FIO_CDT:-false}
 if [ $# -ne 0 ]; then
-   while getopts "at" opt; do
+   while getopts "ato:s:b:i:ycdhmP" opt; do
       case "${opt}" in
       a)
          BUILD_FIO=true
          ;;
       t)
          INSTALL_FIO_CDT=true
+         ;;
+      o|s|b|i|y|c|d|m|P)
+         #NOOP: passed to fio_build.sh
          ;;
       h)
          usage
