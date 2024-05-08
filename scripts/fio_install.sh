@@ -122,8 +122,7 @@ printf "${COLOR_GREEN}FIO has been installed to ${CACHED_INSTALL_PATH}${COLOR_NC
 printf "\\n${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 resources
-printf "==============================================================================================\\n\\n"
-echo
+printf "\n==============================================================================================\\n\\n"
 if ! hash eosio-cpp 2>/dev/null; then
    if $INSTALL_FIO_CDT; then
       cd ../
@@ -140,7 +139,6 @@ if ! hash eosio-cpp 2>/dev/null; then
       ./build.sh
       sudo ./install.sh
    else
-      echo
       echo "The FIO Contract Development Toolkit is not installed. If contract development will be performed, either"
       echo "re-execute this script with the '-t' option or perform the following steps to clone, build and install the"
       echo "fio.cdt suite;"

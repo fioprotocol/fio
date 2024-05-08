@@ -367,7 +367,7 @@ function prompt-pinned-llvm-build() {
     if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER == true || $BUILD_CLANG == true) ]]; then
         if is-llvm-built && ! $NONINTERACTIVE; then
             while true; do
-                printf "${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                printf "\n${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
                 echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
@@ -452,7 +452,7 @@ function prompt-pinned-clang-build() {
     if [[ ! -d $CLANG_ROOT && $PIN_COMPILER == true ]]; then
         if is-clang-built && ! $NONINTERACTIVE; then
             while true; do
-                printf "${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                printf "\n${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
                 echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
