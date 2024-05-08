@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 #set -x
-SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD image)
+
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
 # This file was downloaded from https://github.com/fioprotocol/fio
@@ -114,6 +114,7 @@ if [ $# -ne 0 ]; then
    done
 fi
 
+SCRIPT_VERSION=3.5 # Build script version (change this to re-build the CICD image)
 export CURRENT_WORKING_DIR=$(pwd) # relative path support
 
 # Ensure we're in the repo root and not inside of scripts

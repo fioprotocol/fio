@@ -32,12 +32,38 @@ VERSION=2.1
 # https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
+function usage() {
+   printf "Usage: $0 OPTION...
+  -a      Build and Install FIO
+  -t      Build and Install the FIO Contract Development Toolkit (CDT), to support FIO contract development.
+   \\n" "$0" 1>&2
+   exit 1
+}
+
 BUILD_FIO=${BUILD_FIO:-false}
+INSTALL_FIO_CDT=${INSTALL_FIO_CDT:-false}
 if [ $# -ne 0 ]; then
-   while getopts "a" opt; do
+   while getopts "at" opt; do
       case "${opt}" in
       a)
          BUILD_FIO=true
+         ;;
+      t)
+         INSTALL_FIO_CDT=true
+         ;;
+      h)
+         usage
+         ;;
+      ?)
+         echo "Invalid Option!" 1>&2
+         usage
+         ;;
+      :)
+         echo "Invalid Option: -${OPTARG} requires an argument." 1>&2
+         usage
+         ;;
+      *)
+         usage
          ;;
       esac
    done
@@ -74,24 +100,6 @@ execute cd $BUILD_DIR
 execute make install
 execute cd ..
 
-if hash eosio-cpp 2>/dev/null; then
-    echo $'Restart Detected\n\n'
-else
-    cd ../
-    echo && echo "Cloning fio.cdt..." && echo
-    [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
-    sleep 2s
-    cd fio.cdt
-    git submodule update --init --recursive
-    git checkout --recurse-submodules -- .
-    echo && echo "Checking out upgrade branch. Remove on merge to develop!" && echo
-    git checkout feature/bd-4618-ubuntu-upgrade
-    echo && echo "Cleaning fio.cdt build directory..." && echo
-    rm -rf build
-    ./build.sh
-    sudo ./install.sh
-fi
-
 printf "${COLOR_RED}\n"
 printf "      ___                       ___               \n"
 printf "     /\\__\\                     /\\  \\          \n"
@@ -111,3 +119,33 @@ printf "${COLOR_GREEN}FIO has been installed to ${CACHED_INSTALL_PATH}${COLOR_NC
 printf "\\n${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 resources
+printf "==============================================================================================\\n\\n"
+echo
+if ! hash eosio-cpp 2>/dev/null; then
+   if $INSTALL_FIO_CDT; then
+      cd ../
+      echo && echo "Cloning fio.cdt..." && echo
+      [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
+      sleep 2s
+      cd fio.cdt
+      git submodule update --init --recursive
+      git checkout --recurse-submodules -- .
+      echo && echo "Checking out upgrade branch. Remove on merge to develop!" && echo
+      git checkout feature/bd-4618-ubuntu-upgrade
+      echo && echo "Cleaning fio.cdt build directory..." && echo
+      rm -rf build
+      ./build.sh
+      sudo ./install.sh
+   else
+      echo
+      echo "The FIO Contract Development Toolkit is not installed. If contract development will be performed, either"
+      echo "re-execute this script with the '-t' option or perform the following steps to clone, build and install the"
+      echo "fio.cdt suite;"
+      echo "  git clone https://www.github.com/fioprotocol/fio.cdt.git"
+      echo "  cd fio.cdt"
+      echo "  git submodule update --init --recursive"
+      echo "  ./build.sh"
+      echo "  sudo ./install.sh"
+      echo
+   fi
+fi
