@@ -50,9 +50,9 @@ function usage() {
 
 TIME_BEGIN=$(date -u +%s)
 if [ $# -ne 0 ]; then
-   while getopts "ao:s:b:i:ycdhmP" opt; do
+   while getopts "ato:s:b:i:ycdhmP" opt; do
       case "${opt}" in
-      a) #NOOP: passed to fio_install.sh
+      a|t) #NOOP: passed from fio_install.sh
          ;;
       o)
          options=("Debug" "Release" "RelWithDebInfo" "MinSizeRel")
