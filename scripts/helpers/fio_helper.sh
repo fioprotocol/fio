@@ -283,7 +283,10 @@ function is-cmake-built() {
     if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake ]]; then
         cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake --version | grep version | awk '{print $3}')
         if [[ $cmake_version =~ 3.2 ]]; then
-            return
+            cat ${TEMP_DIR}/llvm4/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            if [[ $? -eq 0 ]]; then
+                return
+            fi
         fi
     fi
     false
