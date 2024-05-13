@@ -283,7 +283,7 @@ function is-cmake-built() {
     if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake ]]; then
         cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake --version | grep version | awk '{print $3}')
         if [[ $cmake_version =~ 3.2 ]]; then
-            cat ${TEMP_DIR}/llvm4/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            cat ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
             if [[ $? -eq 0 ]]; then
                 return
             fi
@@ -293,7 +293,7 @@ function is-cmake-built() {
 }
 
 function build-cmake() {
-    execute bash -c "cd $TEMP_DIR \
+    execute bash -c "cd ${TEMP_DIR} \
         && rm -rf cmake-${CMAKE_VERSION} \
         && curl -LO https://cmake.org/files/v${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}/cmake-${CMAKE_VERSION}.tar.gz \
         && tar -xzf cmake-${CMAKE_VERSION}.tar.gz \
@@ -305,7 +305,7 @@ function build-cmake() {
 }
 
 function install-cmake() {
-    execute bash -c "cd $TEMP_DIR/cmake-${CMAKE_VERSION} \
+    execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
         && cd build \
         && make install"
 }
@@ -370,7 +370,7 @@ function prompt-pinned-llvm-build() {
     if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER == true || $BUILD_CLANG == true) ]]; then
         if is-llvm-built && ! $NONINTERACTIVE; then
             while true; do
-                printf "\n${COLOR_YELLOW}A pinned llvm build was found in $TEMP_DIR/llvm4. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
+                printf "\n${COLOR_YELLOW}A pinned llvm build was found in ${TEMP_DIR}/${LLVM_NAME}. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
                 echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
@@ -379,7 +379,7 @@ function prompt-pinned-llvm-build() {
                     ;;
                 1 | false | [Nn]*)
                     echo "Removing previous llvm 4 build..."
-                    rm -rf $TEMP_DIR/llvm4
+                    rm -rf ${TEMP_DIR}/${LLVM_NAME}
                     break
                     ;;
                 *) echo "Please type 'y' for yes or 'n' for no." ;;
@@ -417,11 +417,11 @@ function ensure-llvm() {
 }
 
 function is-llvm-built() {
-    #if [[ -d ${TEMP_DIR}/llvm4 && -d ${TEMP_DIR}/llvm4/build && -d ${TEMP_DIR}/llvm4/build/bin && -x ${TEMP_DIR}/llvm/build/bin/llvm-ar ]]; then
-    if [[ -x ${TEMP_DIR}/llvm4/build/bin/llvm-ar ]]; then
-        llvm_version=$(${TEMP_DIR}/llvm4/build/bin/llvm-ar --version | grep version | awk '{print $3}')
+    #if [[ -d ${TEMP_DIR}/${LLVM_NAME} && -d ${TEMP_DIR}/${LLVM_NAME}/build && -d ${TEMP_DIR}/${LLVM_NAME}/build/bin && -x ${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-ar ]]; then
+    if [[ -x ${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-ar ]]; then
+        llvm_version=$(${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-ar --version | grep version | awk '{print $3}')
         if [[ $llvm_version =~ 4 ]]; then
-            cat ${TEMP_DIR}/llvm4/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            cat ${TEMP_DIR}/${LLVM_NAME}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
             if [[ $? -eq 0 ]]; then
                 return
             fi
@@ -431,20 +431,20 @@ function is-llvm-built() {
 }
 
 function clean-llvm() {
-    execute bash -c "rm -rf ${TEMP_DIR}/llvm4"
+    execute bash -c "rm -rf ${TEMP_DIR}/${LLVM_NAME}"
 }
 
 function build-llvm() {
     execute bash -c "cd ${TEMP_DIR} \
-        && git clone --depth 1 --single-branch --branch $LLVM_VERSION https://github.com/llvm-mirror/llvm.git llvm4 \
-        && cd llvm4 \
+        && git clone --depth 1 --single-branch --branch $PINNED_LLVM_VERSION https://github.com/llvm-mirror/llvm.git ${LLVM_NAME} \
+        && cd ${LLVM_NAME} \
         && mkdir build && cd build \
         && ${CMAKE} ${CMAKE_FLAGS} \
         && make -j${JOBS}"
 }
 
 function install-llvm() {
-    execute bash -c "cd ${TEMP_DIR}/llvm4 \
+    execute bash -c "cd ${TEMP_DIR}/${LLVM_NAME} \
         && cd build \
         && make install"
 }
@@ -464,7 +464,7 @@ function prompt-pinned-clang-build() {
                     ;;
                 1 | false | [Nn]*)
                     echo "Removing previous clang 8 build..."
-                    rm -rf $TEMP_DIR/clang8
+                    rm -rf ${TEMP_DIR}/${CLANG_NAME}
                     break
                     ;;
                 *) echo "Please type 'y' for yes or 'n' for no." ;;
@@ -505,11 +505,11 @@ function ensure-clang() {
 }
 
 function is-clang-built() {
-    #if [[ -d ${TEMP_DIR}/clang8 && -d ${TEMP_DIR}/clang8/build && -d ${TEMP_DIR}/clang8/build/bin && -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
-    if [[ -x ${TEMP_DIR}/clang8/build/bin/clang ]]; then
-        clang_version=$(${TEMP_DIR}/clang8/build/bin/clang --version | grep version | awk '{print $3}')
+    #if [[ -d ${TEMP_DIR}/${CLANG_NAME} && -d ${TEMP_DIR}/${CLANG_NAME}/build && -d ${TEMP_DIR}/${CLANG_NAME}/build/bin && -x ${TEMP_DIR}/${CLANG_NAME}/build/bin/clang ]]; then
+    if [[ -x ${TEMP_DIR}/${CLANG_NAME}/build/bin/clang ]]; then
+        clang_version=$(${TEMP_DIR}/${CLANG_NAME}/build/bin/clang --version | grep version | awk '{print $3}')
         if [[ $clang_version =~ 8 ]]; then
-            cat ${TEMP_DIR}/clang8/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
+            cat ${TEMP_DIR}/${CLANG_NAME}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
             if [[ $? -eq 0 ]]; then
                 return
             fi
@@ -519,13 +519,13 @@ function is-clang-built() {
 }
 
 function clean-clang() {
-    execute bash -c "rm -rf ${TEMP_DIR}/clang8"
+    execute bash -c "rm -rf ${TEMP_DIR}/${CLANG_NAME}"
 }
 
 function clone-clang() {
     execute bash -c "cd ${TEMP_DIR} \
-        && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git clang8 \
-        && cd clang8 && git checkout $PINNED_COMPILER_LLVM_COMMIT \
+        && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git ${CLANG_NAME} \
+        && cd ${CLANG_NAME} && git checkout $PINNED_COMPILER_LLVM_COMMIT \
         && cd tools \
         && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/lld.git \
         && cd lld && git checkout $PINNED_COMPILER_LLD_COMMIT && cd ../ \
@@ -549,21 +549,21 @@ function clone-clang() {
 }
 
 function build-clang() {
-    execute bash -c "cd ${TEMP_DIR}/clang8 \
+    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && mkdir build && cd build \
         && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${CLANG_ROOT}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
         && make -j${JOBS}"
 }
 
 function install-clang() {
-    execute bash -c "cd ${TEMP_DIR}/clang8 \
+    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && cd build \
         && make install"
 }
 
 function apply-clang-ubuntu20-patches() {
     echo && echo "Applying glibc 2.31 patch to clang for ubuntu 20+..."
-    execute bash -c "cd ${TEMP_DIR}/clang8/projects/compiler-rt \
+    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME}/projects/compiler-rt \
         && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/clang8-sanitizer_common-glibc2.31-947f969.patch\""
 }
@@ -572,7 +572,7 @@ function apply-clang-ubuntu22-patches() {
     apply-clang-ubuntu20-patches
 
     echo && echo "Applying standard headers patch and limits patch to clang for ubuntu 22..."
-    execute bash -c "cd ${TEMP_DIR}/clang8 \
+    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/clang8-standardheaders.patch\" \
         && git apply \"$REPO_ROOT/patches/clang8-limits.patch\""
