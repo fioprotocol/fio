@@ -41,15 +41,11 @@ function usage() {
 }
 
 BUILD_FIO=${BUILD_FIO:-false}
-INSTALL_FIO_CDT=${INSTALL_FIO_CDT:-false}
 if [ $# -ne 0 ]; then
-   while getopts "ato:s:b:i:ycdhmP" opt; do
+   while getopts "ao:s:b:i:ycdhmP" opt; do
       case "${opt}" in
       a)
          BUILD_FIO=true
-         ;;
-      t)
-         INSTALL_FIO_CDT=true
          ;;
       o|s|b|i|y|c|d|m|P)
          #NOOP: passed to fio_build.sh
@@ -99,10 +95,13 @@ echo "Capturing env" && env > fio_build_env.out
 [[ ! -f ${BUILD_DIR}/CMakeCache.txt ]] && printf "${COLOR_RED}Please run ./fio_build.sh first!${COLOR_NC}" && echo && exit 1
 
 # Oddly several installs occur during build, incl boost, clang, cmake, and llvm; verify those and then install fio
-[[ ! (-e ${EOSIO_INSTALL_DIR} && -x ${EOSIO_INSTALL_DIR}/opt/${CLANG_NAME}/bin/clang \
-  && -s ${EOSIO_INSTALL_DIR}/opt/${LLVM_NAME}/lib/libLTO.so && -d ${EOSIO_INSTALL_DIR}/src/boost_1_71_0/include \
+[[ ! (-e ${EOSIO_INSTALL_DIR} \
+  && -x ${EOSIO_INSTALL_DIR}/opt/${CLANG_NAME}/bin/clang \
+  && -s ${EOSIO_INSTALL_DIR}/opt/${LLVM_NAME}/lib/libLTO.so \
+  && -d ${EOSIO_INSTALL_DIR}/src/boost_1_71_0/include \
   && -x ${CMAKE}) ]] \
   && printf "${COLOR_RED}The FIO install, ${EOSIO_INSTALL_DIR}, is corrupt! Please rebuild using ./fio_build.sh then re-install!${COLOR_NC}" && echo && exit 1
+
 echo "${COLOR_CYAN}====================================================================================="
 echo "========================== ${COLOR_WHITE}Starting FIO Installation${COLOR_CYAN} ==============================${COLOR_NC}"
 execute cd $BUILD_DIR
@@ -129,30 +128,3 @@ printf "\\n${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh$
 printf "==============================================================================================\\n\\n"
 resources
 printf "\n==============================================================================================\\n\\n"
-if ! hash eosio-cpp 2>/dev/null; then
-   if $INSTALL_FIO_CDT; then
-      cd ../
-      echo && echo "Cloning fio.cdt..." && echo
-      [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
-      sleep 2s
-      cd fio.cdt
-      git submodule update --init --recursive
-      git checkout --recurse-submodules -- .
-      echo && echo "Checking out upgrade branch. Remove on merge to develop!" && echo
-      git checkout feature/bd-4618-ubuntu-upgrade
-      echo && echo "Cleaning fio.cdt build directory..." && echo
-      rm -rf build
-      ./build.sh -f ${EOSIO_INSTALL_DIR}
-      sudo ./install.sh
-   else
-      echo "The FIO Contract Development Toolkit is not installed. If contract development will be performed, either"
-      echo "re-execute this script with the '-t' option or perform the following steps to clone, build and install the"
-      echo "fio.cdt suite;"
-      echo "  git clone https://www.github.com/fioprotocol/fio.cdt.git"
-      echo "  cd fio.cdt"
-      echo "  git submodule update --init --recursive"
-      echo "  ./build.sh"
-      echo "  sudo ./install.sh"
-      echo
-   fi
-fi
