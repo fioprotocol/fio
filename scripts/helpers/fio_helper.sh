@@ -411,7 +411,7 @@ function ensure-llvm() {
             echo
         fi
     else
-        echo " - LLVM found @ ${LLVM_ROOT}."
+        echo " - LLVM found @ ${LLVM_ROOT}"
         echo
     fi
 }
