@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -eo pipefail
-#set -x
 
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
@@ -49,10 +48,15 @@ function usage() {
 }
 
 TIME_BEGIN=$(date -u +%s)
+DEBUG=${DEBUG:-false}
 if [ $# -ne 0 ]; then
-   while getopts "ao:s:b:i:ycdhmP" opt; do
+   while getopts "ado:s:b:i:ycdhmP" opt; do
       case "${opt}" in
       a) #NOOP: passed from fio_install.sh
+         ;;
+      d)
+         DEBUG=true
+         set -x
          ;;
       o)
          options=("Debug" "Release" "RelWithDebInfo" "MinSizeRel")

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
-VERSION=2.1
+
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
 # This file was downloaded from https://github.com/fioprotocol/fio
@@ -41,11 +41,16 @@ function usage() {
 }
 
 BUILD_FIO=${BUILD_FIO:-false}
+DEBUG=${DEBUG:-false}
 if [ $# -ne 0 ]; then
-   while getopts "ao:s:b:i:ycdhmP" opt; do
+   while getopts "ado:s:b:i:ycdhmP" opt; do
       case "${opt}" in
       a)
          BUILD_FIO=true
+         ;;
+      d)
+         DEBUG=true
+         set -x
          ;;
       o|s|b|i|y|c|d|m|P)
          #NOOP: passed to fio_build.sh
@@ -68,7 +73,8 @@ if [ $# -ne 0 ]; then
    done
 fi
 
-# Get directory this script is in
+# Script env
+SCRIPT_VERSION=2.1
 MY_SCRIPT_DIR=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 
 # Build fio first if -a argument was given
@@ -88,7 +94,7 @@ cd $(dirname "${BASH_SOURCE[0]}")/..
 # Load build env (generated during build)
 . ./scripts/.build_env
 
-echo "Capturing env" && env > fio_build_env.out
+$DEBUG && echo "Capturing env" && env > fio_build_env.out
 
 [[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
