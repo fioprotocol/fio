@@ -49,7 +49,10 @@ function setup() {
         echo "PIN_COMPILER: ${PIN_COMPILER}"
     fi
     ([[ -d $BUILD_DIR ]] && [[ -z $BUILD_DIR_CLEANUP_SKIP ]]) && execute rm -rf $BUILD_DIR # cleanup old build directory; support disabling it (Zach requested)
+
     execute-always mkdir -p $TEMP_DIR
+    execute-always mkdir -p $FIO_APTS_DIR
+
     execute mkdir -p $BUILD_DIR
     execute mkdir -p $SRC_DIR
     execute mkdir -p $OPT_DIR
@@ -58,6 +61,10 @@ function setup() {
     execute mkdir -p $VAR_DIR/log
     execute mkdir -p $ETC_DIR
     execute mkdir -p $LIB_DIR
+
+    execute mkdir -p $CLANG_ROOT
+    execute mkdir -p $LLVM_ROOT
+
     if $ENABLE_MONGO; then
         execute mkdir -p $MONGODB_LOG_DIR
         execute mkdir -p $MONGODB_DATA_DIR
@@ -269,7 +276,8 @@ function ensure-cmake() {
             build-cmake
         fi
         install-cmake
-        [[ -z "${CMAKE}" ]] && export CMAKE="${BIN_DIR}/cmake"
+        publish-cmake
+        [[ -z "${CMAKE}" ]] && export CMAKE="${CMAKE_ROOT}/bin/cmake"
         echo " - CMAKE successfully installed @ ${CMAKE}"
         echo ""
     else
@@ -283,10 +291,7 @@ function is-cmake-built() {
     if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake ]]; then
         cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake --version | grep version | awk '{print $3}')
         if [[ $cmake_version =~ 3.2 ]]; then
-            cat ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
-            if [[ $? -eq 0 ]]; then
-                return
-            fi
+            return
         fi
     fi
     false
@@ -300,7 +305,7 @@ function build-cmake() {
         && rm -f cmake-${CMAKE_VERSION}.tar.gz \
         && cd cmake-${CMAKE_VERSION} \
         && mkdir build && cd build \
-        && ../bootstrap --prefix=${CMAKE_INSTALL_DIR} \
+        && ../bootstrap --prefix=${FIO_APTS_DIR} \
         && make -j${JOBS}"
 }
 
@@ -308,6 +313,11 @@ function install-cmake() {
     execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
         && cd build \
         && make install"
+}
+
+function publish-cmake() {
+    execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
+        && ./build/bin/cmake --install build --prefix ${CMAKE_ROOT}"
 }
 
 function ensure-boost() {
@@ -371,7 +381,6 @@ function prompt-pinned-llvm-build() {
         if is-llvm-built && ! $NONINTERACTIVE; then
             while true; do
                 printf "\n${COLOR_YELLOW}A pinned llvm build was found in ${TEMP_DIR}/${LLVM_NAME}. Do you wish to use this as the FIO llvm? (y/n)${COLOR_NC}" && read -p " " PROCEED
-                echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
                 0 | true | [Yy]*)
@@ -391,13 +400,13 @@ function prompt-pinned-llvm-build() {
 
 function ensure-llvm() {
     echo "${COLOR_CYAN}[Ensuring LLVM 4 support]${COLOR_NC}"
-    if [[ ! -d $LLVM_ROOT ]]; then
+    if ! is-llvm-published; then
         if [[ $NAME == "Ubuntu" && $PIN_COMPILER == false && $BUILD_CLANG == false ]]; then
-            execute ln -s /usr/lib/llvm-4.0 $LLVM_ROOT
+            execute ln -s /usr/lib/llvm-4.0 ${LLVM_ROOT}
             echo " - LLVM successfully linked from /usr/lib/llvm-4.0 to ${LLVM_ROOT}"
         else
             if ! is-llvm-built; then
-                CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=${LLVM_ROOT} -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release"
+                CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=${FIO_APTS_DIR} -DLLVM_TARGETS_TO_BUILD=host -DLLVM_BUILD_TOOLS=false -DLLVM_ENABLE_RTTI=1 -DCMAKE_BUILD_TYPE=Release"
                 if $PIN_COMPILER || $BUILD_CLANG; then
                     CMAKE_FLAGS="${CMAKE_FLAGS} -DCMAKE_TOOLCHAIN_FILE=${BUILD_DIR}/pinned_toolchain.cmake .."
                 else
@@ -407,6 +416,7 @@ function ensure-llvm() {
                 build-llvm
             fi
             install-llvm
+            publish-llvm
             echo " - LLVM successfully installed @ ${LLVM_ROOT}"
             echo
         fi
@@ -417,14 +427,20 @@ function ensure-llvm() {
 }
 
 function is-llvm-built() {
-    #if [[ -d ${TEMP_DIR}/${LLVM_NAME} && -d ${TEMP_DIR}/${LLVM_NAME}/build && -d ${TEMP_DIR}/${LLVM_NAME}/build/bin && -x ${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-ar ]]; then
-    if [[ -x ${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-ar ]]; then
-        llvm_version=$(${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-ar --version | grep version | awk '{print $3}')
+    if [[ -x ${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-tblgen ]]; then
+        llvm_version=$(${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-tblgen --version | grep version | awk '{print $3}')
         if [[ $llvm_version =~ 4 ]]; then
-            cat ${TEMP_DIR}/${LLVM_NAME}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
-            if [[ $? -eq 0 ]]; then
-                return
-            fi
+            return
+        fi
+    fi
+    false
+}
+
+function is-llvm-published() {
+    if [[ -x ${LLVM_ROOT}/bin/llvm-tblgen ]]; then
+        llvm_version=$(${LLVM_ROOT}/bin/llvm-tblgen --version | grep version | awk '{print $3}')
+        if [[ $llvm_version =~ 4 ]]; then
+            return
         fi
     fi
     false
@@ -449,14 +465,22 @@ function install-llvm() {
         && make install"
 }
 
+function publish-llvm() {
+    execute bash -c "cd ${TEMP_DIR}/${LLVM_NAME} \
+        && ${CMAKE} --install build --prefix ${LLVM_ROOT}"
+}
+
 # Prompt user for installation directory.
 function prompt-pinned-clang-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
-    if [[ ! -d $CLANG_ROOT && $PIN_COMPILER == true ]]; then
+    if ! ${PIN_COMPILER}; then
+        return
+    fi
+
+    if ! is-clang-published; then
         if is-clang-built && ! $NONINTERACTIVE; then
             while true; do
                 printf "\n${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
-                echo ""
                 case $PROCEED in
                 "") echo "What would you like to do?" ;;
                 0 | true | [Yy]*)
@@ -477,7 +501,7 @@ function prompt-pinned-clang-build() {
 function ensure-clang() {
     if $BUILD_CLANG; then
         echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
-        if [[ ! -d $CLANG_ROOT ]]; then
+        if ! is-clang-published; then
             # Check tmp dir for previous clang build
             if ! is-clang-built; then
                 clean-clang
@@ -493,6 +517,7 @@ function ensure-clang() {
                 build-clang
             fi
             install-clang
+            publish-clang
             echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
             echo ""
         else
@@ -505,14 +530,20 @@ function ensure-clang() {
 }
 
 function is-clang-built() {
-    #if [[ -d ${TEMP_DIR}/${CLANG_NAME} && -d ${TEMP_DIR}/${CLANG_NAME}/build && -d ${TEMP_DIR}/${CLANG_NAME}/build/bin && -x ${TEMP_DIR}/${CLANG_NAME}/build/bin/clang ]]; then
     if [[ -x ${TEMP_DIR}/${CLANG_NAME}/build/bin/clang ]]; then
         clang_version=$(${TEMP_DIR}/${CLANG_NAME}/build/bin/clang --version | grep version | awk '{print $3}')
         if [[ $clang_version =~ 8 ]]; then
-            cat ${TEMP_DIR}/${CLANG_NAME}/build/CMakeCache.txt | grep CMAKE_INSTALL_PREFIX | grep ${EOSIO_INSTALL_DIR} >/dev/null
-            if [[ $? -eq 0 ]]; then
-                return
-            fi
+            return
+        fi
+    fi
+    false
+}
+
+function is-clang-published() {
+    if [[ -x ${CLANG_ROOT}/bin/clang ]]; then
+        clang_version=$(${CLANG_ROOT}/bin/clang --version | grep version | awk '{print $3}')
+        if [[ $clang_version =~ 8 ]]; then
+            return
         fi
     fi
     false
@@ -551,7 +582,7 @@ function clone-clang() {
 function build-clang() {
     execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && mkdir build && cd build \
-        && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${CLANG_ROOT}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
+        && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${FIO_APTS_DIR}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
         && make -j${JOBS}"
 }
 
@@ -559,6 +590,11 @@ function install-clang() {
     execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && cd build \
         && make install"
+}
+
+function publish-clang() {
+    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
+        && ${CMAKE} --install build --prefix ${CLANG_ROOT}"
 }
 
 function apply-clang-ubuntu20-patches() {

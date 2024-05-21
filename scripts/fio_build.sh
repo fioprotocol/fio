@@ -220,7 +220,7 @@ execute cd $REPO_ROOT
 # Save off env vars for later use, i.e. for install
 echo-to-envfile "EOSIO_INSTALL_DIR" ${EOSIO_INSTALL_DIR}
 echo-to-envfile "CMAKE_REQUIRED_VERSION" ${CMAKE_REQUIRED_VERSION}
-echo-to-envfile "CMAKE_INSTALL_DIR" ${EOSIO_INSTALL_DIR}
+echo-to-envfile "CMAKE_INSTALL_DIR" ${CMAKE_INSTALL_DIR}
 echo-to-envfile "CMAKE" ${CMAKE}
 
 echo ""
