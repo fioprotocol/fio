@@ -323,7 +323,7 @@ function ensure-boost() {
     [[ $ARCH == "Darwin" ]] && export CPATH="$(python-config --includes | awk '{print $1}' | cut -dI -f2):$CPATH" # Boost has trouble finding pyconfig.h
     echo "${COLOR_CYAN}[Ensuring Boost $(echo $BOOST_VERSION | sed 's/_/./g') library installation]${COLOR_NC}"
     BOOSTVERSION=$(grep "#define BOOST_VERSION" "$BOOST_ROOT/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
-    if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
+    if ! is-boost-installed; then
         B2_FLAGS="-q -j${JOBS} --with-iostreams --with-date_time --with-filesystem --with-system --with-program_options --with-chrono --with-test install"
         BOOTSTRAP_FLAGS=""
         if [[ $ARCH == "Linux" ]] && $PIN_COMPILER; then
@@ -335,7 +335,7 @@ function ensure-boost() {
         if ! is-boost-built; then
             build-boost
         fi
-        install-boost
+        install-boost ${BOOST_ROOT}
         echo " - Boost library successfully installed @ ${BOOST_ROOT}"
         echo ""
     else
@@ -348,10 +348,17 @@ function is-boost-built() {
     if [[ -r ${TEMP_DIR}/boost_${BOOST_VERSION}/boost/version.hpp ]]; then
         BOOSTVERSION=$(grep "#define BOOST_VERSION" "${TEMP_DIR}/boost_${BOOST_VERSION}/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
         if [[ "${BOOSTVERSION}" == "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
-            cat ${TEMP_DIR}/boost_${BOOST_VERSION}/project-config.jam | grep prefix | grep ${EOSIO_INSTALL_DIR} >/dev/null
-            if [[ $? -eq 0 ]]; then
-                return
-            fi
+            return
+        fi
+    fi
+    false
+}
+
+function is-boost-installed() {
+    if [[ -r ${BOOST_ROOT}/boost/version.hpp ]]; then
+        boost_version=$(grep "#define BOOST_VERSION" "${BOOST_ROOT}/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
+        if [[ $boost_version =~ "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
+            return
         fi
     fi
     false
@@ -368,9 +375,18 @@ function build-boost() {
 }
 
 function install-boost() {
-    execute bash -c "cd ${TEMP_DIR}/boost_${BOOST_VERSION} \
-        && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} \
-        && rm -rf ${BOOST_LINK_LOCATION}"
+    # Default (no arg) install: to CMAKE_INSTALL_PREFIX
+    # otherwise (install location): into to location
+    if [[ $# -gt 0 ]]; then
+        execute mkdir -p ${1}
+        execute bash -c "cd ${TEMP_DIR}/boost_${BOOST_VERSION} \
+            && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} --prefix=${1} \
+            && rm -rf ${BOOST_LINK_LOCATION}"
+    else
+        execute bash -c "cd ${TEMP_DIR}/boost_${BOOST_VERSION} \
+            && SDKROOT="$SDKROOT" ./b2 ${B2_FLAGS} \
+            && rm -rf ${BOOST_LINK_LOCATION}"
+    fi
 }
 
 # Prompt user for installation directory.
