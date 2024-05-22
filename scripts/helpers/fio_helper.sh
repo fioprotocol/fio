@@ -62,9 +62,6 @@ function setup() {
     execute mkdir -p $ETC_DIR
     execute mkdir -p $LIB_DIR
 
-    execute mkdir -p $CLANG_ROOT
-    execute mkdir -p $LLVM_ROOT
-
     if $ENABLE_MONGO; then
         execute mkdir -p $MONGODB_LOG_DIR
         execute mkdir -p $MONGODB_DATA_DIR
@@ -275,8 +272,7 @@ function ensure-cmake() {
         if ! is-cmake-built; then
             build-cmake
         fi
-        install-cmake
-        publish-cmake
+        install-cmake ${CMAKE_ROOT}
         [[ -z "${CMAKE}" ]] && export CMAKE="${CMAKE_ROOT}/bin/cmake"
         echo " - CMAKE successfully installed @ ${CMAKE}"
         echo ""
@@ -310,14 +306,17 @@ function build-cmake() {
 }
 
 function install-cmake() {
-    execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
-        && cd build \
-        && make install"
-}
-
-function publish-cmake() {
-    execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
-        && ./build/bin/cmake --install build --prefix ${CMAKE_ROOT}"
+    # Default (no arg) install: to CMAKE_INSTALL_PREFIX
+    # otherwise (install location): into to location
+    if [[ $# -gt 0 ]]; then
+        execute mkdir -p ${1}
+        execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
+            && ./build/bin/cmake --install build --prefix ${1}"
+    else
+        execute bash -c "cd ${TEMP_DIR}/cmake-${CMAKE_VERSION} \
+          && cd build \
+          && make install"
+    fi
 }
 
 function ensure-boost() {
@@ -400,7 +399,7 @@ function prompt-pinned-llvm-build() {
 
 function ensure-llvm() {
     echo "${COLOR_CYAN}[Ensuring LLVM 4 support]${COLOR_NC}"
-    if ! is-llvm-published; then
+    if ! is-llvm-installed; then
         if [[ $NAME == "Ubuntu" && $PIN_COMPILER == false && $BUILD_CLANG == false ]]; then
             execute ln -s /usr/lib/llvm-4.0 ${LLVM_ROOT}
             echo " - LLVM successfully linked from /usr/lib/llvm-4.0 to ${LLVM_ROOT}"
@@ -415,8 +414,7 @@ function ensure-llvm() {
                 clean-llvm
                 build-llvm
             fi
-            install-llvm
-            publish-llvm
+            install-llvm ${LLVM_ROOT}
             echo " - LLVM successfully installed @ ${LLVM_ROOT}"
             echo
         fi
@@ -436,7 +434,7 @@ function is-llvm-built() {
     false
 }
 
-function is-llvm-published() {
+function is-llvm-installed() {
     if [[ -x ${LLVM_ROOT}/bin/llvm-tblgen ]]; then
         llvm_version=$(${LLVM_ROOT}/bin/llvm-tblgen --version | grep version | awk '{print $3}')
         if [[ $llvm_version =~ 4 ]]; then
@@ -460,14 +458,17 @@ function build-llvm() {
 }
 
 function install-llvm() {
-    execute bash -c "cd ${TEMP_DIR}/${LLVM_NAME} \
-        && cd build \
-        && make install"
-}
-
-function publish-llvm() {
-    execute bash -c "cd ${TEMP_DIR}/${LLVM_NAME} \
-        && ${CMAKE} --install build --prefix ${LLVM_ROOT}"
+    # Default (no arg) install: to CMAKE_INSTALL_PREFIX
+    # otherwise (install location): into to location
+    if [[ $# -gt 0 ]]; then
+        execute mkdir -p ${1}
+        execute bash -c "cd ${TEMP_DIR}/${LLVM_NAME} \
+            && ${CMAKE} --install build --prefix ${1}"
+    else
+        execute bash -c "cd ${TEMP_DIR}/${LLVM_NAME} \
+            && cd build \
+            && make install"
+    fi
 }
 
 # Prompt user for installation directory.
@@ -477,7 +478,7 @@ function prompt-pinned-clang-build() {
         return
     fi
 
-    if ! is-clang-published; then
+    if ! is-clang-installed; then
         if is-clang-built && ! $NONINTERACTIVE; then
             while true; do
                 printf "\n${COLOR_YELLOW}A pinned clang build was found in $TEMP_DIR/clang8. Do you wish to use this as the FIO clang? (y/n)${COLOR_NC}" && read -p " " PROCEED
@@ -501,7 +502,7 @@ function prompt-pinned-clang-build() {
 function ensure-clang() {
     if $BUILD_CLANG; then
         echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
-        if ! is-clang-published; then
+        if ! is-clang-installed; then
             # Check tmp dir for previous clang build
             if ! is-clang-built; then
                 clean-clang
@@ -516,8 +517,7 @@ function ensure-clang() {
                 fi
                 build-clang
             fi
-            install-clang
-            publish-clang
+            install-clang ${CLANG_ROOT}
             echo " - Clang 8 successfully installed @ ${CLANG_ROOT}"
             echo ""
         else
@@ -539,7 +539,7 @@ function is-clang-built() {
     false
 }
 
-function is-clang-published() {
+function is-clang-installed() {
     if [[ -x ${CLANG_ROOT}/bin/clang ]]; then
         clang_version=$(${CLANG_ROOT}/bin/clang --version | grep version | awk '{print $3}')
         if [[ $clang_version =~ 8 ]]; then
@@ -587,14 +587,17 @@ function build-clang() {
 }
 
 function install-clang() {
-    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
-        && cd build \
-        && make install"
-}
-
-function publish-clang() {
-    execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
-        && ${CMAKE} --install build --prefix ${CLANG_ROOT}"
+    # Default (no arg) install: to CMAKE_INSTALL_PREFIX
+    # otherwise (install location): into to location
+    if [[ $# -gt 0 ]]; then
+        execute mkdir -p ${1}
+        execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
+            && ${CMAKE} --install build --prefix ${1}"
+    else
+        execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
+            && cd build \
+            && make install"
+    fi
 }
 
 function apply-clang-ubuntu20-patches() {
