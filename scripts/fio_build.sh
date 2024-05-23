@@ -230,6 +230,9 @@ if $VERBOSE; then
    echo "CXX: $CXX"
    echo "CC: $CC"
 fi
+[[ -n $BUILD_DIR_CLEANUP_SKIP ]] \
+  && printf "\n>>>>> Build cleanup skipped (BUILD_DIR_CLEANUP_SKIP is set)! Re-using previous build artifacts including configuration...\n\n"
+
 execute cd $BUILD_DIR
 # LOCAL_CMAKE_FLAGS
 $ENABLE_MONGO && LOCAL_CMAKE_FLAGS="-DBUILD_MONGO_DB_PLUGIN=true ${LOCAL_CMAKE_FLAGS}" # Enable Mongo DB Plugin if user has enabled -m
@@ -248,7 +251,7 @@ execute cd $REPO_ROOT 1>/dev/null
 
 TIME_END=$(($(date -u +%s) - $TIME_BEGIN))
 
-printf "${bldred}\n"
+printf "${COLOR_RED}\n"
 printf "      ___                        ___              \n"
 printf "     /\\__\\                      /\\  \\         \n"
 printf "    /:/ _/_       ___          /::\\  \\          \n"
@@ -260,9 +263,9 @@ printf "  \\::/__/         \\:\\/\\__\\   \\:\\  /:/  /   \n"
 printf "   \\:\\  \\          \\::/  /    \\:\\/:/  /     \n"
 printf "    \\:\\__\\         /:/  /      \\::/  /        \n"
 printf "     \\/__/         \\/__/        \\/__/          \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY          ${COLOR_NC}\n\n"
 printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END / 3600)) $(($TIME_END % 3600 / 60)) $(($TIME_END % 60))
-printf "==============================================================================================\\n${bldred}"
+printf "==============================================================================================\\n"
 echo "${COLOR_GREEN}You can now install using: ${REPO_ROOT}/scripts/fio_install.sh${COLOR_NC}"
 echo "${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}"
 
