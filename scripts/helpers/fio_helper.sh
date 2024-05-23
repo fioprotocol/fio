@@ -266,6 +266,7 @@ function ensure-compiler() {
     echo ""
 }
 
+# Check cmake env var definition, otherwise, build if necessary, install and set env
 function ensure-cmake() {
     echo "${COLOR_CYAN}[Ensuring CMAKE installation]${COLOR_NC}"
     if [[ ! -e "${CMAKE}" ]]; then
@@ -282,7 +283,7 @@ function ensure-cmake() {
     fi
 }
 
-# CMake may be built but is it configured for the same install directory??? applies to other repos as well
+# Check previous build of cmake, incl version
 function is-cmake-built() {
     if [[ -x ${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake ]]; then
         cmake_version=$(${TEMP_DIR}/cmake-${CMAKE_VERSION}/build/bin/cmake --version | grep version | awk '{print $3}')
@@ -293,7 +294,9 @@ function is-cmake-built() {
     false
 }
 
+# Download and build cmake
 function build-cmake() {
+    echo "Building cmake..."
     execute bash -c "cd ${TEMP_DIR} \
         && rm -rf cmake-${CMAKE_VERSION} \
         && curl -LO https://cmake.org/files/v${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}/cmake-${CMAKE_VERSION}.tar.gz \
@@ -305,7 +308,9 @@ function build-cmake() {
         && make -j${JOBS}"
 }
 
+# Install cmake; accept parameter to override build config install location
 function install-cmake() {
+    echo "Installing cmake..."
     # Default (no arg) install: to CMAKE_INSTALL_PREFIX
     # otherwise (install location): into to location
     if [[ $# -gt 0 ]]; then
@@ -319,6 +324,7 @@ function install-cmake() {
     fi
 }
 
+# Check boost root (install dir) for boost, verifying version, otherwise, set build and install flags
 function ensure-boost() {
     [[ $ARCH == "Darwin" ]] && export CPATH="$(python-config --includes | awk '{print $1}' | cut -dI -f2):$CPATH" # Boost has trouble finding pyconfig.h
     echo "${COLOR_CYAN}[Ensuring Boost $(echo $BOOST_VERSION | sed 's/_/./g') library installation]${COLOR_NC}"
@@ -344,6 +350,7 @@ function ensure-boost() {
     fi
 }
 
+# Check previous build of boost, incl version
 function is-boost-built() {
     if [[ -r ${TEMP_DIR}/boost_${BOOST_VERSION}/boost/version.hpp ]]; then
         BOOSTVERSION=$(grep "#define BOOST_VERSION" "${TEMP_DIR}/boost_${BOOST_VERSION}/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
@@ -354,6 +361,7 @@ function is-boost-built() {
     false
 }
 
+# Check previous install of boost, incl version
 function is-boost-installed() {
     if [[ -r ${BOOST_ROOT}/boost/version.hpp ]]; then
         boost_version=$(grep "#define BOOST_VERSION" "${BOOST_ROOT}/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true)
@@ -364,17 +372,21 @@ function is-boost-installed() {
     false
 }
 
+# Download boost, build and install in temp dir
 function build-boost() {
+    echo "Building boost..."
     execute bash -c "cd ${TEMP_DIR} \
         && rm -rf boost_${BOOST_VERSION} \
         && curl -LO https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION_MAJOR}.${BOOST_VERSION_MINOR}.${BOOST_VERSION_PATCH}/source/boost_${BOOST_VERSION}.tar.bz2 \
         && tar -xjf boost_${BOOST_VERSION}.tar.bz2 \
         && rm -f boost_${BOOST_VERSION}.tar.bz2 \
         && cd boost_${BOOST_VERSION} \
-        && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=${BOOST_ROOT}"
+        && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=${FIO_APTS_DIR}"
 }
 
+# Install boost; accept parameter to override build config install location
 function install-boost() {
+    echo "Installing boost..."
     # Default (no arg) install: to CMAKE_INSTALL_PREFIX
     # otherwise (install location): into to location
     if [[ $# -gt 0 ]]; then
@@ -389,7 +401,7 @@ function install-boost() {
     fi
 }
 
-# Prompt user for installation directory.
+# Prompt user to confirm use of llvm found in temp build dir.
 function prompt-pinned-llvm-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
     if [[ ! -d $LLVM_ROOT && ($PIN_COMPILER == true || $BUILD_CLANG == true) ]]; then
@@ -413,6 +425,7 @@ function prompt-pinned-llvm-build() {
     fi
 }
 
+# Check llvm root (install dir) for llvm, otherwise, set build and install flags
 function ensure-llvm() {
     echo "${COLOR_CYAN}[Ensuring LLVM 4 support]${COLOR_NC}"
     if ! is-llvm-installed; then
@@ -440,6 +453,7 @@ function ensure-llvm() {
     fi
 }
 
+# Check previous build of llvm, incl version
 function is-llvm-built() {
     if [[ -x ${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-tblgen ]]; then
         llvm_version=$(${TEMP_DIR}/${LLVM_NAME}/build/bin/llvm-tblgen --version | grep version | awk '{print $3}')
@@ -450,6 +464,7 @@ function is-llvm-built() {
     false
 }
 
+# Check previous install of llvm, incl version
 function is-llvm-installed() {
     if [[ -x ${LLVM_ROOT}/bin/llvm-tblgen ]]; then
         llvm_version=$(${LLVM_ROOT}/bin/llvm-tblgen --version | grep version | awk '{print $3}')
@@ -464,7 +479,9 @@ function clean-llvm() {
     execute bash -c "rm -rf ${TEMP_DIR}/${LLVM_NAME}"
 }
 
+# Download and build llvm in temp dir
 function build-llvm() {
+    echo "Building llvm..."
     execute bash -c "cd ${TEMP_DIR} \
         && git clone --depth 1 --single-branch --branch $PINNED_LLVM_VERSION https://github.com/llvm-mirror/llvm.git ${LLVM_NAME} \
         && cd ${LLVM_NAME} \
@@ -473,7 +490,9 @@ function build-llvm() {
         && make -j${JOBS}"
 }
 
+# Install llvm; accept parameter to override build config install location
 function install-llvm() {
+    echo "Installing llvm..."
     # Default (no arg) install: to CMAKE_INSTALL_PREFIX
     # otherwise (install location): into to location
     if [[ $# -gt 0 ]]; then
@@ -487,7 +506,7 @@ function install-llvm() {
     fi
 }
 
-# Prompt user for installation directory.
+# Prompt user to confirm use of clang found in temp build dir.
 function prompt-pinned-clang-build() {
     # Use pinned compiler AND clang not found in install dir AND a previous pinned clang build was found
     if ! ${PIN_COMPILER}; then
@@ -515,6 +534,7 @@ function prompt-pinned-clang-build() {
     fi
 }
 
+# Check clang root (install dir) for clang, otherwise, download, apply OS-related patches, build and install
 function ensure-clang() {
     if $BUILD_CLANG; then
         echo "${COLOR_CYAN}[Ensuring Clang support]${COLOR_NC}"
@@ -545,6 +565,7 @@ function ensure-clang() {
     fi
 }
 
+# Check previous build of clang, incl version
 function is-clang-built() {
     if [[ -x ${TEMP_DIR}/${CLANG_NAME}/build/bin/clang ]]; then
         clang_version=$(${TEMP_DIR}/${CLANG_NAME}/build/bin/clang --version | grep version | awk '{print $3}')
@@ -555,6 +576,7 @@ function is-clang-built() {
     false
 }
 
+# Check previous install of clang, incl version
 function is-clang-installed() {
     if [[ -x ${CLANG_ROOT}/bin/clang ]]; then
         clang_version=$(${CLANG_ROOT}/bin/clang --version | grep version | awk '{print $3}')
@@ -569,6 +591,7 @@ function clean-clang() {
     execute bash -c "rm -rf ${TEMP_DIR}/${CLANG_NAME}"
 }
 
+# Download clang and appropriate sub-modules, applying clang 8 patch
 function clone-clang() {
     execute bash -c "cd ${TEMP_DIR} \
         && git clone --single-branch --branch $PINNED_COMPILER_BRANCH https://github.com/llvm-mirror/llvm.git ${CLANG_NAME} \
@@ -595,14 +618,18 @@ function clone-clang() {
         && cd compiler-rt && git checkout $PINNED_COMPILER_COMPILER_RT_COMMIT"
 }
 
+# Build and install clang in temp dir
 function build-clang() {
+    echo "Building clang..."
     execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && mkdir build && cd build \
         && ${CMAKE} -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX='${FIO_APTS_DIR}' -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_LIBCXX=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_INCLUDE_DOCS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON -DLLVM_TARGETS_TO_BUILD=all -DCMAKE_BUILD_TYPE=Release .. \
         && make -j${JOBS}"
 }
 
+# Install clang; accept parameter to override build config install location
 function install-clang() {
+    echo "Installing clang..."
     # Default (no arg) install: to CMAKE_INSTALL_PREFIX
     # otherwise (install location): into to location
     if [[ $# -gt 0 ]]; then
