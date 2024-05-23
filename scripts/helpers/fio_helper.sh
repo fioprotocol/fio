@@ -117,6 +117,11 @@ function install-directory-prompt() {
         done
     fi
 
+    echo
+    echo -n "FIO Install Location: ${COLOR_RED}${INSTALL_LOCATION}${COLOR_NC}. "
+    read -s -n 1 -p "Press any key to continue or CTRL-c to exit..."
+    echo
+
     # Support relative paths : https://github.com/EOSIO/eos/issues/7560
     [[ ${INSTALL_LOCATION:0:1} != '/' && ${INSTALL_LOCATION:0:2} != ~[/a-z] ]] && INSTALL_LOCATION=${CURRENT_WORKING_DIR}/${INSTALL_LOCATION}
     [[ ${INSTALL_LOCATION:0:2} == ~[/a-z] ]] && INSTALL_LOCATION="${INSTALL_LOCATION/#\~/$HOME}"
