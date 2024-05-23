@@ -230,6 +230,9 @@ if $VERBOSE; then
    echo "CXX: $CXX"
    echo "CC: $CC"
 fi
+[[ -n $BUILD_DIR_CLEANUP_SKIP ]] \
+  && printf "\n>>>>> Build cleanup skipped (BUILD_DIR_CLEANUP_SKIP is set)! Re-using previous build artifacts including configuration...\n\n"
+
 execute cd $BUILD_DIR
 # LOCAL_CMAKE_FLAGS
 $ENABLE_MONGO && LOCAL_CMAKE_FLAGS="-DBUILD_MONGO_DB_PLUGIN=true ${LOCAL_CMAKE_FLAGS}" # Enable Mongo DB Plugin if user has enabled -m
