@@ -59,6 +59,7 @@ programs/nodeos/config.hpp
 programs/nodeos/nodeos
 
 scripts/tn_init.sh
+scripts/.build_env
 
 tests/plugin_test
 unittests/unit_test

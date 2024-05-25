@@ -1,0 +1,13 @@
+diff --git a/utils/benchmark/src/benchmark_register.h b/utils/benchmark/src/benchmark_register.h
+index 0705e219f2f..9df72576362 100644
+--- a/utils/benchmark/src/benchmark_register.h
++++ b/utils/benchmark/src/benchmark_register.h
+@@ -5,6 +5,8 @@
+
+ #include "check.h"
+
++#include <limits>
++
+ template <typename T>
+ void AddRange(std::vector<T>* dst, T lo, T hi, int mult) {
+   CHECK_GE(lo, 0);

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
-SCRIPT_VERSION=3.1 # Build script version (change this to re-build the CICD image)
+
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
 # This file was downloaded from https://github.com/fioprotocol/fio
@@ -47,86 +47,96 @@ function usage() {
    exit 1
 }
 
-TIME_BEGIN=$( date -u +%s )
+TIME_BEGIN=$(date -u +%s)
+DEBUG=${DEBUG:-false}
 if [ $# -ne 0 ]; then
-   while getopts "o:s:b:i:ycdhmPf" opt; do
+   while getopts "ado:s:b:i:ycdhmP" opt; do
       case "${opt}" in
-         o )
-            options=( "Debug" "Release" "RelWithDebInfo" "MinSizeRel" )
-            if [[ "${options[*]}" =~ "${OPTARG}" ]]; then
-               CMAKE_BUILD_TYPE=$OPTARG
-            else
-               echo  "Invalid argument: ${OPTARG}" 1>&2
-               usage
-            fi
+      a) #NOOP: passed from fio_install.sh
          ;;
-         s )
-            if [ "${#OPTARG}" -gt 7 ] || [ -z "${#OPTARG}" ]; then
-               echo "Invalid argument: ${OPTARG}" 1>&2
-               usage
-            else
-               CORE_SYMBOL_NAME=$OPTARG
-            fi
+      d)
+         DEBUG=true
+         set -x
          ;;
-         b )
-            BOOST_LOCATION=$OPTARG
-         ;;
-         i )
-            INSTALL_LOCATION=$OPTARG
-         ;;
-         y )
-            NONINTERACTIVE=true
-            PROCEED=true
-         ;;
-         f ) 
-            echo "DEPRECATION NOTICE: -f will be removed in the next release..."
-         ;; # Needs to be removed in 1.9
-         c )
-            ENABLE_COVERAGE_TESTING=true
-         ;;
-         d )
-            ENABLE_DOXYGEN=true
-         ;;
-         m )
-            ENABLE_MONGO=true
-         ;;
-         P )
-            PIN_COMPILER=true
-         ;;
-         h )
+      o)
+         options=("Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+         if [[ "${options[*]}" =~ "${OPTARG}" ]]; then
+            CMAKE_BUILD_TYPE=$OPTARG
+         else
+            echo "Invalid argument: ${OPTARG}" 1>&2
             usage
+         fi
          ;;
-         ? )
-            echo "Invalid Option!" 1>&2
+      s)
+         if [ "${#OPTARG}" -gt 7 ] || [ -z "${#OPTARG}" ]; then
+            echo "Invalid argument: ${OPTARG}" 1>&2
             usage
+         else
+            CORE_SYMBOL_NAME=$OPTARG
+         fi
          ;;
-         : )
-            echo "Invalid Option: -${OPTARG} requires an argument." 1>&2
-            usage
+      b)
+         BOOST_LOCATION=$OPTARG
          ;;
-         * )
-            usage
+      i)
+         INSTALL_LOCATION=$OPTARG
+         ;;
+      y)
+         NONINTERACTIVE=true
+         PROCEED=true
+         ;;
+      c)
+         ENABLE_COVERAGE_TESTING=true
+         ;;
+      d)
+         ENABLE_DOXYGEN=true
+         ;;
+      m)
+         ENABLE_MONGO=true
+         ;;
+      P)
+         PIN_COMPILER=true
+         ;;
+      h)
+         usage
+         ;;
+      ?)
+         echo "Invalid Option!" 1>&2
+         usage
+         ;;
+      :)
+         echo "Invalid Option: -${OPTARG} requires an argument." 1>&2
+         usage
+         ;;
+      *)
+         usage
          ;;
       esac
    done
 fi
 
+SCRIPT_VERSION=3.5 # Build script version (change this to re-build the CICD image)
 export CURRENT_WORKING_DIR=$(pwd) # relative path support
 
 # Ensure we're in the repo root and not inside of scripts
-cd $( dirname "${BASH_SOURCE[0]}" )/..
+cd $(dirname "${BASH_SOURCE[0]}")/..
 
 # Load FIO specific helper functions
 . ./scripts/helpers/fio_helper.sh
 
 $VERBOSE && echo "Build Script Version: ${SCRIPT_VERSION}"
 echo "FIO Version: ${EOSIO_VERSION_FULL}"
-echo "$( date -u )"
+echo "$(date -u)"
 echo "User: ${CURRENT_USER}"
 # echo "git head id: %s" "$( cat .git/refs/heads/master )"
-echo "Current branch: $( execute git rev-parse --abbrev-ref HEAD 2>/dev/null )"
+echo "Current branch: $(execute git rev-parse --abbrev-ref HEAD 2>/dev/null)"
 
-( [[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]]  && [[ ! $NAME == "CentOS Linux" ]]) && set -i # Ubuntu doesn't support interactive mode since it uses dash + Some folks are having this issue on Darwin; colors aren't supported yet anyway
+([[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]] && [[ ! $NAME == "CentOS Linux" ]]) && set -i # Ubuntu doesn't support interactive mode since it uses dash + Some folks are having this issue on Darwin; colors aren't supported yet anyway
+
+if [[ ! $NAME == "Ubuntu" ]] && [[ ! $ARCH == "Darwin" ]]; then
+   echo "${COLOR_RED}Only Ubuntu(dev,test,prod) and MacOS Darwin(dev) are currently supported. Cannot proceed."
+   exit 1
+fi
 
 # Ensure sudo is available (only if not using the root user)
 ensure-sudo
@@ -138,8 +148,12 @@ ensure-git-clone
 install-directory-prompt
 # If the same version has already been installed...
 previous-install-prompt
-# Prompt user and asks if we should install mongo or not
-prompt-mongo-install
+# Prompt user for mongo install
+#prompt-mongo-install
+# Prompt user about pinned clang build
+prompt-pinned-clang-build
+# Prompt user about pinned llvm build
+prompt-pinned-llvm-build
 # Setup directories and envs we need (must come last)
 setup
 execute cd $REPO_ROOT
@@ -147,16 +161,16 @@ execute cd $REPO_ROOT
 # Submodules need to be up to date
 ensure-submodules-up-to-date
 
-# Check if cmake already exists
-( [[ -z "${CMAKE}" ]] && [[ ! -z $(command -v cmake 2>/dev/null) ]] ) && export CMAKE=$(command -v cmake 2>/dev/null) && export CMAKE_CURRENT_VERSION=$($CMAKE --version | grep -E "cmake version[[:blank:]]*" | sed 's/.*cmake version //g')
-# If it exists, check that it's > required version + 
-if [[ ! -z $CMAKE_CURRENT_VERSION ]] && [[ $((10#$( echo $CMAKE_CURRENT_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }' ))) -lt $((10#$( echo $CMAKE_REQUIRED_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }' ))) ]]; then
-   export CMAKE=
-   if [[ $ARCH == 'Darwin' ]]; then
+# Force install of cmake
+# MacOS (darwin) - handle via brew? See https://cmake.org/download/
+export CMAKE=
+if [[ $ARCH == "Darwin" ]]; then
+   ([[ -z "${CMAKE}" ]] && [[ ! -z $(command -v cmake 2>/dev/null) ]]) && export CMAKE=$(command -v cmake 2>/dev/null) && export CMAKE_CURRENT_VERSION=$($CMAKE --version | grep -E "cmake version[[:blank:]]*" | sed 's/.*cmake version //g')
+
+   # If it exists, check that it's > required version +
+   if [[ ! -z $CMAKE_CURRENT_VERSION ]] && [[ $((10#$(echo $CMAKE_CURRENT_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'))) -lt $((10#$(echo $CMAKE_REQUIRED_VERSION | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'))) ]]; then
       echo "${COLOR_RED}The currently installed cmake version ($CMAKE_CURRENT_VERSION) is less than the required version ($CMAKE_REQUIRED_VERSION). Cannot proceed."
       exit 1
-   else
-      echo "${COLOR_YELLOW}The currently installed cmake version ($CMAKE_CURRENT_VERSION) is less than the required version ($CMAKE_REQUIRED_VERSION). We will be installing $CMAKE_VERSION.${COLOR_NC}"
    fi
 fi
 
@@ -166,17 +180,17 @@ if [[ $ARCH == "Linux" ]]; then
    export CMAKE=${CMAKE:-${EOSIO_INSTALL_DIR}/bin/cmake}
    [[ ! -e /etc/os-release ]] && print_supported_linux_distros_and_exit
    case $NAME in
-      "Amazon Linux AMI" | "Amazon Linux")
-         echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
-         FILE="${REPO_ROOT}/scripts/helpers/build_amazonlinux.sh"
+   "Amazon Linux AMI" | "Amazon Linux")
+      echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
+      FILE="${REPO_ROOT}/scripts/helpers/build_amazonlinux.sh"
       ;;
-      "CentOS Linux")
-         FILE="${REPO_ROOT}/scripts/helpers/build_centos.sh"
+   "CentOS Linux")
+      FILE="${REPO_ROOT}/scripts/helpers/build_centos.sh"
       ;;
-      "Ubuntu")
-         FILE="${REPO_ROOT}/scripts/helpers/build_ubuntu.sh"
+   "Ubuntu")
+      FILE="${REPO_ROOT}/scripts/helpers/build_ubuntu.sh"
       ;;
-      *) print_supported_linux_distros_and_exit;;
+   *) print_supported_linux_distros_and_exit ;;
    esac
    CMAKE_PREFIX_PATHS="${EOSIO_INSTALL_DIR}"
 fi
@@ -192,13 +206,22 @@ fi
 # Find and replace OPT_DIR in pinned_toolchain.cmake, then move it into build dir
 execute bash -c "sed -e 's~@~$OPT_DIR~g' $SCRIPT_DIR/pinned_toolchain.cmake &> $BUILD_DIR/pinned_toolchain.cmake"
 
+# Set OS and associated system vars
+set_system_vars # JOBS, Memory, disk space available, etc
+
 echo "${COLOR_CYAN}====================================================================================="
 echo "======================= ${COLOR_WHITE}Starting FIO Dependency Install${COLOR_CYAN} ===========================${COLOR_NC}"
 execute cd $SRC_DIR
-set_system_vars # JOBS, Memory, disk space available, etc
 echo "Architecture: ${ARCH}"
 . $FILE # Execute OS specific build file
+
 execute cd $REPO_ROOT
+
+# Save off env vars for later use, i.e. for install
+echo-to-envfile "EOSIO_INSTALL_DIR" ${EOSIO_INSTALL_DIR}
+echo-to-envfile "CMAKE_REQUIRED_VERSION" ${CMAKE_REQUIRED_VERSION}
+echo-to-envfile "CMAKE_INSTALL_DIR" ${CMAKE_INSTALL_DIR}
+echo-to-envfile "CMAKE" ${CMAKE}
 
 echo ""
 echo "${COLOR_CYAN}========================================================================"
@@ -207,6 +230,9 @@ if $VERBOSE; then
    echo "CXX: $CXX"
    echo "CC: $CC"
 fi
+[[ -n $BUILD_DIR_CLEANUP_SKIP ]] \
+  && printf "\n>>>>> Build cleanup skipped (BUILD_DIR_CLEANUP_SKIP is set)! Re-using previous build artifacts including configuration...\n\n"
+
 execute cd $BUILD_DIR
 # LOCAL_CMAKE_FLAGS
 $ENABLE_MONGO && LOCAL_CMAKE_FLAGS="-DBUILD_MONGO_DB_PLUGIN=true ${LOCAL_CMAKE_FLAGS}" # Enable Mongo DB Plugin if user has enabled -m
@@ -223,23 +249,23 @@ execute bash -c "$CMAKE -DCMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}' -DCORE_SYMBOL_N
 execute make -j$JOBS
 execute cd $REPO_ROOT 1>/dev/null
 
-TIME_END=$(( $(date -u +%s) - $TIME_BEGIN ))
+TIME_END=$(($(date -u +%s) - $TIME_BEGIN))
 
-printf "${bldred}\n"
-printf "      ___                       ___                 \n"
-printf "     /\\__\\                     /\\  \\            \n"
-printf "    /:/ _/_       ___         /::\\  \\             \n"
-printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
-printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
-printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
-printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
-printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
-printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
-printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
-printf "     \\/__/         \\/__/       \\/__/             \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${txtrst}"
-printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END/3600)) $(($TIME_END%3600/60)) $(($TIME_END%60))
-printf "==============================================================================================\\n${bldred}"
+printf "${COLOR_RED}\n"
+printf "      ___                        ___              \n"
+printf "     /\\__\\                      /\\  \\         \n"
+printf "    /:/ _/_       ___          /::\\  \\          \n"
+printf "   /:/ /\\__\\     /\\__\\        /:/\\:\\  \\    \n"
+printf "  /:/ /:/  /    /:/__/       /:/  \\:\\  \\       \n"
+printf " /:/_/:/  /    /::\\  \\      /:/    \\:\\__\\    \n"
+printf " \\:\\/:/  /     \\/\\:\\  \\__   \\:\\    /:/  / \n"
+printf "  \\::/__/         \\:\\/\\__\\   \\:\\  /:/  /   \n"
+printf "   \\:\\  \\          \\::/  /    \\:\\/:/  /     \n"
+printf "    \\:\\__\\         /:/  /      \\::/  /        \n"
+printf "     \\/__/         \\/__/        \\/__/          \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY          ${COLOR_NC}\n\n"
+printf "FIO has been successfully built. %02d:%02d:%02d\\n" $(($TIME_END / 3600)) $(($TIME_END % 3600 / 60)) $(($TIME_END % 60))
+printf "==============================================================================================\\n"
 echo "${COLOR_GREEN}You can now install using: ${REPO_ROOT}/scripts/fio_install.sh${COLOR_NC}"
 echo "${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}"
 
