@@ -1038,7 +1038,7 @@ namespace eosio {
                                                                                   conf.genesis.initial_timestamp);
                 
                 // add begin comment here prior to release
-                /**/
+                /*
                 //these actions are added to the action mapping here to permit the launch of
                 //test networks for development testing and private test net testing.
                 //we put the actions into the table here and they are initialized for use
@@ -1382,7 +1382,7 @@ namespace eosio {
                     a.blocktimestamp = 1;
                 });
                 // add ending comment here before release
-                /**/
+                */
             }
         
 
