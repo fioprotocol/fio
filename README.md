@@ -24,7 +24,7 @@ The build and install scripts are located in ./scripts directory.
 While there are several options, there are two primary build targets; the default build with no arguments, `./fio_build.sh`, will build a dev-centric FIO blockchain, specifically for development/test, and a release-centric build with the '-P' argument, `./fio_build.sh -P`, which is a pinned build (clang 8) for formal testing and release to the BP community. Execute `./fio_build.sh -h` to output the complete usage.
 
 ### Dependencies:
-Boost version 1.71.0, Clang (llvm) version 8, and cmake version 3.21.0, are all dependencies of the FIO blockchain. The FIO build script will automatically check for these versions locally and, if not found, will download, build and install them to build FIO. This will take time (1-2 hrs) depending on the performnace of your build system. All dependency artifacts will be downloaded and built in ~/tmp and used for any future fio blockchain build.
+Boost version 1.71.0, Clang (llvm) version 8, and cmake version 3.21.0, are all dependencies of the FIO blockchain. The FIO build script will automatically check for these versions locally and, if not found, will download, build and install them. This will take approximately 1 to 2 hrs, depending on the performance of your build system. All dependency artifacts will be downloaded and built in ~/tmp and used for any future fio blockchain build.
 
 ## Build
 The build script first installs any dependencies and then builds FIO. The script has several options, including '-P' (pinned build), '-i' (install directory), and '-o' (build type, i.e. Release, Debug, etc.). Providing no options will use default options, i.e. a local build directory, $HOME/fio, as the install directory.
