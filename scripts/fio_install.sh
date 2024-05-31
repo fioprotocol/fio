@@ -100,11 +100,11 @@ $DEBUG && echo "Capturing env" && env > fio_build_env.out
 
 [[ ! -f ${BUILD_DIR}/CMakeCache.txt ]] && printf "${COLOR_RED}Please run ./fio_build.sh first!${COLOR_NC}" && echo && exit 1
 
-# Oddly several installs occur during build, incl boost, clang, cmake, and llvm; verify those and then install fio
-[[ ! (-e ${EOSIO_INSTALL_DIR} \
-  && -x ${EOSIO_INSTALL_DIR}/opt/${CLANG_NAME}/bin/clang \
-  && -s ${EOSIO_INSTALL_DIR}/opt/${LLVM_NAME}/lib/libLTO.so \
-  && -d ${EOSIO_INSTALL_DIR}/src/boost_1_71_0/include \
+# Several installs may occur during build, incl boost, cmake, clang and llvm; verify and then install fio
+[[ ! (-d ${EOSIO_INSTALL_DIR} \
+  && (${BUILD_CLANG} == false || -d ${CLANG_ROOT}) \
+  && -d ${LLVM_ROOT} \
+  && -d ${BOOST_ROOT} \
   && -x ${CMAKE}) ]] \
   && printf "${COLOR_RED}The FIO install, ${EOSIO_INSTALL_DIR}, is corrupt! Please rebuild using ./fio_build.sh then re-install!${COLOR_NC}" && echo && exit 1
 

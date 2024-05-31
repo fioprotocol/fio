@@ -222,6 +222,8 @@ echo-to-envfile "EOSIO_INSTALL_DIR" ${EOSIO_INSTALL_DIR}
 echo-to-envfile "CMAKE_REQUIRED_VERSION" ${CMAKE_REQUIRED_VERSION}
 echo-to-envfile "CMAKE_INSTALL_DIR" ${CMAKE_INSTALL_DIR}
 echo-to-envfile "CMAKE" ${CMAKE}
+echo-to-envfile "PIN_COMPILER" ${PIN_COMPILER}
+echo-to-envfile "BUILD_CLANG" ${BUILD_CLANG}
 
 echo ""
 echo "${COLOR_CYAN}========================================================================"
