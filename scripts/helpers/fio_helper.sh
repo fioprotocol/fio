@@ -125,7 +125,7 @@ function install-directory-prompt() {
     # Support relative paths : https://github.com/EOSIO/eos/issues/7560
     [[ ${INSTALL_LOCATION:0:1} != '/' && ${INSTALL_LOCATION:0:2} != ~[/a-z] ]] && INSTALL_LOCATION=${CURRENT_WORKING_DIR}/${INSTALL_LOCATION}
     [[ ${INSTALL_LOCATION:0:2} == ~[/a-z] ]] && INSTALL_LOCATION="${INSTALL_LOCATION/#\~/$HOME}"
-    execute-always mkdir -p $INSTALL_LOCATION && export INSTALL_LOCATION=$(realpath ${INSTALL_LOCATION})
+    execute-always mkdir -p ${INSTALL_LOCATION} && export INSTALL_LOCATION=$(realpath ${INSTALL_LOCATION})
 }
 
 function previous-install-prompt() {
