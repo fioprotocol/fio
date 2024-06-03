@@ -102,10 +102,10 @@ $DEBUG && echo "Capturing env" && env > fio_build_env.out
 
 # Several installs may occur during build, incl boost, cmake, clang and llvm; verify and then install fio
 [[ ! (-d ${EOSIO_INSTALL_DIR} \
-  && (${BUILD_CLANG} == false || -d ${CLANG_ROOT}) \
-  && -d ${LLVM_ROOT} \
+  && -x ${CMAKE}) \
   && -d ${BOOST_ROOT} \
-  && -x ${CMAKE}) ]] \
+  && (${BUILD_CLANG} == false || -d ${CLANG_ROOT}) \
+  && -d ${LLVM_ROOT} ]] \
   && printf "${COLOR_RED}The FIO install, ${EOSIO_INSTALL_DIR}, is corrupt! Please rebuild using ./fio_build.sh then re-install!${COLOR_NC}" && echo && exit 1
 
 echo "${COLOR_CYAN}====================================================================================="
