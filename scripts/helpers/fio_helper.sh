@@ -125,11 +125,12 @@ function install-directory-prompt() {
     # Support relative paths : https://github.com/EOSIO/eos/issues/7560
     [[ ${INSTALL_LOCATION:0:1} != '/' && ${INSTALL_LOCATION:0:2} != ~[/a-z] ]] && INSTALL_LOCATION=${CURRENT_WORKING_DIR}/${INSTALL_LOCATION}
     [[ ${INSTALL_LOCATION:0:2} == ~[/a-z] ]] && INSTALL_LOCATION="${INSTALL_LOCATION/#\~/$HOME}"
-    export INSTALL_LOCATION=$(realpath ${INSTALL_LOCATION})
+    execute-always mkdir -p $INSTALL_LOCATION && export INSTALL_LOCATION=$(realpath ${INSTALL_LOCATION})
 }
 
 function previous-install-prompt() {
-    if [[ -d $INSTALL_LOCATION ]]; then
+    files=$(shopt -s nullglob dotglob; echo ${INSTALL_LOCATION}/*)
+    if (( ${#files} )); then
         echo "FIO has already been installed into ${INSTALL_LOCATION}... It's suggested that you fio_uninstall.sh before re-running this script."
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to proceed anyway? (y/n)${COLOR_NC}" && read -p " " PROCEED
