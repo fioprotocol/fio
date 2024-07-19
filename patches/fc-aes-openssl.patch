@@ -5,7 +5,7 @@ index 93dc1a0..f3c4c99 100644
 @@ -382,64 +382,4 @@ std::vector<char> aes_load( const fc::path& file, const fc::sha512& key )
     return aes_decrypt( key, cipher );
  } FC_RETHROW_EXCEPTIONS( warn, "", ("file",file) ) }
-
+ 
 -/* This stuff has to go somewhere, I guess this is as good a place as any...
 -  OpenSSL isn't thread-safe unless you give it access to some mutexes,
 -  so the CRYPTO_set_id_callback() function needs to be called before there's any
@@ -41,7 +41,7 @@ index 93dc1a0..f3c4c99 100644
 -    openssl_mutexes[type].unlock();
 -}
 -
--// Warning: Things get complicated if third-party libraries also try to install their their own
+-// Warning: Things get complicated if third-party libraries also try to install their their own 
 -// OpenSSL thread functions.  Right now, we don't install our own handlers if another library has
 -// installed them before us which is a partial solution, but you'd really need to evaluate
 -// each library that does this to make sure they will play nice.
