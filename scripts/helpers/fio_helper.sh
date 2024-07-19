@@ -669,7 +669,7 @@ function apply-clang-ubuntu22-patches() {
 
 function apply-fio-darwin14-patches() {
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
-        && git checkout -- .
+        && git checkout -- ."
 
     echo && echo "Applying aes openssl patch to fio fc submodule for Darwin 14..."
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
@@ -683,7 +683,7 @@ function apply-fio-darwin14-patches() {
 function apply-fio-ubuntu22-patches() {
     # Patch fc submodule
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
-        && git checkout -- .
+        && git checkout -- ."
 
     echo && echo "Applying openssl compat patch to fio fc submodule for Ubuntu 22..."
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
@@ -695,7 +695,7 @@ function apply-fio-ubuntu22-patches() {
 
     # Patch yubihsm submodule
     execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
-        && git checkout -- .
+        && git checkout -- ."
 
     echo && echo "Applying openssl compat patch to fio yubihsm submodule for Ubuntu 22..."
     execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
