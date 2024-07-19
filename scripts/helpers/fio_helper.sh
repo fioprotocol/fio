@@ -678,6 +678,14 @@ function apply-fio-darwin14-patches() {
     echo && echo "Applying elliptic_r1 openssl patch to fio fc submodule for Darwin 14..."
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
         && git apply \"$REPO_ROOT/patches/fc-elliptic_r1-openssl.patch\""
+    
+    # Patch yubihsm submodule
+    execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
+        && git checkout -- ."
+
+    echo && echo "Applying openssl compat patch to fio yubihsm submodule for Ubuntu 22..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
+        && git apply \"$REPO_ROOT/patches/yubihsm-openssl-compat.patch\""
 }
 
 function apply-fio-ubuntu22-patches() {
