@@ -29,6 +29,9 @@ if [ ! -d /usr/local/Frameworks ]; then
 	exit 1;
 fi
 
+# Apply patches to fio fc and yubihsm submodules for MacOS Darwin 14+ openssl compatibility
+[[ $OS_MAJ -ge 14 ]] && apply-fio-darwin14-patches
+
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
