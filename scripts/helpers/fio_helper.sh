@@ -20,13 +20,14 @@ elif [[ $NAME == "Ubuntu" ]]; then
     if ! APTGET=$(command -v apt-get 2>/dev/null); then echo "${COLOR_RED}APT-GET must be installed to compile FIO${COLOR_NC}" && exit 1; fi
 fi
 
-echo VERSION: $VERSION_ID
-
 # Obtain dependency versions; Must come first in the script
 . ./scripts/helpers/.environment
 
 # Load general helpers
 . ./scripts/helpers/general.sh
+
+[[ $ARCH == "Linux" ]] && echo "OS VERSION: ${VERSION_ID}"
+[[ $ARCH == "Darwin" ]] && echo "OS VERSION: ${OS_VER}"
 
 function setup() {
     if $VERBOSE; then
@@ -650,7 +651,7 @@ function install-clang() {
 }
 
 function apply-clang-ubuntu20-patches() {
-    echo && echo "Applying glibc 2.31 patch to clang for ubuntu 20+..."
+    echo && echo "Applying glibc 2.31 patch to clang for Ubuntu 20+..."
     execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME}/projects/compiler-rt \
         && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/clang8-sanitizer_common-glibc2.31-947f969.patch\""
@@ -659,29 +660,53 @@ function apply-clang-ubuntu20-patches() {
 function apply-clang-ubuntu22-patches() {
     apply-clang-ubuntu20-patches
 
-    echo && echo "Applying standard headers patch and limits patch to clang for ubuntu 22..."
+    echo && echo "Applying standard headers patch and limits patch to clang for Ubuntu 22..."
     execute bash -c "cd ${TEMP_DIR}/${CLANG_NAME} \
         && git checkout -- . \
         && git apply \"$REPO_ROOT/patches/clang8-standardheaders.patch\" \
         && git apply \"$REPO_ROOT/patches/clang8-limits.patch\""
 }
 
-function apply-fio-ubuntu22-patches() {
-    apply-fio-fc-ubuntu22-patches
-    apply-fio-yubihsm-ubuntu22-patches
-}
-
-function apply-fio-fc-ubuntu22-patches() {
-    echo && echo "Applying openssl compat patch to fio fc submodule for ubuntu 22..."
+function apply-fio-darwin14-patches() {
     execute bash -c "cd ${REPO_ROOT}/libraries/fc \
-        && git checkout -- . \
-        && git apply \"$REPO_ROOT/patches/fc-openssl-compat.patch\""
+        && git checkout -- ."
+
+    echo && echo "Applying aes openssl patch to fio fc submodule for Darwin 14..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/fc \
+        && git apply \"$REPO_ROOT/patches/fc-aes-openssl.patch\""
+
+    echo && echo "Applying elliptic_r1 openssl patch to fio fc submodule for Darwin 14..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/fc \
+        && git apply \"$REPO_ROOT/patches/fc-elliptic_r1-openssl.patch\""
+    
+    # Patch yubihsm submodule
+    execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
+        && git checkout -- ."
+
+    echo && echo "Applying openssl compat patch to fio yubihsm submodule for Ubuntu 22..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
+        && git apply \"$REPO_ROOT/patches/yubihsm-openssl-compat.patch\""
 }
 
-function apply-fio-yubihsm-ubuntu22-patches() {
-    echo && echo "Applying openssl compat patch to fio yubihsm submodule for ubuntu 22..."
+function apply-fio-ubuntu22-patches() {
+    # Patch fc submodule
+    execute bash -c "cd ${REPO_ROOT}/libraries/fc \
+        && git checkout -- ."
+
+    echo && echo "Applying openssl compat patch to fio fc submodule for Ubuntu 22..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/fc \
+        && git apply \"$REPO_ROOT/patches/fc-openssl-compat.patch\""
+
+    echo && echo "Applying elliptic_r1 openssl patch to fio fc submodule for Darwin 14..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/fc \
+        && git apply \"$REPO_ROOT/patches/fc-elliptic_r1-openssl.patch\""
+
+    # Patch yubihsm submodule
     execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
-        && git checkout -- . \
+        && git checkout -- ."
+
+    echo && echo "Applying openssl compat patch to fio yubihsm submodule for Ubuntu 22..."
+    execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
         && git apply \"$REPO_ROOT/patches/yubihsm-openssl-compat.patch\""
 }
 
