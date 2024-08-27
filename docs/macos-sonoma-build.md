@@ -95,33 +95,31 @@ this action will update homebrew itself, incl its config, dependencies, etc. See
 <user id> ALL=(ALL) NOPASSWD:ALL
 ```
 
-8) Download the action Apple MacOS XCode installable
-- The MacOS Xcode installable may be downloaded using the xcodeinstall app (requires authentication) or it may be downloaded manually
-via the Apple downloads webpage.
-- Regardless of which option is used, your Apple creds must be entered. In addition if MFA is enabled that will be required too.
+The MacOS Xcode installable may be downloaded using the xcodeinstall app (requires authentication) or it may be downloaded manually
+via the Apple downloads webpage. Regardless of which option is used, your Apple creds must be entered. In addition if MFA is enabled that will be required too.
 
-    1) To download the installable manually
+8) Manual download of Apple MacOS XCode installable
+    1) From the Apple Developers Site
         1) Go to https://developer.apple.com/download/all/ in your browser
         2) Log in using your Apple creds
         3) In the search bar enter Xcode 11.7
         4) Click 'View Details'
         5) Click the download arrow to download 'Xcode 11.7.xip'
-        6) Transfer the xip file to the respective machine (Note for my aws instance I use FileZilla)
-        7) xcodeinstall will install the file from its download directory, however, this must be created manually if not
-using xcodeinstall for the download
-            * Run 'xcodeinstall list' (disregard the authentication errror)
-            * Move the app to the xcodeinstall download directory using the command; mv "Xcode 11.7.zip" ~/.xcodeinstall/download
-    2) Use xcodeinstall to download the xcode installable
-        1) Authenticate into Apple. Note that if MFA is active the xcodeinstall app will prompt you for that code (will go to Iphone, etc)
-            1) xcodeinstall authenticate
-                1) Enter your Apple ID username:
-                2) Enter your Apple ID password:
-                3) If MFA is active: Two factors authentication is enabled, enter your 2FA code:
-                4) Verify authentication has successfully executed (Note that this action just create an Apple session for the download and install)
-        2) xcodeinstall download --name "Xcode 11.7.xip"
-
-9) Install Xcode
-> xcodeinstall install --name "Xcode 11.7.xip"
+    2) From the FIO AWS S3 bucket 
+        1) Download via the browser by going to the FIO AWS S3 bucket at https://us-east-1.console.aws.amazon.com/s3/buckets/fioprotocol?region=us-east-1&bucketType=general&prefix=build-tools/&showversions=false, selecting the Xcode xip file and clicking download
+        2) Download the xip file using wget, i.e. ```wget https://fioprotocol.s3.amazonaws.com/build-tools/Xcode+11.7.xip```
+    3) Transfer the xip file to the respective machine (Note for my aws instance I use FileZilla)
+    4) xcodeinstall will install the file from its download directory, however, this must be created manually if not using xcodeinstall for the download
+      1) Run ```xcodeinstall list``` (disregard the authentication error)
+      2) Move the app to the xcodeinstall download directory using the command; mv "Xcode 11.7.zip" ~/.xcodeinstall/download
+9) Automated install of the Apple MacOS XCode installable using xcodeinstall
+    1) ```xcodeinstall authenticate``` (may request a 2MFA code if enabled)
+        1) Enter your Apple ID username:
+        2) Enter your Apple ID password:
+        3) If MFA is active: Two factors authentication is enabled, enter your 2FA code:
+        4) Verify authentication has successfully executed (Note that this action just create an Apple session for the download and install)
+    2) ```xcodeinstall download --name "Xcode 11.7.xip"```
+    3) ```xcodeinstall install --name "Xcode 11.7.xip"```
 
 10) Verify the output contains the following
 ```
