@@ -77,6 +77,7 @@ extern const char *const state_history_plugin_abi = R"({
         {
             "name": "action_receipt_v0", "fields": [
                 { "name": "receiver", "type": "name" },
+                { "name": "response", "type": "string" },
                 { "name": "act_digest", "type": "checksum256" },
                 { "name": "global_sequence", "type": "uint64" },
                 { "name": "recv_sequence", "type": "uint64" },

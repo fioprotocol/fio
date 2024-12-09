@@ -537,6 +537,7 @@ namespace fc {
     datastream<ST> &operator<<(datastream<ST> &ds, const history_serial_wrapper<eosio::chain::action_receipt> &obj) {
         fc::raw::pack(ds, fc::unsigned_int(0));
         fc::raw::pack(ds, as_type<uint64_t>(obj.obj.receiver.value));
+        fc::raw::pack(ds, as_type<std::string>(obj.obj.response));
         fc::raw::pack(ds, as_type<eosio::chain::digest_type>(obj.obj.act_digest));
         fc::raw::pack(ds, as_type<uint64_t>(obj.obj.global_sequence));
         fc::raw::pack(ds, as_type<uint64_t>(obj.obj.recv_sequence));
