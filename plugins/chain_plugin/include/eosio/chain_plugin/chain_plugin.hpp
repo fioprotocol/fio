@@ -1537,6 +1537,18 @@ namespace eosio {
                                       chain::plugin_interface::next_function<cancel_funds_request_results> next);
             //end added for cancel request
 
+            //Begin Added for transfer_tokens_fio_add api method
+            using transfer_tokens_fio_add_params = fc::variant_object;
+
+            struct transfer_tokens_fio_add_results {
+                chain::transaction_id_type transaction_id;
+                fc::variant processed;
+            };
+
+            void transfer_tokens_fio_add(const transfer_tokens_fio_add_params &params,
+                                 chain::plugin_interface::next_function<transfer_tokens_fio_add_results> next);
+            //end
+
             //Begin Added for record send api method
             using record_obt_data_params = fc::variant_object;
 
@@ -1889,6 +1901,7 @@ FC_REFLECT(eosio::chain_apis::read_write::set_fio_domain_public_results, (transa
 FC_REFLECT(eosio::chain_apis::read_write::register_fio_domain_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::reject_funds_request_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::cancel_funds_request_results, (transaction_id)(processed));
+FC_REFLECT(eosio::chain_apis::read_write::transfer_tokens_fio_add_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::record_obt_data_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::record_send_results, (transaction_id)(processed));
 FC_REFLECT(eosio::chain_apis::read_write::submit_bundled_transaction_results, (transaction_id)(processed));
