@@ -11,7 +11,8 @@ echo "Disk space available: ${DISK_AVAIL}G"
 [[ $MEM_GIG -lt 7 ]] && echo "Your system must have 7 or more Gigabytes of physical memory installed." && exit 1
 [[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && echo " - You must have at least ${DISK_MIN}GB of available storage to install FIO." && exit 1
 
-echo ""
+echo
+[[ $ARCH == "Darwin" && ( $OS_MAJ -ne 11 && $OS_MAJ -ne 14 ) ]] && echo " - You must be running MacOS 11.0 or 14.0 to build FIO." && exit 1
 
 echo "${COLOR_CYAN}[Ensuring xcode-select installation]${COLOR_NC}"
 if ! XCODESELECT=$( command -v xcode-select ); then echo " - xcode-select must be installed in order to proceed!" && exit 1;
@@ -29,13 +30,16 @@ if [ ! -d /usr/local/Frameworks ]; then
 	exit 1;
 fi
 
+# Apply patches to fio fc and yubihsm submodules for MacOS Darwin 14+ openssl compatibility
+[[ $OS_MAJ -eq 14 ]] && apply-fio-darwin14-patches && echo
+
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
 ensure-brew-packages "${REPO_ROOT}/scripts/helpers/build_darwin_deps"
 [[ -z "${CMAKE}" ]] && export CMAKE="/usr/local/bin/cmake"
 # CLANG Installation
-build-clang
+ensure-clang
 # LLVM Installation
 ensure-llvm
 # BOOST Installation

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
-VERSION=2.1
+
 ##########################################################################
 # This is the FIO automated install script for Linux and Mac OS.
 # This file was downloaded from https://github.com/fioprotocol/fio
@@ -32,49 +32,105 @@ VERSION=2.1
 # https://github.com/fioprotocol/fio/blob/master/LICENSE
 ##########################################################################
 
+function usage() {
+   printf "Usage: $0 OPTION...
+  -a      Build and Install FIO
+  -t      Build and Install the FIO Contract Development Toolkit (CDT), to support FIO contract development.
+   \\n" "$0" 1>&2
+   exit 1
+}
+
+BUILD_FIO=${BUILD_FIO:-false}
+DEBUG=${DEBUG:-false}
+if [ $# -ne 0 ]; then
+   while getopts "ado:s:b:i:ycdhmP" opt; do
+      case "${opt}" in
+      a)
+         BUILD_FIO=true
+         ;;
+      d)
+         DEBUG=true
+         set -x
+         ;;
+      o|s|b|i|y|c|d|m|P)
+         #NOOP: passed to fio_build.sh
+         ;;
+      h)
+         usage
+         ;;
+      ?)
+         echo "Invalid Option!" 1>&2
+         usage
+         ;;
+      :)
+         echo "Invalid Option: -${OPTARG} requires an argument." 1>&2
+         usage
+         ;;
+      *)
+         usage
+         ;;
+      esac
+   done
+fi
+
+# Script env
+SCRIPT_VERSION=2.1
+MY_SCRIPT_DIR=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+
+# Build fio first if -a argument was given
+if $BUILD_FIO; then
+  echo "Building FIO..."
+  # Pass all args to fio_build.sh
+  $MY_SCRIPT_DIR/fio_build.sh "$@"
+  echo
+fi
+
 # Ensure we're in the repo root and not inside of scripts
-cd $( dirname "${BASH_SOURCE[0]}" )/..
+cd $(dirname "${BASH_SOURCE[0]}")/..
 
 # Load fio specific helper functions
 . ./scripts/helpers/fio_helper.sh
 
+# Load build env (generated during build)
+. ./scripts/.build_env
+
+$DEBUG && echo "Capturing env" && env > fio_build_env.out
+
 [[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
-[[ ! -f ${BUILD_DIR}/CMakeCache.txt ]] && printf "${COLOR_RED}Please run ./fio_build.sh first!${COLOR_NC}" && exit 1
+[[ ! -f ${BUILD_DIR}/CMakeCache.txt ]] && printf "${COLOR_RED}Please run ./fio_build.sh first!${COLOR_NC}" && echo && exit 1
+
+# Several installs may occur during build, incl boost, cmake, clang and llvm; verify and then install fio
+[[ ! (-d ${EOSIO_INSTALL_DIR} \
+  && -x ${CMAKE}) \
+  && -d ${BOOST_ROOT} \
+  && (${BUILD_CLANG} == false || -d ${CLANG_ROOT}) \
+  && -d ${LLVM_ROOT} ]] \
+  && printf "${COLOR_RED}The FIO install, ${EOSIO_INSTALL_DIR}, is corrupt! Please rebuild using ./fio_build.sh then re-install!${COLOR_NC}" && echo && exit 1
+
 echo "${COLOR_CYAN}====================================================================================="
 echo "========================== ${COLOR_WHITE}Starting FIO Installation${COLOR_CYAN} ==============================${COLOR_NC}"
 execute cd $BUILD_DIR
 execute make install
 execute cd ..
 
-if hash eosio-cpp 2>/dev/null; then
-    echo $'Restart Detected\n\n'
-else
-    cd ../
-    [ -d fio.cdt ] || git clone https://www.github.com/fioprotocol/fio.cdt.git
-    sleep 2s
-    cd fio.cdt
-    git submodule update --init --recursive
-    ./build.sh
-    sudo ./install.sh
-fi
-
-printf "\n${bldred}\n"
-printf "      ___                       ___                 \n"
-printf "     /\\__\\                     /\\  \\            \n"
-printf "    /:/ _/_       ___         /::\\  \\             \n"
-printf "   /:/ /\\__\\     /\\__\\       /:/\\:\\  \\       \n"
-printf "  /:/ /:/  /    /:/__/      /:/  \\:\\  \\          \n"
-printf " /:/_/:/  /    /::\\  \\     /:/__/ \\:\\__\\       \n"
-printf " \\:\\/:/  /     \\/\\:\\  \\__  \\:\\  \\ /:/  /   \n"
-printf "  \\::/__/         \\:\\/\\__\\  \\:\\  /:/  /      \n"
-printf "   \\:\\  \\          \\::/  /   \\:\\/:/  /        \n"
-printf "    \\:\\__\\         /:/  /     \\::/  /           \n"
-printf "     \\/__/         \\/__/       \\/__/             \n"
-printf "  FOUNDATION FOR INTERWALLET OPERABILITY            \n\n${COLOR_NC}"
+printf "${COLOR_RED}\n"
+printf "      ___                       ___               \n"
+printf "     /\\__\\                     /\\  \\          \n"
+printf "    /:/ _/_      ___          /::\\  \\           \n"
+printf "   /:/ /\\__\\    /\\__\\        /:/\\:\\  \\     \n"
+printf "  /:/ /:/  /   /:/__/       /:/  \\:\\  \\        \n"
+printf " /:/_/:/  /   /::\\  \\      /:/__/ \\:\\__\\     \n"
+printf " \\:\\/:/  /    \\/\\:\\  \\__   \\:\\  \\ /:/  / \n"
+printf "  \\::/__/        \\:\\/\\__\\   \\:\\  /:/  /    \n"
+printf "   \\:\\  \\         \\::/  /    \\:\\/:/  /      \n"
+printf "    \\:\\__\\        /:/  /      \\::/  /         \n"
+printf "     \\/__/        \\/__/        \\/__/           \n"
+printf "  FOUNDATION FOR INTERWALLET OPERABILITY          \n\n${COLOR_NC}"
 
 printf "==============================================================================================\\n"
-printf "${COLOR_GREEN}FIO has been installed into ${CACHED_INSTALL_PATH}/bin${COLOR_NC}"
+printf "${COLOR_GREEN}FIO has been installed to ${CACHED_INSTALL_PATH}${COLOR_NC}"
 printf "\\n${COLOR_YELLOW}Uninstall with: ${REPO_ROOT}/scripts/fio_uninstall.sh${COLOR_NC}\\n"
 printf "==============================================================================================\\n\\n"
 resources
+printf "\n==============================================================================================\\n\\n"

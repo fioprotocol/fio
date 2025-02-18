@@ -1,0 +1,20 @@
+diff --git a/include/llvm/Demangle/MicrosoftDemangleNodes.h b/include/llvm/Demangle/MicrosoftDemangleNodes.h
+index 9e3478e9fd2..e2c48a03742 100644
+--- a/include/llvm/Demangle/MicrosoftDemangleNodes.h
++++ b/include/llvm/Demangle/MicrosoftDemangleNodes.h
+@@ -4,6 +4,8 @@
+ #include "llvm/Demangle/Compiler.h"
+ #include "llvm/Demangle/StringView.h"
+ #include <array>
++#include <string>
++#include <cstdint>
+
+ class OutputStream;
+
+@@ -602,4 +604,4 @@ struct FunctionSymbolNode : public SymbolNode {
+ } // namespace ms_demangle
+ } // namespace llvm
+
+-#endif
+\ No newline at end of file
++#endif

@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3e1f2a7..c4ff9ab 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -136,6 +136,10 @@ endif( ZLIB_FOUND )
+ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBSOCKETPP_STRICT_MASKING")
+ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_ASIO_HAS_STD_CHRONO")
+
++# Set openssl 1.1.0 compatibility for ubuntu 22
++set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DOPENSSL_API_COMPAT=0x10100000L")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENSSL_API_COMPAT=0x10100000L")
++
+ target_include_directories(fc
+   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+     ${Boost_INCLUDE_DIR}
