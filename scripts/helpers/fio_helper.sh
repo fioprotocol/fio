@@ -384,9 +384,9 @@ function build-boost() {
     echo "Building boost..."
     execute bash -c "cd ${TEMP_DIR} \
         && rm -rf boost_${BOOST_VERSION} \
-        && curl -LO https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION_MAJOR}.${BOOST_VERSION_MINOR}.${BOOST_VERSION_PATCH}/source/boost_${BOOST_VERSION}.tar.bz2 \
-        && tar -xjf boost_${BOOST_VERSION}.tar.bz2 \
-        && rm -f boost_${BOOST_VERSION}.tar.bz2 \
+        && wget https://archives.boost.io/release/${BOOST_VERSION//_/\.}/source/boost_${BOOST_VERSION}.tar.gz \
+        && tar -xf boost_${BOOST_VERSION}.tar.gz \
+        && rm -f boost_${BOOST_VERSION}.tar.gz \
         && cd boost_${BOOST_VERSION} \
         && SDKROOT="$SDKROOT" ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=${FIO_APTS_DIR}"
 }
