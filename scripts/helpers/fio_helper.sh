@@ -226,11 +226,12 @@ function ensure-openssl() {
 }
 
 # Check previous build of openssl, incl version
+# export LD_LIBRARY_PATH=/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 function is-openssl-built() {
-    if [[ -x ${TEMP_DIR}/${OPENSSL_NAME}/build/apps/openssl ]]; then
+    if [[ -x ${TEMP_DIR}/${OPENSSL_NAME}/apps/openssl ]]; then
         TMP_LD_LIB_PATH=${LD_LIBRARY_PATH}
-        export LD_LIBRARY_PATH=${${TEMP_DIR}/${OPENSSL_NAME}LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-        openssl_version=$(${TEMP_DIR}/${OPENSSL_NAME}/build/apps/openssl version | awk '{print $2}')
+        export LD_LIBRARY_PATH=${TEMP_DIR}/${OPENSSL_NAME}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+        openssl_version=$(${TEMP_DIR}/${OPENSSL_NAME}/apps/openssl version | awk '{print $2}')
         export LD_LIBRARY_PATH=${TMP_LD_LIB_PATH}
         if [[ $openssl_version =~ 1.1.1 ]]; then
             return
