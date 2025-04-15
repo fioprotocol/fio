@@ -65,6 +65,9 @@ export NO_CPP17=${NO_CPP17:-false}
 export PIN_COMPILER=${PIN_COMPILER:-false}
 export BUILD_CLANG=${BUILD_CLANG:-false}
 
+# OPENSSL
+export BUILD_OPENSSL=${BUILD_OPENSSL:-true}
+
 export CORE_SYMBOL_NAME=${CORE_SYMBOL_NAME:-FIO}
 
 export CPU_CORES=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)

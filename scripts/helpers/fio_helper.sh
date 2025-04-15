@@ -29,6 +29,13 @@ fi
 [[ $ARCH == "Linux" ]] && echo "OS VERSION: ${VERSION_ID}"
 [[ $ARCH == "Darwin" ]] && echo "OS VERSION: ${OS_VER}"
 
+function echo-to-envfile() {
+    local env_name="${1}"
+    local env_value="${2}"
+
+    echo "export ${env_name}=${env_value}" >>./scripts/.build_env
+}
+
 function setup() {
     if $VERBOSE; then
         echo "VERBOSE: ${VERBOSE}"
@@ -193,6 +200,88 @@ function prompt-mongo-install() {
             esac
         done
     fi
+}
+
+OPENSSL_ROOT=/opt/openssl
+OPENSSL_NAME=openssl-1.1.1w
+OPENSSL_TAG_NAME=OpenSSL_1_1_1w
+# Check openssl root (install dir) for openssl, otherwise, download, build and install
+function ensure-openssl() {
+    if $BUILD_OPENSSL; then
+        echo "${COLOR_CYAN}[Ensuring OpenSSL support]${COLOR_NC}"
+        if ! is-openssl-installed; then
+            # Check tmp dir for previous openssl build
+            if ! is-openssl-built; then
+                build-openssl
+            fi
+            install-openssl ${OPENSSL_ROOT}
+            echo " - OpenSSL 1.1.1w successfully installed @ ${OPENSSL_ROOT}"
+            echo ""
+        else
+            echo " - OpenSSL 1.1.1w found @ ${OPENSSL_ROOT}"
+            echo ""
+        fi
+        export LD_LIBRARY_PATH=/opt/openssl/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+        export OPENSSL_ROOT_DIR=/opt/openssl
+        export PKG_CONFIG_PATH=/opt/openssl/lib/pkgconfig
+    fi
+}
+
+# Check previous build of openssl, incl version
+function is-openssl-built() {
+    if [[ -x ${TEMP_DIR}/${OPENSSL_NAME}/build/apps/openssl ]]; then
+        openssl_version=$(${TEMP_DIR}/${OPENSSL_NAME}/build/apps/openssl version | awk '{print $2}')
+        if [[ $openssl_version =~ 1.1.1 ]]; then
+            return
+        fi
+    fi
+    false
+}
+
+# Check previous install of openssl, incl version
+function is-openssl-installed() {
+    if [[ -x ${OPENSSL_ROOT}/bin/openssl ]]; then
+        openssl_version=$(${OPENSSL_ROOT}/bin/openssl version | awk '{print $2}')
+        if [[ $openssl_version =~ 1.1.1 ]]; then
+            return
+        fi
+    fi
+    false
+}
+
+function clean-openssl() {
+    execute bash -c "rm -rf ${TEMP_DIR}/${OPENSSL_NAME}"
+}
+
+# Clone openssl
+function clone-openssl() {
+    execute bash -c "cd ${TEMP_DIR} \
+        && git clone https://github.com/openssl/openssl.git ${OPENSSL_NAME} \
+        && cd ${OPENSSL_NAME} && git checkout ${OPENSSL_TAG_NAME}"
+}
+
+# Download openssl
+function download-openssl() {
+    execute bash -c "cd ${TEMP_DIR} \
+        && curl -LO https://github.com/openssl/openssl/releases/download/${OPENSSL_TAG_NAME}/${OPENSSL_NAME}.tar.gz \
+        && tar -xzf openssl-1.1.1w.tar.gz"
+}
+
+# Build openssl in temp dir
+function build-openssl() {
+    echo "Building openssl..."
+    clean-openssl
+    download-openssl
+    execute bash -c "cd ${TEMP_DIR}/${OPENSSL_NAME} \
+        && ./config --prefix=${OPENSSL_ROOT} \
+        && make -j${JOBS}"
+}
+
+# Install openssl
+function install-openssl() {
+    echo "Installing openssl..."
+    execute bash -c "cd ${TEMP_DIR}/${OPENSSL_NAME} \
+        && sudo make install"
 }
 
 function ensure-compiler() {
@@ -708,11 +797,4 @@ function apply-fio-ubuntu22-patches() {
     echo && echo "Applying openssl compat patch to fio yubihsm submodule for Ubuntu 22..."
     execute bash -c "cd ${REPO_ROOT}/libraries/yubihsm \
         && git apply \"$REPO_ROOT/patches/yubihsm-openssl-compat.patch\""
-}
-
-function echo-to-envfile() {
-    local env_name="${1}"
-    local env_value="${2}"
-
-    echo "export ${env_name}=${env_value}" >>./scripts/.build_env
 }
