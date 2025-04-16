@@ -207,6 +207,16 @@ OPENSSL_NAME=openssl-1.1.1w
 OPENSSL_TAG_NAME=OpenSSL_1_1_1w
 # Check openssl root (install dir) for openssl, otherwise, download, build and install
 function ensure-openssl() {
+    if ! $DO_OPENSSL; then
+        # Use set -e to exit on error, unset it before moving on
+        set -e
+        which openssl &>/dev/null || (
+            echo "${COLOR_RED}ERROR: Unable to find openssl! Set DO_OPENSSL=true to install it. ${COLOR_NC}"
+            false
+        )
+        set -e
+    fi
+
     if $DO_OPENSSL; then
         echo "${COLOR_CYAN}[Ensuring OpenSSL support]${COLOR_NC}"
         if ! is-openssl-installed; then
@@ -304,6 +314,7 @@ function do-openssl-postinstall() {
     sudo ln -s ${OPENSSL_ROOT}/lib/libcrypto.so.1.1 /usr/local/lib
     sudo ln -s ${OPENSSL_ROOT}/lib/libssl.so.1.1 /usr/local/lib
 
+    sudo ldconfig /usr/local/lib
     export LD_LIBRARY_PATH=/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     export OPENSSL_ROOT_DIR=${OPENSSL_ROOT}
     export PKG_CONFIG_PATH=${OPENSSL_ROOT}/lib/pkgconfig
