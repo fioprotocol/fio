@@ -27,6 +27,8 @@ echo
 $ENABLE_COVERAGE_TESTING && EXTRA_DEPS+=(lcov,dpkg\ -s)
 ensure-apt-packages "${REPO_ROOT}/scripts/helpers/build_ubuntu_deps" $(echo ${EXTRA_DEPS[@]})
 
+# OpenSSL Installation
+ensure-openssl
 # Handle clang/compiler
 ensure-compiler
 # CMAKE Installation
