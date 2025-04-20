@@ -384,7 +384,7 @@ function build-boost() {
     echo "Building boost..."
     execute bash -c "cd ${TEMP_DIR} \
         && rm -rf boost_${BOOST_VERSION} \
-        && curl -LO https://archives.boost.io/release/${BOOST_VERSION//_/\.}/source/boost_${BOOST_VERSION}.bz2 \
+        && curl -LO https://archives.boost.io/release/${BOOST_VERSION//_/\.}/source/boost_${BOOST_VERSION}.tar.bz2 \
         && tar -xjf boost_${BOOST_VERSION}.tar.bz2 \
         && rm -f boost_${BOOST_VERSION}.tar.bz2 \
         && cd boost_${BOOST_VERSION} \
