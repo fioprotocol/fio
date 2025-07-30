@@ -120,11 +120,14 @@ namespace fioio {
     }
 
     inline bool validateTokenNameFormat(const string &token) {
-        if(token == "*"){
+        if (token.length() >= 1 && token.length() <= 128) {
+            if (token.find_first_not_of("!@#$%^&*()_+=-;:,.<>/?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") !=
+                std::string::npos) {
+                return false;
+            }
             return true;
         }
-
-        return validateChainNameFormat(token);
+        return false;
     }
 
     inline bool validateTPIDFormat(const string &tpid) {
