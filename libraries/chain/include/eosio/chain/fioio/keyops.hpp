@@ -8,7 +8,9 @@
  *
  */
 
+#include <algorithm>
 #include <string>
+#include <vector>
 #include <eosio/chain/name.hpp>
 
 #pragma once
@@ -32,46 +34,54 @@ namespace fioio {
     };
 
 // result must be declared (for the worst case): char result[len * 2];
+// maxlen is the capacity of result. Returns the decoded length, or -1 if the
+// input holds a non-base58 character or the output would exceed maxlen.
     static int DecodeBase58(
-            const char *str, int len, unsigned char *result) {
+            const char *str, int len, unsigned char *result, int maxlen) {
+        if (str == nullptr || result == nullptr || len < 0 || maxlen < 1) return -1;
         int resultlen = 1;
-        if( str != nullptr ){
-            result[0] = 0;
-            for (int i = 0; i < len; i++) {
-                unsigned int carry = (unsigned int) ALPHABET_MAP[(unsigned char) str[i]];
-                for (int j = 0; j < resultlen; j++) {
-                    carry += (unsigned int) (result[j]) * 58;
-                    result[j] = (unsigned char) (carry & 0xff);
-                    carry >>= 8;
-                }
-                while (carry > 0) {
-                    result[resultlen++] = (unsigned int) (carry & 0xff);
-                    carry >>= 8;
-                }
+        result[0] = 0;
+        for (int i = 0; i < len; i++) {
+            const unsigned char c = (unsigned char) str[i];
+            if (c >= sizeof(ALPHABET_MAP)) return -1;
+            const signed char digit = (signed char) ALPHABET_MAP[c];
+            if (digit < 0) return -1;
+            unsigned int carry = (unsigned int) digit;
+            for (int j = 0; j < resultlen; j++) {
+                carry += (unsigned int) (result[j]) * 58;
+                result[j] = (unsigned char) (carry & 0xff);
+                carry >>= 8;
             }
-
-            for (int i = 0; i < len && str[i] == '1'; i++)
-                result[resultlen++] = 0;
-
-            // Poorly coded, but guaranteed to work.
-            for (int i = resultlen - 1, z = (resultlen >> 1) + (resultlen & 1);
-                 i >= z; i--) {
-                int k = result[i];
-                result[i] = result[resultlen - i - 1];
-                result[resultlen - i - 1] = k;
+            while (carry > 0) {
+                if (resultlen >= maxlen) return -1;
+                result[resultlen++] = (unsigned char) (carry & 0xff);
+                carry >>= 8;
             }
+        }
+
+        for (int i = 0; i < len && str[i] == '1'; i++) {
+            if (resultlen >= maxlen) return -1;
+            result[resultlen++] = 0;
+        }
+
+        // Reverse in place.
+        for (int i = resultlen - 1, z = (resultlen >> 1) + (resultlen & 1);
+             i >= z; i--) {
+            int k = result[i];
+            result[i] = result[resultlen - i - 1];
+            result[resultlen - i - 1] = k;
         }
         return resultlen;
     }
 
-    static uint64_t shorten_key(unsigned char *key) {
+    // key must hold at least 33 bytes.
+    static uint64_t shorten_key(const unsigned char *key) {
         uint64_t res = 0;
 
-        int done = 0;
         int i = 1;  // Ignore key head
         int len = 0;
         while (len <= 12) {
-            assert(i < 33); // Means the key has > 20 bytes with trailing zeroes...
+            if (i >= 33) break; // Key has > 20 bytes with trailing zeroes; stop at the buffer end.
 
             auto trimmed_char = uint64_t(key[i] & (len == 12 ? 0x0f : 0x1f));
             if (trimmed_char == 0) {
@@ -88,17 +98,21 @@ namespace fioio {
     }
 
     inline void key_to_account(const std::string &pubkey, std::string &new_account) {
+        new_account.clear();
+        if (pubkey.length() < 3) return;
         std::string pub_wif(pubkey);
         pub_wif.erase(0, 3); // Remove 'FIO'/'EOS' prefix from wif
-        unsigned char *pub_key_bytes = new unsigned char[37]; // 1 byte head, 256 bit key (32 bytes), 4 bytes checksum (usually)
+        // 1 byte head, 256 bit key (32 bytes), 4 bytes checksum; DecodeBase58 needs len * 2 in the worst case.
+        std::vector<unsigned char> pub_key_bytes(std::max<size_t>(pub_wif.length() * 2, 37), 0);
         // extract key from wif -- note that if done within EOSIO, this process will be done anyways; just use the pre-decoded pubkey.
-        DecodeBase58(pub_wif.c_str(), pub_wif.length(), pub_key_bytes);
-        uint64_t res = shorten_key(pub_key_bytes);
+        if (DecodeBase58(pub_wif.c_str(), (int) pub_wif.length(), pub_key_bytes.data(),
+                         (int) pub_key_bytes.size()) < 0) {
+            return; // Not a base58 key: no account.
+        }
+        uint64_t res = shorten_key(pub_key_bytes.data());
         name tn = name{res};
         std::string myStr = tn.to_string();
-        //throw an error for safety, since this code was just ported.
         new_account = myStr.substr(0, 12);
-        delete[] pub_key_bytes;
     }
 
     inline std::string key_to_account(const std::string &pubkey) {

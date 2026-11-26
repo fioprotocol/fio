@@ -3942,6 +3942,9 @@ if( options.count(name) ) { \
 
             get_whitelist_result result;
             FIO_404_ASSERT(p.fio_public_key.length() == FIOPUBLICKEYLENGTH, "No FIO names", fioio::ErrorNoFIONames);
+            FIO_400_ASSERT(fioio::isPubKeyValid(p.fio_public_key), "fio_public_key", p.fio_public_key.c_str(),
+                           "Invalid FIO Public Key",
+                           fioio::ErrorPubKeyValid);
 
             string account_name;
             fioio::key_to_account(p.fio_public_key, account_name);
